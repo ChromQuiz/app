@@ -410,7 +410,7 @@
         }
 
         function exportCSV() {
-            const rows = [['受付番号', ...Array.from({ length: 100 }, (_, i) => `${i + 1}問`)];
+            const rows = [['受付番号', ...Array.from({ length: 100 }, (_, i) => `${i + 1}問`)]];
             entryNumbers.forEach(entryNum => {
                 const row = [entryNum];
                 for (let q = 1; q <= 100; q++) {
