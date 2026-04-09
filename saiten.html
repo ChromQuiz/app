@@ -194,6 +194,9 @@
         <button class="mode-btn" id="mode-answer" onclick="setMode('answer')">
           ✏️ 解答欄設定（100問）
         </button>
+        <button class="mode-btn" id="mode-grid" onclick="setMode('grid')">
+          🔲 グリッド自動設定
+        </button>
         <div class="status" id="mode-status">トンボを4点クリックしてください</div>
       </div>
 
@@ -245,6 +248,7 @@
     let answerRegions = [];
     let dragStart = null;
     let dragCurrent = null;
+    let gridPoints = [];
 
     const canvas = document.getElementById('pdf-canvas');
     const overlay = document.getElementById('overlay');
@@ -324,6 +328,17 @@
         octx.fillText(i + 1, r.x + 2, r.y + 12);
       });
 
+      // グリッド設定中のクリック点
+      gridPoints.forEach((p, i) => {
+        octx.fillStyle = '#ff9800';
+        octx.beginPath();
+        octx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+        octx.fill();
+        octx.fillStyle = 'white';
+        octx.font = '10px sans-serif';
+        octx.fillText(i === 0 ? '1' : '100', p.x - 3, p.y + 4);
+      });
+
       // ドラッグ中
       if (dragStart && dragCurrent) {
         const x = Math.min(dragStart.x, dragCurrent.x);
@@ -345,6 +360,13 @@
           tomboPoints.push(pos);
           updateTomboStatus();
           drawOverlay();
+        }
+      } else if (mode === 'grid') {
+        gridPoints.push(pos);
+        drawOverlay();
+        if (gridPoints.length === 2) {
+          autoFillGrid(gridPoints[0], gridPoints[1]);
+          gridPoints = [];
         }
       } else {
         dragStart = pos;
@@ -392,15 +414,40 @@
 
     function setMode(m) {
       mode = m;
-      ['tombo', 'mark', 'answer'].forEach(name => {
+      gridPoints = [];
+      ['tombo', 'mark', 'answer', 'grid'].forEach(name => {
         document.getElementById(`mode-${name}`).classList.toggle('active', name === m);
       });
       const msgs = {
         tombo: 'トンボを4点クリックしてください（左上→右上→左下→右下）',
         mark: '受付番号マーク欄をドラッグで囲んでください（行ごとに3回）',
-        answer: '解答欄を1問ずつドラッグで囲んでください（1番から順に）'
+        answer: '解答欄を1問ずつドラッグで囲んでください（1番から順に）',
+        grid: '1番の左上角をクリック→100番の右下角をクリックしてください'
       };
       document.getElementById('mode-status').textContent = msgs[m];
+    }
+
+    function autoFillGrid(topLeft, bottomRight) {
+      answerRegions = [];
+      const cols = 5;
+      const rows = 20;
+      const totalW = bottomRight.x - topLeft.x;
+      const totalH = bottomRight.y - topLeft.y;
+      const cellW = totalW / cols;
+      const cellH = totalH / rows;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          answerRegions.push({
+            x: topLeft.x + c * cellW,
+            y: topLeft.y + r * cellH,
+            w: cellW,
+            h: cellH
+          });
+        }
+      }
+      updateAnswerCount();
+      drawOverlay();
+      alert('100問の解答欄を自動設定しました。ずれがある場合は手動で調整してください。');
     }
 
     function updateTomboStatus() {
@@ -444,6 +491,7 @@
       tomboPoints = [];
       markRegions = [];
       answerRegions = [];
+      gridPoints = [];
       updateTomboStatus();
       updateAnswerCount();
       drawOverlay();
