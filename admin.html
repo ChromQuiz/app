@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIQ the 13th 採点システム - 管理者</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: #4caf50;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #388e3c;
+        }
+
+        .btn.secondary {
+            background: #0f3460;
+            border: 1px solid #444;
+        }
+
+        .btn.secondary:hover {
+            background: #1a4a7a;
+        }
+
+        .btn.danger {
+            background: #b71c1c;
+        }
+
+        .btn.danger:hover {
+            background: #7f0000;
+        }
+
+        .section {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #aaa;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #0f3460;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .conflict-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .conflict-item {
+            background: #2a1500;
+            border: 1px solid #ff9800;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .conflict-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .conflict-q {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .scorer-results {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .scorer-result {
+            background: #333;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .scorer-result.correct {
+            background: #1b5e20;
+        }
+
+        .scorer-result.wrong {
+            background: #b71c1c;
+        }
+
+        .entry-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .entry-result {
+            background: #1a1a2e;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .entry-result img {
+            width: 100%;
+            height: 50px;
+            object-fit: contain;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+
+        .vote-detail {
+            color: #aaa;
+            font-size: 11px;
+        }
+
+        .final-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .final-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .final-btn.correct {
+            background: #1b5e20;
+            color: #4caf50;
+        }
+
+        .final-btn.correct:hover {
+            background: #2e7d32;
+        }
+
+        .final-btn.wrong {
+            background: #b71c1c;
+            color: #ef5350;
+        }
+
+        .final-btn.wrong:hover {
+            background: #c62828;
+        }
+
+        .final-btn.selected-correct {
+            background: #4caf50;
+            color: white;
+        }
+
+        .final-btn.selected-wrong {
+            background: #ef5350;
+            color: white;
+        }
+
+        .confirmed-badge {
+            background: #1a237e;
+            color: #90caf9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .no-conflict {
+            color: #aaa;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .progress-overview {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 3px;
+        }
+
+        .po-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #aaa;
+        }
+
+        .po-cell.done {
+            background: #1b5e20;
+            color: white;
+        }
+
+        .po-cell.conflict {
+            background: #e65100;
+            color: white;
+        }
+
+        .po-cell.confirmed {
+            background: #1a237e;
+            color: white;
+        }
+
+        .po-cell.inprogress {
+            background: #0d47a1;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        <button class="btn secondary" onclick="location.href='judge.html'">← 一覧へ</button>
+        <h1>管理者画面</h1>
+        <button class="btn" style="margin-left:auto" onclick="exportCSV()">CSV出力</button>
+    </div>
+
+    <div class="section">
+        <h2>採点状況</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-num" id="stat-total">-</div>
+                <div class="stat-label">総問題数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="stat-done">-</div>
+                <div class="stat-label">完了</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="stat-conflict">-</div>
+                <div class="stat-label">要確認</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="stat-confirmed">-</div>
+                <div class="stat-label">確定済み</div>
+            </div>
+        </div>
+        <div class="progress-overview" id="progress-overview"></div>
+    </div>
+
+    <div class="section">
+        <h2>要確認問題（食い違いあり）</h2>
+        <div class="conflict-list" id="conflict-list">
+            <div class="no-conflict">読み込み中...</div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDk-RpKCX5Hd-xNnrso_x5fd3S-vUoWKUc",
+            authDomain: "ciq-saiten.firebaseapp.com",
+            databaseURL: "https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ciq-saiten",
+            storageBucket: "ciq-saiten.firebasestorage.app",
+            messagingSenderId: "987606904586",
+            appId: "1:987606904586:web:b16876b8963a55a60d94f3"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const scorerRole = sessionStorage.getItem('scorer_role');
+        if (scorerRole !== 'admin') {
+            alert('管理者のみアクセスできます');
+            location.href = 'judge.html';
+        }
+
+        // 進捗概要グリッド初期化
+        const po = document.getElementById('progress-overview');
+        for (let i = 1; i <= 100; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'po-cell';
+            cell.id = `po-${i}`;
+            cell.textContent = i;
+            po.appendChild(cell);
+        }
+
+        let answersData = {};
+        let scoresData = {};
+        let entryNumbers = [];
+
+        async function init() {
+            const answersSnap = await db.ref('answers').get();
+            if (answersSnap.exists()) {
+                answersData = answersSnap.val();
+                entryNumbers = Object.keys(answersData).map(Number).sort((a, b) => a - b);
+            }
+
+            db.ref('scores').on('value', snap => {
+                scoresData = snap.val() || {};
+                updateView();
+            });
+        }
+
+        function updateView() {
+            let doneCount = 0;
+            let conflictCount = 0;
+            let confirmedCount = 0;
+            const conflictItems = [];
+
+            for (let q = 1; q <= 100; q++) {
+                const completedScorers = Object.keys(scoresData[`__completed__q${q}`] || {});
+                const isConfirmed = scoresData[`__final__q${q}`] !== undefined;
+                const allDone = completedScorers.length >= 3;
+
+                let hasConflict = false;
+                const conflictEntries = [];
+
+                if (allDone) {
+                    entryNumbers.forEach(entryNum => {
+                        const qScores = scoresData[entryNum]?.[`q${q}`] || {};
+                        const vals = Object.entries(qScores);
+                        const corrects = vals.filter(([, v]) => v === 'correct').length;
+                        const wrongs = vals.filter(([, v]) => v === 'wrong').length;
+                        if (corrects > 0 && wrongs > 0) {
+                            hasConflict = true;
+                            conflictEntries.push({ entryNum, scores: qScores });
+                        }
+                    });
+                }
+
+                // 進捗グリッド更新
+                const cell = document.getElementById(`po-${q}`);
+                cell.className = 'po-cell';
+                if (isConfirmed) {
+                    cell.classList.add('confirmed');
+                    confirmedCount++;
+                } else if (hasConflict) {
+                    cell.classList.add('conflict');
+                    conflictCount++;
+                } else if (allDone) {
+                    cell.classList.add('done');
+                    doneCount++;
+                } else if (completedScorers.length > 0) {
+                    cell.classList.add('inprogress');
+                }
+
+                if (hasConflict && !isConfirmed) {
+                    conflictItems.push({ q, conflictEntries, completedScorers });
+                }
+            }
+
+            document.getElementById('stat-total').textContent = 100;
+            document.getElementById('stat-done').textContent = doneCount;
+            document.getElementById('stat-conflict').textContent = conflictCount;
+            document.getElementById('stat-confirmed').textContent = confirmedCount;
+
+            renderConflicts(conflictItems);
+        }
+
+        function renderConflicts(items) {
+            const list = document.getElementById('conflict-list');
+            if (items.length === 0) {
+                list.innerHTML = '<div class="no-conflict">要確認問題はありません</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            items.forEach(({ q, conflictEntries, completedScorers }) => {
+                const finalData = scoresData[`__final__q${q}`] || {};
+
+                const item = document.createElement('div');
+                item.className = 'conflict-item';
+
+                // 採点者ごとの集計
+                const scorerSummary = {};
+                entryNumbers.forEach(entryNum => {
+                    const qScores = scoresData[entryNum]?.[`q${q}`] || {};
+                    Object.entries(qScores).forEach(([name, val]) => {
+                        if (!scorerSummary[name]) scorerSummary[name] = { correct: 0, wrong: 0 };
+                        scorerSummary[name][val]++;
+                    });
+                });
+
+                const scorerResultsHtml = Object.entries(scorerSummary).map(([name, counts]) => `
+          <div class="scorer-result">
+            ${name}: ○${counts.correct} ×${counts.wrong}
+          </div>
+        `).join('');
+
+                const entryResultsHtml = conflictEntries.map(({ entryNum, scores: entryScores }) => {
+                    const imageData = answersData[entryNum]?.cells[`q${q}`];
+                    const scoreDetail = Object.entries(entryScores)
+                        .map(([name, val]) => `${name}:${val === 'correct' ? '○' : '×'}`)
+                        .join(' ');
+                    const finalResult = finalData[entryNum];
+                    return `
+            <div class="entry-result">
+              <img src="${imageData || ''}" alt="${entryNum}番" />
+              <div>受付番号 ${entryNum}</div>
+              <div class="vote-detail">${scoreDetail}</div>
+              ${finalResult ? `<div style="color:${finalResult === 'correct' ? '#4caf50' : '#ef5350'};font-weight:bold">${finalResult === 'correct' ? '○確定' : '×確定'}</div>` : ''}
+            </div>
+          `;
+                }).join('');
+
+                const allConfirmed = conflictEntries.every(({ entryNum }) => finalData[entryNum]);
+
+                item.innerHTML = `
+          <div class="conflict-header">
+            <div class="conflict-q">${q}問</div>
+            ${allConfirmed ? '<span class="confirmed-badge">確定済み</span>' : ''}
+          </div>
+          <div class="scorer-results">${scorerResultsHtml}</div>
+          <div class="entry-results">${entryResultsHtml}</div>
+          <div class="final-btns">
+            <button class="final-btn correct ${allConfirmed ? 'selected-correct' : ''}"
+              onclick="setFinal(${q}, 'correct')">全員○に確定</button>
+            <button class="final-btn wrong ${allConfirmed ? 'selected-wrong' : ''}"
+              onclick="setFinal(${q}, 'wrong')">全員×に確定</button>
+          </div>
+        `;
+                list.appendChild(item);
+            });
+        }
+
+        async function setFinal(q, result) {
+            const finals = {};
+            entryNumbers.forEach(entryNum => {
+                const qScores = scoresData[entryNum]?.[`q${q}`] || {};
+                const vals = Object.values(qScores);
+                const corrects = vals.filter(v => v === 'correct').length;
+                const wrongs = vals.filter(v => v === 'wrong').length;
+                if (corrects > 0 && wrongs > 0) {
+                    finals[entryNum] = result;
+                }
+            });
+            await db.ref(`scores/__final__q${q}`).set(finals);
+        }
+
+        function exportCSV() {
+            const rows = [['受付番号', ...Array.from({ length: 100 }, (_, i) => `${i + 1}問`), '合計']];
+
+            entryNumbers.forEach(entryNum => {
+                const row = [entryNum];
+                let total = 0;
+                for (let q = 1; q <= 100; q++) {
+                    const qScores = scoresData[entryNum]?.[`q${q}`] || {};
+                    const finalData = scoresData[`__final__q${q}`] || {};
+
+                    let result;
+                    if (finalData[entryNum]) {
+                        result = finalData[entryNum] === 'correct' ? 1 : 0;
+                    } else {
+                        const vals = Object.values(qScores);
+                        const corrects = vals.filter(v => v === 'correct').length;
+                        const wrongs = vals.filter(v => v === 'wrong').length;
+                        if (corrects > wrongs) result = 1;
+                        else if (wrongs > corrects) result = 0;
+                        else result = '?';
+                    }
+                    row.push(result);
+                    if (result === 1) total++;
+                }
+                row.push(total);
+                rows.push(row);
+            });
+
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'saiten_result.csv';
+            a.click();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
