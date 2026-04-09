@@ -137,6 +137,10 @@
             background: #b71c1c;
         }
 
+        .badge.warn {
+            background: #e65100;
+        }
+
         input[type="file"] {
             color: white;
             margin-right: 12px;
@@ -171,6 +175,7 @@
     </div>
 
     <canvas id="work-canvas" style="display:none"></canvas>
+    <canvas id="transform-canvas" style="display:none"></canvas>
 
     <script>
         const firebaseConfig = {
@@ -187,15 +192,15 @@
         const db = firebase.database();
 
         const scorerRole = sessionStorage.getItem('scorer_role');
-        if (scorerRole !== 'admin') {
-            location.href = 'judge.html';
-        }
+        if (scorerRole !== 'admin') location.href = 'judge.html';
 
         pdfjsLib.GlobalWorkerOptions.workerSrc =
             'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         const workCanvas = document.getElementById('work-canvas');
         const workCtx = workCanvas.getContext('2d');
+        const transformCanvas = document.getElementById('transform-canvas');
+        const transformCtx = transformCanvas.getContext('2d');
 
         let config = null;
         let answers = [];
@@ -206,7 +211,7 @@
 
             const snap = await db.ref('config').get();
             if (!snap.exists()) {
-                alert('座標設定が見つかりません。座標設定ページで設定してください');
+                alert('座標設定が見つかりません');
                 return;
             }
             config = snap.val();
@@ -232,15 +237,25 @@
                 workCanvas.height = viewport.height;
                 await page.render({ canvasContext: workCtx, viewport }).promise;
 
-                const entryNumber = readEntryNumber(config.markCells);
+                // トンボ検出
+                const detectedTombo = detectTombo(config.tombo);
+
+                // アフィン変換行列を計算
+                const transform = calcTransform(config.tombo, detectedTombo);
+
+                // 受付番号読み取り（補正済み座標を使用）
+                const correctedMarkCells = config.markCells.map(cell => transformRegion(cell, transform));
+                const entryNumber = readEntryNumber(correctedMarkCells);
+
+                // 100問の解答欄を切り出し（補正済み座標を使用）
                 const cells = [];
                 for (let q = 0; q < 100; q++) {
-                    const r = config.answerRegions[q];
-                    const imageData = cutRegion(r);
+                    const correctedRegion = transformRegion(config.answerRegions[q], transform);
+                    const imageData = cutRegion(correctedRegion);
                     cells.push({ q: q + 1, imageData });
                 }
 
-                answers.push({ page: pageNum, entryNumber, cells });
+                answers.push({ page: pageNum, entryNumber, cells, tomboError: detectedTombo.error });
 
                 const pct = Math.round((pageNum / total) * 100);
                 document.getElementById('progress-bar').style.width = pct + '%';
@@ -251,24 +266,172 @@
             showResults();
         }
 
+        // トンボ検出：設定座標周辺の暗い領域の重心を求める
+        function detectTombo(refTombo) {
+            const detected = [];
+            const searchRadius = 50; // 探索範囲（px）
+            let error = false;
+
+            for (const ref of refTombo) {
+                const x1 = Math.max(0, Math.round(ref.x - searchRadius));
+                const y1 = Math.max(0, Math.round(ref.y - searchRadius));
+                const x2 = Math.min(workCanvas.width, Math.round(ref.x + searchRadius));
+                const y2 = Math.min(workCanvas.height, Math.round(ref.y + searchRadius));
+                const w = x2 - x1;
+                const h = y2 - y1;
+
+                if (w <= 0 || h <= 0) {
+                    detected.push({ x: ref.x, y: ref.y });
+                    error = true;
+                    continue;
+                }
+
+                const imageData = workCtx.getImageData(x1, y1, w, h);
+                let sumX = 0, sumY = 0, count = 0;
+                const threshold = 80; // 暗さの閾値
+
+                for (let py = 0; py < h; py++) {
+                    for (let px = 0; px < w; px++) {
+                        const idx = (py * w + px) * 4;
+                        const brightness = (imageData.data[idx] + imageData.data[idx + 1] + imageData.data[idx + 2]) / 3;
+                        if (brightness < threshold) {
+                            sumX += px;
+                            sumY += py;
+                            count++;
+                        }
+                    }
+                }
+
+                if (count > 10) {
+                    detected.push({
+                        x: x1 + sumX / count,
+                        y: y1 + sumY / count
+                    });
+                } else {
+                    // トンボが見つからない場合は設定値を使用
+                    detected.push({ x: ref.x, y: ref.y });
+                    error = true;
+                }
+            }
+
+            return { points: detected, error };
+        }
+
+        // アフィン変換行列を計算（最小二乗法）
+        // 設定時のトンボ座標 → 検出されたトンボ座標への変換
+        function calcTransform(refPoints, detectedResult) {
+            const src = refPoints; // 設定時の座標
+            const dst = detectedResult.points; // 検出された座標
+
+            if (dst.length < 3) {
+                return { a: 1, b: 0, c: 0, d: 0, e: 1, f: 0 }; // 単位変換（補正なし）
+            }
+
+            // アフィン変換: dst = A * src + t
+            // [x'] = [a b] [x] + [c]
+            // [y']   [d e] [y]   [f]
+            // 最小二乗法で解く（4点以上使用）
+
+            const n = Math.min(src.length, dst.length);
+
+            // Ax = b の形で解く
+            // 各点: dst.x = a*src.x + b*src.y + c
+            //       dst.y = d*src.x + e*src.y + f
+
+            let sumX = 0, sumY = 0, sumXX = 0, sumXY = 0, sumYY = 0;
+            let sumDstX = 0, sumDstY = 0;
+            let sumXDstX = 0, sumYDstX = 0;
+            let sumXDstY = 0, sumYDstY = 0;
+
+            for (let i = 0; i < n; i++) {
+                const sx = src[i].x, sy = src[i].y;
+                const dx = dst[i].x, dy = dst[i].y;
+                sumX += sx; sumY += sy;
+                sumXX += sx * sx; sumXY += sx * sy; sumYY += sy * sy;
+                sumDstX += dx; sumDstY += dy;
+                sumXDstX += sx * dx; sumYDstX += sy * dx;
+                sumXDstY += sx * dy; sumYDstY += sy * dy;
+            }
+
+            // 3x3行列を解く（ガウス消去法の簡易版）
+            // [sumXX sumXY sumX] [a]   [sumXDstX]
+            // [sumXY sumYY sumY] [b] = [sumYDstX]
+            // [sumX  sumY  n   ] [c]   [sumDstX ]
+
+            const solveLinear = (A, b) => {
+                const n = b.length;
+                const M = A.map((row, i) => [...row, b[i]]);
+                for (let col = 0; col < n; col++) {
+                    let maxRow = col;
+                    for (let row = col + 1; row < n; row++) {
+                        if (Math.abs(M[row][col]) > Math.abs(M[maxRow][col])) maxRow = row;
+                    }
+                    [M[col], M[maxRow]] = [M[maxRow], M[col]];
+                    for (let row = col + 1; row < n; row++) {
+                        const factor = M[row][col] / M[col][col];
+                        for (let j = col; j <= n; j++) M[row][j] -= factor * M[col][j];
+                    }
+                }
+                const x = new Array(n).fill(0);
+                for (let i = n - 1; i >= 0; i--) {
+                    x[i] = M[i][n] / M[i][i];
+                    for (let j = i - 1; j >= 0; j--) M[j][n] -= M[j][i] * x[i];
+                }
+                return x;
+            };
+
+            const matX = [[sumXX, sumXY, sumX], [sumXY, sumYY, sumY], [sumX, sumY, n]];
+            const solX = solveLinear(matX, [sumXDstX, sumYDstX, sumDstX]);
+            const solY = solveLinear(matX, [sumXDstY, sumYDstY, sumDstY]);
+
+            return { a: solX[0], b: solX[1], c: solX[2], d: solY[0], e: solY[1], f: solY[2] };
+        }
+
+        // 座標をアフィン変換で補正
+        function transformPoint(x, y, t) {
+            return {
+                x: t.a * x + t.b * y + t.c,
+                y: t.d * x + t.e * y + t.f
+            };
+        }
+
+        // 領域（矩形）をアフィン変換で補正
+        function transformRegion(region, t) {
+            const tl = transformPoint(region.x, region.y, t);
+            const br = transformPoint(region.x + region.w, region.y + region.h, t);
+            return {
+                x: tl.x,
+                y: tl.y,
+                w: br.x - tl.x,
+                h: br.y - tl.y,
+                row: region.row,
+                col: region.col
+            };
+        }
+
         function readEntryNumber(markCells) {
             const rows = [[], [], []];
             markCells.forEach(cell => {
+                if (cell.row === undefined || cell.row === null) return;
                 const darkness = getMeanDarkness(cell);
                 rows[cell.row].push({ col: cell.col, darkness });
             });
+
             const digits = rows.map(row => {
+                if (row.length === 0) return 0;
                 const sorted = [...row].sort((a, b) => b.darkness - a.darkness);
                 return sorted[0].col;
             });
+
             return digits[0] * 100 + digits[1] * 10 + digits[2];
         }
 
         function getMeanDarkness(region) {
-            const imageData = workCtx.getImageData(
-                Math.round(region.x), Math.round(region.y),
-                Math.max(1, Math.round(region.w)), Math.max(1, Math.round(region.h))
-            );
+            const x = Math.round(Math.max(0, region.x));
+            const y = Math.round(Math.max(0, region.y));
+            const w = Math.max(1, Math.round(Math.min(region.w, workCanvas.width - x)));
+            const h = Math.max(1, Math.round(Math.min(region.h, workCanvas.height - y)));
+            const imageData = workCtx.getImageData(x, y, w, h);
             let total = 0;
             for (let i = 0; i < imageData.data.length; i += 4) {
                 const r = imageData.data[i];
@@ -280,17 +443,16 @@
         }
 
         function cutRegion(r) {
+            const x = Math.round(Math.max(0, r.x));
+            const y = Math.round(Math.max(0, r.y));
+            const w = Math.max(1, Math.round(Math.min(r.w, workCanvas.width - x)));
+            const h = Math.max(1, Math.round(Math.min(r.h, workCanvas.height - y)));
+
             const offscreen = document.createElement('canvas');
-            offscreen.width = Math.max(1, Math.round(r.w));
-            offscreen.height = Math.max(1, Math.round(r.h));
+            offscreen.width = w;
+            offscreen.height = h;
             const offCtx = offscreen.getContext('2d');
-            offCtx.drawImage(
-                workCanvas,
-                Math.round(r.x), Math.round(r.y),
-                Math.round(r.w), Math.round(r.h),
-                0, 0,
-                offscreen.width, offscreen.height
-            );
+            offCtx.drawImage(workCanvas, x, y, w, h, 0, 0, w, h);
             return offscreen.toDataURL('image/jpeg', 0.7);
         }
 
@@ -301,10 +463,13 @@
 
             let okCount = 0;
             let errorCount = 0;
+            let warnCount = 0;
 
             answers.forEach(a => {
                 const isValid = a.entryNumber >= 1 && a.entryNumber <= 999;
-                if (isValid) okCount++; else errorCount++;
+                if (isValid && !a.tomboError) okCount++;
+                else if (!isValid) errorCount++;
+                else warnCount++;
 
                 const item = document.createElement('div');
                 item.className = 'answer-item';
@@ -312,13 +477,16 @@
           <img src="${a.cells[0]?.imageData}" alt="1問目" />
           <span>ページ ${a.page}</span>
           <span>受付番号: <strong>${a.entryNumber}</strong></span>
-          <span class="badge ${isValid ? 'ok' : 'error'}">${isValid ? 'OK' : 'エラー'}</span>
+          ${a.tomboError ? '<span style="font-size:11px;color:#ff9800">トンボ検出失敗</span>' : ''}
+          <span class="badge ${isValid ? (a.tomboError ? 'warn' : 'ok') : 'error'}">
+            ${isValid ? 'OK' : 'エラー'}
+          </span>
         `;
                 list.appendChild(item);
             });
 
             document.getElementById('result-summary').textContent =
-                `${okCount}件OK / ${errorCount}件エラー`;
+                `${okCount}件OK / ${warnCount}件警告 / ${errorCount}件エラー`;
 
             if (errorCount === 0) {
                 document.getElementById('save-btn').disabled = false;
