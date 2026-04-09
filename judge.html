@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIQ the 13th 採点システム - 採点</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-size: 20px;
+        }
+
+        .q-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: #4caf50;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #388e3c;
+        }
+
+        .btn.secondary {
+            background: #0f3460;
+            border: 1px solid #444;
+        }
+
+        .btn.secondary:hover {
+            background: #1a4a7a;
+        }
+
+        .q-label {
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #4caf50;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .answer-card {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .answer-card.correct {
+            border-color: #4caf50;
+            background: #1b3a1f;
+        }
+
+        .answer-card.wrong {
+            border-color: #ef5350;
+            background: #3a1b1b;
+        }
+
+        .answer-card.pending {
+            border-color: #444;
+        }
+
+        .answer-card img {
+            width: 100%;
+            height: 70px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: white;
+            margin-bottom: 8px;
+        }
+
+        .entry-num {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .mark-btns {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .mark-btn {
+            flex: 1;
+            padding: 6px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .mark-btn.correct-btn {
+            background: #1b5e20;
+            color: #4caf50;
+        }
+
+        .mark-btn.correct-btn:hover {
+            background: #2e7d32;
+        }
+
+        .mark-btn.wrong-btn {
+            background: #b71c1c;
+            color: #ef5350;
+        }
+
+        .mark-btn.wrong-btn:hover {
+            background: #c62828;
+        }
+
+        .mark-btn.selected-correct {
+            background: #4caf50;
+            color: white;
+        }
+
+        .mark-btn.selected-wrong {
+            background: #ef5350;
+            color: white;
+        }
+
+        .scorer-info {
+            font-size: 11px;
+            color: #555;
+            margin-top: 4px;
+            min-height: 14px;
+        }
+
+        .bottom-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .q-progress {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 3px;
+            margin-bottom: 20px;
+        }
+
+        .q-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .q-cell.done {
+            background: #1b5e20;
+            color: white;
+        }
+
+        .q-cell.current {
+            background: #0f3460;
+            border: 1px solid #4caf50;
+            color: white;
+        }
+
+        .q-cell.conflict {
+            background: #e65100;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        <h1>採点</h1>
+        <div class="q-nav">
+            <button class="btn secondary" onclick="prevQ()">◀</button>
+            <div class="q-label" id="q-label">- 問</div>
+            <button class="btn secondary" onclick="nextQ()">▶</button>
+        </div>
+        <button class="btn" onclick="exportCSV()">CSV出力</button>
+    </div>
+
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="q-progress" id="q-progress"></div>
+
+    <div class="answer-grid" id="answer-grid">
+        <div class="loading">読み込み中...</div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="btn secondary" onclick="prevQ()">◀ 前の問題</button>
+        <button class="btn" onclick="nextQ()">次の問題 ▶</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDk-RpKCX5Hd-xNnrso_x5fd3S-vUoWKUc",
+            authDomain: "ciq-saiten.firebaseapp.com",
+            databaseURL: "https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ciq-saiten",
+            storageBucket: "ciq-saiten.firebasestorage.app",
+            messagingSenderId: "987606904586",
+            appId: "1:987606904586:web:b16876b8963a55a60d94f3"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const scorerName = sessionStorage.getItem('scorer_name') || '不明';
+        const scorerRole = sessionStorage.getItem('scorer_role') || 'scorer';
+
+        let currentQ = 1;
+        let answers = {}; // {entryNumber: {cells: {q1: imageData, ...}}}
+        let scores = {};  // {entryNumber: {q1: {scorer: result, ...}, ...}}
+        let entryNumbers = [];
+
+        // 問題進捗グリッド初期化
+        const qProgress = document.getElementById('q-progress');
+        for (let i = 1; i <= 100; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'q-cell';
+            cell.id = `qcell-${i}`;
+            cell.textContent = i;
+            cell.onclick = () => goToQ(i);
+            qProgress.appendChild(cell);
+        }
+
+        // データ読み込み
+        async function init() {
+            const snap = await db.ref('answers').get();
+            if (!snap.exists()) {
+                document.getElementById('answer-grid').innerHTML =
+                    '<div class="loading">答案データがありません。管理者にお知らせください。</div>';
+                return;
+            }
+            answers = snap.val();
+            entryNumbers = Object.keys(answers).map(Number).sort((a, b) => a - b);
+
+            // スコアのリアルタイム監視
+            db.ref('scores').on('value', snap => {
+                scores = snap.val() || {};
+                renderQ(currentQ);
+                updateQProgress();
+            });
+
+            goToQ(1);
+        }
+
+        function goToQ(q) {
+            currentQ = q;
+            document.getElementById('q-label').textContent = `${q} 問`;
+            renderQ(q);
+            updateQProgress();
+        }
+
+        function renderQ(q) {
+            const grid = document.getElementById('answer-grid');
+            grid.innerHTML = '';
+
+            entryNumbers.forEach(entryNum => {
+                const answer = answers[entryNum];
+                if (!answer) return;
+
+                const imageData = answer.cells[`q${q}`];
+                const myScore = scores?.[entryNum]?.[`q${q}`]?.[scorerName];
+                const allScores = scores?.[entryNum]?.[`q${q}`] || {};
+                const scoreValues = Object.values(allScores);
+
+                let cardClass = 'pending';
+                if (myScore === 'correct') cardClass = 'correct';
+                if (myScore === 'wrong') cardClass = 'wrong';
+
+                const scorerList = Object.entries(allScores)
+                    .map(([name, val]) => `${name}: ${val === 'correct' ? '○' : '×'}`)
+                    .join(' / ');
+
+                const card = document.createElement('div');
+                card.className = `answer-card ${cardClass}`;
+                card.id = `card-${entryNum}`;
+                card.innerHTML = `
+          <img src="${imageData || ''}" alt="${entryNum}番" />
+          <div class="entry-num">受付番号 ${entryNum}</div>
+          <div class="mark-btns">
+            <button class="mark-btn correct-btn ${myScore === 'correct' ? 'selected-correct' : ''}"
+              onclick="mark(${entryNum}, ${q}, 'correct')">○</button>
+            <button class="mark-btn wrong-btn ${myScore === 'wrong' ? 'selected-wrong' : ''}"
+              onclick="mark(${entryNum}, ${q}, 'wrong')">×</button>
+          </div>
+          <div class="scorer-info">${scorerList}</div>
+        `;
+                grid.appendChild(card);
+            });
+
+            // 進捗バー更新
+            const total = entryNumbers.length * 100;
+            let done = 0;
+            entryNumbers.forEach(entryNum => {
+                for (let qi = 1; qi <= 100; qi++) {
+                    if (scores?.[entryNum]?.[`q${qi}`]?.[scorerName]) done++;
+                }
+            });
+            document.getElementById('progress-bar').style.width = `${(done / total) * 100}%`;
+        }
+
+        function mark(entryNum, q, result) {
+            db.ref(`scores/${entryNum}/q${q}/${scorerName}`).set(result);
+        }
+
+        function updateQProgress() {
+            for (let q = 1; q <= 100; q++) {
+                const cell = document.getElementById(`qcell-${q}`);
+                if (!cell) continue;
+
+                let allDone = true;
+                let hasConflict = false;
+
+                entryNumbers.forEach(entryNum => {
+                    const qScores = scores?.[entryNum]?.[`q${q}`] || {};
+                    const myScore = qScores[scorerName];
+                    if (!myScore) allDone = false;
+
+                    // 3人以上採点してて不一致がある場合
+                    const vals = Object.values(qScores);
+                    if (vals.length >= 2) {
+                        const corrects = vals.filter(v => v === 'correct').length;
+                        const wrongs = vals.filter(v => v === 'wrong').length;
+                        if (corrects > 0 && wrongs > 0) hasConflict = true;
+                    }
+                });
+
+                cell.className = 'q-cell';
+                if (q === currentQ) cell.classList.add('current');
+                else if (hasConflict) cell.classList.add('conflict');
+                else if (allDone) cell.classList.add('done');
+            }
+        }
+
+        function prevQ() {
+            if (currentQ > 1) goToQ(currentQ - 1);
+        }
+
+        function nextQ() {
+            if (currentQ < 100) goToQ(currentQ + 1);
+        }
+
+        function exportCSV() {
+            const rows = [['受付番号', ...Array.from({ length: 100 }, (_, i) => `${i + 1}問`)];
+            entryNumbers.forEach(entryNum => {
+                const row = [entryNum];
+                for (let q = 1; q <= 100; q++) {
+                    const qScores = scores?.[entryNum]?.[`q${q}`] || {};
+                    const vals = Object.values(qScores);
+                    // 多数決で最終結果を決定
+                    const corrects = vals.filter(v => v === 'correct').length;
+                    const wrongs = vals.filter(v => v === 'wrong').length;
+                    if (corrects > wrongs) row.push(1);
+                    else if (wrongs > corrects) row.push(0);
+                    else row.push('?'); // 同数の場合は未確定
+                }
+                rows.push(row);
+            });
+
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'saiten_result.csv';
+            a.click();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
