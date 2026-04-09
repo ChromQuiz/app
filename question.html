@@ -19,7 +19,7 @@
             background: #1a1a2e;
             color: white;
             min-height: 100vh;
-            padding-top: 100px;
+            padding-top: 80px;
             padding-left: 20px;
             padding-right: 20px;
             padding-bottom: 20px;
@@ -80,6 +80,10 @@
             background: #0d47a1;
         }
 
+        .btn.complete.done {
+            background: #388e3c;
+        }
+
         .q-badge {
             background: #1a237e;
             padding: 6px 16px;
@@ -110,7 +114,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 12px;
-            margin-bottom: 20px;
         }
 
         .answer-card {
@@ -192,23 +195,6 @@
             color: white;
         }
 
-        .complete-section {
-            background: #16213e;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .complete-info {
-            font-size: 13px;
-            color: #aaa;
-            flex: 1;
-        }
-
         .loading {
             text-align: center;
             padding: 40px;
@@ -221,7 +207,7 @@
     <div class="fixed-header">
         <button class="btn secondary" onclick="location.href='judge.html'">← 一覧へ</button>
         <div class="q-badge" id="q-badge">- 問</div>
-        <div class="answer-badge" id="answer-badge">模範解答読み込み中...</div>
+        <div class="answer-badge" id="answer-badge">...</div>
         <div class="progress-text" id="progress-text"></div>
         <button class="btn complete" id="complete-btn" disabled onclick="completeScoring()">
             採点完了
@@ -230,10 +216,6 @@
 
     <div class="answer-grid" id="answer-grid">
         <div class="loading">読み込み中...</div>
-    </div>
-
-    <div class="complete-section">
-        <div class="complete-info" id="complete-info">全問に○×を入力すると採点完了ボタンが押せます</div>
     </div>
 
     <script>
@@ -251,7 +233,6 @@
         const db = firebase.database();
 
         const scorerName = sessionStorage.getItem('scorer_name');
-        const scorerRole = sessionStorage.getItem('scorer_role');
         const currentQ = parseInt(sessionStorage.getItem('current_q') || '1');
 
         if (!scorerName) location.href = 'index.html';
@@ -267,7 +248,7 @@
             // 模範解答読み込み
             const answerSnap = await db.ref(`answers_text/${currentQ}`).get();
             const answerText = answerSnap.exists() ? answerSnap.val() : '未設定';
-            document.getElementById('answer-badge').textContent = `模範解答：${answerText}`;
+            document.getElementById('answer-badge').textContent = answerText;
 
             // 答案データ読み込み
             const answersSnap = await db.ref('answers').get();
@@ -332,39 +313,35 @@
             const done = entryNumbers.filter(n => myScores[n] !== null).length;
             const allDone = done === total && total > 0;
             const btn = document.getElementById('complete-btn');
-            const info = document.getElementById('complete-info');
+            const progressText = document.getElementById('progress-text');
 
             if (isCompleted) {
-                btn.textContent = '採点完了済み';
                 btn.disabled = false;
-                btn.style.background = '#388e3c';
-                info.textContent = '採点完了済みです。修正する場合は○×ボタンを押してください。';
+                btn.textContent = '完了済み（押して取消）';
+                btn.classList.add('done');
             } else if (allDone) {
                 btn.disabled = false;
                 btn.textContent = '採点完了';
-                info.textContent = '全員分の採点が完了しました。採点完了ボタンを押してください。';
+                btn.classList.remove('done');
             } else {
                 btn.disabled = true;
                 btn.textContent = '採点完了';
-                info.textContent = `全問に○×を入力すると採点完了ボタンが押せます（${done}/${total}件）`;
+                btn.classList.remove('done');
             }
+
+            progressText.textContent = `${done} / ${total} 件`;
         }
 
         async function completeScoring() {
             if (isCompleted) {
-                // 完了取り消し
-                if (!confirm('採点完了を取り消して修正しますか？')) return;
                 await db.ref(`scores/__completed__q${currentQ}/${scorerName}`).remove();
             } else {
-                if (!confirm('採点を完了しますか？')) return;
                 await db.ref(`scores/__completed__q${currentQ}/${scorerName}`).set(true);
 
                 // 3人完了したら自動確定チェック
                 const snap = await db.ref('scores').get();
-                const allScores = snap.val() || {};
-                checkAutoConfirm(allScores, currentQ);
+                checkAutoConfirm(snap.val() || {}, currentQ);
 
-                alert('採点完了しました。問題一覧に戻ります。');
                 location.href = 'judge.html';
             }
         }
@@ -373,7 +350,10 @@
             const completedScorers = Object.keys(allScores[`__completed__q${q}`] || {});
             if (completedScorers.length < 3) return;
 
-            const entryNums = Object.keys(allScores).filter(k => !k.startsWith('__')).map(Number);
+            const entryNums = Object.keys(allScores)
+                .filter(k => !k.startsWith('__'))
+                .map(Number);
+
             const finals = {};
             let allAgree = true;
 

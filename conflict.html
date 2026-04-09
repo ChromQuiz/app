@@ -117,7 +117,8 @@
             background: #1b5e20;
             padding: 6px 10px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: bold;
             color: #a5d6a7;
             margin-bottom: 10px;
             text-align: center;
@@ -302,11 +303,10 @@
             grid.innerHTML = '';
             conflicts.forEach(({ q, entryNum, qScores, finalResult }) => {
                 const imageData = answersData[entryNum]?.cells[`q${q}`];
-                const modelAnswer = answersText[q] || '未設定';
+                const modelAnswer = answersText[q] || '';
 
                 const card = document.createElement('div');
                 card.className = `conflict-card ${finalResult ? 'resolved' : ''}`;
-                card.id = `conflict-${q}-${entryNum}`;
 
                 const votesHtml = Object.entries(qScores).map(([name, val]) => `
           <div class="vote-item">
@@ -323,7 +323,7 @@
             <div class="entry-tag">受付番号 ${entryNum}</div>
           </div>
           <img class="answer-img" src="${imageData || ''}" alt="${entryNum}番 ${q}問" />
-          <div class="model-answer">模範解答：${modelAnswer}</div>
+          ${modelAnswer ? `<div class="model-answer">${modelAnswer}</div>` : ''}
           <div class="scorer-votes">${votesHtml}</div>
           <div class="final-btns">
             <button class="final-btn correct-btn ${finalResult === 'correct' ? 'selected-correct' : ''}"

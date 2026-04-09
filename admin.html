@@ -137,16 +137,17 @@
             color: white;
         }
 
-        .csv-section {
+        .btn-group {
             display: flex;
-            align-items: center;
             gap: 12px;
             flex-wrap: wrap;
+            margin-bottom: 16px;
         }
 
         .csv-status {
             font-size: 13px;
             color: #aaa;
+            margin-bottom: 12px;
         }
 
         .csv-status.ready {
@@ -163,19 +164,22 @@
     <div class="top-bar">
         <button class="btn secondary" onclick="location.href='judge.html'">← 一覧へ</button>
         <h1>管理者画面</h1>
-        <button class="btn secondary" onclick="location.href='answer_setup.html'" style="margin-left:auto">
-            模範解答設定
-        </button>
-        <button class="btn secondary" onclick="location.href='conflict.html'">
-            要確認一覧
-        </button>
+    </div>
+
+    <div class="section">
+        <h2>操作</h2>
+        <div class="btn-group">
+            <button class="btn secondary" onclick="location.href='scoring.html'">答案読み込み</button>
+            <button class="btn secondary" onclick="location.href='answer_setup.html'">模範解答設定</button>
+            <button class="btn secondary" onclick="location.href='conflict.html'">要確認一覧</button>
+        </div>
     </div>
 
     <div class="section">
         <h2>採点状況</h2>
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-num" id="stat-total">100</div>
+                <div class="stat-num">100</div>
                 <div class="stat-label">総問題数</div>
             </div>
             <div class="stat-card">
@@ -196,10 +200,8 @@
 
     <div class="section">
         <h2>CSV出力</h2>
-        <div class="csv-section">
-            <div class="csv-status" id="csv-status">確認中...</div>
-            <button class="btn" id="csv-btn" disabled onclick="exportCSV()">CSV出力</button>
-        </div>
+        <div class="csv-status" id="csv-status">確認中...</div>
+        <button class="btn" id="csv-btn" disabled onclick="exportCSV()">CSV出力</button>
     </div>
 
     <script>
@@ -224,7 +226,6 @@
             location.href = 'judge.html';
         }
 
-        // 進捗概要グリッド初期化
         const po = document.getElementById('progress-overview');
         for (let i = 1; i <= 100; i++) {
             const cell = document.createElement('div');
@@ -270,14 +271,12 @@
                         const wrongs = vals.filter(v => v === 'wrong').length;
                         if (corrects > 0 && wrongs > 0) {
                             hasConflict = true;
-                            const finalResult = scoresData[`__final__q${q}`]?.[entryNum];
-                            if (!finalResult) allResolved = false;
+                            if (!scoresData[`__final__q${q}`]?.[entryNum]) allResolved = false;
                         }
                     });
                 }
 
                 const isFullyConfirmed = allDone && (!hasConflict || allResolved);
-
                 const cell = document.getElementById(`po-${q}`);
                 cell.className = 'po-cell';
 
@@ -291,6 +290,7 @@
                 } else if (allDone) {
                     cell.classList.add('done');
                     doneCount++;
+                    allConfirmed = false;
                 } else if (completedScorers.length > 0) {
                     cell.classList.add('inprogress');
                     allConfirmed = false;
@@ -318,7 +318,6 @@
         }
 
         async function exportCSV() {
-            // マスターデータをGASから取得
             let masterData = {};
             try {
                 const res = await fetch(GAS_URL + '?master=1');
@@ -327,13 +326,11 @@
                 console.warn('マスターデータ取得失敗:', e);
             }
 
-            // 各参加者の得点を計算
             const results = entryNumbers.map(entryNum => {
                 const answers = [];
                 for (let q = 1; q <= 100; q++) {
                     const finalData = scoresData[`__final__q${q}`] || {};
                     const qScores = scoresData[entryNum]?.[`q${q}`] || {};
-
                     let result;
                     if (finalData[entryNum]) {
                         result = finalData[entryNum] === 'correct' ? 1 : 0;
@@ -361,7 +358,6 @@
                 if (current > 0) streaks.push(current);
 
                 const master = masterData[entryNum] || {};
-
                 return {
                     entryNumber: entryNum,
                     name: master.name || '',
@@ -373,10 +369,9 @@
                 };
             });
 
-            // 順位計算（点数→タイブレーク）
+            // 順位計算
             results.sort((a, b) => {
                 if (b.score !== a.score) return b.score - a.score;
-                // タイブレーク：1問目から比較
                 for (let i = 0; i < 100; i++) {
                     const diff = b.answers[i] - a.answers[i];
                     if (diff !== 0) return diff;
@@ -384,47 +379,29 @@
                 return 0;
             });
 
-            // CSV生成
-            const headers = ['順位', '氏名', '所属', '学年', '点数'];
-            // 連答の最大数を計算
             const maxStreaks = Math.max(...results.map(r => r.streaks.length), 0);
-            for (let i = 1; i <= maxStreaks; i++) {
-                headers.push(`第${i}連答`);
-            }
+            const headers = ['順位', '氏名', '所属', '学年', '点数'];
+            for (let i = 1; i <= maxStreaks; i++) headers.push(`第${i}連答`);
 
             const rows = [headers];
             let rank = 1;
             results.forEach((r, idx) => {
-                if (idx > 0 && compareForRank(results[idx - 1], r) !== 0) {
-                    rank = idx + 1;
+                if (idx > 0) {
+                    const prev = results[idx - 1];
+                    if (prev.score !== r.score) {
+                        rank = idx + 1;
+                    } else {
+                        let diff = false;
+                        for (let i = 0; i < 100; i++) {
+                            if (prev.answers[i] !== r.answers[i]) { diff = true; break; }
+                        }
+                        if (diff) rank = idx + 1;
+                    }
                 }
                 const row = [rank, r.name, r.affiliation, r.grade, r.score];
-                for (let i = 0; i < maxStreaks; i++) {
-                    row.push(r.streaks[i] || 0);
-                }
+                for (let i = 0; i < maxStreaks; i++) row.push(r.streaks[i] || 0);
                 rows.push(row);
             });
 
             const csv = rows.map(r => r.join(',')).join('\n');
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'ciq_result.csv';
-            a.click();
-        }
-
-        function compareForRank(a, b) {
-            if (b.score !== a.score) return b.score - a.score;
-            for (let i = 0; i < 100; i++) {
-                const diff = b.answers[i] - a.answers[i];
-                if (diff !== 0) return diff;
-            }
-            return 0;
-        }
-
-        init();
-    </script>
-</body>
-
-</html>
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });​​​​​​​​​​​​​​​​
