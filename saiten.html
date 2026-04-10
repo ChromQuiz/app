@@ -178,14 +178,14 @@
         
         const rows = Math.ceil(qCount / qCols);
         // グリッドの高さを確保 (全高297 - 上20 - 下(マークシート分)35 = 242)
-        const maxGridHeight = 232;
+        const maxGridHeight = 240;
         const rowHeight = maxGridHeight / rows;
 
         doc.setLineWidth(0.2);
         
         for (let i = 0; i < qCount; i++) {
-          const col = Math.floor(i / rows);
-          const row = i % rows;
+          const row = Math.floor(i / qCols);
+        const col = i % qCols;
           const x = gridMarginX + col * colWidth;
           const y = gridMarginTop + row * rowHeight;
 
@@ -201,61 +201,57 @@
           // もし見た目上の枠線も引きたい場合はここに記述(今回は不要)
         }
 
-        // 3. 受付番号マークシート (Bottom Left)
-        const bottomY = gridMarginTop + maxGridHeight + 5; 
-        doc.setFontSize(10);
-        doc.text("受付番号", 15, bottomY + 2);
+        // 3. 統合下部ボックス枠 (Bottom full-width box)
+        const boxX = 15;
+        const boxY = 265;
+        const boxW = 180;
+        const boxH = 26;
+        
+        doc.rect(boxX, boxY, boxW, boxH, 'S');
 
-        const markSheetX = 15;
-        const markSheetY = bottomY + 5;
+        // 各種区切り線 (横幅と用途)
+        const L1 = boxX + 6;   // 受付番号ラベル
+        const L2 = boxX + 13;  // 手書き枠
+        const L3 = boxX + 56;  // マークシートバブル枠
+        const L4 = boxX + 64;  // 学年ラベル
+        const L5 = boxX + 86;  // 学年枠
+        const L6 = boxX + 94;  // 所属ラベル
+        const L7 = boxX + 124; // 所属枠
+        const L8 = boxX + 132; // 氏名ラベル
+        
+        [L1, L2, L3, L4, L5, L6, L7, L8].forEach(lx => {
+            doc.line(lx, boxY, lx, boxY + boxH, 'S');
+        });
+
+        const rowH = boxH / 3;
+        // マーカーシート部分の横線 (3桁の分離)
+        doc.line(L1, boxY + rowH, L3, boxY + rowH, 'S');
+        doc.line(L1, boxY + rowH*2, L3, boxY + rowH*2, 'S');
+
+        // 受付番号ラベル (縦書き)
+        doc.setFontSize(8);
+        doc.text(["受","付","番","号"], boxX + 3, boxY + boxH/2, { align: 'center', baseline: 'middle' });
+
+        // マークシートのバブル配置
         const bubbleW = 3.2;
         const bubbleH = 5.0;
         
-        doc.setFontSize(8);
         for (let row = 0; row < 3; row++) {
-          // 手書き枠 (左側)
-          const boxY = markSheetY + row * (bubbleH + 2);
-          doc.rect(markSheetX, boxY, 5, 5, 'S');
-
+          const cy = boxY + row * rowH + rowH / 2;
           for (let col = 0; col < 10; col++) {
-            // バブル間隔を限界まで詰める
-            const cx = markSheetX + 7 + col * (bubbleW + 1.2);
-            const cy = boxY;
+            const cx = L2 + 2.5 + col * 4.0;
+            doc.ellipse(cx + bubbleW/2, cy, bubbleW/2, bubbleH/2, 'S');
+            doc.text(col.toString(), cx + bubbleW/2, cy, { align: 'center', baseline: 'middle' });
             
-            doc.ellipse(cx + bubbleW/2, cy + bubbleH/2, bubbleW/2, bubbleH/2, 'S');
-            doc.text(col.toString(), cx + bubbleW/2, cy + bubbleH/2, { align: 'center', baseline: 'middle' });
-            
-            config.markCells.push({ x: cx, y: cy, w: bubbleW, h: bubbleH, row: row, col: col });
+            // scoring.html は cell.row を 桁数(0-2)、cell.col を 値(0-9) とみなす
+            config.markCells.push({ x: cx, y: cy-bubbleH/2, w: bubbleW, h: bubbleH, row: row, col: col });
           }
         }
 
-        // 4. 名前・所属・学年枠 (Bottom Right)
-        const nameBoxX = 75;
-        const nameBoxY = bottomY;
-        const boxW = 120;
-        // 合計の高さ: markSheetYから3行分 (およそ 3*(5+2) = 21mm)
-        const nameBoxH = 22; 
-        doc.rect(nameBoxX, nameBoxY, boxW, nameBoxH, 'S');
-        
-        // 区切り線 (氏名を一番広くする)
-        const L1 = 8;   // 学年ラベル
-        const L2 = 18;  // 学年記入枠
-        const L3 = 26;  // 所属ラベル
-        const L4 = 60;  // 所属記入枠 (34mm)
-        const L5 = 68;  // 氏名ラベル
-        // 氏名枠は残り 120 - 68 = 52mm ! 広大!
-        
-        doc.line(nameBoxX + L1, nameBoxY, nameBoxX + L1, nameBoxY + nameBoxH, 'S');
-        doc.line(nameBoxX + L2, nameBoxY, nameBoxX + L2, nameBoxY + nameBoxH, 'S');
-        doc.line(nameBoxX + L3, nameBoxY, nameBoxX + L3, nameBoxY + nameBoxH, 'S');
-        doc.line(nameBoxX + L4, nameBoxY, nameBoxX + L4, nameBoxY + nameBoxH, 'S');
-        doc.line(nameBoxX + L5, nameBoxY, nameBoxX + L5, nameBoxY + nameBoxH, 'S');
-
-        // ラベル
-        doc.setFontSize(8);
-        doc.text("学年", nameBoxX + L1/2, nameBoxY + nameBoxH/2, { align: 'center', baseline: 'middle' });
-        doc.text("所属", nameBoxX + L2 + (L3-L2)/2, nameBoxY + nameBoxH/2, { align: 'center', baseline: 'middle' });
-        doc.text("氏名", nameBoxX + L4 + (L5-L4)/2, nameBoxY + nameBoxH/2, { align: 'center', baseline: 'middle' });
+        // 学年・所属・氏名ラベル
+        doc.text("学年", (L3 + L4)/2, boxY + boxH/2, { align: 'center', baseline: 'middle' });
+        doc.text("所属", (L5 + L6)/2, boxY + boxH/2, { align: 'center', baseline: 'middle' });
+        doc.text("氏名", (L7 + L8)/2, boxY + boxH/2, { align: 'center', baseline: 'middle' });
 
 
 
