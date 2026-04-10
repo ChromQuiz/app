@@ -10,7 +10,6 @@
     <script src="js/config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
     <script src="js/cv.js"></script>
     <script src="js/aruco.js"></script>
     <style>
@@ -364,12 +363,11 @@
     <div class="top-bar">
         <button class="btn secondary" onclick="location.href='judge.html'">← 問題一覧へ</button>
         <h1>管理画面</h1>
-        <div class="id-badge" id="project-id-display"></div>
+        <div class="id-badge" id="project-id-display" style="cursor:pointer" title="クリックでIDをコピー" onclick="navigator.clipboard.writeText(projectId).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='ID: '+projectId,1500)})"></div>
     </div>
 
     <div class="tabs">
         <button class="tab-btn" onclick="switchTab('tab-entries')">参加者管理</button>
-        <button class="tab-btn" onclick="switchTab('tab-checkin')">当日受付</button>
         <button class="tab-btn active" onclick="switchTab('tab-sheet')">解答用紙</button>
         <button class="tab-btn" onclick="switchTab('tab-scan')">答案読込・管理</button>
         <button class="tab-btn" onclick="switchTab('tab-model')">模範解答</button>
@@ -388,9 +386,11 @@
                 </label>
             </div>
             <div id="entry-url"
-                style="font-size:13px;color:#aaa;background:#0f3460;padding:12px;border-radius:8px;margin-bottom:16px;">
-                一般公開URL: <a id="entry-link" href="#" target="_blank" style="color:#7c5cfc"></a>
-                <br>エントリーURL: <a id="registration-link" href="#" target="_blank" style="color:#7c5cfc"></a>
+                style="font-size:13px;color:#aaa;background:#0f3460;padding:12px;border-radius:8px;margin-bottom:16px;line-height:2;">
+                エントリーURL: <a id="registration-link" href="#" target="_blank" style="color:#7c5cfc"></a>
+                <br>エントリーリスト: <a id="entry-link" href="#" target="_blank" style="color:#7c5cfc"></a>
+                <br>キャンセルフォーム: <a id="cancel-link" href="#" target="_blank" style="color:#7c5cfc"></a>
+                <br>受付ページ: <a href="checkin.html" style="color:#7c5cfc">checkin.html</a>
             </div>
             <button class="btn secondary" onclick="exportEntriesCSV()">全エントリー情報CSVエクスポート</button>
         </div>
@@ -404,14 +404,15 @@
                             <th style="padding:8px;border:1px solid #444;">受付番号</th>
                             <th style="padding:8px;border:1px solid #444;">氏名 (カナ)</th>
                             <th style="padding:8px;border:1px solid #444;">エントリ名</th>
-                            <th style="padding:8px;border:1px solid #444;">所属・学年</th>
+                            <th style="padding:8px;border:1px solid #444;">所属</th>
+                            <th style="padding:8px;border:1px solid #444;">学年</th>
                             <th style="padding:8px;border:1px solid #444;">メール/連絡事項</th>
                             <th style="padding:8px;border:1px solid #444;">状態</th>
                         </tr>
                     </thead>
                     <tbody id="admin-entries-tbody">
                         <tr style="color:#aaa">
-                            <td colspan="6" style="padding:12px;text-align:center">データを読み込んでください</td>
+                            <td colspan="7" style="padding:12px;text-align:center">データを読み込んでください</td>
                         </tr>
                     </tbody>
                 </table>
@@ -419,26 +420,7 @@
         </div>
     </div>
 
-    <!-- ==================== TAB 0.5: 当日受付 ==================== -->
-    <div class="tab-content" id="tab-checkin">
-        <div class="section" style="text-align:center;">
-            <h2>QRコード受付リーダー</h2>
-            <div style="margin: 0 auto 20px auto; max-width: 400px; position:relative;">
-                <video id="qr-video" style="width:100%;border-radius:12px;border:3px solid #4caf50;background:#000;"
-                    playsinline></video>
-                <canvas id="qr-canvas" style="display:none;"></canvas>
-            </div>
-            <div id="qr-scanning-text" style="color:#aaa;margin-bottom:16px;">カメラに受付QRコード（またはスマホ画面）をかざしてください</div>
 
-            <div id="checkin-result"
-                style="display:none;margin: 0 auto 16px auto;max-width:400px;padding:20px;border-radius:12px;font-size:18px;">
-            </div>
-
-            <button class="btn" id="qr-start-btn" onclick="startQRScanner()">カメラ起動</button>
-            <button class="btn secondary" id="qr-next-btn" style="display:none;"
-                onclick="resetQRScanner()">次の人を読み込む</button>
-        </div>
-    </div>
 
     <!-- ==================== TAB 1: 解答用紙 ==================== -->
     <div class="tab-content active" id="tab-sheet">
@@ -457,8 +439,12 @@
     <div class="tab-content" id="tab-scan">
         <div class="section">
             <h2>答案PDF読み込み</h2>
-            <input type="file" id="pdf-file" accept="application/pdf" />
-            <button class="btn" style="margin-top:12px" onclick="loadAnswers()">読み込み開始</button>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="file" id="pdf-file" accept="application/pdf" />
+                <button class="btn" onclick="loadAnswers()">読み込み開始</button>
+                <button class="btn" id="save-btn" disabled onclick="saveToFirebase()"
+                    style="padding:10px 24px;font-weight:bold">保存</button>
+            </div>
             <div class="progress-bar-wrap">
                 <div class="progress-bar-inner" id="progress-bar"></div>
             </div>
@@ -466,8 +452,6 @@
             <div id="result-section" style="display:none">
                 <div id="result-summary" style="font-size:14px;margin-bottom:12px"></div>
                 <div id="answer-list"></div>
-                <button class="btn" id="save-btn" disabled onclick="saveToFirebase()"
-                    style="width:100%;margin-top:12px;padding:14px;font-weight:bold">保存</button>
             </div>
         </div>
         <div class="section">
@@ -603,7 +587,7 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             const btns = document.querySelectorAll('.tab-btn');
-            const tabs = ['tab-entries', 'tab-checkin', 'tab-sheet', 'tab-scan', 'tab-model', 'tab-stats'];
+            const tabs = ['tab-entries', 'tab-sheet', 'tab-scan', 'tab-model', 'tab-stats'];
             btns[tabs.indexOf(tabId)]?.classList.add('active');
         }
 
@@ -624,6 +608,8 @@
             document.getElementById('entry-link').textContent = `${lOrigins}entry_list.html?pid=${projectId}`;
             document.getElementById('registration-link').href = `${lOrigins}entry.html?pid=${projectId}`;
             document.getElementById('registration-link').textContent = `${lOrigins}entry.html?pid=${projectId}`;
+            document.getElementById('cancel-link').href = `${lOrigins}cancel.html?pid=${projectId}`;
+            document.getElementById('cancel-link').textContent = `${lOrigins}cancel.html?pid=${projectId}`;
             document.getElementById('disclosure-link').href = `${lOrigins}disclosure.html?pid=${projectId}`;
             document.getElementById('disclosure-link').textContent = `${lOrigins}disclosure.html?pid=${projectId}`;
 
@@ -1103,32 +1089,38 @@
 
         async function loadAdminEntries() {
             const tbody = document.getElementById('admin-entries-tbody');
-            tbody.innerHTML = '<tr><td colspan="6" style="padding:12px;text-align:center">読み込み中...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="padding:12px;text-align:center">読み込み中...</td></tr>';
 
-            const snap = await db.ref(`projects/${projectId}/entries`).orderByChild('entryNumber').get();
-            if (!snap.exists()) {
-                tbody.innerHTML = '<tr><td colspan="6" style="padding:12px;text-align:center">名簿データがありません。</td></tr>';
-                return;
+            try {
+                const snap = await db.ref(`projects/${projectId}/entries`).orderByChild('entryNumber').once('value');
+                if (!snap.exists()) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="padding:12px;text-align:center">名簿データがありません。</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                snap.forEach(child => {
+                    const v = child.val();
+                    const tr = document.createElement('tr');
+                    if (v.status === 'canceled') tr.style.opacity = '0.5';
+                    const statText = v.status === 'canceled' ? '<span style="color:#ef5350">ｷｬﾝｾﾙ</span>'
+                        : v.checkedIn ? '<span style="color:#4caf50">受付済</span>' : '未受付';
+
+                    tr.innerHTML = `
+                    <td style="padding:8px;border:1px solid #444;">${v.entryNumber || '-'}</td>
+                    <td style="padding:8px;border:1px solid #444;">${v.familyName} ${v.firstName}<br><span style="font-size:11px;color:#aaa">${v.familyNameKana} ${v.firstNameKana}</span></td>
+                    <td style="padding:8px;border:1px solid #444;">${v.entryName || ''}</td>
+                    <td style="padding:8px;border:1px solid #444;">${v.affiliation || ''}</td>
+                    <td style="padding:8px;border:1px solid #444;">${v.grade || ''}</td>
+                    <td style="padding:8px;border:1px solid #444;"><span style="font-size:11px;color:#aaa">${v.email || ''}</span><br>${v.inquiry || '-'}</td>
+                    <td style="padding:8px;border:1px solid #444;font-weight:bold;">${statText}</td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error('参加者一覧の読み込みエラー:', e);
+                tbody.innerHTML = '<tr><td colspan="7" style="padding:12px;text-align:center;color:#ef5350">読み込みに失敗しました: ' + e.message + '</td></tr>';
             }
-
-            tbody.innerHTML = '';
-            snap.forEach(child => {
-                const v = child.val();
-                const tr = document.createElement('tr');
-                if (v.status === 'canceled') tr.style.opacity = '0.5';
-                const statText = v.status === 'canceled' ? '<span style="color:#ef5350">ｷｬﾝｾﾙ</span>'
-                    : v.checkedIn ? '<span style="color:#4caf50">受付済</span>' : '未受付';
-
-                tr.innerHTML = `
-                <td style="padding:8px;border:1px solid #444;">${v.entryNumber || '-'}</td>
-                <td style="padding:8px;border:1px solid #444;">${v.familyName} ${v.firstName}<br><span style="font-size:11px;color:#aaa">${v.familyNameKana} ${v.firstNameKana}</span></td>
-                <td style="padding:8px;border:1px solid #444;">${v.entryName || ''}</td>
-                <td style="padding:8px;border:1px solid #444;">${v.affiliation || ''}<br><span style="font-size:11px">${v.grade || ''}</span></td>
-                <td style="padding:8px;border:1px solid #444;"><span style="font-size:11px;color:#aaa">${v.email || ''}</span><br>${v.inquiry || '-'}</td>
-                <td style="padding:8px;border:1px solid #444;font-weight:bold;">${statText}</td>
-            `;
-                tbody.appendChild(tr);
-            });
         }
 
         async function exportEntriesCSV() {
@@ -1148,87 +1140,6 @@
             const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
             a.download = 'entries.csv'; a.click();
-        }
-
-        // QR Reception Implementation
-        let qrScanning = false;
-        let qrStream = null;
-
-        function startQRScanner() {
-            if (typeof jsQR === 'undefined') { alert("QRライブラリが読み込まれていません"); return; }
-            const video = document.getElementById('qr-video');
-            document.getElementById('qr-start-btn').style.display = 'none';
-
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => {
-                    qrStream = stream;
-                    video.srcObject = stream;
-                    video.addEventListener('loadedmetadata', () => { video.play(); qrScanning = true; requestAnimationFrame(scanQRFrame); });
-                }).catch(err => {
-                    alert('カメラの起動に失敗しました: ' + err.message);
-                    document.getElementById('qr-start-btn').style.display = 'inline-block';
-                });
-        }
-
-        function scanQRFrame() {
-            if (!qrScanning) return;
-            const video = document.getElementById('qr-video');
-            const canvas = document.getElementById('qr-canvas');
-            const ctx = canvas.getContext('2d');
-
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                if (code) {
-                    qrScanning = false;
-                    processQRCode(code.data);
-                }
-            }
-            if (qrScanning) requestAnimationFrame(scanQRFrame);
-        }
-
-        async function processQRCode(uuid) {
-            document.getElementById('qr-scanning-text').textContent = '読み込み中...';
-            const resDiv = document.getElementById('checkin-result');
-            const nextBtn = document.getElementById('qr-next-btn');
-
-            try {
-                const snap = await db.ref(`projects/${projectId}/entries/${uuid}`).once('value');
-                if (!snap.exists()) {
-                    resDiv.innerHTML = '❌ 該当するエントリーが見つかりません'; resDiv.style.background = 'rgba(183,28,28,0.8)';
-                } else {
-                    const data = snap.val();
-                    if (data.status === 'canceled') {
-                        resDiv.innerHTML = `❌ キャンセル済みのエントリーです。<br><span style="font-size:14px;color:#ffcc80">${data.familyName} ${data.firstName} / 受付番号: ${data.entryNumber}</span>`;
-                        resDiv.style.background = 'rgba(183,28,28,0.8)';
-                    } else if (data.checkedIn) {
-                        resDiv.innerHTML = `⚠️ 既に受付済みです。<br><span style="font-size:14px;color:#ffcc80">${data.familyName} ${data.firstName} / 受付番号: ${data.entryNumber}</span>`;
-                        resDiv.style.background = 'rgba(230,81,0,0.8)';
-                    } else {
-                        // Update to checked in
-                        await db.ref(`projects/${projectId}/entries/${uuid}/checkedIn`).set(true);
-                        resDiv.innerHTML = `✅ 受付完了！<br><span style="font-size:24px;font-weight:bold">${data.familyName} ${data.firstName} 様</span><br><span style="font-size:18px;color:#a5d6a7">受付番号: <b>${data.entryNumber}</b></span>`;
-                        resDiv.style.background = 'rgba(27,94,32,0.8)';
-                    }
-                }
-            } catch (e) {
-                resDiv.innerHTML = '❌ システムエラー: ' + e.message; resDiv.style.background = 'rgba(183,28,28,0.8)';
-            }
-
-            document.getElementById('qr-scanning-text').style.display = 'none';
-            resDiv.style.display = 'block';
-            nextBtn.style.display = 'inline-block';
-        }
-
-        function resetQRScanner() {
-            document.getElementById('checkin-result').style.display = 'none';
-            document.getElementById('qr-next-btn').style.display = 'none';
-            document.getElementById('qr-scanning-text').textContent = 'カメラに受付QRコード（またはスマホ画面）をかざしてください';
-            document.getElementById('qr-scanning-text').style.display = 'block';
-            qrScanning = true;
-            requestAnimationFrame(scanQRFrame);
         }
 
 
