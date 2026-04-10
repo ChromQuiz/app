@@ -476,7 +476,7 @@
 
     async function saveToFirebase() {
         document.getElementById('save-btn').disabled = true;
-        document.getElementById('status-text').textContent = 'Firebaseに保存中...';
+        document.getElementById('status-text').textContent = '保存中...';
         const batch = {};
         for(const a of scanAnswers) {
             batch[`projects/${projectId}/answers/${a.entryNumber}`] = {

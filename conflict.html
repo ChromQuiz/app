@@ -462,7 +462,6 @@ const projectId = session.projectId;
                 pc.innerHTML = `<img src="${snap.val()}" alt="${name}" style="max-width:100%;border-radius:8px;background:white;">`;
             } else { pc.innerHTML = '<div style="color:#aaa">ページ画像が保存されていません。管理画面から答案を再読み込みしてください。</div>'; }
         }
-        }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('preview-overlay')?.classList.remove('show'); });
     </script>
 </body>
