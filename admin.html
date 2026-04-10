@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,72 +14,352 @@
     <script src="js/cv.js"></script>
     <script src="js/aruco.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background: #1a1a2e; color: white; min-height: 100vh; padding: 20px; }
-        .top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-        h1 { font-size: 20px; }
-        .btn { padding: 8px 16px; border-radius: 8px; border: none; background: #4caf50; color: white; font-size: 14px; cursor: pointer; }
-        .btn:hover { background: #388e3c; }
-        .btn:disabled { background: #444; cursor: not-allowed; }
-        .btn.secondary { background: #0f3460; border: 1px solid #444; }
-        .btn.secondary:hover { background: #1a4a7a; }
-        .btn.danger { background: #c62828; }
-        .btn.danger:hover { background: #b71c1c; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-size: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: #4caf50;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #388e3c;
+        }
+
+        .btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+
+        .btn.secondary {
+            background: #0f3460;
+            border: 1px solid #444;
+        }
+
+        .btn.secondary:hover {
+            background: #1a4a7a;
+        }
+
+        .btn.danger {
+            background: #c62828;
+        }
+
+        .btn.danger:hover {
+            background: #b71c1c;
+        }
 
         /* タブ */
-        .tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #444; overflow-x: auto; }
-        .tab-btn { padding: 12px 20px; background: transparent; border: none; color: #aaa; font-size: 14px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.2s; }
-        .tab-btn.active { color: #4caf50; border-bottom-color: #4caf50; }
-        .tab-btn:hover:not(.active) { color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #444;
+            overflow-x: auto;
+        }
 
-        .section { background: #16213e; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-        .section h2 { font-size: 15px; color: #aaa; margin-bottom: 16px; }
-        label { font-size: 14px; color: #aaa; display: block; margin-bottom: 8px; margin-top: 16px; }
-        input[type="text"], input[type="number"], input[type="file"] { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #444; background: #0f3460; color: white; font-size: 16px; }
-        .status-msg { padding: 12px; border-radius: 8px; background: #1b5e20; color: white; font-size: 14px; text-align: center; margin-top: 16px; display: none; }
+        .tab-btn {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 14px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #4caf50;
+            border-bottom-color: #4caf50;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            font-size: 15px;
+            color: #aaa;
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #aaa;
+            display: block;
+            margin-bottom: 8px;
+            margin-top: 16px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #0f3460;
+            color: white;
+            font-size: 16px;
+        }
+
+        .status-msg {
+            padding: 12px;
+            border-radius: 8px;
+            background: #1b5e20;
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 16px;
+            display: none;
+        }
 
         /* 集計セクション */
-        .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
-        .stat-card { background: #0f3460; border-radius: 10px; padding: 16px; text-align: center; }
-        .stat-num { font-size: 28px; font-weight: bold; }
-        .stat-label { font-size: 12px; color: #aaa; margin-top: 4px; }
-        .progress-overview { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
-        .po-cell { aspect-ratio: 1; border-radius: 3px; background: #333; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #aaa; }
-        .po-cell.done { background: #1b5e20; color: white; }
-        .po-cell.conflict { background: #e65100; color: white; }
-        .po-cell.confirmed { background: #1a237e; color: white; }
-        .po-cell.inprogress { background: #0d47a1; color: white; }
-        .csv-status { font-size: 13px; color: #aaa; margin-bottom: 12px; }
-        .csv-status.ready { color: #4caf50; }
-        .csv-status.notready { color: #ef5350; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: #0f3460;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .progress-overview {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 3px;
+        }
+
+        .po-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: #aaa;
+        }
+
+        .po-cell.done {
+            background: #1b5e20;
+            color: white;
+        }
+
+        .po-cell.conflict {
+            background: #e65100;
+            color: white;
+        }
+
+        .po-cell.confirmed {
+            background: #1a237e;
+            color: white;
+        }
+
+        .po-cell.inprogress {
+            background: #0d47a1;
+            color: white;
+        }
+
+        .csv-status {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 12px;
+        }
+
+        .csv-status.ready {
+            color: #4caf50;
+        }
+
+        .csv-status.notready {
+            color: #ef5350;
+        }
 
         /* 答案管理 */
-        .progress-bar-wrap { background: #0f3460; border-radius: 8px; overflow: hidden; height: 20px; margin: 12px 0; }
-        .progress-bar-inner { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s; }
-        .answer-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; background: #0f3460; margin-bottom: 6px; font-size: 14px; }
-        .answer-item img { width: 60px; height: 30px; object-fit: contain; background: white; border-radius: 4px; }
-        .badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-        .badge.ok { background: #1b5e20; color: #a5d6a7; }
-        .badge.error { background: #b71c1c; color: #ef9a9a; }
-        .badge.warn { background: #e65100; color: #ffcc80; }
+        .progress-bar-wrap {
+            background: #0f3460;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 20px;
+            margin: 12px 0;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background: #4caf50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .answer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: #0f3460;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .answer-item img {
+            width: 60px;
+            height: 30px;
+            object-fit: contain;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .badge.ok {
+            background: #1b5e20;
+            color: #a5d6a7;
+        }
+
+        .badge.error {
+            background: #b71c1c;
+            color: #ef9a9a;
+        }
+
+        .badge.warn {
+            background: #e65100;
+            color: #ffcc80;
+        }
 
         /* 答案一覧 */
-        .entry-list-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: #0f3460; margin-bottom: 4px; font-size: 14px; cursor: pointer; transition: background 0.15s; }
-        .entry-list-item:hover { background: #1a4a7a; }
-        .entry-list-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .entry-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #0f3460;
+            margin-bottom: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .entry-list-item:hover {
+            background: #1a4a7a;
+        }
+
+        .entry-list-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
 
         /* 模範解答グリッド */
-        .answer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; margin-top: 12px; }
-        .answer-grid-item { background: #0f3460; border-radius: 8px; padding: 10px; text-align: center; }
-        .answer-grid-item .q-num { font-size: 11px; color: #aaa; margin-bottom: 4px; }
-        .answer-grid-item .answer-text { font-size: 12px; font-weight: bold; word-break: break-all; min-height: 18px; }
-        .answer-grid-item .answer-text.unset { color: #555; font-weight: normal; }
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 6px;
+            margin-top: 12px;
+        }
 
-        .id-badge { margin-left: auto; background: #0f3460; padding: 6px 12px; border-radius: 8px; font-size: 14px; border: 1px solid #444; }
+        .answer-grid-item {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .answer-grid-item .q-num {
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+
+        .answer-grid-item .answer-text {
+            font-size: 12px;
+            font-weight: bold;
+            word-break: break-all;
+            min-height: 18px;
+        }
+
+        .answer-grid-item .answer-text.unset {
+            color: #555;
+            font-weight: normal;
+        }
+
+        .id-badge {
+            margin-left: auto;
+            background: #0f3460;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            border: 1px solid #444;
+        }
     </style>
 </head>
+
 <body>
     <div class="top-bar">
         <button class="btn secondary" onclick="location.href='judge.html'">← 問題一覧へ</button>
@@ -101,11 +382,13 @@
             <h2>エントリー・公開設定</h2>
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
                 <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:8px">
-                    <input type="checkbox" id="entry-list-toggle" onchange="toggleEntryList()" style="width:18px;height:18px;cursor:pointer">
+                    <input type="checkbox" id="entry-list-toggle" onchange="toggleEntryList()"
+                        style="width:18px;height:18px;cursor:pointer">
                     <span style="font-size:14px;color:white">名簿の一般公開を有効にする</span>
                 </label>
             </div>
-            <div id="entry-url" style="font-size:13px;color:#aaa;background:#0f3460;padding:12px;border-radius:8px;margin-bottom:16px;">
+            <div id="entry-url"
+                style="font-size:13px;color:#aaa;background:#0f3460;padding:12px;border-radius:8px;margin-bottom:16px;">
                 一般公開URL: <a id="entry-link" href="#" target="_blank" style="color:#7c5cfc"></a>
                 <br>エントリーURL: <a id="registration-link" href="#" target="_blank" style="color:#7c5cfc"></a>
             </div>
@@ -126,7 +409,11 @@
                             <th style="padding:8px;border:1px solid #444;">状態</th>
                         </tr>
                     </thead>
-                    <tbody id="admin-entries-tbody"><tr style="color:#aaa"><td colspan="6" style="padding:12px;text-align:center">データを読み込んでください</td></tr></tbody>
+                    <tbody id="admin-entries-tbody">
+                        <tr style="color:#aaa">
+                            <td colspan="6" style="padding:12px;text-align:center">データを読み込んでください</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -137,15 +424,19 @@
         <div class="section" style="text-align:center;">
             <h2>QRコード受付リーダー</h2>
             <div style="margin: 0 auto 20px auto; max-width: 400px; position:relative;">
-                <video id="qr-video" style="width:100%;border-radius:12px;border:3px solid #4caf50;background:#000;" playsinline></video>
+                <video id="qr-video" style="width:100%;border-radius:12px;border:3px solid #4caf50;background:#000;"
+                    playsinline></video>
                 <canvas id="qr-canvas" style="display:none;"></canvas>
             </div>
             <div id="qr-scanning-text" style="color:#aaa;margin-bottom:16px;">カメラに受付QRコード（またはスマホ画面）をかざしてください</div>
-            
-            <div id="checkin-result" style="display:none;margin: 0 auto 16px auto;max-width:400px;padding:20px;border-radius:12px;font-size:18px;"></div>
-            
+
+            <div id="checkin-result"
+                style="display:none;margin: 0 auto 16px auto;max-width:400px;padding:20px;border-radius:12px;font-size:18px;">
+            </div>
+
             <button class="btn" id="qr-start-btn" onclick="startQRScanner()">カメラ起動</button>
-            <button class="btn secondary" id="qr-next-btn" style="display:none;" onclick="resetQRScanner()">次の人を読み込む</button>
+            <button class="btn secondary" id="qr-next-btn" style="display:none;"
+                onclick="resetQRScanner()">次の人を読み込む</button>
         </div>
     </div>
 
@@ -156,7 +447,8 @@
             <label>問題数 (デフォルト: 100)</label>
             <input type="number" id="question-count" value="100" min="10" max="200" step="10" />
             <div style="font-size: 12px; color: #888; margin-top: 4px;">問題数は10の倍数で指定してください。列数は5で固定です。</div>
-            <button class="btn" style="width:100%;margin-top:24px;padding:14px;font-weight:bold" onclick="generateAndSave()">解答用紙PDFの発行 と 座標データ保存</button>
+            <button class="btn" style="width:100%;margin-top:24px;padding:14px;font-weight:bold"
+                onclick="generateAndSave()">解答用紙PDFの発行 と 座標データ保存</button>
             <div id="save-status" class="status-msg"></div>
         </div>
     </div>
@@ -167,12 +459,15 @@
             <h2>答案PDF読み込み</h2>
             <input type="file" id="pdf-file" accept="application/pdf" />
             <button class="btn" style="margin-top:12px" onclick="loadAnswers()">読み込み開始</button>
-            <div class="progress-bar-wrap"><div class="progress-bar-inner" id="progress-bar"></div></div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-inner" id="progress-bar"></div>
+            </div>
             <div id="status-text" style="font-size:13px;color:#aaa;margin-bottom:12px"></div>
             <div id="result-section" style="display:none">
                 <div id="result-summary" style="font-size:14px;margin-bottom:12px"></div>
                 <div id="answer-list"></div>
-                <button class="btn" id="save-btn" disabled onclick="saveToFirebase()" style="width:100%;margin-top:12px;padding:14px;font-weight:bold">保存</button>
+                <button class="btn" id="save-btn" disabled onclick="saveToFirebase()"
+                    style="width:100%;margin-top:12px;padding:14px;font-weight:bold">保存</button>
             </div>
         </div>
         <div class="section">
@@ -180,9 +475,14 @@
             <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
                 <button class="btn secondary" onclick="loadEntryList()">一覧を更新</button>
                 <button class="btn danger" id="batch-delete-btn" onclick="batchDelete()" disabled>選択した答案を削除</button>
-                <label style="margin:0;display:flex;align-items:center;gap:6px;color:#aaa;font-size:13px;cursor:pointer"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll()" style="width:16px;height:16px">全選択</label>
+                <label
+                    style="margin:0;display:flex;align-items:center;gap:6px;color:#aaa;font-size:13px;cursor:pointer"><input
+                        type="checkbox" id="select-all-cb" onchange="toggleSelectAll()"
+                        style="width:16px;height:16px">全選択</label>
             </div>
-            <div id="entry-list"><div style="color:#aaa;font-size:14px">上のボタンを押して一覧を読み込んでください</div></div>
+            <div id="entry-list">
+                <div style="color:#aaa;font-size:14px">上のボタンを押して一覧を読み込んでください</div>
+            </div>
         </div>
     </div>
 
@@ -209,10 +509,22 @@
         <div class="section">
             <h2>採点状況</h2>
             <div class="stats">
-                <div class="stat-card"><div class="stat-num" id="stat-total">-</div><div class="stat-label">総問題数</div></div>
-                <div class="stat-card"><div class="stat-num" id="stat-done">-</div><div class="stat-label">採点済み</div></div>
-                <div class="stat-card"><div class="stat-num" id="stat-conflict">-</div><div class="stat-label">要確認</div></div>
-                <div class="stat-card"><div class="stat-num" id="stat-confirmed">-</div><div class="stat-label">確定済み</div></div>
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-total">-</div>
+                    <div class="stat-label">総問題数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-done">-</div>
+                    <div class="stat-label">採点済み</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-conflict">-</div>
+                    <div class="stat-label">要確認</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="stat-confirmed">-</div>
+                    <div class="stat-label">確定済み</div>
+                </div>
             </div>
             <div class="progress-overview" id="progress-overview"></div>
         </div>
@@ -224,7 +536,9 @@
         <div class="section">
             <h2>問題アナリティクス（難問・単独抽出）</h2>
             <div style="margin-bottom:12px;font-size:13px;color:#aaa;">
-                正答率など詳細な分析データ（基準: 正答数 <input type="number" id="analytics-threshold" value="5" min="0" max="100" style="width:50px;padding:4px;border-radius:4px;border:1px solid #444;background:#0f3460;color:white;text-align:center" onchange="renderAnalytics()"> 人以下をハイライト化）。
+                正答率など詳細な分析データ（基準: 正答数 <input type="number" id="analytics-threshold" value="5" min="0" max="100"
+                    style="width:50px;padding:4px;border-radius:4px;border:1px solid #444;background:#0f3460;color:white;text-align:center"
+                    onchange="renderAnalytics()"> 人以下をハイライト化）。
             </div>
             <button class="btn secondary" onclick="exportAnalyticsCSV()">全問アナリティクスCSV出力</button>
             <div style="margin-top:16px;overflow-x:auto;max-height:400px;">
@@ -247,7 +561,8 @@
             <h2>成績開示</h2>
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
                 <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:8px">
-                    <input type="checkbox" id="disclosure-toggle" onchange="toggleDisclosure()" style="width:18px;height:18px;cursor:pointer">
+                    <input type="checkbox" id="disclosure-toggle" onchange="toggleDisclosure()"
+                        style="width:18px;height:18px;cursor:pointer">
                     <span style="font-size:14px;color:white">開示を有効にする</span>
                 </label>
             </div>
@@ -268,692 +583,697 @@
     <canvas id="transform-canvas" style="display:none"></canvas>
 
     <script>
-    // ============================
-    // 共通初期化
-    // ============================
-    const projectId = session.projectId;
-    const scorerRole = session.scorerRole;
-    if (!projectId || scorerRole !== 'admin') { alert('管理者としてプロジェクトに入室してください'); location.href = 'index.html'; }
+        // ============================
+        // 共通初期化
+        // ============================
+        const projectId = session.projectId;
+        const scorerRole = session.scorerRole;
+        if (!projectId || scorerRole !== 'admin') { alert('管理者としてプロジェクトに入室してください'); location.href = 'index.html'; }
 
-    document.getElementById('project-id-display').textContent = `ID: ${projectId}`;
+        document.getElementById('project-id-display').textContent = `ID: ${projectId}`;
 
-    let totalQuestions = 100;
-    let scoresData = {};
-    let entryNumbers = [];
-    let modelAnswers = [];
+        let totalQuestions = 100;
+        let scoresData = {};
+        let entryNumbers = [];
+        let modelAnswers = [];
 
-    // タブ切り替え
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        const btns = document.querySelectorAll('.tab-btn');
-        const tabs = ['tab-entries','tab-checkin','tab-sheet','tab-scan','tab-model','tab-stats'];
-        btns[tabs.indexOf(tabId)]?.classList.add('active');
-    }
-
-    async function init() {
-        // ハッシュによるタブ指定
-        const hash = location.hash.replace('#', '');
-        if(hash && document.getElementById(hash)) {
-            switchTab(hash);
+        // タブ切り替え
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            const btns = document.querySelectorAll('.tab-btn');
+            const tabs = ['tab-entries', 'tab-checkin', 'tab-sheet', 'tab-scan', 'tab-model', 'tab-stats'];
+            btns[tabs.indexOf(tabId)]?.classList.add('active');
         }
 
-        // プロジェクトアクセス日時更新とデータクリーンアップ
-        db.ref(`projects/${projectId}/lastAccess`).set(firebase.database.ServerValue.TIMESTAMP);
-        purgeOldImages();
-
-        // リンクURL設定
-        const lOrigins = window.location.origin + window.location.pathname.replace('admin.html', '');
-        document.getElementById('entry-link').href = `${lOrigins}entry_list.html?pid=${projectId}`;
-        document.getElementById('entry-link').textContent = `${lOrigins}entry_list.html?pid=${projectId}`;
-        document.getElementById('registration-link').href = `${lOrigins}entry.html?pid=${projectId}`;
-        document.getElementById('registration-link').textContent = `${lOrigins}entry.html?pid=${projectId}`;
-        document.getElementById('disclosure-link').href = `${lOrigins}disclosure.html`;
-        document.getElementById('disclosure-link').textContent = `${lOrigins}disclosure.html`;
-
-        const configSnap = await db.ref(`projects/${projectId}/config`).once('value');
-        if (configSnap.exists()) {
-            const cfg = configSnap.val();
-            totalQuestions = cfg.questionCount || 100;
-            document.getElementById('question-count').value = totalQuestions;
-        }
-
-        const entryConfigSnap = await db.ref(`projects/${projectId}/entryConfig`).once('value');
-        if(entryConfigSnap.exists()) {
-            const ec = entryConfigSnap.val();
-            document.getElementById('entry-list-toggle').checked = !!ec.listEnabled;
-            const dt = document.getElementById('disclosure-toggle');
-            if(dt) dt.checked = !!ec.disclosureEnabled;
-            if(ec.disclosureEnabled) document.getElementById('disclosure-url').style.display='block';
-        }
-
-        // 集計用: 問題セル初期化
-        const po = document.getElementById('progress-overview');
-        po.innerHTML = '';
-        for (let i = 1; i <= totalQuestions; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'po-cell'; cell.id = `po-${i}`; cell.textContent = i;
-            po.appendChild(cell);
-        }
-        document.getElementById('stat-total').textContent = totalQuestions;
-
-        // エントリ番号取得
-        try {
-            const res = await fetch(`https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/answers.json?shallow=true`);
-            const data = await res.json();
-            if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b);
-        } catch(e) {
-            const snap = await db.ref(`projects/${projectId}/answers`).get();
-            if (snap.exists()) entryNumbers = Object.keys(snap.val()).map(Number).sort((a, b) => a - b);
-        }
-
-        // スコアリアルタイム
-        db.ref(`projects/${projectId}/scores`).on('value', snap => {
-            scoresData = snap.val() || {};
-            updateStatsView();
-        });
-
-        // 模範解答読み込み
-        const modelSnap = await db.ref(`projects/${projectId}/answers_text`).get();
-        modelAnswers = new Array(totalQuestions).fill('');
-        if (modelSnap.exists()) {
-            const d = modelSnap.val();
-            Object.keys(d).forEach(q => { modelAnswers[q - 1] = d[q]; });
-        }
-        renderModelGrid();
-    }
-
-    // ============================
-    // TAB 1: 解答用紙
-    // ============================
-    const marker_b64 = [
-      "data:image/png;base64,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",
-      "data:image/png;base64,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",
-      "data:image/png;base64,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",
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAAAAADuvYBWAAAJBklEQVR4Ae3BgQ3AMAzDMOn/o7MnHKBYTEqdI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50idI3WO1DlS50jIECG1TkKGCKl1EjJESK2TkCFCap2EDBFS6yRkiJBaJyFDhNQ6CRkipNZJyBAhtU5ChgipdRIyREitk5AhQmqdhAwRUuskZIiQWichQ4TUOgkZIqTWScgQIbVOQoYIqXUSMkRIrZOQIUJqnYQMEVLrJGSIkFonIUOE1DoJGSKk1knIECG1TkKGCKl1EjJESK2TkCFCap2EDBFS6yRkiJBaJyFDhNQ6CRkipNZJyBAhtU5ChgipdRIyREitk5AhQmqdhAwRUuskZIiQWichQ4TUOgkZIqTWScgQIbVOQoYIqXUSMkRIrZOQIUJqnYQMEVLrJGSIkFonIUOE1DoJGSKk1knIECG1TkKGCKl1EjJESK2TkCFCap2EDBFS6yRkiJBaJyFDhNQ6CRkipNZJyBAhtU5ChgipdRIyREitk5AhQmqdhAwRUuskZIiQWichQ4TUOgkZIqTWScgQIbVOQoYIqXUSMkRIrZOQIUJqnYQMEVLrJGSIkFonIUOE1DoJGSKk1knIECG1TkKGCKl1EjJESK2TkCFCap2EDBFS6yRkiJBaJyFDhNQ6CRkipNZJyBAhtU5ChgipdRIyREitk5AhQmqdhAwRUuskZIiQWichQ4TUOgkZIqTWScgQIbVOQoYIqXUSMkRIrZOQIUJqnYQMEVLrJGSIkFonIUOE1DoJGSKk1knIECG1TkKGCKl1EjJESK2TkCFCap2EDBFS6yRkiJBaJyFDhNQ6CRkipNZJyBAhtU5ChgipdRIyREitk5AhQmqdhAwRUuskZIiQWichQ4TUOgkZIqTWScgQIbVOQoYIqXUSMkRIrZOQIUJqnYQMEVLrJGSIkFonIUOE1DoJGSKk1knIECG1TkKGCKl1EjJESK2TkCFCap2EDBFS6yRkiJBaJyFDhNQ6CRkipNZJyBAhtU5ChgipdRIyREitk5AhQmqdhAwRUuskZIiQWichQ4TUOgkZIqTWScgQIbVOQoYIqXUSMkRIrZOQIUJqnYQMEVLrJGSIkFonIUOE1DoJGSKk1knIECG1TkKGCKl1EjJESK2TkCFCap2EDBFS6yRkiJBaJyFDhNQ6CRkipNZJyBAhtU5ChgipdRIyREitk5AhQmqdhAwRUuskZIiQWichQ4TUOgkZIqTWScgQIbVOQoYIqXUSMkRIrZOQIUJqnYQMEVLrJGSIkFonIUOE1DoJGSKk1knIECG1TkKGCKl1EjJESK2TkCFCap2EDBFS6yRkiJBaJyFDhNQ6CRkipNZJyBAhtU5ChgipdRIyREitk5AhQmqdhAwRUuskZIiQWichQ4TUOgkZIqTWScgQIbVOQoYIqXUSMkRIrZOQIUJqnYQMEVLrJGSIkFonbxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4ibxl+SV4idY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnSJ0jdY7UOVLnfH+DZwTWPaogAAAAAElFTkSuQmCC"
-    ];
-
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-    async function generateAndSave() {
-      try {
-        const qCount = parseInt(document.getElementById('question-count').value);
-        const qCols = 5;
-        if (qCount < 10 || qCount % 10 !== 0) { alert("問題数は10の倍数で指定してください"); return; }
-        window.jsPDF = window.jspdf.jsPDF;
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-        const pageWidth = 210, pageHeight = 297;
-        const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: 3, tombo: [], markCells: [], answerRegions: [] };
-        const markerSize = 10, margin = 5;
-        [{x:margin,y:margin,id:0},{x:pageWidth-margin-markerSize,y:margin,id:1},{x:margin,y:pageHeight-margin-markerSize,id:2},{x:pageWidth-margin-markerSize,y:pageHeight-margin-markerSize,id:3}].forEach(p => {
-          doc.addImage(marker_b64[p.id], 'PNG', p.x, p.y, markerSize, markerSize);
-          config.tombo.push({ x: p.x, y: p.y, w: markerSize, h: markerSize });
-        });
-        const fontRes = await fetch("fonts/BIZUDGothic-Regular.ttf");
-        const fontBuffer = await fontRes.arrayBuffer();
-        let binary = ''; const bytes = new Uint8Array(fontBuffer);
-        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-        doc.addFileToVFS('BIZUDGothic.ttf', window.btoa(binary));
-        doc.addFont('BIZUDGothic.ttf', 'BIZUDGothic', 'normal');
-        doc.setFont('BIZUDGothic'); doc.setFontSize(8); doc.setTextColor(50);
-        const gridMarginX = 15, gridMarginTop = 5, gridSpaceWidth = pageWidth - gridMarginX * 2;
-        const colWidth = gridSpaceWidth / qCols, rows = Math.ceil(qCount / qCols), maxGridHeight = 255, rowHeight = maxGridHeight / rows;
-        doc.setLineWidth(0.2);
-        for (let i = 0; i < qCount; i++) {
-          const row = Math.floor(i / qCols), col = i % qCols;
-          const x = gridMarginX + col * colWidth, y = gridMarginTop + row * rowHeight;
-          doc.rect(x, y, colWidth, rowHeight, 'S'); doc.text((i + 1).toString(), x + 2, y + 4);
-          config.answerRegions.push({ x, y, w: colWidth, h: rowHeight });
-        }
-        function drawVerticalText(doc, str, x, centerY) {
-          const chars = str.split(''), spacing = 3.5, startY = centerY - ((chars.length - 1) * spacing) / 2;
-          chars.forEach((c, i) => doc.text(c, x, startY + i * spacing, { align: 'center', baseline: 'middle' }));
-        }
-        const boxX = 15, boxY = gridMarginTop + maxGridHeight + 5, boxW = 180, boxH = 26;
-        doc.rect(boxX, boxY, boxW, boxH, 'S');
-        const L1=boxX+6, L2=boxX+13, L3=boxX+57, L4=L3+6, L5=L4+18, L6=L5+6, L7=L6+40, L8=L7+6;
-        [L1,L2,L3,L4,L5,L6,L7,L8].forEach(lx => doc.line(lx, boxY, lx, boxY + boxH, 'S'));
-        const rH = boxH / 3;
-        doc.line(L1, boxY + rH, L3, boxY + rH, 'S'); doc.line(L1, boxY + rH*2, L3, boxY + rH*2, 'S');
-        doc.setFontSize(8);
-        drawVerticalText(doc, "受付番号", boxX + 3, boxY + boxH/2);
-        drawVerticalText(doc, "学年", L3 + 3, boxY + boxH/2);
-        drawVerticalText(doc, "所属", L5 + 3, boxY + boxH/2);
-        drawVerticalText(doc, "氏名", L7 + 3, boxY + boxH/2);
-        const bubbleW = 3.2, bubbleH = 5.0;
-        for (let row = 0; row < 3; row++) {
-          const cy = boxY + row * rH + rH / 2;
-          for (let col = 0; col < 10; col++) {
-            const cx = L2 + 1.5 + col * 4.2;
-            doc.ellipse(cx + bubbleW/2, cy, bubbleW/2, bubbleH/2, 'S');
-            doc.text(col.toString(), cx + bubbleW/2, cy, { align: 'center', baseline: 'middle' });
-            config.markCells.push({ x: cx, y: cy-bubbleH/2, w: bubbleW, h: bubbleH, row, col });
-          }
-        }
-        doc.save(`answer_sheet_${qCount}q.pdf`);
-        await db.ref(`projects/${projectId}/config`).set(config);
-        totalQuestions = qCount;
-        const s = document.getElementById('save-status');
-        s.innerHTML = '✅ PDFが生成され、座標データが保存されました！'; s.style.background = '#1b5e20'; s.style.display = 'block';
-        setTimeout(() => s.style.display = 'none', 5000);
-      } catch (err) {
-        console.error(err);
-        const s = document.getElementById('save-status');
-        s.innerHTML = '❌ エラー: ' + err.message; s.style.background = '#b71c1c'; s.style.display = 'block';
-      }
-    }
-
-    // ============================
-    // TAB 2: 答案読込・管理
-    // ============================
-    const workCanvas = document.getElementById('work-canvas');
-    const workCtx = workCanvas.getContext('2d');
-    let scanConfig = null, scanAnswers = [];
-
-    async function loadAnswers() {
-        const file = document.getElementById('pdf-file').files[0];
-        if (!file) { alert('PDFを選択してください'); return; }
-        const snap = await db.ref(`projects/${projectId}/config`).get();
-        if (!snap.exists()) { alert('座標設定が見つかりません。先に解答用紙を発行してください。'); return; }
-        scanConfig = snap.val();
-        const arrayBuffer = await file.arrayBuffer();
-        let pdfDoc;
-        try { pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise; }
-        catch (e) { alert('PDFの読み込みに失敗: ' + e.message); return; }
-        const total = pdfDoc.numPages; scanAnswers = [];
-        document.getElementById('status-text').textContent = `0 / ${total} ページ処理中...`;
-        document.getElementById('progress-bar').style.width = '0%';
-        for (let pageNum = 1; pageNum <= total; pageNum++) {
-            const page = await pdfDoc.getPage(pageNum);
-            const viewport = page.getViewport({ scale: scanConfig.scale || 1.5 });
-            workCanvas.width = viewport.width; workCanvas.height = viewport.height;
-            workCtx.fillStyle = '#ffffff'; workCtx.fillRect(0, 0, workCanvas.width, workCanvas.height);
-            await page.render({ canvasContext: workCtx, viewport }).promise;
-            let detectedResult = detectTombo(scanConfig.tombo);
-            if (!detectedResult.error && detectedResult.markerMap[0] && detectedResult.markerMap[2]) {
-                if (detectedResult.markerMap[0].y > detectedResult.markerMap[2].y) {
-                    const tc = document.createElement('canvas'); tc.width = workCanvas.width; tc.height = workCanvas.height;
-                    const tctx = tc.getContext('2d'); tctx.translate(tc.width, tc.height); tctx.rotate(Math.PI); tctx.drawImage(workCanvas, 0, 0);
-                    workCtx.clearRect(0, 0, workCanvas.width, workCanvas.height); workCtx.drawImage(tc, 0, 0);
-                    detectedResult = detectTombo(scanConfig.tombo);
-                }
+        async function init() {
+            // ハッシュによるタブ指定
+            const hash = location.hash.replace('#', '');
+            if (hash && document.getElementById(hash)) {
+                switchTab(hash);
             }
-            if (detectedResult.error) {
-                const origData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
-                for (const angle of [Math.PI, Math.PI/2, -Math.PI/2]) {
-                    const tc = document.createElement('canvas');
-                    const isR = Math.abs(angle) === Math.PI/2;
-                    tc.width = isR ? workCanvas.height : workCanvas.width; tc.height = isR ? workCanvas.width : workCanvas.height;
-                    const tctx = tc.getContext('2d'); tctx.translate(tc.width/2, tc.height/2); tctx.rotate(angle);
-                    tctx.drawImage(workCanvas, -workCanvas.width/2, -workCanvas.height/2);
-                    workCanvas.width = tc.width; workCanvas.height = tc.height; workCtx.drawImage(tc, 0, 0);
-                    const rr = detectTombo(scanConfig.tombo);
-                    if (!rr.error || rr.foundCount > detectedResult.foundCount) detectedResult = rr;
-                    if (!detectedResult.error) break;
-                    workCanvas.width = origData.width; workCanvas.height = origData.height; workCtx.putImageData(origData, 0, 0);
-                }
+
+            // プロジェクトアクセス日時更新とデータクリーンアップ
+            db.ref(`projects/${projectId}/lastAccess`).set(firebase.database.ServerValue.TIMESTAMP);
+            purgeOldImages();
+
+            // リンクURL設定
+            const lOrigins = window.location.origin + window.location.pathname.replace('admin.html', '');
+            document.getElementById('entry-link').href = `${lOrigins}entry_list.html?pid=${projectId}`;
+            document.getElementById('entry-link').textContent = `${lOrigins}entry_list.html?pid=${projectId}`;
+            document.getElementById('registration-link').href = `${lOrigins}entry.html?pid=${projectId}`;
+            document.getElementById('registration-link').textContent = `${lOrigins}entry.html?pid=${projectId}`;
+            document.getElementById('disclosure-link').href = `${lOrigins}disclosure.html`;
+            document.getElementById('disclosure-link').textContent = `${lOrigins}disclosure.html`;
+
+            const configSnap = await db.ref(`projects/${projectId}/config`).once('value');
+            if (configSnap.exists()) {
+                const cfg = configSnap.val();
+                totalQuestions = cfg.questionCount || 100;
+                document.getElementById('question-count').value = totalQuestions;
             }
-            const refCenterPoints = scanConfig.tombo.map(r => ({ x: r.x + r.w/2, y: r.y + r.h/2 }));
-            const transform = calcPerspectiveTransform(refCenterPoints, detectedResult.points);
-            const correctedMarkCells = scanConfig.markCells.map(cell => transformRegion(cell, transform));
-            const entryNumber = readEntryNumber(correctedMarkCells);
-            const cells = []; const qTotal = scanConfig.questionCount || 100;
-            for (let q = 0; q < qTotal; q++) {
-                const cr = transformRegion(scanConfig.answerRegions[q], transform);
-                cells.push({ q: q + 1, imageData: cutRegion(cr) });
+
+            const entryConfigSnap = await db.ref(`projects/${projectId}/entryConfig`).once('value');
+            if (entryConfigSnap.exists()) {
+                const ec = entryConfigSnap.val();
+                document.getElementById('entry-list-toggle').checked = !!ec.listEnabled;
+                const dt = document.getElementById('disclosure-toggle');
+                if (dt) dt.checked = !!ec.disclosureEnabled;
+                if (ec.disclosureEnabled) document.getElementById('disclosure-url').style.display = 'block';
             }
-            scanAnswers.push({ page: pageNum, entryNumber, cells, tomboError: detectedResult.error, pageImage: workCanvas.toDataURL('image/jpeg', 0.5) });
-            document.getElementById('progress-bar').style.width = Math.round((pageNum/total)*100) + '%';
-            document.getElementById('status-text').textContent = `${pageNum} / ${total} ページ処理中...`;
-        }
-        document.getElementById('status-text').textContent = `完了: ${total}ページ処理しました`;
-        showScanResults();
-    }
 
-    function detectTombo(refTombo) {
-        if (typeof AR === 'undefined') return { points: refTombo.map(r => ({x:r.x+r.w/2,y:r.y+r.h/2})), error: true, foundCount: 0, markerMap: {} };
-        const imageData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
-        const markers = new AR.Detector().detect(imageData);
-        const detected = [], markerMap = {}; let error = false, foundCount = 0;
-        [0,1,2,3].forEach((id, i) => {
-            const m = markers.find(m => m.id === id);
-            if (m) { let sx=0,sy=0; m.corners.forEach(c=>{sx+=c.x;sy+=c.y}); const pt={x:sx/4,y:sy/4}; detected.push(pt); markerMap[id]=pt; foundCount++; }
-            else { const ref = refTombo[i]||refTombo[0]; detected.push({x:ref.x+ref.w/2,y:ref.y+ref.h/2}); error=true; }
-        });
-        return { points: detected, error, foundCount, markerMap };
-    }
-    function calcPerspectiveTransform(src, dst) {
-        if (src.length < 4 || dst.length < 4) return null;
-        const A = [], b = [];
-        for (let i = 0; i < 4; i++) {
-            const sx=src[i].x,sy=src[i].y,dx=dst[i].x,dy=dst[i].y;
-            A.push([sx,sy,1,0,0,0,-sx*dx,-sy*dx]); b.push(dx);
-            A.push([0,0,0,sx,sy,1,-sx*dy,-sy*dy]); b.push(dy);
-        }
-        const n=8, M=A.map((row,i)=>[...row,b[i]]);
-        for(let col=0;col<n;col++){let mr=col;for(let r=col+1;r<n;r++)if(Math.abs(M[r][col])>Math.abs(M[mr][col]))mr=r;[M[col],M[mr]]=[M[mr],M[col]];if(M[col][col]===0)return null;for(let r=col+1;r<n;r++){const f=M[r][col]/M[col][col];for(let j=col;j<=n;j++)M[r][j]-=f*M[col][j];}}
-        const h=new Array(n).fill(0);for(let i=n-1;i>=0;i--){h[i]=M[i][n]/M[i][i];for(let j=i-1;j>=0;j--)M[j][n]-=M[j][i]*h[i];}
-        return {h00:h[0],h01:h[1],h02:h[2],h10:h[3],h11:h[4],h12:h[5],h20:h[6],h21:h[7]};
-    }
-    function transformPoint(x,y,t){if(!t)return{x,y};const d=t.h20*x+t.h21*y+1;return{x:(t.h00*x+t.h01*y+t.h02)/d,y:(t.h10*x+t.h11*y+t.h12)/d};}
-    function transformRegion(r,t){const tl=transformPoint(r.x,r.y,t),br=transformPoint(r.x+r.w,r.y+r.h,t);return{x:tl.x,y:tl.y,w:br.x-tl.x,h:br.y-tl.y,row:r.row,col:r.col};}
-    function readEntryNumber(markCells){const rows=[[],[],[]];markCells.forEach(c=>{if(c.row===undefined)return;rows[c.row].push({col:c.col,darkness:getMeanDarkness(c)});});return rows.map(r=>{if(!r.length)return 0;return[...r].sort((a,b)=>b.darkness-a.darkness)[0].col;}).reduce((a,d,i)=>a+d*Math.pow(10,2-i),0);}
-    function getMeanDarkness(r){const x=Math.round(Math.max(0,r.x)),y=Math.round(Math.max(0,r.y)),w=Math.max(1,Math.round(Math.min(r.w,workCanvas.width-x))),h=Math.max(1,Math.round(Math.min(r.h,workCanvas.height-y)));const d=workCtx.getImageData(x,y,w,h);let t=0;for(let i=0;i<d.data.length;i+=4)t+=(255-(d.data[i]+d.data[i+1]+d.data[i+2])/3);return t/(d.data.length/4);}
-    function cutRegion(r){const x=Math.round(Math.max(0,r.x)),y=Math.round(Math.max(0,r.y)),w=Math.max(1,Math.round(Math.min(r.w,workCanvas.width-x))),h=Math.max(1,Math.round(Math.min(r.h,workCanvas.height-y)));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(workCanvas,x,y,w,h,0,0,w,h);return c.toDataURL('image/jpeg',0.7);}
+            // 集計用: 問題セル初期化
+            const po = document.getElementById('progress-overview');
+            po.innerHTML = '';
+            for (let i = 1; i <= totalQuestions; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'po-cell'; cell.id = `po-${i}`; cell.textContent = i;
+                po.appendChild(cell);
+            }
+            document.getElementById('stat-total').textContent = totalQuestions;
 
-    function showScanResults() {
-        document.getElementById('result-section').style.display = 'block';
-        const list = document.getElementById('answer-list'); list.innerHTML = '';
-        let ok=0,err=0,warn=0;
-        scanAnswers.forEach(a => {
-            const valid = a.entryNumber >= 1 && a.entryNumber <= 999;
-            if(valid && !a.tomboError) ok++; else if(!valid) err++; else warn++;
-            const item = document.createElement('div'); item.className = 'answer-item';
-            if(!valid||a.tomboError) item.style.background = a.tomboError ? '#3a2b00' : '#3a1b1b';
-            item.innerHTML = `<img src="${a.cells[0]?.imageData}" alt="1問目"/><span>P${a.page}</span><span>受付番号: <strong>${a.entryNumber}</strong></span>${a.tomboError?'<span style="font-size:11px;color:#ff9800">⚠ トンボ検出失敗</span>':''}<span class="badge ${valid?(a.tomboError?'warn':'ok'):'error'}">${valid?'OK':'エラー'}</span>`;
-            list.appendChild(item);
-        });
-        let txt = `${ok}件OK / ${warn}件警告 / ${err}件エラー`;
-        if(warn>0||err>0) txt += '  ⚠ エラーのあるページは再スキャンを推奨';
-        document.getElementById('result-summary').textContent = txt;
-        if(err === 0) document.getElementById('save-btn').disabled = false;
-    }
+            // エントリ番号取得
+            try {
+                const res = await fetch(`https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/answers.json?shallow=true`);
+                const data = await res.json();
+                if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b);
+            } catch (e) {
+                const snap = await db.ref(`projects/${projectId}/answers`).get();
+                if (snap.exists()) entryNumbers = Object.keys(snap.val()).map(Number).sort((a, b) => a - b);
+            }
 
-    async function saveToFirebase() {
-        document.getElementById('save-btn').disabled = true;
-        document.getElementById('status-text').textContent = '保存中...';
-        const batch = {};
-        for(const a of scanAnswers) {
-            batch[`projects/${projectId}/answers/${a.entryNumber}`] = {
-                entryNumber: a.entryNumber, page: a.page, pageImage: a.pageImage,
-                uploadedAt: firebase.database.ServerValue.TIMESTAMP,
-                cells: a.cells.reduce((o,c)=>{o[`q${c.q}`]=c.imageData;return o;},{})
-            };
-        }
-        await db.ref('/').update(batch);
-        document.getElementById('status-text').textContent = '保存完了しました';
-        document.getElementById('save-btn').disabled = false;
-        loadEntryList();
-    }
-
-    // 答案一覧
-    let entryListData = [];
-    async function loadEntryList() {
-        const el = document.getElementById('entry-list');
-        el.innerHTML = '<div style="color:#aaa">読み込み中...</div>';
-        try {
-            const res = await fetch(`https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/answers.json?shallow=true`);
-            const data = await res.json();
-            entryListData = data ? Object.keys(data).map(Number).sort((a,b)=>a-b) : [];
-        } catch(e) {
-            const snap = await db.ref(`projects/${projectId}/answers`).get();
-            entryListData = snap.exists() ? Object.keys(snap.val()).map(Number).sort((a,b)=>a-b) : [];
-        }
-        entryNumbers = [...entryListData]; // 全体のentryNumbersも更新
-        let masterData = {};
-        try { masterData = JSON.parse(localStorage.getItem('masterData') || '{}'); } catch(e){}
-        if (entryListData.length === 0) { el.innerHTML = '<div style="color:#aaa">保存済み答案はありません</div>'; return; }
-        el.innerHTML = '';
-        entryListData.forEach(num => {
-            const md = masterData[num] || {};
-            const displayName = md.name || `No.${num}`;
-            const subInfo = md.name ? `No.${num}${md.affiliation ? ' / ' + md.affiliation : ''}` : '';
-            const item = document.createElement('div'); item.className = 'entry-list-item';
-            item.innerHTML = `<input type="checkbox" class="entry-cb" data-num="${num}"><span style="font-weight:bold;min-width:80px">${displayName}</span><span style="color:#aaa;font-size:13px">${subInfo}</span><button class="btn danger" style="margin-left:auto;padding:4px 10px;font-size:12px" onclick="deleteEntry(${num},event)">削除</button>`;
-            el.appendChild(item);
-        });
-        document.getElementById('batch-delete-btn').disabled = true;
-        document.getElementById('select-all-cb').checked = false;
-        document.querySelectorAll('.entry-cb').forEach(cb => cb.addEventListener('change', updateBatchBtn));
-    }
-
-    function updateBatchBtn() {
-        const checked = document.querySelectorAll('.entry-cb:checked').length;
-        document.getElementById('batch-delete-btn').disabled = checked === 0;
-    }
-    function toggleSelectAll() {
-        const all = document.getElementById('select-all-cb').checked;
-        document.querySelectorAll('.entry-cb').forEach(cb => cb.checked = all);
-        updateBatchBtn();
-    }
-    async function deleteEntry(num, e) {
-        e?.stopPropagation();
-        if (!confirm(`受付番号 ${num} の答案を削除しますか？`)) return;
-        await db.ref(`projects/${projectId}/answers/${num}`).remove();
-        await db.ref(`projects/${projectId}/scores/${num}`).remove();
-        loadEntryList();
-    }
-    async function batchDelete() {
-        const checked = [...document.querySelectorAll('.entry-cb:checked')].map(cb => cb.dataset.num);
-        if (!checked.length) return;
-        if (!confirm(`${checked.length}件の答案を削除しますか？`)) return;
-        const updates = {};
-        checked.forEach(num => { updates[`projects/${projectId}/answers/${num}`] = null; updates[`projects/${projectId}/scores/${num}`] = null; });
-        await db.ref('/').update(updates);
-        loadEntryList();
-    }
-
-    // ============================
-    // TAB 3: 模範解答
-    // ============================
-    function renderModelGrid() {
-        const grid = document.getElementById('model-answer-grid'); grid.innerHTML = '';
-        modelAnswers.forEach((ans, i) => {
-            const item = document.createElement('div'); item.className = 'answer-grid-item';
-            item.innerHTML = `<div class="q-num">${i+1}問</div><div class="answer-text ${ans?'':'unset'}">${ans||'未設定'}</div>`;
-            grid.appendChild(item);
-        });
-    }
-    function loadCSV() {
-        const file = document.getElementById('csv-file').files[0];
-        if (!file) { alert('CSVファイルを選択してください'); return; }
-        const reader = new FileReader();
-        reader.onload = e => {
-            const lines = e.target.result.split('\n').filter(l => l.trim());
-            modelAnswers = new Array(totalQuestions).fill('');
-            lines.forEach((line, idx) => {
-                const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                if (cols.length >= 2 && !isNaN(parseInt(cols[0]))) { const q = parseInt(cols[0]); if (q >= 1 && q <= totalQuestions) modelAnswers[q-1] = cols[1]; }
-                else if (idx < totalQuestions) modelAnswers[idx] = cols[0];
+            // スコアリアルタイム
+            db.ref(`projects/${projectId}/scores`).on('value', snap => {
+                scoresData = snap.val() || {};
+                updateStatsView();
             });
-            renderModelGrid();
-            document.getElementById('model-status').textContent = `${lines.length}件読み込みました`; document.getElementById('model-status').style.display = 'block';
-            setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
-        };
-        reader.readAsText(file, 'UTF-8');
-    }
-    async function saveModelAnswers() {
-        const data = {};
-        modelAnswers.forEach((ans, idx) => { if (ans) data[idx + 1] = ans; });
-        await db.ref(`projects/${projectId}/answers_text`).set(data);
-        document.getElementById('model-status').textContent = 'Firebaseに保存しました'; document.getElementById('model-status').style.display = 'block';
-        setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
-    }
 
-    // ============================
-    // TAB 4: 集計・設定
-    // ============================
-    function updateStatsView() {
-        let doneCount=0,conflictCount=0,confirmedCount=0,allConfirmed=true;
-        for(let q=1;q<=totalQuestions;q++){
-            const cs=Object.keys(scoresData[`__completed__q${q}`]||{});const allDone=cs.length>=3;let hasConflict=false,allResolved=true;
-            if(allDone){entryNumbers.forEach(en=>{const qs=scoresData[en]?.[`q${q}`]||{};const v=Object.values(qs);const co=v.filter(x=>x==='correct').length,wr=v.filter(x=>x==='wrong').length,ho=v.filter(x=>x==='hold').length;if((co>0&&wr>0)||ho>0){hasConflict=true;if(!scoresData[`__final__q${q}`]?.[en])allResolved=false;}});}
-            const fc=allDone&&(!hasConflict||allResolved);const cell=document.getElementById(`po-${q}`);cell.className='po-cell';
-            if(fc){cell.classList.add('confirmed');confirmedCount++;}else if(hasConflict){cell.classList.add('conflict');conflictCount++;allConfirmed=false;}
-            else if(allDone){cell.classList.add('done');doneCount++;allConfirmed=false;}else if(cs.length>0){cell.classList.add('inprogress');allConfirmed=false;}else{allConfirmed=false;}
-        }
-        document.getElementById('stat-done').textContent=doneCount+confirmedCount;document.getElementById('stat-conflict').textContent=conflictCount;document.getElementById('stat-confirmed').textContent=confirmedCount;
-        const csvS=document.getElementById('csv-status'),csvB=document.getElementById('csv-btn');
-        if(allConfirmed&&confirmedCount===totalQuestions){csvS.textContent='全問確定済み。CSV出力できます。';csvS.className='csv-status ready';csvB.disabled=false;}
-        else{csvS.textContent=`未確定の問題があります（確定済み: ${confirmedCount}/${totalQuestions}）`;csvS.className='csv-status notready';csvB.disabled=true;}
-        renderAnalytics();
-    }
-
-    async function exportCSV() {
-        const snap = await db.ref(`projects/${projectId}/entries`).get();
-        let masterData = {};
-        if (snap.exists()) {
-            snap.forEach(c => { const v=c.val(); masterData[v.entryNumber] = { name: `${v.familyName} ${v.firstName}`, affiliation: v.affiliation, grade: v.grade }; });
-        }
-        const results = entryNumbers.map(en => {
-            const answers = []; for(let q=1;q<=totalQuestions;q++){const fd=scoresData[`__final__q${q}`]||{};const qs=scoresData[en]?.[`q${q}`]||{};let r;if(fd[en])r=fd[en]==='correct'?1:0;else{const v=Object.values(qs);r=v.filter(x=>x==='correct').length>=2?1:0;}answers.push(r);}
-            const score=answers.reduce((a,b)=>a+b,0);const streaks=[];let cur=0;answers.forEach(a=>{if(a===1)cur++;else{if(cur>0)streaks.push(cur);cur=0;}});if(cur>0)streaks.push(cur);
-            const m=masterData[en]||{};return{entryNumber:en,name:m.name||'',affiliation:m.affiliation||'',grade:m.grade||'',score,answers,streaks};
-        });
-        results.sort((a,b)=>{if(b.score!==a.score)return b.score-a.score;for(let i=0;i<totalQuestions;i++){const d=b.answers[i]-a.answers[i];if(d!==0)return d;}return 0;});
-        const ms=Math.max(...results.map(r=>r.streaks.length),0);const headers=['順位','氏名','所属','学年','点数'];for(let i=1;i<=ms;i++)headers.push(`第${i}連答`);
-        const rows=[headers];let rank=1;
-        results.forEach((r,idx)=>{if(idx>0){const p=results[idx-1];if(p.score!==r.score)rank=idx+1;else{let d=false;for(let i=0;i<totalQuestions;i++)if(p.answers[i]!==r.answers[i]){d=true;break;}if(d)rank=idx+1;}}
-        const row=[rank,r.name,r.affiliation,r.grade,r.score];for(let i=0;i<ms;i++)row.push(r.streaks[i]||0);rows.push(row);});
-        const csv=rows.map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ciq_result.csv';a.click();
-    }
-
-    async function getAnalyticsData() {
-        const threshold=parseInt(document.getElementById('analytics-threshold').value)||5;
-        let masterData={};try{masterData=JSON.parse(localStorage.getItem('masterData')||'{}');}catch(e){}
-        const tp=entryNumbers.length||1,qStats=[];
-        for(let q=1;q<=totalQuestions;q++){let cc=0,ce=[];entryNumbers.forEach(en=>{const fd=scoresData[`__final__q${q}`]||{};const qs=scoresData[en]?.[`q${q}`]||{};let r;if(fd[en])r=fd[en]==='correct'?1:0;else{r=Object.values(qs).filter(v=>v==='correct').length>=2?1:0;}if(r===1){cc++;ce.push(en);}});
-        const rate=Math.round((cc/tp)*100);const names=ce.map(e=>{const m=masterData[e]||{};return m.name?`${m.affiliation||''} ${m.name}`.trim():`番号${e}`;}).join(' / ');
-        let type='';if(cc===0)type='全滅';else if(cc===1)type='単独正解';else if(cc<=threshold)type='少数正解';
-        qStats.push({q,correctCount:cc,rate,type,names,isRare:cc<=threshold});}return qStats;
-    }
-    async function renderAnalytics() {
-        const tbody=document.getElementById('analytics-tbody');if(!entryNumbers.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:12px">データがありません</td></tr>';return;}
-        const qs=await getAnalyticsData();
-        tbody.innerHTML=qs.map(s=>`<tr style="${s.isRare?'background:rgba(255,152,0,0.2);font-weight:bold':''}"><td style="padding:8px;border:1px solid #444;text-align:center">${s.q}</td><td style="padding:8px;border:1px solid #444;text-align:center">${s.correctCount}人</td><td style="padding:8px;border:1px solid #444;text-align:center">${s.rate}%</td><td style="padding:8px;border:1px solid #444;text-align:center;${s.type==='単独正解'?'color:#ff9800':s.type==='全滅'?'color:#ef5350':''}">${s.type}</td><td style="padding:8px;border:1px solid #444;font-size:12px">${s.names}</td></tr>`).join('');
-    }
-    async function exportAnalyticsCSV() {
-        const qs=await getAnalyticsData();const headers=['問題番号','正答数','正答率(%)','状態','正解者一覧'];const rows=[headers];
-        qs.forEach(s=>rows.push([s.q,s.correctCount,s.rate,s.type,`"${s.names.replace(/"/g,'""')}"`]));
-        const csv=rows.map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='analytics_all_qs.csv';a.click();
-    }
-
-    async function deleteProject() {
-        if (!confirm('本当にこのプロジェクトを完全に削除しますか？\nすべてのデータが失われます。')) return;
-        const typed = prompt(`確認のため、プロジェクトID「${projectId}」を入力してください：`);
-        if (typed !== projectId) { alert('プロジェクトIDが一致しません。削除を中止しました。'); return; }
-        await db.ref(`projects/${projectId}`).remove(); alert('プロジェクトが削除されました。'); session.clear(); location.href = 'index.html';
-    }
-
-    // ============================
-    // データクリーンアップ処理
-    // ============================
-    async function purgeOldImages() {
-        // 7日以上前のanswers画像を全削除
-        const snap = await db.ref(`projects/${projectId}/answers`).get();
-        if(!snap.exists()) return;
-        const now = Date.now();
-        const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-        const updates = {};
-        snap.forEach(child => {
-            const data = child.val();
-            if(data.uploadedAt && (now - data.uploadedAt > SEVEN_DAYS)) {
-                // 画像データのみnullにする（成績の参照番号としては残す）
-                updates[`projects/${projectId}/answers/${child.key}/pageImage`] = null;
-                updates[`projects/${projectId}/answers/${child.key}/cells`] = null;
+            // 模範解答読み込み
+            const modelSnap = await db.ref(`projects/${projectId}/answers_text`).get();
+            modelAnswers = new Array(totalQuestions).fill('');
+            if (modelSnap.exists()) {
+                const d = modelSnap.val();
+                Object.keys(d).forEach(q => { modelAnswers[q - 1] = d[q]; });
             }
-        });
-        if(Object.keys(updates).length > 0) {
-            await db.ref().update(updates);
-            console.log("古い画像データをパージしました。");
-        }
-    }
-
-    // ============================
-    // 参加者管理・受付管理
-    // ============================
-    async function toggleEntryList() {
-        const enabled = document.getElementById('entry-list-toggle').checked;
-        await db.ref(`projects/${projectId}/entryConfig/listEnabled`).set(enabled);
-    }
-
-    async function loadAdminEntries() {
-        const tbody = document.getElementById('admin-entries-tbody');
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:12px;text-align:center">読み込み中...</td></tr>';
-        
-        const snap = await db.ref(`projects/${projectId}/entries`).orderByChild('entryNumber').get();
-        if(!snap.exists()) {
-            tbody.innerHTML = '<tr><td colspan="6" style="padding:12px;text-align:center">名簿データがありません。</td></tr>';
-            return;
+            renderModelGrid();
         }
 
-        tbody.innerHTML = '';
-        snap.forEach(child => {
-            const v = child.val();
-            const tr = document.createElement('tr');
-            if(v.status === 'canceled') tr.style.opacity = '0.5';
-            const statText = v.status === 'canceled' ? '<span style="color:#ef5350">ｷｬﾝｾﾙ</span>' 
-                            : v.checkedIn ? '<span style="color:#4caf50">受付済</span>' : '未受付';
-            
-            tr.innerHTML = `
+        // ============================
+        // TAB 1: 解答用紙
+        // ============================
+        const marker_b64 = [
+            "data:image/png;base64,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",
+            "data:image/png;base64,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",
+            "data:image/png;base64,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",
+            "data:image/png;base64,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"
+        ];
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        async function generateAndSave() {
+            try {
+                const qCount = parseInt(document.getElementById('question-count').value);
+                const qCols = 5;
+                if (qCount < 10 || qCount % 10 !== 0) { alert("問題数は10の倍数で指定してください"); return; }
+                window.jsPDF = window.jspdf.jsPDF;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pageWidth = 210, pageHeight = 297;
+                const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: 3, tombo: [], markCells: [], answerRegions: [] };
+                const markerSize = 10, margin = 5;
+                [{ x: margin, y: margin, id: 0 }, { x: pageWidth - margin - markerSize, y: margin, id: 1 }, { x: margin, y: pageHeight - margin - markerSize, id: 2 }, { x: pageWidth - margin - markerSize, y: pageHeight - margin - markerSize, id: 3 }].forEach(p => {
+                    doc.addImage(marker_b64[p.id], 'PNG', p.x, p.y, markerSize, markerSize);
+                    config.tombo.push({ x: p.x, y: p.y, w: markerSize, h: markerSize });
+                });
+                const fontRes = await fetch("fonts/BIZUDGothic-Regular.ttf");
+                const fontBuffer = await fontRes.arrayBuffer();
+                let binary = ''; const bytes = new Uint8Array(fontBuffer);
+                for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+                doc.addFileToVFS('BIZUDGothic.ttf', window.btoa(binary));
+                doc.addFont('BIZUDGothic.ttf', 'BIZUDGothic', 'normal');
+                doc.setFont('BIZUDGothic'); doc.setFontSize(8); doc.setTextColor(50);
+                const gridMarginX = 15, gridMarginTop = 5, gridSpaceWidth = pageWidth - gridMarginX * 2;
+                const colWidth = gridSpaceWidth / qCols, rows = Math.ceil(qCount / qCols), maxGridHeight = 255, rowHeight = maxGridHeight / rows;
+                doc.setLineWidth(0.2);
+                for (let i = 0; i < qCount; i++) {
+                    const row = Math.floor(i / qCols), col = i % qCols;
+                    const x = gridMarginX + col * colWidth, y = gridMarginTop + row * rowHeight;
+                    doc.rect(x, y, colWidth, rowHeight, 'S'); doc.text((i + 1).toString(), x + 2, y + 4);
+                    config.answerRegions.push({ x, y, w: colWidth, h: rowHeight });
+                }
+                function drawVerticalText(doc, str, x, centerY) {
+                    const chars = str.split(''), spacing = 3.5, startY = centerY - ((chars.length - 1) * spacing) / 2;
+                    chars.forEach((c, i) => doc.text(c, x, startY + i * spacing, { align: 'center', baseline: 'middle' }));
+                }
+                const boxX = 15, boxY = gridMarginTop + maxGridHeight + 5, boxW = 180, boxH = 26;
+                doc.rect(boxX, boxY, boxW, boxH, 'S');
+                const L1 = boxX + 6, L2 = boxX + 13, L3 = boxX + 57, L4 = L3 + 6, L5 = L4 + 18, L6 = L5 + 6, L7 = L6 + 40, L8 = L7 + 6;
+                [L1, L2, L3, L4, L5, L6, L7, L8].forEach(lx => doc.line(lx, boxY, lx, boxY + boxH, 'S'));
+                const rH = boxH / 3;
+                doc.line(L1, boxY + rH, L3, boxY + rH, 'S'); doc.line(L1, boxY + rH * 2, L3, boxY + rH * 2, 'S');
+                doc.setFontSize(8);
+                drawVerticalText(doc, "受付番号", boxX + 3, boxY + boxH / 2);
+                drawVerticalText(doc, "学年", L3 + 3, boxY + boxH / 2);
+                drawVerticalText(doc, "所属", L5 + 3, boxY + boxH / 2);
+                drawVerticalText(doc, "氏名", L7 + 3, boxY + boxH / 2);
+                const bubbleW = 3.2, bubbleH = 5.0;
+                for (let row = 0; row < 3; row++) {
+                    const cy = boxY + row * rH + rH / 2;
+                    for (let col = 0; col < 10; col++) {
+                        const cx = L2 + 1.5 + col * 4.2;
+                        doc.ellipse(cx + bubbleW / 2, cy, bubbleW / 2, bubbleH / 2, 'S');
+                        doc.text(col.toString(), cx + bubbleW / 2, cy, { align: 'center', baseline: 'middle' });
+                        config.markCells.push({ x: cx, y: cy - bubbleH / 2, w: bubbleW, h: bubbleH, row, col });
+                    }
+                }
+                doc.save(`answer_sheet_${qCount}q.pdf`);
+                await db.ref(`projects/${projectId}/config`).set(config);
+                totalQuestions = qCount;
+                const s = document.getElementById('save-status');
+                s.innerHTML = '✅ PDFが生成され、座標データが保存されました！'; s.style.background = '#1b5e20'; s.style.display = 'block';
+                setTimeout(() => s.style.display = 'none', 5000);
+            } catch (err) {
+                console.error(err);
+                const s = document.getElementById('save-status');
+                s.innerHTML = '❌ エラー: ' + err.message; s.style.background = '#b71c1c'; s.style.display = 'block';
+            }
+        }
+
+        // ============================
+        // TAB 2: 答案読込・管理
+        // ============================
+        const workCanvas = document.getElementById('work-canvas');
+        const workCtx = workCanvas.getContext('2d');
+        let scanConfig = null, scanAnswers = [];
+
+        async function loadAnswers() {
+            const file = document.getElementById('pdf-file').files[0];
+            if (!file) { alert('PDFを選択してください'); return; }
+            const snap = await db.ref(`projects/${projectId}/config`).get();
+            if (!snap.exists()) { alert('座標設定が見つかりません。先に解答用紙を発行してください。'); return; }
+            scanConfig = snap.val();
+            const arrayBuffer = await file.arrayBuffer();
+            let pdfDoc;
+            try { pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise; }
+            catch (e) { alert('PDFの読み込みに失敗: ' + e.message); return; }
+            const total = pdfDoc.numPages; scanAnswers = [];
+            document.getElementById('status-text').textContent = `0 / ${total} ページ処理中...`;
+            document.getElementById('progress-bar').style.width = '0%';
+            for (let pageNum = 1; pageNum <= total; pageNum++) {
+                const page = await pdfDoc.getPage(pageNum);
+                const viewport = page.getViewport({ scale: scanConfig.scale || 1.5 });
+                workCanvas.width = viewport.width; workCanvas.height = viewport.height;
+                workCtx.fillStyle = '#ffffff'; workCtx.fillRect(0, 0, workCanvas.width, workCanvas.height);
+                await page.render({ canvasContext: workCtx, viewport }).promise;
+                let detectedResult = detectTombo(scanConfig.tombo);
+                if (!detectedResult.error && detectedResult.markerMap[0] && detectedResult.markerMap[2]) {
+                    if (detectedResult.markerMap[0].y > detectedResult.markerMap[2].y) {
+                        const tc = document.createElement('canvas'); tc.width = workCanvas.width; tc.height = workCanvas.height;
+                        const tctx = tc.getContext('2d'); tctx.translate(tc.width, tc.height); tctx.rotate(Math.PI); tctx.drawImage(workCanvas, 0, 0);
+                        workCtx.clearRect(0, 0, workCanvas.width, workCanvas.height); workCtx.drawImage(tc, 0, 0);
+                        detectedResult = detectTombo(scanConfig.tombo);
+                    }
+                }
+                if (detectedResult.error) {
+                    const origData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+                    for (const angle of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
+                        const tc = document.createElement('canvas');
+                        const isR = Math.abs(angle) === Math.PI / 2;
+                        tc.width = isR ? workCanvas.height : workCanvas.width; tc.height = isR ? workCanvas.width : workCanvas.height;
+                        const tctx = tc.getContext('2d'); tctx.translate(tc.width / 2, tc.height / 2); tctx.rotate(angle);
+                        tctx.drawImage(workCanvas, -workCanvas.width / 2, -workCanvas.height / 2);
+                        workCanvas.width = tc.width; workCanvas.height = tc.height; workCtx.drawImage(tc, 0, 0);
+                        const rr = detectTombo(scanConfig.tombo);
+                        if (!rr.error || rr.foundCount > detectedResult.foundCount) detectedResult = rr;
+                        if (!detectedResult.error) break;
+                        workCanvas.width = origData.width; workCanvas.height = origData.height; workCtx.putImageData(origData, 0, 0);
+                    }
+                }
+                const refCenterPoints = scanConfig.tombo.map(r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 }));
+                const transform = calcPerspectiveTransform(refCenterPoints, detectedResult.points);
+                const correctedMarkCells = scanConfig.markCells.map(cell => transformRegion(cell, transform));
+                const entryNumber = readEntryNumber(correctedMarkCells);
+                const cells = []; const qTotal = scanConfig.questionCount || 100;
+                for (let q = 0; q < qTotal; q++) {
+                    const cr = transformRegion(scanConfig.answerRegions[q], transform);
+                    cells.push({ q: q + 1, imageData: cutRegion(cr) });
+                }
+                scanAnswers.push({ page: pageNum, entryNumber, cells, tomboError: detectedResult.error, pageImage: workCanvas.toDataURL('image/jpeg', 0.5) });
+                document.getElementById('progress-bar').style.width = Math.round((pageNum / total) * 100) + '%';
+                document.getElementById('status-text').textContent = `${pageNum} / ${total} ページ処理中...`;
+            }
+            document.getElementById('status-text').textContent = `完了: ${total}ページ処理しました`;
+            showScanResults();
+        }
+
+        function detectTombo(refTombo) {
+            if (typeof AR === 'undefined') return { points: refTombo.map(r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })), error: true, foundCount: 0, markerMap: {} };
+            const imageData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+            const markers = new AR.Detector().detect(imageData);
+            const detected = [], markerMap = {}; let error = false, foundCount = 0;
+            [0, 1, 2, 3].forEach((id, i) => {
+                const m = markers.find(m => m.id === id);
+                if (m) { let sx = 0, sy = 0; m.corners.forEach(c => { sx += c.x; sy += c.y }); const pt = { x: sx / 4, y: sy / 4 }; detected.push(pt); markerMap[id] = pt; foundCount++; }
+                else { const ref = refTombo[i] || refTombo[0]; detected.push({ x: ref.x + ref.w / 2, y: ref.y + ref.h / 2 }); error = true; }
+            });
+            return { points: detected, error, foundCount, markerMap };
+        }
+        function calcPerspectiveTransform(src, dst) {
+            if (src.length < 4 || dst.length < 4) return null;
+            const A = [], b = [];
+            for (let i = 0; i < 4; i++) {
+                const sx = src[i].x, sy = src[i].y, dx = dst[i].x, dy = dst[i].y;
+                A.push([sx, sy, 1, 0, 0, 0, -sx * dx, -sy * dx]); b.push(dx);
+                A.push([0, 0, 0, sx, sy, 1, -sx * dy, -sy * dy]); b.push(dy);
+            }
+            const n = 8, M = A.map((row, i) => [...row, b[i]]);
+            for (let col = 0; col < n; col++) { let mr = col; for (let r = col + 1; r < n; r++)if (Math.abs(M[r][col]) > Math.abs(M[mr][col])) mr = r;[M[col], M[mr]] = [M[mr], M[col]]; if (M[col][col] === 0) return null; for (let r = col + 1; r < n; r++) { const f = M[r][col] / M[col][col]; for (let j = col; j <= n; j++)M[r][j] -= f * M[col][j]; } }
+            const h = new Array(n).fill(0); for (let i = n - 1; i >= 0; i--) { h[i] = M[i][n] / M[i][i]; for (let j = i - 1; j >= 0; j--)M[j][n] -= M[j][i] * h[i]; }
+            return { h00: h[0], h01: h[1], h02: h[2], h10: h[3], h11: h[4], h12: h[5], h20: h[6], h21: h[7] };
+        }
+        function transformPoint(x, y, t) { if (!t) return { x, y }; const d = t.h20 * x + t.h21 * y + 1; return { x: (t.h00 * x + t.h01 * y + t.h02) / d, y: (t.h10 * x + t.h11 * y + t.h12) / d }; }
+        function transformRegion(r, t) { const tl = transformPoint(r.x, r.y, t), br = transformPoint(r.x + r.w, r.y + r.h, t); return { x: tl.x, y: tl.y, w: br.x - tl.x, h: br.y - tl.y, row: r.row, col: r.col }; }
+        function readEntryNumber(markCells) { const rows = [[], [], []]; markCells.forEach(c => { if (c.row === undefined) return; rows[c.row].push({ col: c.col, darkness: getMeanDarkness(c) }); }); return rows.map(r => { if (!r.length) return 0; return [...r].sort((a, b) => b.darkness - a.darkness)[0].col; }).reduce((a, d, i) => a + d * Math.pow(10, 2 - i), 0); }
+        function getMeanDarkness(r) { const x = Math.round(Math.max(0, r.x)), y = Math.round(Math.max(0, r.y)), w = Math.max(1, Math.round(Math.min(r.w, workCanvas.width - x))), h = Math.max(1, Math.round(Math.min(r.h, workCanvas.height - y))); const d = workCtx.getImageData(x, y, w, h); let t = 0; for (let i = 0; i < d.data.length; i += 4)t += (255 - (d.data[i] + d.data[i + 1] + d.data[i + 2]) / 3); return t / (d.data.length / 4); }
+        function cutRegion(r) { const x = Math.round(Math.max(0, r.x)), y = Math.round(Math.max(0, r.y)), w = Math.max(1, Math.round(Math.min(r.w, workCanvas.width - x))), h = Math.max(1, Math.round(Math.min(r.h, workCanvas.height - y))); const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(workCanvas, x, y, w, h, 0, 0, w, h); return c.toDataURL('image/jpeg', 0.7); }
+
+        function showScanResults() {
+            document.getElementById('result-section').style.display = 'block';
+            const list = document.getElementById('answer-list'); list.innerHTML = '';
+            let ok = 0, err = 0, warn = 0;
+            scanAnswers.forEach(a => {
+                const valid = a.entryNumber >= 1 && a.entryNumber <= 999;
+                if (valid && !a.tomboError) ok++; else if (!valid) err++; else warn++;
+                const item = document.createElement('div'); item.className = 'answer-item';
+                if (!valid || a.tomboError) item.style.background = a.tomboError ? '#3a2b00' : '#3a1b1b';
+                item.innerHTML = `<img src="${a.cells[0]?.imageData}" alt="1問目"/><span>P${a.page}</span><span>受付番号: <strong>${a.entryNumber}</strong></span>${a.tomboError ? '<span style="font-size:11px;color:#ff9800">⚠ トンボ検出失敗</span>' : ''}<span class="badge ${valid ? (a.tomboError ? 'warn' : 'ok') : 'error'}">${valid ? 'OK' : 'エラー'}</span>`;
+                list.appendChild(item);
+            });
+            let txt = `${ok}件OK / ${warn}件警告 / ${err}件エラー`;
+            if (warn > 0 || err > 0) txt += '  ⚠ エラーのあるページは再スキャンを推奨';
+            document.getElementById('result-summary').textContent = txt;
+            if (err === 0) document.getElementById('save-btn').disabled = false;
+        }
+
+        async function saveToFirebase() {
+            document.getElementById('save-btn').disabled = true;
+            document.getElementById('status-text').textContent = '保存中...';
+            const batch = {};
+            for (const a of scanAnswers) {
+                batch[`projects/${projectId}/answers/${a.entryNumber}`] = {
+                    entryNumber: a.entryNumber, page: a.page, pageImage: a.pageImage,
+                    uploadedAt: firebase.database.ServerValue.TIMESTAMP,
+                    cells: a.cells.reduce((o, c) => { o[`q${c.q}`] = c.imageData; return o; }, {})
+                };
+            }
+            await db.ref('/').update(batch);
+            document.getElementById('status-text').textContent = '保存完了しました';
+            document.getElementById('save-btn').disabled = false;
+            loadEntryList();
+        }
+
+        // 答案一覧
+        let entryListData = [];
+        async function loadEntryList() {
+            const el = document.getElementById('entry-list');
+            el.innerHTML = '<div style="color:#aaa">読み込み中...</div>';
+            try {
+                const res = await fetch(`https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/answers.json?shallow=true`);
+                const data = await res.json();
+                entryListData = data ? Object.keys(data).map(Number).sort((a, b) => a - b) : [];
+            } catch (e) {
+                const snap = await db.ref(`projects/${projectId}/answers`).get();
+                entryListData = snap.exists() ? Object.keys(snap.val()).map(Number).sort((a, b) => a - b) : [];
+            }
+            entryNumbers = [...entryListData]; // 全体のentryNumbersも更新
+            let masterData = {};
+            try { masterData = JSON.parse(localStorage.getItem('masterData') || '{}'); } catch (e) { }
+            if (entryListData.length === 0) { el.innerHTML = '<div style="color:#aaa">保存済み答案はありません</div>'; return; }
+            el.innerHTML = '';
+            entryListData.forEach(num => {
+                const md = masterData[num] || {};
+                const displayName = md.name || `No.${num}`;
+                const subInfo = md.name ? `No.${num}${md.affiliation ? ' / ' + md.affiliation : ''}` : '';
+                const item = document.createElement('div'); item.className = 'entry-list-item';
+                item.innerHTML = `<input type="checkbox" class="entry-cb" data-num="${num}"><span style="font-weight:bold;min-width:80px">${displayName}</span><span style="color:#aaa;font-size:13px">${subInfo}</span><button class="btn danger" style="margin-left:auto;padding:4px 10px;font-size:12px" onclick="deleteEntry(${num},event)">削除</button>`;
+                el.appendChild(item);
+            });
+            document.getElementById('batch-delete-btn').disabled = true;
+            document.getElementById('select-all-cb').checked = false;
+            document.querySelectorAll('.entry-cb').forEach(cb => cb.addEventListener('change', updateBatchBtn));
+        }
+
+        function updateBatchBtn() {
+            const checked = document.querySelectorAll('.entry-cb:checked').length;
+            document.getElementById('batch-delete-btn').disabled = checked === 0;
+        }
+        function toggleSelectAll() {
+            const all = document.getElementById('select-all-cb').checked;
+            document.querySelectorAll('.entry-cb').forEach(cb => cb.checked = all);
+            updateBatchBtn();
+        }
+        async function deleteEntry(num, e) {
+            e?.stopPropagation();
+            if (!confirm(`受付番号 ${num} の答案を削除しますか？`)) return;
+            await db.ref(`projects/${projectId}/answers/${num}`).remove();
+            await db.ref(`projects/${projectId}/scores/${num}`).remove();
+            loadEntryList();
+        }
+        async function batchDelete() {
+            const checked = [...document.querySelectorAll('.entry-cb:checked')].map(cb => cb.dataset.num);
+            if (!checked.length) return;
+            if (!confirm(`${checked.length}件の答案を削除しますか？`)) return;
+            const updates = {};
+            checked.forEach(num => { updates[`projects/${projectId}/answers/${num}`] = null; updates[`projects/${projectId}/scores/${num}`] = null; });
+            await db.ref('/').update(updates);
+            loadEntryList();
+        }
+
+        // ============================
+        // TAB 3: 模範解答
+        // ============================
+        function renderModelGrid() {
+            const grid = document.getElementById('model-answer-grid'); grid.innerHTML = '';
+            modelAnswers.forEach((ans, i) => {
+                const item = document.createElement('div'); item.className = 'answer-grid-item';
+                item.innerHTML = `<div class="q-num">${i + 1}問</div><div class="answer-text ${ans ? '' : 'unset'}">${ans || '未設定'}</div>`;
+                grid.appendChild(item);
+            });
+        }
+        function loadCSV() {
+            const file = document.getElementById('csv-file').files[0];
+            if (!file) { alert('CSVファイルを選択してください'); return; }
+            const reader = new FileReader();
+            reader.onload = e => {
+                const lines = e.target.result.split('\n').filter(l => l.trim());
+                modelAnswers = new Array(totalQuestions).fill('');
+                lines.forEach((line, idx) => {
+                    const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols.length >= 2 && !isNaN(parseInt(cols[0]))) { const q = parseInt(cols[0]); if (q >= 1 && q <= totalQuestions) modelAnswers[q - 1] = cols[1]; }
+                    else if (idx < totalQuestions) modelAnswers[idx] = cols[0];
+                });
+                renderModelGrid();
+                document.getElementById('model-status').textContent = `${lines.length}件読み込みました`; document.getElementById('model-status').style.display = 'block';
+                setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+        async function saveModelAnswers() {
+            const data = {};
+            modelAnswers.forEach((ans, idx) => { if (ans) data[idx + 1] = ans; });
+            await db.ref(`projects/${projectId}/answers_text`).set(data);
+            document.getElementById('model-status').textContent = 'Firebaseに保存しました'; document.getElementById('model-status').style.display = 'block';
+            setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
+        }
+
+        // ============================
+        // TAB 4: 集計・設定
+        // ============================
+        function updateStatsView() {
+            let doneCount = 0, conflictCount = 0, confirmedCount = 0, allConfirmed = true;
+            for (let q = 1; q <= totalQuestions; q++) {
+                const cs = Object.keys(scoresData[`__completed__q${q}`] || {}); const allDone = cs.length >= 3; let hasConflict = false, allResolved = true;
+                if (allDone) { entryNumbers.forEach(en => { const qs = scoresData[en]?.[`q${q}`] || {}; const v = Object.values(qs); const co = v.filter(x => x === 'correct').length, wr = v.filter(x => x === 'wrong').length, ho = v.filter(x => x === 'hold').length; if ((co > 0 && wr > 0) || ho > 0) { hasConflict = true; if (!scoresData[`__final__q${q}`]?.[en]) allResolved = false; } }); }
+                const fc = allDone && (!hasConflict || allResolved); const cell = document.getElementById(`po-${q}`); cell.className = 'po-cell';
+                if (fc) { cell.classList.add('confirmed'); confirmedCount++; } else if (hasConflict) { cell.classList.add('conflict'); conflictCount++; allConfirmed = false; }
+                else if (allDone) { cell.classList.add('done'); doneCount++; allConfirmed = false; } else if (cs.length > 0) { cell.classList.add('inprogress'); allConfirmed = false; } else { allConfirmed = false; }
+            }
+            document.getElementById('stat-done').textContent = doneCount + confirmedCount; document.getElementById('stat-conflict').textContent = conflictCount; document.getElementById('stat-confirmed').textContent = confirmedCount;
+            const csvS = document.getElementById('csv-status'), csvB = document.getElementById('csv-btn');
+            if (allConfirmed && confirmedCount === totalQuestions) { csvS.textContent = '全問確定済み。CSV出力できます。'; csvS.className = 'csv-status ready'; csvB.disabled = false; }
+            else { csvS.textContent = `未確定の問題があります（確定済み: ${confirmedCount}/${totalQuestions}）`; csvS.className = 'csv-status notready'; csvB.disabled = true; }
+            renderAnalytics();
+        }
+
+        async function exportCSV() {
+            const snap = await db.ref(`projects/${projectId}/entries`).get();
+            let masterData = {};
+            if (snap.exists()) {
+                snap.forEach(c => { const v = c.val(); masterData[v.entryNumber] = { name: `${v.familyName} ${v.firstName}`, affiliation: v.affiliation, grade: v.grade }; });
+            }
+            const results = entryNumbers.map(en => {
+                const answers = []; for (let q = 1; q <= totalQuestions; q++) { const fd = scoresData[`__final__q${q}`] || {}; const qs = scoresData[en]?.[`q${q}`] || {}; let r; if (fd[en]) r = fd[en] === 'correct' ? 1 : 0; else { const v = Object.values(qs); r = v.filter(x => x === 'correct').length >= 2 ? 1 : 0; } answers.push(r); }
+                const score = answers.reduce((a, b) => a + b, 0); const streaks = []; let cur = 0; answers.forEach(a => { if (a === 1) cur++; else { if (cur > 0) streaks.push(cur); cur = 0; } }); if (cur > 0) streaks.push(cur);
+                const m = masterData[en] || {}; return { entryNumber: en, name: m.name || '', affiliation: m.affiliation || '', grade: m.grade || '', score, answers, streaks };
+            });
+            results.sort((a, b) => { if (b.score !== a.score) return b.score - a.score; for (let i = 0; i < totalQuestions; i++) { const d = b.answers[i] - a.answers[i]; if (d !== 0) return d; } return 0; });
+            const ms = Math.max(...results.map(r => r.streaks.length), 0); const headers = ['順位', '氏名', '所属', '学年', '点数']; for (let i = 1; i <= ms; i++)headers.push(`第${i}連答`);
+            const rows = [headers]; let rank = 1;
+            results.forEach((r, idx) => {
+                if (idx > 0) { const p = results[idx - 1]; if (p.score !== r.score) rank = idx + 1; else { let d = false; for (let i = 0; i < totalQuestions; i++)if (p.answers[i] !== r.answers[i]) { d = true; break; } if (d) rank = idx + 1; } }
+                const row = [rank, r.name, r.affiliation, r.grade, r.score]; for (let i = 0; i < ms; i++)row.push(r.streaks[i] || 0); rows.push(row);
+            });
+            const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ciq_result.csv'; a.click();
+        }
+
+        async function getAnalyticsData() {
+            const threshold = parseInt(document.getElementById('analytics-threshold').value) || 5;
+            let masterData = {}; try { masterData = JSON.parse(localStorage.getItem('masterData') || '{}'); } catch (e) { }
+            const tp = entryNumbers.length || 1, qStats = [];
+            for (let q = 1; q <= totalQuestions; q++) {
+                let cc = 0, ce = []; entryNumbers.forEach(en => { const fd = scoresData[`__final__q${q}`] || {}; const qs = scoresData[en]?.[`q${q}`] || {}; let r; if (fd[en]) r = fd[en] === 'correct' ? 1 : 0; else { r = Object.values(qs).filter(v => v === 'correct').length >= 2 ? 1 : 0; } if (r === 1) { cc++; ce.push(en); } });
+                const rate = Math.round((cc / tp) * 100); const names = ce.map(e => { const m = masterData[e] || {}; return m.name ? `${m.affiliation || ''} ${m.name}`.trim() : `番号${e}`; }).join(' / ');
+                let type = ''; if (cc === 0) type = '全滅'; else if (cc === 1) type = '単独正解'; else if (cc <= threshold) type = '少数正解';
+                qStats.push({ q, correctCount: cc, rate, type, names, isRare: cc <= threshold });
+            } return qStats;
+        }
+        async function renderAnalytics() {
+            const tbody = document.getElementById('analytics-tbody'); if (!entryNumbers.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:12px">データがありません</td></tr>'; return; }
+            const qs = await getAnalyticsData();
+            tbody.innerHTML = qs.map(s => `<tr style="${s.isRare ? 'background:rgba(255,152,0,0.2);font-weight:bold' : ''}"><td style="padding:8px;border:1px solid #444;text-align:center">${s.q}</td><td style="padding:8px;border:1px solid #444;text-align:center">${s.correctCount}人</td><td style="padding:8px;border:1px solid #444;text-align:center">${s.rate}%</td><td style="padding:8px;border:1px solid #444;text-align:center;${s.type === '単独正解' ? 'color:#ff9800' : s.type === '全滅' ? 'color:#ef5350' : ''}">${s.type}</td><td style="padding:8px;border:1px solid #444;font-size:12px">${s.names}</td></tr>`).join('');
+        }
+        async function exportAnalyticsCSV() {
+            const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率(%)', '状態', '正解者一覧']; const rows = [headers];
+            qs.forEach(s => rows.push([s.q, s.correctCount, s.rate, s.type, `"${s.names.replace(/"/g, '""')}"`]));
+            const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'analytics_all_qs.csv'; a.click();
+        }
+
+        async function deleteProject() {
+            if (!confirm('本当にこのプロジェクトを完全に削除しますか？\nすべてのデータが失われます。')) return;
+            const typed = prompt(`確認のため、プロジェクトID「${projectId}」を入力してください：`);
+            if (typed !== projectId) { alert('プロジェクトIDが一致しません。削除を中止しました。'); return; }
+            await db.ref(`projects/${projectId}`).remove(); alert('プロジェクトが削除されました。'); session.clear(); location.href = 'index.html';
+        }
+
+        // ============================
+        // データクリーンアップ処理
+        // ============================
+        async function purgeOldImages() {
+            // 7日以上前のanswers画像を全削除
+            const snap = await db.ref(`projects/${projectId}/answers`).get();
+            if (!snap.exists()) return;
+            const now = Date.now();
+            const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+            const updates = {};
+            snap.forEach(child => {
+                const data = child.val();
+                if (data.uploadedAt && (now - data.uploadedAt > SEVEN_DAYS)) {
+                    // 画像データのみnullにする（成績の参照番号としては残す）
+                    updates[`projects/${projectId}/answers/${child.key}/pageImage`] = null;
+                    updates[`projects/${projectId}/answers/${child.key}/cells`] = null;
+                }
+            });
+            if (Object.keys(updates).length > 0) {
+                await db.ref().update(updates);
+                console.log("古い画像データをパージしました。");
+            }
+        }
+
+        // ============================
+        // 参加者管理・受付管理
+        // ============================
+        async function toggleEntryList() {
+            const enabled = document.getElementById('entry-list-toggle').checked;
+            await db.ref(`projects/${projectId}/entryConfig/listEnabled`).set(enabled);
+        }
+
+        async function loadAdminEntries() {
+            const tbody = document.getElementById('admin-entries-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:12px;text-align:center">読み込み中...</td></tr>';
+
+            const snap = await db.ref(`projects/${projectId}/entries`).orderByChild('entryNumber').get();
+            if (!snap.exists()) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:12px;text-align:center">名簿データがありません。</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            snap.forEach(child => {
+                const v = child.val();
+                const tr = document.createElement('tr');
+                if (v.status === 'canceled') tr.style.opacity = '0.5';
+                const statText = v.status === 'canceled' ? '<span style="color:#ef5350">ｷｬﾝｾﾙ</span>'
+                    : v.checkedIn ? '<span style="color:#4caf50">受付済</span>' : '未受付';
+
+                tr.innerHTML = `
                 <td style="padding:8px;border:1px solid #444;">${v.entryNumber || '-'}</td>
                 <td style="padding:8px;border:1px solid #444;">${v.familyName} ${v.firstName}<br><span style="font-size:11px;color:#aaa">${v.familyNameKana} ${v.firstNameKana}</span></td>
                 <td style="padding:8px;border:1px solid #444;">${v.entryName || ''}</td>
-                <td style="padding:8px;border:1px solid #444;">${v.affiliation || ''}<br><span style="font-size:11px">${v.grade||''}</span></td>
-                <td style="padding:8px;border:1px solid #444;"><span style="font-size:11px;color:#aaa">${v.email||''}</span><br>${v.inquiry||'-'}</td>
+                <td style="padding:8px;border:1px solid #444;">${v.affiliation || ''}<br><span style="font-size:11px">${v.grade || ''}</span></td>
+                <td style="padding:8px;border:1px solid #444;"><span style="font-size:11px;color:#aaa">${v.email || ''}</span><br>${v.inquiry || '-'}</td>
                 <td style="padding:8px;border:1px solid #444;font-weight:bold;">${statText}</td>
             `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    async function exportEntriesCSV() {
-        const snap = await db.ref(`projects/${projectId}/entries`).orderByChild('entryNumber').get();
-        if(!snap.exists()) return;
-        const rows = [['受付番号','姓','名','セイ','メイ','メールアドレス','所属機関','学年','エントリー名','意気込み','連絡事項','状態','UUID']];
-        snap.forEach(child => {
-            const v = child.val();
-            const stat = v.status === 'canceled' ? 'canceled' : v.checkedIn ? 'checkedIn' : 'registered';
-            rows.push([
-                v.entryNumber, v.familyName, v.firstName, v.familyNameKana, v.firstNameKana, 
-                v.email, v.affiliation, v.grade, v.entryName, `"${(v.message||'').replace(/"/g,'""')}"`, 
-                `"${(v.inquiry||'').replace(/"/g,'""')}"`, stat, v.uuid
-            ]);
-        });
-        const csv = rows.map(r => r.join(',')).join('\n');
-        const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-        a.download = 'entries.csv'; a.click();
-    }
-
-    // QR Reception Implementation
-    let qrScanning = false;
-    let qrStream = null;
-    
-    function startQRScanner() {
-        if(typeof jsQR === 'undefined') { alert("QRライブラリが読み込まれていません"); return; }
-        const video = document.getElementById('qr-video');
-        document.getElementById('qr-start-btn').style.display = 'none';
-        
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        .then(stream => {
-            qrStream = stream;
-            video.srcObject = stream;
-            video.addEventListener('loadedmetadata', () => { video.play(); qrScanning = true; requestAnimationFrame(scanQRFrame); });
-        }).catch(err => {
-            alert('カメラの起動に失敗しました: ' + err.message);
-            document.getElementById('qr-start-btn').style.display = 'inline-block';
-        });
-    }
-
-    function scanQRFrame() {
-        if (!qrScanning) return;
-        const video = document.getElementById('qr-video');
-        const canvas = document.getElementById('qr-canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-            if (code) {
-                qrScanning = false; 
-                processQRCode(code.data);
-            }
-        }
-        if(qrScanning) requestAnimationFrame(scanQRFrame);
-    }
-
-    async function processQRCode(uuid) {
-        document.getElementById('qr-scanning-text').textContent = '読み込み中...';
-        const resDiv = document.getElementById('checkin-result');
-        const nextBtn = document.getElementById('qr-next-btn');
-
-        try {
-            const snap = await db.ref(`projects/${projectId}/entries/${uuid}`).once('value');
-            if(!snap.exists()) {
-                resDiv.innerHTML = '❌ 該当するエントリーが見つかりません'; resDiv.style.background = 'rgba(183,28,28,0.8)';
-            } else {
-                const data = snap.val();
-                if(data.status === 'canceled') {
-                    resDiv.innerHTML = `❌ キャンセル済みのエントリーです。<br><span style="font-size:14px;color:#ffcc80">${data.familyName} ${data.firstName} / 受付番号: ${data.entryNumber}</span>`; 
-                    resDiv.style.background = 'rgba(183,28,28,0.8)';
-                } else if(data.checkedIn) {
-                    resDiv.innerHTML = `⚠️ 既に受付済みです。<br><span style="font-size:14px;color:#ffcc80">${data.familyName} ${data.firstName} / 受付番号: ${data.entryNumber}</span>`; 
-                    resDiv.style.background = 'rgba(230,81,0,0.8)';
-                } else {
-                    // Update to checked in
-                    await db.ref(`projects/${projectId}/entries/${uuid}/checkedIn`).set(true);
-                    resDiv.innerHTML = `✅ 受付完了！<br><span style="font-size:24px;font-weight:bold">${data.familyName} ${data.firstName} 様</span><br><span style="font-size:18px;color:#a5d6a7">受付番号: <b>${data.entryNumber}</b></span>`; 
-                    resDiv.style.background = 'rgba(27,94,32,0.8)';
-                }
-            }
-        } catch(e) {
-            resDiv.innerHTML = '❌ システムエラー: ' + e.message; resDiv.style.background = 'rgba(183,28,28,0.8)';
-        }
-
-        document.getElementById('qr-scanning-text').style.display = 'none';
-        resDiv.style.display = 'block';
-        nextBtn.style.display = 'inline-block';
-    }
-
-    function resetQRScanner() {
-        document.getElementById('checkin-result').style.display = 'none';
-        document.getElementById('qr-next-btn').style.display = 'none';
-        document.getElementById('qr-scanning-text').textContent = 'カメラに受付QRコード（またはスマホ画面）をかざしてください';
-        document.getElementById('qr-scanning-text').style.display = 'block';
-        qrScanning = true;
-        requestAnimationFrame(scanQRFrame);
-    }
-
-    // ============================
-    // 成績開示
-    // ============================
-    async function toggleDisclosure() {
-        const enabled = document.getElementById('disclosure-toggle').checked;
-        await db.ref(`projects/${projectId}/entryConfig/disclosureEnabled`).set(enabled);
-        document.getElementById('disclosure-url').style.display = enabled ? 'block' : 'none';
-    }
-
-    async function generateDisclosure() {
-        const btn = document.getElementById('gen-disclosure-btn');
-        btn.disabled = true; btn.textContent = '生成中...';
-        try {
-            const updates = {};
-            // すべてのentryNumbersについてスコアを計算
-            entryNumbers.forEach(en => {
-                const results = {};
-                for(let q=1; q<=totalQuestions; q++) {
-                    const fd = scoresData[`__final__q${q}`] || {};
-                    const qs = scoresData[en]?.[`q${q}`] || {};
-                    let r = 'hold';
-                    if (fd[en]) { r = fd[en]; }
-                    else {
-                        const vals = Object.values(qs);
-                        const co = vals.filter(x=>x==='correct').length;
-                        const wr = vals.filter(x=>x==='wrong').length;
-                        const ho = vals.filter(x=>x==='hold').length;
-                        if(ho > 0 || (co>0 && wr>0)) { /* conflict = ignore for now or treat as hold */ }
-                        else if(co>=2) r = 'correct';
-                        else if(wr>=2) r = 'wrong';
-                        else if(co===1) r = 'correct'; // fallback if only 1 scorer
-                        else if(wr===1) r = 'wrong';
-                    }
-                    results[`q${q}`] = r;
-                }
-                const score = Object.values(results).filter(x => x==='correct').length;
-                updates[`projects/${projectId}/disclosure/${en}`] = {
-                    score,
-                    totalQuestions,
-                    results
-                };
+                tbody.appendChild(tr);
             });
-            await db.ref().update(updates);
-            
-            const msg = document.getElementById('disclosure-status');
-            msg.textContent = '開示データを生成しFirebaseに保存しました！';
-            msg.style.display = 'block';
-            setTimeout(() => msg.style.display='none', 3500);
-
-        } catch (e) {
-            alert('生成に失敗: ' + e.message);
         }
-        btn.disabled = false; btn.textContent = '開示データを生成';
-    }
 
-    init();
+        async function exportEntriesCSV() {
+            const snap = await db.ref(`projects/${projectId}/entries`).orderByChild('entryNumber').get();
+            if (!snap.exists()) return;
+            const rows = [['受付番号', '姓', '名', 'セイ', 'メイ', 'メールアドレス', '所属機関', '学年', 'エントリー名', '意気込み', '連絡事項', '状態', 'UUID']];
+            snap.forEach(child => {
+                const v = child.val();
+                const stat = v.status === 'canceled' ? 'canceled' : v.checkedIn ? 'checkedIn' : 'registered';
+                rows.push([
+                    v.entryNumber, v.familyName, v.firstName, v.familyNameKana, v.firstNameKana,
+                    v.email, v.affiliation, v.grade, v.entryName, `"${(v.message || '').replace(/"/g, '""')}"`,
+                    `"${(v.inquiry || '').replace(/"/g, '""')}"`, stat, v.uuid
+                ]);
+            });
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = 'entries.csv'; a.click();
+        }
+
+        // QR Reception Implementation
+        let qrScanning = false;
+        let qrStream = null;
+
+        function startQRScanner() {
+            if (typeof jsQR === 'undefined') { alert("QRライブラリが読み込まれていません"); return; }
+            const video = document.getElementById('qr-video');
+            document.getElementById('qr-start-btn').style.display = 'none';
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    qrStream = stream;
+                    video.srcObject = stream;
+                    video.addEventListener('loadedmetadata', () => { video.play(); qrScanning = true; requestAnimationFrame(scanQRFrame); });
+                }).catch(err => {
+                    alert('カメラの起動に失敗しました: ' + err.message);
+                    document.getElementById('qr-start-btn').style.display = 'inline-block';
+                });
+        }
+
+        function scanQRFrame() {
+            if (!qrScanning) return;
+            const video = document.getElementById('qr-video');
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if (code) {
+                    qrScanning = false;
+                    processQRCode(code.data);
+                }
+            }
+            if (qrScanning) requestAnimationFrame(scanQRFrame);
+        }
+
+        async function processQRCode(uuid) {
+            document.getElementById('qr-scanning-text').textContent = '読み込み中...';
+            const resDiv = document.getElementById('checkin-result');
+            const nextBtn = document.getElementById('qr-next-btn');
+
+            try {
+                const snap = await db.ref(`projects/${projectId}/entries/${uuid}`).once('value');
+                if (!snap.exists()) {
+                    resDiv.innerHTML = '❌ 該当するエントリーが見つかりません'; resDiv.style.background = 'rgba(183,28,28,0.8)';
+                } else {
+                    const data = snap.val();
+                    if (data.status === 'canceled') {
+                        resDiv.innerHTML = `❌ キャンセル済みのエントリーです。<br><span style="font-size:14px;color:#ffcc80">${data.familyName} ${data.firstName} / 受付番号: ${data.entryNumber}</span>`;
+                        resDiv.style.background = 'rgba(183,28,28,0.8)';
+                    } else if (data.checkedIn) {
+                        resDiv.innerHTML = `⚠️ 既に受付済みです。<br><span style="font-size:14px;color:#ffcc80">${data.familyName} ${data.firstName} / 受付番号: ${data.entryNumber}</span>`;
+                        resDiv.style.background = 'rgba(230,81,0,0.8)';
+                    } else {
+                        // Update to checked in
+                        await db.ref(`projects/${projectId}/entries/${uuid}/checkedIn`).set(true);
+                        resDiv.innerHTML = `✅ 受付完了！<br><span style="font-size:24px;font-weight:bold">${data.familyName} ${data.firstName} 様</span><br><span style="font-size:18px;color:#a5d6a7">受付番号: <b>${data.entryNumber}</b></span>`;
+                        resDiv.style.background = 'rgba(27,94,32,0.8)';
+                    }
+                }
+            } catch (e) {
+                resDiv.innerHTML = '❌ システムエラー: ' + e.message; resDiv.style.background = 'rgba(183,28,28,0.8)';
+            }
+
+            document.getElementById('qr-scanning-text').style.display = 'none';
+            resDiv.style.display = 'block';
+            nextBtn.style.display = 'inline-block';
+        }
+
+        function resetQRScanner() {
+            document.getElementById('checkin-result').style.display = 'none';
+            document.getElementById('qr-next-btn').style.display = 'none';
+            document.getElementById('qr-scanning-text').textContent = 'カメラに受付QRコード（またはスマホ画面）をかざしてください';
+            document.getElementById('qr-scanning-text').style.display = 'block';
+            qrScanning = true;
+            requestAnimationFrame(scanQRFrame);
+        }
+
+        // ============================
+        // 成績開示
+        // ============================
+        async function toggleDisclosure() {
+            const enabled = document.getElementById('disclosure-toggle').checked;
+            await db.ref(`projects/${projectId}/entryConfig/disclosureEnabled`).set(enabled);
+            document.getElementById('disclosure-url').style.display = enabled ? 'block' : 'none';
+        }
+
+        async function generateDisclosure() {
+            const btn = document.getElementById('gen-disclosure-btn');
+            btn.disabled = true; btn.textContent = '生成中...';
+            try {
+                const updates = {};
+                // すべてのentryNumbersについてスコアを計算
+                entryNumbers.forEach(en => {
+                    const results = {};
+                    for (let q = 1; q <= totalQuestions; q++) {
+                        const fd = scoresData[`__final__q${q}`] || {};
+                        const qs = scoresData[en]?.[`q${q}`] || {};
+                        let r = 'hold';
+                        if (fd[en]) { r = fd[en]; }
+                        else {
+                            const vals = Object.values(qs);
+                            const co = vals.filter(x => x === 'correct').length;
+                            const wr = vals.filter(x => x === 'wrong').length;
+                            const ho = vals.filter(x => x === 'hold').length;
+                            if (ho > 0 || (co > 0 && wr > 0)) { /* conflict = ignore for now or treat as hold */ }
+                            else if (co >= 2) r = 'correct';
+                            else if (wr >= 2) r = 'wrong';
+                            else if (co === 1) r = 'correct'; // fallback if only 1 scorer
+                            else if (wr === 1) r = 'wrong';
+                        }
+                        results[`q${q}`] = r;
+                    }
+                    const score = Object.values(results).filter(x => x === 'correct').length;
+                    updates[`projects/${projectId}/disclosure/${en}`] = {
+                        score,
+                        totalQuestions,
+                        results
+                    };
+                });
+                await db.ref().update(updates);
+
+                const msg = document.getElementById('disclosure-status');
+                msg.textContent = '開示データを生成しFirebaseに保存しました！';
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 3500);
+
+            } catch (e) {
+                alert('生成に失敗: ' + e.message);
+            }
+            btn.disabled = false; btn.textContent = '開示データを生成';
+        }
+
+        init();
     </script>
 </body>
+
 </html>
