@@ -1,560 +1,660 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CIQ the 13th 採点システム - 管理者</title>
+    <title>CIQ the 13th 採点システム - 管理画面</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="js/config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="js/cv.js"></script>
+    <script src="js/aruco.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background: #1a1a2e; color: white; min-height: 100vh; padding: 20px; }
+        .top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        h1 { font-size: 20px; }
+        .btn { padding: 8px 16px; border-radius: 8px; border: none; background: #4caf50; color: white; font-size: 14px; cursor: pointer; }
+        .btn:hover { background: #388e3c; }
+        .btn:disabled { background: #444; cursor: not-allowed; }
+        .btn.secondary { background: #0f3460; border: 1px solid #444; }
+        .btn.secondary:hover { background: #1a4a7a; }
+        .btn.danger { background: #c62828; }
+        .btn.danger:hover { background: #b71c1c; }
 
-        body {
-            font-family: sans-serif;
-            background: #1a1a2e;
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
-        }
+        /* タブ */
+        .tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #444; overflow-x: auto; }
+        .tab-btn { padding: 12px 20px; background: transparent; border: none; color: #aaa; font-size: 14px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.2s; }
+        .tab-btn.active { color: #4caf50; border-bottom-color: #4caf50; }
+        .tab-btn:hover:not(.active) { color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        .top-bar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
+        .section { background: #16213e; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .section h2 { font-size: 15px; color: #aaa; margin-bottom: 16px; }
+        label { font-size: 14px; color: #aaa; display: block; margin-bottom: 8px; margin-top: 16px; }
+        input[type="text"], input[type="number"], input[type="file"] { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #444; background: #0f3460; color: white; font-size: 16px; }
+        .status-msg { padding: 12px; border-radius: 8px; background: #1b5e20; color: white; font-size: 14px; text-align: center; margin-top: 16px; display: none; }
 
-        h1 {
-            font-size: 20px;
-        }
+        /* 集計セクション */
+        .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .stat-card { background: #0f3460; border-radius: 10px; padding: 16px; text-align: center; }
+        .stat-num { font-size: 28px; font-weight: bold; }
+        .stat-label { font-size: 12px; color: #aaa; margin-top: 4px; }
+        .progress-overview { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+        .po-cell { aspect-ratio: 1; border-radius: 3px; background: #333; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #aaa; }
+        .po-cell.done { background: #1b5e20; color: white; }
+        .po-cell.conflict { background: #e65100; color: white; }
+        .po-cell.confirmed { background: #1a237e; color: white; }
+        .po-cell.inprogress { background: #0d47a1; color: white; }
+        .csv-status { font-size: 13px; color: #aaa; margin-bottom: 12px; }
+        .csv-status.ready { color: #4caf50; }
+        .csv-status.notready { color: #ef5350; }
 
-        .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            background: #4caf50;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-        }
+        /* 答案管理 */
+        .progress-bar-wrap { background: #0f3460; border-radius: 8px; overflow: hidden; height: 20px; margin: 12px 0; }
+        .progress-bar-inner { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s; }
+        .answer-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; background: #0f3460; margin-bottom: 6px; font-size: 14px; }
+        .answer-item img { width: 60px; height: 30px; object-fit: contain; background: white; border-radius: 4px; }
+        .badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+        .badge.ok { background: #1b5e20; color: #a5d6a7; }
+        .badge.error { background: #b71c1c; color: #ef9a9a; }
+        .badge.warn { background: #e65100; color: #ffcc80; }
 
-        .btn:hover {
-            background: #388e3c;
-        }
+        /* 答案一覧 */
+        .entry-list-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: #0f3460; margin-bottom: 4px; font-size: 14px; cursor: pointer; transition: background 0.15s; }
+        .entry-list-item:hover { background: #1a4a7a; }
+        .entry-list-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
 
-        .btn:disabled {
-            background: #444;
-            cursor: not-allowed;
-        }
+        /* 模範解答グリッド */
+        .answer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; margin-top: 12px; }
+        .answer-grid-item { background: #0f3460; border-radius: 8px; padding: 10px; text-align: center; }
+        .answer-grid-item .q-num { font-size: 11px; color: #aaa; margin-bottom: 4px; }
+        .answer-grid-item .answer-text { font-size: 12px; font-weight: bold; word-break: break-all; min-height: 18px; }
+        .answer-grid-item .answer-text.unset { color: #555; font-weight: normal; }
 
-        .btn.secondary {
-            background: #0f3460;
-            border: 1px solid #444;
-        }
-
-        .btn.secondary:hover {
-            background: #1a4a7a;
-        }
-
-        .section {
-            background: #16213e;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .section h2 {
-            font-size: 15px;
-            color: #aaa;
-            margin-bottom: 16px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .stat-card {
-            background: #0f3460;
-            border-radius: 10px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .stat-num {
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #aaa;
-            margin-top: 4px;
-        }
-
-        .progress-overview {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 3px;
-        }
-
-        .po-cell {
-            aspect-ratio: 1;
-            border-radius: 3px;
-            background: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            color: #aaa;
-        }
-
-        .po-cell.done {
-            background: #1b5e20;
-            color: white;
-        }
-
-        .po-cell.conflict {
-            background: #e65100;
-            color: white;
-        }
-
-        .po-cell.confirmed {
-            background: #1a237e;
-            color: white;
-        }
-
-        .po-cell.inprogress {
-            background: #0d47a1;
-            color: white;
-        }
-
-        .csv-status {
-            font-size: 13px;
-            color: #aaa;
-            margin-bottom: 12px;
-        }
-
-        .csv-status.ready {
-            color: #4caf50;
-        }
-
-        .csv-status.notready {
-            color: #ef5350;
-        }
+        .id-badge { margin-left: auto; background: #0f3460; padding: 6px 12px; border-radius: 8px; font-size: 14px; border: 1px solid #444; }
     </style>
 </head>
-
 <body>
     <div class="top-bar">
-        <button class="btn secondary" onclick="location.href='judge.html'">← 一覧へ</button>
-        <h1>管理者画面</h1>
-        <button class="btn secondary" style="margin-left: 20px;" onclick="location.href='saiten.html'">解答用紙/設定</button>
-        <div style="margin-left: auto; background: #0f3460; padding: 6px 12px; border-radius: 8px; font-size: 14px; border: 1px solid #444;" id="project-id-display"></div>
-        <div id="offline-badge" style="display: none; background: #e65100; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
-            ⚠️ 通信切断中 (自動再送待機中)
+        <button class="btn secondary" onclick="location.href='judge.html'">← 問題一覧へ</button>
+        <h1>管理画面</h1>
+        <div class="id-badge" id="project-id-display"></div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-sheet')">解答用紙</button>
+        <button class="tab-btn" onclick="switchTab('tab-scan')">答案読込・管理</button>
+        <button class="tab-btn" onclick="switchTab('tab-model')">模範解答</button>
+        <button class="tab-btn" onclick="switchTab('tab-stats')">集計・設定</button>
+    </div>
+
+    <!-- ==================== TAB 1: 解答用紙 ==================== -->
+    <div class="tab-content active" id="tab-sheet">
+        <div class="section">
+            <h2>解答用紙ジェネレーター</h2>
+            <label>問題数 (デフォルト: 100)</label>
+            <input type="number" id="question-count" value="100" min="10" max="200" />
+            <label>段の列数 (デフォルト: 5)</label>
+            <input type="number" id="question-cols" value="5" min="2" max="10" />
+            <div style="font-size: 12px; color: #888; margin-top: 4px;">例：100問で5列の場合、20段の表が描画されます。</div>
+            <button class="btn" style="width:100%;margin-top:24px;padding:14px;font-weight:bold" onclick="generateAndSave()">解答用紙PDFの発行 と 座標データ保存</button>
+            <div id="save-status" class="status-msg"></div>
         </div>
     </div>
 
-    <div class="section">
-        <h2>採点状況</h2>
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-num">100</div>
-                <div class="stat-label">総問題数</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num" id="stat-done">-</div>
-                <div class="stat-label">完了</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num" id="stat-conflict">-</div>
-                <div class="stat-label">要確認</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-num" id="stat-confirmed">-</div>
-                <div class="stat-label">確定済み</div>
+    <!-- ==================== TAB 2: 答案読込・管理 ==================== -->
+    <div class="tab-content" id="tab-scan">
+        <div class="section">
+            <h2>答案PDF読み込み</h2>
+            <input type="file" id="pdf-file" accept="application/pdf" />
+            <button class="btn" style="margin-top:12px" onclick="loadAnswers()">読み込み開始</button>
+            <div class="progress-bar-wrap"><div class="progress-bar-inner" id="progress-bar"></div></div>
+            <div id="status-text" style="font-size:13px;color:#aaa;margin-bottom:12px"></div>
+            <div id="result-section" style="display:none">
+                <div id="result-summary" style="font-size:14px;margin-bottom:12px"></div>
+                <div id="answer-list"></div>
+                <button class="btn" id="save-btn" disabled onclick="saveToFirebase()" style="width:100%;margin-top:12px;padding:14px;font-weight:bold">Firebaseに保存</button>
             </div>
         </div>
-        <div class="progress-overview" id="progress-overview"></div>
-    </div>
-
-    <div class="section">
-        <h2>CSV出力</h2>
-        <div class="csv-status" id="csv-status">確認中...</div>
-        <button class="btn" id="csv-btn" disabled onclick="exportCSV()">CSV出力</button>
-    </div>
-
-    <div class="section">
-        <h2>問題アナリティクス（難問・単独抽出）</h2>
-        <div style="margin-bottom: 12px; font-size: 13px; color: #aaa;">
-            正答率など詳細な分析データを下に表示します（基準: 正答数 <input type="number" id="analytics-threshold" value="5" min="0" max="100" style="width: 50px; padding: 4px; border-radius: 4px; border: 1px solid #444; background: #0f3460; color: white; text-align: center;" onchange="renderAnalytics()"> 人以下をハイライト化）。
-        </div>
-        <button class="btn secondary" id="analytics-csv-btn" onclick="exportAnalyticsCSV()">全問アナリティクスCSV出力</button>
-        
-        <div style="margin-top: 16px; overflow-x: auto; max-height: 400px;">
-            <table id="analytics-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                <thead style="background: #0f3460; position: sticky; top: 0;">
-                    <tr>
-                        <th style="padding: 8px; border: 1px solid #444;">問</th>
-                        <th style="padding: 8px; border: 1px solid #444;">正答数</th>
-                        <th style="padding: 8px; border: 1px solid #444;">正答率</th>
-                        <th style="padding: 8px; border: 1px solid #444;">状態</th>
-                        <th style="padding: 8px; border: 1px solid #444;">正解者</th>
-                    </tr>
-                </thead>
-                <tbody id="analytics-tbody">
-                </tbody>
-            </table>
+        <div class="section">
+            <h2>保存済み答案一覧</h2>
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                <button class="btn secondary" onclick="loadEntryList()">一覧を更新</button>
+                <button class="btn danger" id="batch-delete-btn" onclick="batchDelete()" disabled>選択した答案を削除</button>
+                <label style="margin:0;display:flex;align-items:center;gap:6px;color:#aaa;font-size:13px;cursor:pointer"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll()" style="width:16px;height:16px">全選択</label>
+            </div>
+            <div id="entry-list"><div style="color:#aaa;font-size:14px">上のボタンを押して一覧を読み込んでください</div></div>
         </div>
     </div>
 
-    <div class="section" style="border: 2px solid #c62828; margin-top: 20px;">
-        <h2 style="color: #ef5350;">⚠ 危険な操作</h2>
-        <p style="font-size: 13px; color: #aaa; margin-bottom: 16px;">プロジェクトを完全に削除します。この操作は取り消せません。</p>
-        <button class="btn" style="background: #c62828;" onclick="deleteProject()">プロジェクトを削除</button>
+    <!-- ==================== TAB 3: 模範解答 ==================== -->
+    <div class="tab-content" id="tab-model">
+        <div class="section">
+            <h2>CSVファイルから読み込む</h2>
+            <div style="font-size:13px;color:#aaa;margin-bottom:12px">
+                形式1（問題番号あり）：<code>1,東京</code> / <code>2,織田信長</code><br>
+                形式2（問題番号なし）：1行目が1問目、2行目が2問目…
+            </div>
+            <input type="file" id="csv-file" accept=".csv" />
+            <div style="display:flex;gap:8px;margin-top:12px">
+                <button class="btn" onclick="loadCSV()">読み込む</button>
+                <button class="btn" onclick="saveModelAnswers()">Firebaseに保存</button>
+            </div>
+            <div id="model-status" class="status-msg"></div>
+            <div class="answer-grid" id="model-answer-grid"></div>
+        </div>
     </div>
+
+    <!-- ==================== TAB 4: 集計・設定 ==================== -->
+    <div class="tab-content" id="tab-stats">
+        <div class="section">
+            <h2>採点状況</h2>
+            <div class="stats">
+                <div class="stat-card"><div class="stat-num" id="stat-total">-</div><div class="stat-label">総問題数</div></div>
+                <div class="stat-card"><div class="stat-num" id="stat-done">-</div><div class="stat-label">採点済み</div></div>
+                <div class="stat-card"><div class="stat-num" id="stat-conflict">-</div><div class="stat-label">要確認</div></div>
+                <div class="stat-card"><div class="stat-num" id="stat-confirmed">-</div><div class="stat-label">確定済み</div></div>
+            </div>
+            <div class="progress-overview" id="progress-overview"></div>
+        </div>
+        <div class="section">
+            <h2>CSV出力</h2>
+            <div class="csv-status" id="csv-status">確認中...</div>
+            <button class="btn" id="csv-btn" disabled onclick="exportCSV()">CSV出力</button>
+        </div>
+        <div class="section">
+            <h2>問題アナリティクス（難問・単独抽出）</h2>
+            <div style="margin-bottom:12px;font-size:13px;color:#aaa;">
+                正答率など詳細な分析データ（基準: 正答数 <input type="number" id="analytics-threshold" value="5" min="0" max="100" style="width:50px;padding:4px;border-radius:4px;border:1px solid #444;background:#0f3460;color:white;text-align:center" onchange="renderAnalytics()"> 人以下をハイライト化）。
+            </div>
+            <button class="btn secondary" onclick="exportAnalyticsCSV()">全問アナリティクスCSV出力</button>
+            <div style="margin-top:16px;overflow-x:auto;max-height:400px;">
+                <table id="analytics-table" style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <thead style="background:#0f3460;position:sticky;top:0;">
+                        <tr>
+                            <th style="padding:8px;border:1px solid #444;">問</th>
+                            <th style="padding:8px;border:1px solid #444;">正答数</th>
+                            <th style="padding:8px;border:1px solid #444;">正答率</th>
+                            <th style="padding:8px;border:1px solid #444;">状態</th>
+                            <th style="padding:8px;border:1px solid #444;">正解者</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analytics-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section">
+            <h2>GAS（スプレッドシート）連携設定</h2>
+            <label>GAS 連携URL</label>
+            <input type="text" id="gas-url" placeholder="https://script.google.com/macros/s/..." />
+            <button class="btn" style="width:100%;margin-top:16px;padding:12px;font-weight:bold" onclick="saveGas()">GAS設定を保存</button>
+            <div id="gas-status" class="status-msg">✅ GAS設定を保存しました！</div>
+        </div>
+        <div class="section" style="border:2px solid #c62828;">
+            <h2 style="color:#ef5350;">⚠ 危険な操作</h2>
+            <p style="font-size:13px;color:#aaa;margin-bottom:16px;">プロジェクトを完全に削除します。この操作は取り消せません。</p>
+            <button class="btn danger" onclick="deleteProject()">プロジェクトを削除</button>
+        </div>
+    </div>
+
+    <canvas id="work-canvas" style="display:none"></canvas>
+    <canvas id="transform-canvas" style="display:none"></canvas>
 
     <script>
-const projectId = session.projectId;
-        const scorerRole = session.scorerRole;
-        if (!projectId || scorerRole !== 'admin') {
-            location.href = 'index.html';
+    // ============================
+    // 共通初期化
+    // ============================
+    const projectId = session.projectId;
+    const scorerRole = session.scorerRole;
+    if (!projectId || scorerRole !== 'admin') { alert('管理者としてプロジェクトに入室してください'); location.href = 'index.html'; }
+
+    document.getElementById('project-id-display').textContent = `ID: ${projectId}`;
+
+    let GAS_URL = '';
+    let totalQuestions = 100;
+    let scoresData = {};
+    let entryNumbers = [];
+    let modelAnswers = [];
+
+    // タブ切り替え
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        const btns = document.querySelectorAll('.tab-btn');
+        const tabs = ['tab-sheet','tab-scan','tab-model','tab-stats'];
+        btns[tabs.indexOf(tabId)]?.classList.add('active');
+    }
+
+    async function init() {
+        const configSnap = await db.ref(`projects/${projectId}/config`).once('value');
+        if (configSnap.exists()) {
+            const cfg = configSnap.val();
+            totalQuestions = cfg.questionCount || 100;
+            if (cfg.columns) document.getElementById('question-cols').value = cfg.columns;
+            document.getElementById('question-count').value = totalQuestions;
         }
-        
-        document.getElementById('project-id-display').textContent = `プロジェクトID: ${projectId}`;
-
-        let GAS_URL = '';
-        let totalQuestions = 100;
-        let scoresData = {};
-        let entryNumbers = [];
-
-        async function init() {
-            const configSnap = await db.ref(`projects/${projectId}/config`).once('value');
-            if (configSnap.exists()) totalQuestions = configSnap.val().questionCount || 100;
-            const settingsSnap = await db.ref(`projects/${projectId}/settings`).once('value');
-            if (settingsSnap.exists()) GAS_URL = settingsSnap.val().gasUrl || '';
-
-            const po = document.getElementById('progress-overview');
-            po.innerHTML = '';
-            for (let i = 1; i <= totalQuestions; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'po-cell';
-                cell.id = `po-${i}`;
-                cell.textContent = i;
-                po.appendChild(cell);
-            }
-            try {
-                const res = await fetch(`https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/answers.json?shallow=true`);
-                const data = await res.json();
-                if (data) {
-                    entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b);
-                }
-            } catch(e) {
-                // fallback
-                const answersSnap = await db.ref(`projects/${projectId}/answers`).get();
-                if (answersSnap.exists()) {
-                    entryNumbers = Object.keys(answersSnap.val()).map(Number).sort((a, b) => a - b);
-                }
-            }
-            db.ref(`projects/${projectId}/scores`).on('value', snap => {
-                scoresData = snap.val() || {};
-                updateView();
-            });
+        const settingsSnap = await db.ref(`projects/${projectId}/settings`).once('value');
+        if (settingsSnap.exists()) {
+            const s = settingsSnap.val();
+            GAS_URL = s.gasUrl || '';
+            if (GAS_URL) document.getElementById('gas-url').value = GAS_URL;
         }
 
-        function updateView() {
-            let doneCount = 0;
-            let conflictCount = 0;
-            let confirmedCount = 0;
-            let allConfirmed = true;
+        // 集計用: 問題セル初期化
+        const po = document.getElementById('progress-overview');
+        po.innerHTML = '';
+        for (let i = 1; i <= totalQuestions; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'po-cell'; cell.id = `po-${i}`; cell.textContent = i;
+            po.appendChild(cell);
+        }
+        document.getElementById('stat-total').textContent = totalQuestions;
 
-            for (let q = 1; q <= totalQuestions; q++) {
-                const completedScorers = Object.keys(scoresData[`__completed__q${q}`] || {});
-                const allDone = completedScorers.length >= 3;
-                let hasConflict = false;
-                let allResolved = true;
-
-                if (allDone) {
-                    entryNumbers.forEach(entryNum => {
-                        const qScores = scoresData[entryNum]?.[`q${q}`] || {};
-                        const vals = Object.values(qScores);
-                        const corrects = vals.filter(v => v === 'correct').length;
-                        const wrongs = vals.filter(v => v === 'wrong').length;
-                        const holds = vals.filter(v => v === 'hold').length;
-                        
-                        if ((corrects > 0 && wrongs > 0) || holds > 0) {
-                            hasConflict = true;
-                            if (!scoresData[`__final__q${q}`]?.[entryNum]) allResolved = false;
-                        }
-                    });
-                }
-
-                const isFullyConfirmed = allDone && (!hasConflict || allResolved);
-                const cell = document.getElementById(`po-${q}`);
-                cell.className = 'po-cell';
-
-                if (isFullyConfirmed) {
-                    cell.classList.add('confirmed');
-                    confirmedCount++;
-                } else if (hasConflict) {
-                    cell.classList.add('conflict');
-                    conflictCount++;
-                    allConfirmed = false;
-                } else if (allDone) {
-                    cell.classList.add('done');
-                    doneCount++;
-                    allConfirmed = false;
-                } else if (completedScorers.length > 0) {
-                    cell.classList.add('inprogress');
-                    allConfirmed = false;
-                } else {
-                    allConfirmed = false;
-                }
-            }
-
-            document.getElementById('stat-done').textContent = doneCount + confirmedCount;
-            document.getElementById('stat-conflict').textContent = conflictCount;
-            document.getElementById('stat-confirmed').textContent = confirmedCount;
-
-            const csvStatus = document.getElementById('csv-status');
-            const csvBtn = document.getElementById('csv-btn');
-
-            if (allConfirmed && confirmedCount === totalQuestions) {
-                csvStatus.textContent = '全問確定済み。CSV出力できます。';
-                csvStatus.className = 'csv-status ready';
-                csvBtn.disabled = false;
-            } else {
-                csvStatus.textContent = `未確定の問題があります（確定済み: ${confirmedCount}/${totalQuestions}）`;
-                csvStatus.className = 'csv-status notready';
-                csvBtn.disabled = true;
-            }
-            // アナリティクステーブルの描写更新
-            renderAnalytics();
+        // エントリ番号取得
+        try {
+            const res = await fetch(`https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/answers.json?shallow=true`);
+            const data = await res.json();
+            if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b);
+        } catch(e) {
+            const snap = await db.ref(`projects/${projectId}/answers`).get();
+            if (snap.exists()) entryNumbers = Object.keys(snap.val()).map(Number).sort((a, b) => a - b);
         }
 
-        async function exportCSV() {
-            let masterData = {};
-            try {
-                const res = await fetch(GAS_URL + '?master=1');
-                masterData = await res.json();
-            } catch (e) {
-                console.warn('マスターデータ取得失敗:', e);
-            }
-
-            const results = entryNumbers.map(entryNum => {
-                const answers = [];
-                for (let q = 1; q <= totalQuestions; q++) {
-                    const finalData = scoresData[`__final__q${q}`] || {};
-                    const qScores = scoresData[entryNum]?.[`q${q}`] || {};
-                    let result;
-                    if (finalData[entryNum]) {
-                        result = finalData[entryNum] === 'correct' ? 1 : 0;
-                    } else {
-                        const vals = Object.values(qScores);
-                        const corrects = vals.filter(v => v === 'correct').length;
-                        result = corrects >= 2 ? 1 : 0;
-                    }
-                    answers.push(result);
-                }
-
-                const score = answers.reduce((a, b) => a + b, 0);
-                const streaks = [];
-                let current = 0;
-                answers.forEach(a => {
-                    if (a === 1) {
-                        current++;
-                    } else {
-                        if (current > 0) streaks.push(current);
-                        current = 0;
-                    }
-                });
-                if (current > 0) streaks.push(current);
-
-                const master = masterData[entryNum] || {};
-                return {
-                    entryNumber: entryNum,
-                    name: master.name || '',
-                    affiliation: master.affiliation || '',
-                    grade: master.grade || '',
-                    score,
-                    answers,
-                    streaks
-                };
-            });
-
-            results.sort((a, b) => {
-                if (b.score !== a.score) return b.score - a.score;
-                for (let i = 0; i < totalQuestions; i++) {
-                    const diff = b.answers[i] - a.answers[i];
-                    if (diff !== 0) return diff;
-                }
-                return 0;
-            });
-
-            const maxStreaks = Math.max(...results.map(r => r.streaks.length), 0);
-            const headers = ['順位', '氏名', '所属', '学年', '点数'];
-            for (let i = 1; i <= maxStreaks; i++) headers.push(`第${i}連答`);
-
-            const rows = [headers];
-            let rank = 1;
-            results.forEach((r, idx) => {
-                if (idx > 0) {
-                    const prev = results[idx - 1];
-                    if (prev.score !== r.score) {
-                        rank = idx + 1;
-                    } else {
-                        let diff = false;
-                        for (let i = 0; i < totalQuestions; i++) {
-                            if (prev.answers[i] !== r.answers[i]) { diff = true; break; }
-                        }
-                        if (diff) rank = idx + 1;
-                    }
-                }
-                const row = [rank, r.name, r.affiliation, r.grade, r.score];
-                for (let i = 0; i < maxStreaks; i++) row.push(r.streaks[i] || 0);
-                rows.push(row);
-            });
-
-            const csv = rows.map(r => r.join(',')).join('\n');
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'ciq_result.csv';
-            a.click();
-        }
-
-        async function getAnalyticsData() {
-            const threshold = parseInt(document.getElementById('analytics-threshold').value) || 5;
-            let masterData = {};
-            try {
-                // セッションストレージまたはフェッチでマスターデータを取得
-                masterData = JSON.parse(localStorage.getItem('masterData') || '{}');
-                if (Object.keys(masterData).length === 0) {
-                    const res = await fetch(GAS_URL + '?master=1');
-                    masterData = await res.json();
-                    localStorage.setItem('masterData', JSON.stringify(masterData));
-                }
-            } catch (e) {
-                console.warn('マスターデータ取得失敗:', e);
-            }
-
-            const totalParticipants = entryNumbers.length || 1; // 0割回避
-            const qStats = [];
-
-            for (let q = 1; q <= totalQuestions; q++) {
-                let correctCount = 0;
-                let correctEntries = [];
-                
-                entryNumbers.forEach(entryNum => {
-                    const finalData = scoresData[`__final__q${q}`] || {};
-                    const qScores = scoresData[entryNum]?.[`q${q}`] || {};
-                    let result;
-                    if (finalData[entryNum]) {
-                        result = finalData[entryNum] === 'correct' ? 1 : 0;
-                    } else {
-                        const vals = Object.values(qScores);
-                        const corrects = vals.filter(v => v === 'correct').length;
-                        result = corrects >= 2 ? 1 : 0;
-                    }
-                    if (result === 1) {
-                        correctCount++;
-                        correctEntries.push(entryNum);
-                    }
-                });
-
-                const rate = Math.round((correctCount / totalParticipants) * 100);
-                const names = correctEntries.map(e => {
-                    const masterObj = masterData[e] || {};
-                    return masterObj.name ? `${masterObj.affiliation || ''} ${masterObj.name}`.trim() : `番号${e}`;
-                }).join(' / ');
-
-                let type = '';
-                if (correctCount === 0) type = '全滅';
-                else if (correctCount === 1) type = '単独正解';
-                else if (correctCount <= threshold) type = '少数正解';
-                
-                qStats.push({ q, correctCount, rate, type, names, isRare: correctCount <= threshold });
-            }
-            return qStats;
-        }
-
-        async function renderAnalytics() {
-            const tbody = document.getElementById('analytics-tbody');
-            if (entryNumbers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 12px;">データがありません</td></tr>';
-                return;
-            }
-            
-            const qStats = await getAnalyticsData();
-            tbody.innerHTML = qStats.map(stat => {
-                const style = stat.isRare ? 'background: rgba(255, 152, 0, 0.2); font-weight: bold;' : '';
-                const typeStyle = stat.type === '単独正解' ? 'color: #ff9800;' : (stat.type === '全滅' ? 'color: #ef5350;' : '');
-                
-                return `<tr style="${style}">
-                    <td style="padding: 8px; border: 1px solid #444; text-align: center;">${stat.q}</td>
-                    <td style="padding: 8px; border: 1px solid #444; text-align: center;">${stat.correctCount}人</td>
-                    <td style="padding: 8px; border: 1px solid #444; text-align: center;">${stat.rate}%</td>
-                    <td style="padding: 8px; border: 1px solid #444; text-align: center; ${typeStyle}">${stat.type}</td>
-                    <td style="padding: 8px; border: 1px solid #444; font-size: 12px;">${stat.names}</td>
-                </tr>`;
-            }).join('');
-        }
-
-        async function exportAnalyticsCSV() {
-            const qStats = await getAnalyticsData();
-            const threshold = parseInt(document.getElementById('analytics-threshold').value) || 5;
-
-            const headers = ['問題番号', '正答数', '正答率(%)', '状態', '正解者一覧'];
-            const rows = [headers];
-            
-            qStats.forEach(stat => {
-                const safeNames = `"${stat.names.replace(/"/g, '""')}"`;
-                rows.push([stat.q, stat.correctCount, stat.rate, stat.type, safeNames]);
-            });
-
-            const csv = rows.map(r => r.join(',')).join('\n');
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `analytics_all_qs.csv`;
-            a.click();
-        }
-
-        window.addEventListener('offline', () => {
-             document.getElementById('offline-badge').style.display = 'block';
-        });
-        window.addEventListener('online', () => {
-             document.getElementById('offline-badge').style.display = 'none';
+        // スコアリアルタイム
+        db.ref(`projects/${projectId}/scores`).on('value', snap => {
+            scoresData = snap.val() || {};
+            updateStatsView();
         });
 
-        async function deleteProject() {
-            const confirm1 = window.confirm('本当にこのプロジェクトを完全に削除しますか？\nすべてのデータが失われます。');
-            if (!confirm1) return;
-            const typed = window.prompt(`確認のため、プロジェクトID「${projectId}」を入力してください：`);
-            if (typed !== projectId) {
-                alert('プロジェクトIDが一致しません。削除を中止しました。');
-                return;
-            }
-            await db.ref(`projects/${projectId}`).remove();
-            alert('プロジェクトが削除されました。');
-            session.clear();
-            location.href = 'index.html';
+        // 模範解答読み込み
+        const modelSnap = await db.ref(`projects/${projectId}/answers_text`).get();
+        modelAnswers = new Array(totalQuestions).fill('');
+        if (modelSnap.exists()) {
+            const d = modelSnap.val();
+            Object.keys(d).forEach(q => { modelAnswers[q - 1] = d[q]; });
         }
+        renderModelGrid();
+    }
 
-        init();
+    // ============================
+    // TAB 1: 解答用紙
+    // ============================
+    const marker_b64 = [
+      "data:image/png;base64,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",
+      "data:image/png;base64,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",
+      "data:image/png;base64,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",
+      "data:image/png;base64,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"
+    ];
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    async function generateAndSave() {
+      try {
+        const qCount = parseInt(document.getElementById('question-count').value);
+        const qCols = parseInt(document.getElementById('question-cols').value);
+        if (qCount < 1 || qCols < 1) { alert("正しい数値を入力してください"); return; }
+        window.jsPDF = window.jspdf.jsPDF;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = 210, pageHeight = 297;
+        const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: 3, tombo: [], markCells: [], answerRegions: [] };
+        const markerSize = 10, margin = 5;
+        [{x:margin,y:margin,id:0},{x:pageWidth-margin-markerSize,y:margin,id:1},{x:margin,y:pageHeight-margin-markerSize,id:2},{x:pageWidth-margin-markerSize,y:pageHeight-margin-markerSize,id:3}].forEach(p => {
+          doc.addImage(marker_b64[p.id], 'PNG', p.x, p.y, markerSize, markerSize);
+          config.tombo.push({ x: p.x, y: p.y, w: markerSize, h: markerSize });
+        });
+        const fontRes = await fetch("fonts/BIZUDGothic-Regular.ttf");
+        const fontBuffer = await fontRes.arrayBuffer();
+        let binary = ''; const bytes = new Uint8Array(fontBuffer);
+        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+        doc.addFileToVFS('BIZUDGothic.ttf', window.btoa(binary));
+        doc.addFont('BIZUDGothic.ttf', 'BIZUDGothic', 'normal');
+        doc.setFont('BIZUDGothic'); doc.setFontSize(8); doc.setTextColor(50);
+        const gridMarginX = 15, gridMarginTop = 5, gridSpaceWidth = pageWidth - gridMarginX * 2;
+        const colWidth = gridSpaceWidth / qCols, rows = Math.ceil(qCount / qCols), maxGridHeight = 255, rowHeight = maxGridHeight / rows;
+        doc.setLineWidth(0.2);
+        for (let i = 0; i < qCount; i++) {
+          const row = Math.floor(i / qCols), col = i % qCols;
+          const x = gridMarginX + col * colWidth, y = gridMarginTop + row * rowHeight;
+          doc.rect(x, y, colWidth, rowHeight, 'S'); doc.text((i + 1).toString(), x + 2, y + 4);
+          config.answerRegions.push({ x, y, w: colWidth, h: rowHeight });
+        }
+        function drawVerticalText(doc, str, x, centerY) {
+          const chars = str.split(''), spacing = 3.5, startY = centerY - ((chars.length - 1) * spacing) / 2;
+          chars.forEach((c, i) => doc.text(c, x, startY + i * spacing, { align: 'center', baseline: 'middle' }));
+        }
+        const boxX = 15, boxY = gridMarginTop + maxGridHeight + 5, boxW = 180, boxH = 26;
+        doc.rect(boxX, boxY, boxW, boxH, 'S');
+        const L1=boxX+6, L2=boxX+13, L3=boxX+57, L4=L3+6, L5=L4+18, L6=L5+6, L7=L6+40, L8=L7+6;
+        [L1,L2,L3,L4,L5,L6,L7,L8].forEach(lx => doc.line(lx, boxY, lx, boxY + boxH, 'S'));
+        const rH = boxH / 3;
+        doc.line(L1, boxY + rH, L3, boxY + rH, 'S'); doc.line(L1, boxY + rH*2, L3, boxY + rH*2, 'S');
+        doc.setFontSize(8);
+        drawVerticalText(doc, "受付番号", boxX + 3, boxY + boxH/2);
+        drawVerticalText(doc, "学年", L3 + 3, boxY + boxH/2);
+        drawVerticalText(doc, "所属", L5 + 3, boxY + boxH/2);
+        drawVerticalText(doc, "氏名", L7 + 3, boxY + boxH/2);
+        const bubbleW = 3.2, bubbleH = 5.0;
+        for (let row = 0; row < 3; row++) {
+          const cy = boxY + row * rH + rH / 2;
+          for (let col = 0; col < 10; col++) {
+            const cx = L2 + 1.5 + col * 4.2;
+            doc.ellipse(cx + bubbleW/2, cy, bubbleW/2, bubbleH/2, 'S');
+            doc.text(col.toString(), cx + bubbleW/2, cy, { align: 'center', baseline: 'middle' });
+            config.markCells.push({ x: cx, y: cy-bubbleH/2, w: bubbleW, h: bubbleH, row, col });
+          }
+        }
+        doc.save(`answer_sheet_${qCount}q.pdf`);
+        await db.ref(`projects/${projectId}/config`).set(config);
+        totalQuestions = qCount;
+        const s = document.getElementById('save-status');
+        s.innerHTML = '✅ PDFが生成され、座標データが保存されました！'; s.style.background = '#1b5e20'; s.style.display = 'block';
+        setTimeout(() => s.style.display = 'none', 5000);
+      } catch (err) {
+        console.error(err);
+        const s = document.getElementById('save-status');
+        s.innerHTML = '❌ エラー: ' + err.message; s.style.background = '#b71c1c'; s.style.display = 'block';
+      }
+    }
+
+    // ============================
+    // TAB 2: 答案読込・管理
+    // ============================
+    const workCanvas = document.getElementById('work-canvas');
+    const workCtx = workCanvas.getContext('2d');
+    let scanConfig = null, scanAnswers = [];
+
+    async function loadAnswers() {
+        const file = document.getElementById('pdf-file').files[0];
+        if (!file) { alert('PDFを選択してください'); return; }
+        const snap = await db.ref(`projects/${projectId}/config`).get();
+        if (!snap.exists()) { alert('座標設定が見つかりません。先に解答用紙を発行してください。'); return; }
+        scanConfig = snap.val();
+        const arrayBuffer = await file.arrayBuffer();
+        let pdfDoc;
+        try { pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise; }
+        catch (e) { alert('PDFの読み込みに失敗: ' + e.message); return; }
+        const total = pdfDoc.numPages; scanAnswers = [];
+        document.getElementById('status-text').textContent = `0 / ${total} ページ処理中...`;
+        document.getElementById('progress-bar').style.width = '0%';
+        for (let pageNum = 1; pageNum <= total; pageNum++) {
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: scanConfig.scale || 1.5 });
+            workCanvas.width = viewport.width; workCanvas.height = viewport.height;
+            workCtx.fillStyle = '#ffffff'; workCtx.fillRect(0, 0, workCanvas.width, workCanvas.height);
+            await page.render({ canvasContext: workCtx, viewport }).promise;
+            let detectedResult = detectTombo(scanConfig.tombo);
+            if (!detectedResult.error && detectedResult.markerMap[0] && detectedResult.markerMap[2]) {
+                if (detectedResult.markerMap[0].y > detectedResult.markerMap[2].y) {
+                    const tc = document.createElement('canvas'); tc.width = workCanvas.width; tc.height = workCanvas.height;
+                    const tctx = tc.getContext('2d'); tctx.translate(tc.width, tc.height); tctx.rotate(Math.PI); tctx.drawImage(workCanvas, 0, 0);
+                    workCtx.clearRect(0, 0, workCanvas.width, workCanvas.height); workCtx.drawImage(tc, 0, 0);
+                    detectedResult = detectTombo(scanConfig.tombo);
+                }
+            }
+            if (detectedResult.error) {
+                const origData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+                for (const angle of [Math.PI, Math.PI/2, -Math.PI/2]) {
+                    const tc = document.createElement('canvas');
+                    const isR = Math.abs(angle) === Math.PI/2;
+                    tc.width = isR ? workCanvas.height : workCanvas.width; tc.height = isR ? workCanvas.width : workCanvas.height;
+                    const tctx = tc.getContext('2d'); tctx.translate(tc.width/2, tc.height/2); tctx.rotate(angle);
+                    tctx.drawImage(workCanvas, -workCanvas.width/2, -workCanvas.height/2);
+                    workCanvas.width = tc.width; workCanvas.height = tc.height; workCtx.drawImage(tc, 0, 0);
+                    const rr = detectTombo(scanConfig.tombo);
+                    if (!rr.error || rr.foundCount > detectedResult.foundCount) detectedResult = rr;
+                    if (!detectedResult.error) break;
+                    workCanvas.width = origData.width; workCanvas.height = origData.height; workCtx.putImageData(origData, 0, 0);
+                }
+            }
+            const refCenterPoints = scanConfig.tombo.map(r => ({ x: r.x + r.w/2, y: r.y + r.h/2 }));
+            const transform = calcPerspectiveTransform(refCenterPoints, detectedResult.points);
+            const correctedMarkCells = scanConfig.markCells.map(cell => transformRegion(cell, transform));
+            const entryNumber = readEntryNumber(correctedMarkCells);
+            const cells = []; const qTotal = scanConfig.questionCount || 100;
+            for (let q = 0; q < qTotal; q++) {
+                const cr = transformRegion(scanConfig.answerRegions[q], transform);
+                cells.push({ q: q + 1, imageData: cutRegion(cr) });
+            }
+            scanAnswers.push({ page: pageNum, entryNumber, cells, tomboError: detectedResult.error });
+            document.getElementById('progress-bar').style.width = Math.round((pageNum/total)*100) + '%';
+            document.getElementById('status-text').textContent = `${pageNum} / ${total} ページ処理中...`;
+        }
+        document.getElementById('status-text').textContent = `完了: ${total}ページ処理しました`;
+        showScanResults();
+    }
+
+    function detectTombo(refTombo) {
+        if (typeof AR === 'undefined') return { points: refTombo.map(r => ({x:r.x+r.w/2,y:r.y+r.h/2})), error: true, foundCount: 0, markerMap: {} };
+        const imageData = workCtx.getImageData(0, 0, workCanvas.width, workCanvas.height);
+        const markers = new AR.Detector().detect(imageData);
+        const detected = [], markerMap = {}; let error = false, foundCount = 0;
+        [0,1,2,3].forEach((id, i) => {
+            const m = markers.find(m => m.id === id);
+            if (m) { let sx=0,sy=0; m.corners.forEach(c=>{sx+=c.x;sy+=c.y}); const pt={x:sx/4,y:sy/4}; detected.push(pt); markerMap[id]=pt; foundCount++; }
+            else { const ref = refTombo[i]||refTombo[0]; detected.push({x:ref.x+ref.w/2,y:ref.y+ref.h/2}); error=true; }
+        });
+        return { points: detected, error, foundCount, markerMap };
+    }
+    function calcPerspectiveTransform(src, dst) {
+        if (src.length < 4 || dst.length < 4) return null;
+        const A = [], b = [];
+        for (let i = 0; i < 4; i++) {
+            const sx=src[i].x,sy=src[i].y,dx=dst[i].x,dy=dst[i].y;
+            A.push([sx,sy,1,0,0,0,-sx*dx,-sy*dx]); b.push(dx);
+            A.push([0,0,0,sx,sy,1,-sx*dy,-sy*dy]); b.push(dy);
+        }
+        const n=8, M=A.map((row,i)=>[...row,b[i]]);
+        for(let col=0;col<n;col++){let mr=col;for(let r=col+1;r<n;r++)if(Math.abs(M[r][col])>Math.abs(M[mr][col]))mr=r;[M[col],M[mr]]=[M[mr],M[col]];if(M[col][col]===0)return null;for(let r=col+1;r<n;r++){const f=M[r][col]/M[col][col];for(let j=col;j<=n;j++)M[r][j]-=f*M[col][j];}}
+        const h=new Array(n).fill(0);for(let i=n-1;i>=0;i--){h[i]=M[i][n]/M[i][i];for(let j=i-1;j>=0;j--)M[j][n]-=M[j][i]*h[i];}
+        return {h00:h[0],h01:h[1],h02:h[2],h10:h[3],h11:h[4],h12:h[5],h20:h[6],h21:h[7]};
+    }
+    function transformPoint(x,y,t){if(!t)return{x,y};const d=t.h20*x+t.h21*y+1;return{x:(t.h00*x+t.h01*y+t.h02)/d,y:(t.h10*x+t.h11*y+t.h12)/d};}
+    function transformRegion(r,t){const tl=transformPoint(r.x,r.y,t),br=transformPoint(r.x+r.w,r.y+r.h,t);return{x:tl.x,y:tl.y,w:br.x-tl.x,h:br.y-tl.y,row:r.row,col:r.col};}
+    function readEntryNumber(markCells){const rows=[[],[],[]];markCells.forEach(c=>{if(c.row===undefined)return;rows[c.row].push({col:c.col,darkness:getMeanDarkness(c)});});return rows.map(r=>{if(!r.length)return 0;return[...r].sort((a,b)=>b.darkness-a.darkness)[0].col;}).reduce((a,d,i)=>a+d*Math.pow(10,2-i),0);}
+    function getMeanDarkness(r){const x=Math.round(Math.max(0,r.x)),y=Math.round(Math.max(0,r.y)),w=Math.max(1,Math.round(Math.min(r.w,workCanvas.width-x))),h=Math.max(1,Math.round(Math.min(r.h,workCanvas.height-y)));const d=workCtx.getImageData(x,y,w,h);let t=0;for(let i=0;i<d.data.length;i+=4)t+=(255-(d.data[i]+d.data[i+1]+d.data[i+2])/3);return t/(d.data.length/4);}
+    function cutRegion(r){const x=Math.round(Math.max(0,r.x)),y=Math.round(Math.max(0,r.y)),w=Math.max(1,Math.round(Math.min(r.w,workCanvas.width-x))),h=Math.max(1,Math.round(Math.min(r.h,workCanvas.height-y)));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(workCanvas,x,y,w,h,0,0,w,h);return c.toDataURL('image/jpeg',0.7);}
+
+    function showScanResults() {
+        document.getElementById('result-section').style.display = 'block';
+        const list = document.getElementById('answer-list'); list.innerHTML = '';
+        let ok=0,err=0,warn=0;
+        scanAnswers.forEach(a => {
+            const valid = a.entryNumber >= 1 && a.entryNumber <= 999;
+            if(valid && !a.tomboError) ok++; else if(!valid) err++; else warn++;
+            const item = document.createElement('div'); item.className = 'answer-item';
+            if(!valid||a.tomboError) item.style.background = a.tomboError ? '#3a2b00' : '#3a1b1b';
+            item.innerHTML = `<img src="${a.cells[0]?.imageData}" alt="1問目"/><span>P${a.page}</span><span>受付番号: <strong>${a.entryNumber}</strong></span>${a.tomboError?'<span style="font-size:11px;color:#ff9800">⚠ トンボ検出失敗</span>':''}<span class="badge ${valid?(a.tomboError?'warn':'ok'):'error'}">${valid?'OK':'エラー'}</span>`;
+            list.appendChild(item);
+        });
+        let txt = `${ok}件OK / ${warn}件警告 / ${err}件エラー`;
+        if(warn>0||err>0) txt += '  ⚠ エラーのあるページは再スキャンを推奨';
+        document.getElementById('result-summary').textContent = txt;
+        if(err === 0) document.getElementById('save-btn').disabled = false;
+    }
+
+    async function saveToFirebase() {
+        document.getElementById('save-btn').disabled = true;
+        document.getElementById('status-text').textContent = 'Firebaseに保存中...';
+        const batch = {};
+        for(const a of scanAnswers) {
+            batch[`projects/${projectId}/answers/${a.entryNumber}`] = {
+                entryNumber: a.entryNumber, page: a.page,
+                cells: a.cells.reduce((o,c)=>{o[`q${c.q}`]=c.imageData;return o;},{})
+            };
+        }
+        await db.ref('/').update(batch);
+        document.getElementById('status-text').textContent = '保存完了しました';
+        document.getElementById('save-btn').disabled = false;
+        loadEntryList();
+    }
+
+    // 答案一覧
+    let entryListData = [];
+    async function loadEntryList() {
+        const el = document.getElementById('entry-list');
+        el.innerHTML = '<div style="color:#aaa">読み込み中...</div>';
+        try {
+            const res = await fetch(`https://ciq-saiten-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/answers.json?shallow=true`);
+            const data = await res.json();
+            entryListData = data ? Object.keys(data).map(Number).sort((a,b)=>a-b) : [];
+        } catch(e) {
+            const snap = await db.ref(`projects/${projectId}/answers`).get();
+            entryListData = snap.exists() ? Object.keys(snap.val()).map(Number).sort((a,b)=>a-b) : [];
+        }
+        entryNumbers = [...entryListData]; // 全体のentryNumbersも更新
+        let masterData = {};
+        try { masterData = JSON.parse(localStorage.getItem('masterData') || '{}'); } catch(e){}
+        if (entryListData.length === 0) { el.innerHTML = '<div style="color:#aaa">保存済み答案はありません</div>'; return; }
+        el.innerHTML = '';
+        entryListData.forEach(num => {
+            const name = masterData[num]?.name || '';
+            const item = document.createElement('div'); item.className = 'entry-list-item';
+            item.innerHTML = `<input type="checkbox" class="entry-cb" data-num="${num}"><span style="font-weight:bold;min-width:80px">No.${num}</span><span style="color:#aaa">${name}</span><button class="btn danger" style="margin-left:auto;padding:4px 10px;font-size:12px" onclick="deleteEntry(${num},event)">削除</button>`;
+            el.appendChild(item);
+        });
+        document.getElementById('batch-delete-btn').disabled = true;
+        document.getElementById('select-all-cb').checked = false;
+        document.querySelectorAll('.entry-cb').forEach(cb => cb.addEventListener('change', updateBatchBtn));
+    }
+
+    function updateBatchBtn() {
+        const checked = document.querySelectorAll('.entry-cb:checked').length;
+        document.getElementById('batch-delete-btn').disabled = checked === 0;
+    }
+    function toggleSelectAll() {
+        const all = document.getElementById('select-all-cb').checked;
+        document.querySelectorAll('.entry-cb').forEach(cb => cb.checked = all);
+        updateBatchBtn();
+    }
+    async function deleteEntry(num, e) {
+        e?.stopPropagation();
+        if (!confirm(`受付番号 ${num} の答案を削除しますか？`)) return;
+        await db.ref(`projects/${projectId}/answers/${num}`).remove();
+        await db.ref(`projects/${projectId}/scores/${num}`).remove();
+        loadEntryList();
+    }
+    async function batchDelete() {
+        const checked = [...document.querySelectorAll('.entry-cb:checked')].map(cb => cb.dataset.num);
+        if (!checked.length) return;
+        if (!confirm(`${checked.length}件の答案を削除しますか？`)) return;
+        const updates = {};
+        checked.forEach(num => { updates[`projects/${projectId}/answers/${num}`] = null; updates[`projects/${projectId}/scores/${num}`] = null; });
+        await db.ref('/').update(updates);
+        loadEntryList();
+    }
+
+    // ============================
+    // TAB 3: 模範解答
+    // ============================
+    function renderModelGrid() {
+        const grid = document.getElementById('model-answer-grid'); grid.innerHTML = '';
+        modelAnswers.forEach((ans, i) => {
+            const item = document.createElement('div'); item.className = 'answer-grid-item';
+            item.innerHTML = `<div class="q-num">${i+1}問</div><div class="answer-text ${ans?'':'unset'}">${ans||'未設定'}</div>`;
+            grid.appendChild(item);
+        });
+    }
+    function loadCSV() {
+        const file = document.getElementById('csv-file').files[0];
+        if (!file) { alert('CSVファイルを選択してください'); return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+            const lines = e.target.result.split('\n').filter(l => l.trim());
+            modelAnswers = new Array(totalQuestions).fill('');
+            lines.forEach((line, idx) => {
+                const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                if (cols.length >= 2 && !isNaN(parseInt(cols[0]))) { const q = parseInt(cols[0]); if (q >= 1 && q <= totalQuestions) modelAnswers[q-1] = cols[1]; }
+                else if (idx < totalQuestions) modelAnswers[idx] = cols[0];
+            });
+            renderModelGrid();
+            document.getElementById('model-status').textContent = `${lines.length}件読み込みました`; document.getElementById('model-status').style.display = 'block';
+            setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+    async function saveModelAnswers() {
+        const data = {};
+        modelAnswers.forEach((ans, idx) => { if (ans) data[idx + 1] = ans; });
+        await db.ref(`projects/${projectId}/answers_text`).set(data);
+        document.getElementById('model-status').textContent = 'Firebaseに保存しました'; document.getElementById('model-status').style.display = 'block';
+        setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
+    }
+
+    // ============================
+    // TAB 4: 集計・設定
+    // ============================
+    function updateStatsView() {
+        let doneCount=0,conflictCount=0,confirmedCount=0,allConfirmed=true;
+        for(let q=1;q<=totalQuestions;q++){
+            const cs=Object.keys(scoresData[`__completed__q${q}`]||{});const allDone=cs.length>=3;let hasConflict=false,allResolved=true;
+            if(allDone){entryNumbers.forEach(en=>{const qs=scoresData[en]?.[`q${q}`]||{};const v=Object.values(qs);const co=v.filter(x=>x==='correct').length,wr=v.filter(x=>x==='wrong').length,ho=v.filter(x=>x==='hold').length;if((co>0&&wr>0)||ho>0){hasConflict=true;if(!scoresData[`__final__q${q}`]?.[en])allResolved=false;}});}
+            const fc=allDone&&(!hasConflict||allResolved);const cell=document.getElementById(`po-${q}`);cell.className='po-cell';
+            if(fc){cell.classList.add('confirmed');confirmedCount++;}else if(hasConflict){cell.classList.add('conflict');conflictCount++;allConfirmed=false;}
+            else if(allDone){cell.classList.add('done');doneCount++;allConfirmed=false;}else if(cs.length>0){cell.classList.add('inprogress');allConfirmed=false;}else{allConfirmed=false;}
+        }
+        document.getElementById('stat-done').textContent=doneCount+confirmedCount;document.getElementById('stat-conflict').textContent=conflictCount;document.getElementById('stat-confirmed').textContent=confirmedCount;
+        const csvS=document.getElementById('csv-status'),csvB=document.getElementById('csv-btn');
+        if(allConfirmed&&confirmedCount===totalQuestions){csvS.textContent='全問確定済み。CSV出力できます。';csvS.className='csv-status ready';csvB.disabled=false;}
+        else{csvS.textContent=`未確定の問題があります（確定済み: ${confirmedCount}/${totalQuestions}）`;csvS.className='csv-status notready';csvB.disabled=true;}
+        renderAnalytics();
+    }
+
+    async function exportCSV() {
+        let masterData = {};
+        try { const res = await fetch(GAS_URL + '?master=1'); masterData = await res.json(); } catch(e) { try { masterData = JSON.parse(localStorage.getItem('masterData')||'{}'); } catch(e2){} }
+        const results = entryNumbers.map(en => {
+            const answers = []; for(let q=1;q<=totalQuestions;q++){const fd=scoresData[`__final__q${q}`]||{};const qs=scoresData[en]?.[`q${q}`]||{};let r;if(fd[en])r=fd[en]==='correct'?1:0;else{const v=Object.values(qs);r=v.filter(x=>x==='correct').length>=2?1:0;}answers.push(r);}
+            const score=answers.reduce((a,b)=>a+b,0);const streaks=[];let cur=0;answers.forEach(a=>{if(a===1)cur++;else{if(cur>0)streaks.push(cur);cur=0;}});if(cur>0)streaks.push(cur);
+            const m=masterData[en]||{};return{entryNumber:en,name:m.name||'',affiliation:m.affiliation||'',grade:m.grade||'',score,answers,streaks};
+        });
+        results.sort((a,b)=>{if(b.score!==a.score)return b.score-a.score;for(let i=0;i<totalQuestions;i++){const d=b.answers[i]-a.answers[i];if(d!==0)return d;}return 0;});
+        const ms=Math.max(...results.map(r=>r.streaks.length),0);const headers=['順位','氏名','所属','学年','点数'];for(let i=1;i<=ms;i++)headers.push(`第${i}連答`);
+        const rows=[headers];let rank=1;
+        results.forEach((r,idx)=>{if(idx>0){const p=results[idx-1];if(p.score!==r.score)rank=idx+1;else{let d=false;for(let i=0;i<totalQuestions;i++)if(p.answers[i]!==r.answers[i]){d=true;break;}if(d)rank=idx+1;}}
+        const row=[rank,r.name,r.affiliation,r.grade,r.score];for(let i=0;i<ms;i++)row.push(r.streaks[i]||0);rows.push(row);});
+        const csv=rows.map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ciq_result.csv';a.click();
+    }
+
+    async function getAnalyticsData() {
+        const threshold=parseInt(document.getElementById('analytics-threshold').value)||5;
+        let masterData={};try{masterData=JSON.parse(localStorage.getItem('masterData')||'{}');}catch(e){}
+        const tp=entryNumbers.length||1,qStats=[];
+        for(let q=1;q<=totalQuestions;q++){let cc=0,ce=[];entryNumbers.forEach(en=>{const fd=scoresData[`__final__q${q}`]||{};const qs=scoresData[en]?.[`q${q}`]||{};let r;if(fd[en])r=fd[en]==='correct'?1:0;else{r=Object.values(qs).filter(v=>v==='correct').length>=2?1:0;}if(r===1){cc++;ce.push(en);}});
+        const rate=Math.round((cc/tp)*100);const names=ce.map(e=>{const m=masterData[e]||{};return m.name?`${m.affiliation||''} ${m.name}`.trim():`番号${e}`;}).join(' / ');
+        let type='';if(cc===0)type='全滅';else if(cc===1)type='単独正解';else if(cc<=threshold)type='少数正解';
+        qStats.push({q,correctCount:cc,rate,type,names,isRare:cc<=threshold});}return qStats;
+    }
+    async function renderAnalytics() {
+        const tbody=document.getElementById('analytics-tbody');if(!entryNumbers.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:12px">データがありません</td></tr>';return;}
+        const qs=await getAnalyticsData();
+        tbody.innerHTML=qs.map(s=>`<tr style="${s.isRare?'background:rgba(255,152,0,0.2);font-weight:bold':''}"><td style="padding:8px;border:1px solid #444;text-align:center">${s.q}</td><td style="padding:8px;border:1px solid #444;text-align:center">${s.correctCount}人</td><td style="padding:8px;border:1px solid #444;text-align:center">${s.rate}%</td><td style="padding:8px;border:1px solid #444;text-align:center;${s.type==='単独正解'?'color:#ff9800':s.type==='全滅'?'color:#ef5350':''}">${s.type}</td><td style="padding:8px;border:1px solid #444;font-size:12px">${s.names}</td></tr>`).join('');
+    }
+    async function exportAnalyticsCSV() {
+        const qs=await getAnalyticsData();const headers=['問題番号','正答数','正答率(%)','状態','正解者一覧'];const rows=[headers];
+        qs.forEach(s=>rows.push([s.q,s.correctCount,s.rate,s.type,`"${s.names.replace(/"/g,'""')}"`]));
+        const csv=rows.map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='analytics_all_qs.csv';a.click();
+    }
+
+    async function saveGas() {
+        const gasUrl = document.getElementById('gas-url').value.trim();
+        await db.ref(`projects/${projectId}/settings/gasUrl`).set(gasUrl);
+        GAS_URL = gasUrl;
+        const s = document.getElementById('gas-status'); s.style.display = 'block';
+        setTimeout(() => s.style.display = 'none', 3000);
+    }
+    async function deleteProject() {
+        if (!confirm('本当にこのプロジェクトを完全に削除しますか？\nすべてのデータが失われます。')) return;
+        const typed = prompt(`確認のため、プロジェクトID「${projectId}」を入力してください：`);
+        if (typed !== projectId) { alert('プロジェクトIDが一致しません。削除を中止しました。'); return; }
+        await db.ref(`projects/${projectId}`).remove(); alert('プロジェクトが削除されました。'); session.clear(); location.href = 'index.html';
+    }
+
+    init();
     </script>
 </body>
-
 </html>

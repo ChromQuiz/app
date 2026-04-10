@@ -254,8 +254,8 @@ let selectedRole = 'scorer';
       session.set('scorer_name', name);
       session.set('scorer_role', 'admin');
       
-      // 作成直後は設定画面（旧saiten.html）へ強制遷移してPDF等を作ってもらう
-      location.href = 'saiten.html';
+      // 作成直後は管理画面へ遷移してPDF等を作ってもらう
+      location.href = 'admin.html';
     }
 
     // エンターキー対応（IME変換確定のEnterを確実に無視）

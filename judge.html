@@ -191,18 +191,15 @@
 
 <body>
     <div class="top-bar">
-        <h1>問題一覧</h1>
+        <h1 id="project-title">読み込み中...</h1>
         <div class="scorer-badge" id="scorer-badge"></div>
         <button class="btn secondary" style="margin-left:auto" onclick="logout()">ログアウト</button>
     </div>
 
     <div class="admin-bar" id="admin-bar" style="display:none">
         <span class="admin-label">管理者：</span>
-        <button class="btn secondary" onclick="location.href='saiten.html'">解答用紙/設定</button>
-        <button class="btn secondary" onclick="location.href='scoring.html'">答案設定</button>
-        <button class="btn secondary" onclick="location.href='answer_setup.html'">模範解答設定</button>
+        <button class="btn secondary" onclick="location.href='admin.html'">管理画面</button>
         <button class="btn warning" onclick="location.href='conflict.html'">要確認一覧</button>
-        <button class="btn secondary" onclick="location.href='admin.html'">管理者画面</button>
     </div>
 
     <div class="legend">
@@ -240,7 +237,9 @@ const projectId = session.projectId;
             }
             const snapSettings = await db.ref(`projects/${projectId}/settings`).once('value');
             if (snapSettings.exists()) {
-                GAS_URL = snapSettings.val().gasUrl || '';
+                const settings = snapSettings.val();
+                GAS_URL = settings.gasUrl || '';
+                document.getElementById('project-title').textContent = settings.projectName || '問題一覧';
             }
 
             if (GAS_URL) {
