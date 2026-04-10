@@ -221,7 +221,7 @@
     <div class="q-grid" id="q-grid"></div>
 
     <script>
-const projectId = session.projectId;
+        const projectId = session.projectId;
         const scorerName = session.scorerName;
         const scorerRole = session.scorerRole;
 
@@ -241,7 +241,7 @@ const projectId = session.projectId;
                 document.getElementById('project-title').textContent = settings.projectName || '問題一覧';
             }
 
-            // Firebaseのentriesから参加者情報を取得してマスタとして保持 (オプション)
+            // Firebaseのentriesから参加者情報を,取得してマスタとして保持 (オプション)
             fetchEntriesMaster();
 
             document.getElementById('scorer-badge').textContent =
@@ -270,14 +270,14 @@ const projectId = session.projectId;
                 updateGrid(snap.val() || {});
             });
         }
-        
+
         function fetchEntriesMaster() {
             db.ref(`projects/${projectId}/entries`).once('value', snap => {
-                if(snap.exists()) {
+                if (snap.exists()) {
                     const masterData = {};
                     snap.forEach(c => {
                         const v = c.val();
-                        if(v.entryNumber) masterData[v.entryNumber] = { name: `${v.familyName} ${v.firstName}` };
+                        if (v.entryNumber) masterData[v.entryNumber] = { name: `${v.familyName} ${v.firstName}` };
                     });
                     localStorage.setItem('masterData', JSON.stringify(masterData));
                 }
@@ -343,7 +343,7 @@ const projectId = session.projectId;
             session.clear();
             location.href = 'index.html';
         }
-        
+
         initializeApp();
     </script>
 </body>
