@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CIQ the 13th - 成績開示</title>
+    <title>成績開示</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -73,7 +73,7 @@
         .result-score {
             font-size: 64px; font-weight: 700; margin: 12px 0;
             background: linear-gradient(135deg, #7c5cfc, #a855f7);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
         }
         .result-score-label { font-size: 14px; color: #8e8ea0; }
         .result-grid {
@@ -107,8 +107,8 @@
 <body>
     <div class="container">
         <div class="logo">
-            <h1>CIQ the 13th</h1>
-            <p>1R 成績開示</p>
+            <h1 id="logo-title">成績開示</h1>
+            <p id="logo-subtitle">成績開示</p>
         </div>
 
         <div class="card" id="login-card">
@@ -149,6 +149,16 @@
 
     async function init() {
         if (!projectId) return;
+
+        // プロジェクト名を取得して表示
+        const settingsSnap = await db.ref(`projects/${projectId}/settings`).once('value');
+        if (settingsSnap.exists()) {
+            const pName = settingsSnap.val().projectName || '成績開示';
+            document.getElementById('logo-title').textContent = pName;
+            document.getElementById('logo-subtitle').textContent = pName + ' 成績開示';
+            document.title = pName + ' - 成績開示';
+        }
+
         // 開示が有効かチェック
         const cfgSnap = await db.ref(`projects/${projectId}/entryConfig/disclosureEnabled`).get();
         disclosureEnabled = cfgSnap.exists() && cfgSnap.val() === true;

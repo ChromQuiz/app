@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>当日受付 - QRコードリーダー</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="js/config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .top-bar {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            flex: 1;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn.primary {
+            background: #4caf50;
+        }
+
+        .btn.primary:hover {
+            background: #388e3c;
+        }
+
+        .btn.secondary {
+            background: #0f3460;
+            border: 1px solid #444;
+        }
+
+        .btn.secondary:hover {
+            background: #1a4a7a;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .video-wrap {
+            margin: 0 auto 20px auto;
+            max-width: 400px;
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 12px;
+            border: 3px solid #4caf50;
+            background: #000;
+        }
+
+        .scan-text {
+            color: #aaa;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .result-box {
+            display: none;
+            margin: 0 auto 16px auto;
+            max-width: 400px;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .stats-bar {
+            margin-top: 24px;
+            padding: 16px;
+            background: #16213e;
+            border-radius: 12px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stats-bar h3 {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        <button class="btn secondary" onclick="location.href='judge.html'">← 戻る</button>
+        <h1 id="page-title">当日受付</h1>
+    </div>
+
+    <div class="container">
+        <div class="video-wrap">
+            <video id="qr-video" playsinline></video>
+            <canvas id="qr-canvas" style="display:none;"></canvas>
+        </div>
+        <div class="scan-text" id="scan-text">カメラに受付QRコード（またはスマホ画面）をかざしてください</div>
+
+        <div class="result-box" id="checkin-result"></div>
+
+        <button class="btn primary" id="start-btn" onclick="startQRScanner()">カメラ起動</button>
+        <button class="btn secondary" id="next-btn" style="display:none;" onclick="resetScanner()">次の人を読み込む</button>
+
+        <div class="stats-bar" id="stats-bar" style="display:none;">
+            <h3>受付状況</h3>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-total">-</div>
+                    <div class="stat-label">エントリー数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-checked" style="color:#4caf50">-</div>
+                    <div class="stat-label">受付済み</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-remaining" style="color:#ff9800">-</div>
+                    <div class="stat-label">未受付</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const projectId = session.projectId;
+        if (!projectId) { alert('プロジェクトに入室してください'); location.href = 'index.html'; }
+
+        let qrScanning = false;
+        let qrStream = null;
+
+        // プロジェクト名読み込み
+        async function init() {
+            const snap = await db.ref(`projects/${projectId}/settings`).once('value');
+            if (snap.exists()) {
+                const s = snap.val();
+                document.getElementById('page-title').textContent = (s.projectName || '') + ' 当日受付';
+            }
+            loadStats();
+        }
+
+        async function loadStats() {
+            const snap = await db.ref(`projects/${projectId}/entries`).once('value');
+            if (!snap.exists()) return;
+            let total = 0, checked = 0;
+            snap.forEach(child => {
+                const v = child.val();
+                if (v.status !== 'canceled') {
+                    total++;
+                    if (v.checkedIn) checked++;
+                }
+            });
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-checked').textContent = checked;
+            document.getElementById('stat-remaining').textContent = total - checked;
+            document.getElementById('stats-bar').style.display = 'block';
+        }
+
+        function startQRScanner() {
+            if (typeof jsQR === 'undefined') {
+                alert("QRライブラリが読み込まれていません。ページを再読み込みしてください。");
+                return;
+            }
+            const video = document.getElementById('qr-video');
+            document.getElementById('start-btn').style.display = 'none';
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    qrStream = stream;
+                    video.srcObject = stream;
+                    video.addEventListener('loadedmetadata', () => {
+                        video.play();
+                        qrScanning = true;
+                        requestAnimationFrame(scanFrame);
+                    });
+                }).catch(err => {
+                    alert('カメラの起動に失敗しました: ' + err.message);
+                    document.getElementById('start-btn').style.display = 'inline-block';
+                });
+        }
+
+        function scanFrame() {
+            if (!qrScanning) return;
+            const video = document.getElementById('qr-video');
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if (code) {
+                    qrScanning = false;
+                    processQRCode(code.data);
+                }
+            }
+            if (qrScanning) requestAnimationFrame(scanFrame);
+        }
+
+        async function processQRCode(uuid) {
+            document.getElementById('scan-text').textContent = '読み込み中...';
+            const resDiv = document.getElementById('checkin-result');
+            const nextBtn = document.getElementById('next-btn');
+
+            try {
+                const snap = await db.ref(`projects/${projectId}/entries/${uuid}`).once('value');
+                if (!snap.exists()) {
+                    resDiv.innerHTML = '❌ 該当するエントリーが見つかりません';
+                    resDiv.style.background = 'rgba(183,28,28,0.8)';
+                } else {
+                    const data = snap.val();
+                    if (data.status === 'canceled') {
+                        resDiv.innerHTML = `❌ キャンセル済みのエントリーです。<br><span style="font-size:14px;color:#ffcc80">${data.familyName} ${data.firstName} / 受付番号: ${data.entryNumber}</span>`;
+                        resDiv.style.background = 'rgba(183,28,28,0.8)';
+                    } else if (data.checkedIn) {
+                        resDiv.innerHTML = `⚠️ 既に受付済みです。<br><span style="font-size:14px;color:#ffcc80">${data.familyName} ${data.firstName} / 受付番号: ${data.entryNumber}</span>`;
+                        resDiv.style.background = 'rgba(230,81,0,0.8)';
+                    } else {
+                        await db.ref(`projects/${projectId}/entries/${uuid}/checkedIn`).set(true);
+                        resDiv.innerHTML = `✅ 受付完了！<br><span style="font-size:24px;font-weight:bold">${data.familyName} ${data.firstName} 様</span><br><span style="font-size:18px;color:#a5d6a7">受付番号: <b>${data.entryNumber}</b></span>`;
+                        resDiv.style.background = 'rgba(27,94,32,0.8)';
+                        loadStats(); // 受付成功時に統計更新
+                    }
+                }
+            } catch (e) {
+                resDiv.innerHTML = '❌ システムエラー: ' + e.message;
+                resDiv.style.background = 'rgba(183,28,28,0.8)';
+            }
+
+            document.getElementById('scan-text').style.display = 'none';
+            resDiv.style.display = 'block';
+            nextBtn.style.display = 'inline-block';
+        }
+
+        function resetScanner() {
+            document.getElementById('checkin-result').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('scan-text').textContent = 'カメラに受付QRコード（またはスマホ画面）をかざしてください';
+            document.getElementById('scan-text').style.display = 'block';
+            qrScanning = true;
+            requestAnimationFrame(scanFrame);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

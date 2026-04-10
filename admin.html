@@ -624,8 +624,8 @@
             document.getElementById('entry-link').textContent = `${lOrigins}entry_list.html?pid=${projectId}`;
             document.getElementById('registration-link').href = `${lOrigins}entry.html?pid=${projectId}`;
             document.getElementById('registration-link').textContent = `${lOrigins}entry.html?pid=${projectId}`;
-            document.getElementById('disclosure-link').href = `${lOrigins}disclosure.html`;
-            document.getElementById('disclosure-link').textContent = `${lOrigins}disclosure.html`;
+            document.getElementById('disclosure-link').href = `${lOrigins}disclosure.html?pid=${projectId}`;
+            document.getElementById('disclosure-link').textContent = `${lOrigins}disclosure.html?pid=${projectId}`;
 
             const configSnap = await db.ref(`projects/${projectId}/config`).once('value');
             if (configSnap.exists()) {
@@ -701,15 +701,17 @@
                 const pageWidth = 210, pageHeight = 297;
                 const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: 3, tombo: [], markCells: [], answerRegions: [] };
                 const markerSize = 10, margin = 5;
-                // PNG→JPEG変換: jsPDFのPNGデコーダの不具合を回避
+                // マーカー画像をcanvas経由でjsPDFに渡す（PNGデコーダ不具合 & JPEG劣化回避）
                 const markerPositions = [{ x: margin, y: margin, id: 0 }, { x: pageWidth - margin - markerSize, y: margin, id: 1 }, { x: margin, y: pageHeight - margin - markerSize, id: 2 }, { x: pageWidth - margin - markerSize, y: pageHeight - margin - markerSize, id: 3 }];
                 for (const p of markerPositions) {
                     const img = await new Promise((resolve, reject) => {
-                        const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = marker_b64[p.id];
+                        const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = `aruco_markers/marker_id${p.id}.png`;
                     });
                     const mc = document.createElement('canvas'); mc.width = img.width; mc.height = img.height;
-                    mc.getContext('2d').drawImage(img, 0, 0);
-                    doc.addImage(mc.toDataURL('image/jpeg', 1.0), 'JPEG', p.x, p.y, markerSize, markerSize);
+                    const mctx = mc.getContext('2d');
+                    mctx.fillStyle = '#ffffff'; mctx.fillRect(0, 0, mc.width, mc.height);
+                    mctx.drawImage(img, 0, 0);
+                    doc.addImage(mc, 'PNG', p.x, p.y, markerSize, markerSize);
                     config.tombo.push({ x: p.x, y: p.y, w: markerSize, h: markerSize });
                 }
                 const fontRes = await fetch("fonts/BIZUDGothic-Regular.ttf");

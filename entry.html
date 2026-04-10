@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CIQ the 13th - エントリー</title>
+    <title>大会エントリー</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -229,7 +229,7 @@
     <div class="container">
         <div class="logo">
             <h1 id="project-title">大会エントリー</h1>
-            <p>CIQ the 13th Registration</p>
+            <p>エントリー</p>
         </div>
 
         <div class="card disabled-msg" id="disabled-card">
@@ -346,23 +346,6 @@
             const d = document.getElementById('disabled-card');
             d.innerHTML = '<p>プロジェクトが指定されていません。</p><p style="margin-top:8px;font-size:13px">正しいエントリーURLへアクセスしてください。</p>';
             d.style.display = 'block';
-            // deleted GAS_URL
-            if (!projectId) return;
-
-            // DBから設定情報を取得
-            const snap = await db.ref(`projects/${projectId}/settings`).once('value');
-            if (snap.exists()) {
-                const settings = snap.val();
-                document.getElementById('project-title').textContent = settings.projectName || '大会エントリー';
-            }
-
-            const configSnap = await db.ref(`projects/${projectId}/entryConfig/entryEnabled`).once('value');
-            // 初期状態など未設定の時はtrue扱いにするか、明示的にfalseを扱うか。
-            // ここでは、明示的に false にされていない限り受付中にする。
-            if (configSnap.exists() && configSnap.val() === false) {
-                document.getElementById('form-card').style.display = 'none';
-                document.getElementById('disabled-card').style.display = 'block';
-            }
         }
 
         function generateUUID() {
@@ -438,12 +421,12 @@
                     inquiry,
                     entryNumber,
                     disclosurePw: pwHash,
-                    status: 'registered', // registered, canceled
+                    status: 'registered',
                     checkedIn: false,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
-                // DBに、保存
+                // DBに保存
                 await db.ref(`projects/${projectId}/entries/${uuid}`).set(entryData);
 
                 // GAS APIを呼び出してメール送信
@@ -475,7 +458,7 @@
                 document.getElementById('result-card').style.display = 'block';
                 document.getElementById('r-entry-number').textContent = String(entryNumber).padStart(3, '0');
                 document.getElementById('r-password').textContent = pw;
-                showStatus('', '');
+                document.getElementById('status-msg').style.display = 'none';
 
             } catch (err) {
                 console.error(err);
@@ -484,6 +467,32 @@
                 showStatus('エラーが発生しました: ' + err.message, 'error');
             }
         });
+
+        // 初期化: プロジェクト設定読み込み
+        async function init() {
+            if (!projectId) return;
+
+            try {
+                // プロジェクト名を取得して表示
+                const snap = await db.ref(`projects/${projectId}/settings`).once('value');
+                if (snap.exists()) {
+                    const settings = snap.val();
+                    const pName = settings.projectName || '大会エントリー';
+                    document.getElementById('project-title').textContent = pName;
+                    document.querySelector('.logo p').textContent = pName + ' エントリー';
+                    document.title = pName + ' - エントリー';
+                }
+
+                // エントリー受付が無効になっていないかチェック
+                const configSnap = await db.ref(`projects/${projectId}/entryConfig/entryEnabled`).once('value');
+                if (configSnap.exists() && configSnap.val() === false) {
+                    document.getElementById('form-card').style.display = 'none';
+                    document.getElementById('disabled-card').style.display = 'block';
+                }
+            } catch (e) {
+                console.error('初期化エラー:', e);
+            }
+        }
 
         init();
     </script>
