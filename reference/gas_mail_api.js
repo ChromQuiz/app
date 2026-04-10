@@ -18,7 +18,7 @@ function doGet(e) {
 
   try {
     if (action === 'entryMail') {
-      sendEntryMail(p.email, p.familyName, p.firstName, p.entryNumber, p.pw, p.uuid);
+      sendEntryMail(p.projectName, p.email, p.familyName, p.firstName, p.entryNumber, p.pw, p.uuid);
       return ContentService.createTextOutput(JSON.stringify({ status: 'success' })).setMimeType(ContentService.MimeType.JSON);
     }
   } catch (err) {
@@ -28,19 +28,20 @@ function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({ status: 'ignored' })).setMimeType(ContentService.MimeType.JSON);
 }
 
-function sendEntryMail(email, familyName, firstName, entryNumberStr, pwStr, uuid) {
+function sendEntryMail(projectNameStr, email, familyName, firstName, entryNumberStr, pwStr, uuid) {
   if (!email) return;
   
+  const projectName = projectNameStr || '大会';
   const entryNumber = String(entryNumberStr).padStart(3, '0');
   
   // UUIDからQRコード画像を生成
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(uuid)}`;
   const qrBlob = UrlFetchApp.fetch(qrUrl).getBlob().setName('QRcode.png');
 
-  const subject = 'CIQ the 13th エントリー受付完了のお知らせ';
+  const subject = `${projectName} エントリー受付完了のお知らせ`;
   const body = `${familyName} ${firstName} 様
 
-CIQ the 13th へのエントリーを受け付けました。
+${projectName} へのエントリーを受け付けました。
 
 ━━━━━━━━━━━━━━━━━━━━━
 ■ あなたの受付番号：${entryNumber}
@@ -55,7 +56,7 @@ CIQ the 13th へのエントリーを受け付けました。
 
 それでは、大会当日にお会いできることを楽しみにしております。
 
-CIQ the 13th 実行委員会
+${projectName} 実行委員会
 `;
 
   // メール送信

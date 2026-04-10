@@ -227,7 +227,6 @@ const projectId = session.projectId;
 
         if (!projectId || !scorerName) location.href = 'index.html';
 
-        let GAS_URL = '';
         let totalQuestions = 100;
 
         async function initializeApp() {
@@ -239,13 +238,11 @@ const projectId = session.projectId;
             const snapSettings = await db.ref(`projects/${projectId}/settings`).once('value');
             if (snapSettings.exists()) {
                 const settings = snapSettings.val();
-                GAS_URL = settings.gasUrl || '';
                 document.getElementById('project-title').textContent = settings.projectName || '問題一覧';
             }
 
-            if (GAS_URL) {
-                fetchMasterData();
-            }
+            // Firebaseのentriesから参加者情報を取得してマスタとして保持 (オプション)
+            fetchEntriesMaster();
 
             document.getElementById('scorer-badge').textContent =
                 `${scorerName}（${scorerRole === 'admin' ? '管理者' : '採点者'}）`;
@@ -274,17 +271,17 @@ const projectId = session.projectId;
             });
         }
         
-        async function fetchMasterData() {
-            try {
-                const res = await fetch(GAS_URL + '?action=getMaster');
-                const data = await res.json();
-                if (data && typeof data === 'object') {
-                    // data は { entryNumber: { name, affiliation, grade }, ... } の形式を想定
-                    localStorage.setItem('masterData', JSON.stringify(data));
+        function fetchEntriesMaster() {
+            db.ref(`projects/${projectId}/entries`).once('value', snap => {
+                if(snap.exists()) {
+                    const masterData = {};
+                    snap.forEach(c => {
+                        const v = c.val();
+                        if(v.entryNumber) masterData[v.entryNumber] = { name: `${v.familyName} ${v.firstName}` };
+                    });
+                    localStorage.setItem('masterData', JSON.stringify(masterData));
                 }
-            } catch (e) {
-                console.warn('マスターデータの取得に失敗:', e.message);
-            }
+            });
         }
 
         function updateGrid(scores) {

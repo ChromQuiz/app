@@ -201,11 +201,7 @@
         const d = document.getElementById('disabled-card');
         d.innerHTML = '<p>プロジェクトが指定されていません。</p><p style="margin-top:8px;font-size:13px">正しいエントリーURLへアクセスしてください。</p>';
         d.style.display = 'block';
-    }
-
-    let GAS_URL = '';
-
-    async function init() {
+// deleted GAS_URL
         if (!projectId) return;
 
         // DBから設定情報を取得
@@ -213,7 +209,6 @@
         if (snap.exists()) {
             const settings = snap.val();
             document.getElementById('project-title').textContent = settings.projectName || '大会エントリー';
-            GAS_URL = settings.gasUrl || '';
         }
 
         const configSnap = await db.ref(`projects/${projectId}/entryConfig/entryEnabled`).once('value');
@@ -306,11 +301,13 @@
             // DBに保存
             await db.ref(`projects/${projectId}/entries/${uuid}`).set(entryData);
 
-            // GAS APIを呼び出してメール送信 (GAS側にもマスタとして保存させるならクエリパラメータで渡す)
-            if (GAS_URL) {
+            // GAS APIを呼び出してメール送信
+            if (typeof SYSTEM_GAS_URL !== 'undefined' && SYSTEM_GAS_URL.startsWith('http')) {
                 try {
+                    const pName = document.getElementById('project-title').textContent;
                     const mailParams = new URLSearchParams({
                         action: 'entryMail',
+                        projectName: pName,
                         email,
                         familyName,
                         firstName,
@@ -319,9 +316,7 @@
                         uuid
                     });
                     
-                    // GETリクエストで呼び出し (CORS回避のため、別窓ではなくfetch)
-                    // mode: 'no-cors' を使うと結果を読み取れないが、GAS側へは到達する
-                    await fetch(GAS_URL + '?' + mailParams.toString(), {
+                    await fetch(SYSTEM_GAS_URL + '?' + mailParams.toString(), {
                         method: 'GET',
                         mode: 'no-cors'
                     });

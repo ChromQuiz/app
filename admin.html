@@ -130,13 +130,6 @@
                 </table>
             </div>
         </div>
-        <div class="section">
-            <h2>GAS（メール送信 API）連携設定</h2>
-            <div style="font-size:13px;color:#aaa;margin-bottom:8px">※ 参加者用の「自動返信メール」等を手配するためのWebhook URLを設定します。</div>
-            <input type="text" id="gas-url" placeholder="https://script.google.com/macros/s/..." />
-            <button class="btn" style="width:100%;margin-top:16px;padding:12px;font-weight:bold" onclick="saveGas()">保存</button>
-            <div id="gas-status" class="status-msg">✅ GAS設定を保存しました！</div>
-        </div>
     </div>
 
     <!-- ==================== TAB 0.5: 当日受付 ==================== -->
@@ -284,7 +277,6 @@
 
     document.getElementById('project-id-display').textContent = `ID: ${projectId}`;
 
-    let GAS_URL = '';
     let totalQuestions = 100;
     let scoresData = {};
     let entryNumbers = [];
@@ -325,12 +317,6 @@
             const cfg = configSnap.val();
             totalQuestions = cfg.questionCount || 100;
             document.getElementById('question-count').value = totalQuestions;
-        }
-        const settingsSnap = await db.ref(`projects/${projectId}/settings`).once('value');
-        if (settingsSnap.exists()) {
-            const s = settingsSnap.val();
-            GAS_URL = s.gasUrl || '';
-            if (GAS_URL) document.getElementById('gas-url').value = GAS_URL;
         }
 
         const entryConfigSnap = await db.ref(`projects/${projectId}/entryConfig`).once('value');
@@ -705,8 +691,11 @@
     }
 
     async function exportCSV() {
+        const snap = await db.ref(`projects/${projectId}/entries`).get();
         let masterData = {};
-        try { const res = await fetch(GAS_URL + '?master=1'); masterData = await res.json(); } catch(e) { try { masterData = JSON.parse(localStorage.getItem('masterData')||'{}'); } catch(e2){} }
+        if (snap.exists()) {
+            snap.forEach(c => { const v=c.val(); masterData[v.entryNumber] = { name: `${v.familyName} ${v.firstName}`, affiliation: v.affiliation, grade: v.grade }; });
+        }
         const results = entryNumbers.map(en => {
             const answers = []; for(let q=1;q<=totalQuestions;q++){const fd=scoresData[`__final__q${q}`]||{};const qs=scoresData[en]?.[`q${q}`]||{};let r;if(fd[en])r=fd[en]==='correct'?1:0;else{const v=Object.values(qs);r=v.filter(x=>x==='correct').length>=2?1:0;}answers.push(r);}
             const score=answers.reduce((a,b)=>a+b,0);const streaks=[];let cur=0;answers.forEach(a=>{if(a===1)cur++;else{if(cur>0)streaks.push(cur);cur=0;}});if(cur>0)streaks.push(cur);
@@ -740,13 +729,6 @@
         const csv=rows.map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='analytics_all_qs.csv';a.click();
     }
 
-    async function saveGas() {
-        const gasUrl = document.getElementById('gas-url').value.trim();
-        await db.ref(`projects/${projectId}/settings/gasUrl`).set(gasUrl);
-        GAS_URL = gasUrl;
-        const s = document.getElementById('gas-status'); s.style.display = 'block';
-        setTimeout(() => s.style.display = 'none', 3000);
-    }
     async function deleteProject() {
         if (!confirm('本当にこのプロジェクトを完全に削除しますか？\nすべてのデータが失われます。')) return;
         const typed = prompt(`確認のため、プロジェクトID「${projectId}」を入力してください：`);

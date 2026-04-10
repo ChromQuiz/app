@@ -12,6 +12,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// システム共通のGAS連携URL（メール送信API）
+// ここにデプロイしたGASのURLを貼り付けます
+const SYSTEM_GAS_URL = "https://script.google.com/macros/s/AKfycbzCWmgdMJ_a2-oMs08lGu30XBiKhNQrbBFT8mBP2HxuX_g_hnLfk3BQbfMfH-A17eVi/exec";
+
 // セッション管理ヘルパー（localStorageベースに統一）
 const session = {
   get(key) { return localStorage.getItem(key); },
