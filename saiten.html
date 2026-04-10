@@ -33,12 +33,19 @@
 
   <div class="main">
     <div class="card">
-      <h2 style="margin-bottom: 8px;" id="project-title">プロジェクト設定</h2>
-      <p style="color: #aaa; font-size: 14px; margin-bottom: 24px;">スプレッドシート連携と用紙の自動生成を行います。</p>
+      <h2 style="margin-bottom: 8px;">GAS（スプレッドシート）連携設定</h2>
+      <p style="color: #aaa; font-size: 14px; margin-bottom: 24px;">参加者名簿との同期やCSVバックアップに使用するURLを設定します。</p>
       
-      <label>GAS (Google Apps Script) 連携URL</label>
+      <label>GAS 連携URL</label>
       <input type="text" id="gas-url" placeholder="https://script.google.com/macros/s/..." />
-      <div style="font-size: 12px; color: #888; margin-top: 4px;">参加者名簿との同期やCSVバックアップに使用します。</div>
+      <button class="btn" style="width: 100%; margin-top: 24px; padding: 12px; font-weight: bold;" onclick="saveGas()">GAS設定を保存</button>
+      
+      <div id="gas-status" class="status">✅ GAS設定を保存しました！</div>
+    </div>
+    
+    <div class="card">
+      <h2 style="margin-bottom: 8px;">解答用紙ジェネレーター</h2>
+      <p style="color: #aaa; font-size: 14px; margin-bottom: 24px;">システム専用の解答用紙(PDF)をここから自動生成します。</p>
 
       <label>問題数 (デフォルト: 100)</label>
       <input type="number" id="question-count" value="100" min="10" max="200" />
@@ -47,9 +54,9 @@
       <input type="number" id="question-cols" value="5" min="2" max="10" />
       <div style="font-size: 12px; color: #888; margin-top: 4px;">例：100問で5列の場合、20段の表が描画されます。</div>
       
-      <button class="btn" style="width: 100%; margin-top: 32px; padding: 16px; font-weight: bold;" onclick="generateAndSave()">解答用紙PDFの発行 と システム設定保存</button>
+      <button class="btn" style="width: 100%; margin-top: 32px; padding: 16px; font-weight: bold;" onclick="generateAndSave()">解答用紙PDFの発行 と 座標データ保存</button>
       
-      <div id="save-status" class="status">✅ PDFが生成され、座標データがシステムに保存されました！</div>
+      <div id="save-status" class="status">✅ PDFが生成され、座標データが保存されました！</div>
     </div>
   </div>
 
@@ -81,19 +88,30 @@
       location.href = 'index.html';
     }
 
-    document.getElementById('project-title').textContent = `プロジェクトID: ${pid} の設定`;
+    document.getElementById('project-title') ? document.getElementById('project-title').textContent = `プロジェクトID: ${pid} の設定` : null;
 
     // 既存設定の読み込み
-    db.ref(`projects/${pid}/settings`).once('value', snap => {
-      if (snap.exists() && snap.val().gasUrl) {
-        document.getElementById('gas-url').value = snap.val().gasUrl;
+    db.ref(`projects/${pid}`).once('value', snap => {
+      const data = snap.val() || {};
+      if (data.settings && data.settings.gasUrl) {
+        document.getElementById('gas-url').value = data.settings.gasUrl;
+      }
+      if (data.config) {
+        if (data.config.questionCount) document.getElementById('question-count').value = data.config.questionCount;
+        if (data.config.columns) document.getElementById('question-cols').value = data.config.columns;
       }
     });
+
+    async function saveGas() {
+      const gasUrl = document.getElementById('gas-url').value.trim();
+      await db.ref(`projects/${pid}/settings/gasUrl`).set(gasUrl);
+      document.getElementById('gas-status').style.display = 'block';
+      setTimeout(() => document.getElementById('gas-status').style.display = 'none', 3000);
+    }
 
     async function generateAndSave() {
       const qCount = parseInt(document.getElementById('question-count').value);
       const qCols = parseInt(document.getElementById('question-cols').value);
-      const gasUrl = document.getElementById('gas-url').value.trim();
 
       if (qCount < 1 || qCols < 1) {
         alert("正しい数値を入力してください");
@@ -203,7 +221,6 @@
       doc.save(`answer_sheet_${qCount}q.pdf`);
 
       // Firebaseへの保存
-      await db.ref(`projects/${pid}/settings/gasUrl`).set(gasUrl);
       await db.ref(`projects/${pid}/config`).set(config);
 
       document.getElementById('save-status').style.display = 'block';
