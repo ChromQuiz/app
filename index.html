@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CIQ the 13th 採点システム</title>
+  <title>QuizOpus</title>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
   <script src="js/config.js"></script>
@@ -137,6 +137,7 @@
       cursor: not-allowed;
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
@@ -149,6 +150,7 @@
     <div class="tabs">
       <div class="tab active" id="tab-join" onclick="setTab('join')">参加する</div>
       <div class="tab" id="tab-create" onclick="setTab('create')">新規作成</div>
+      <div class="tab" id="tab-import" onclick="setTab('import')">復元(インポート)</div>
     </div>
 
     <!-- 参加セクション -->
@@ -158,7 +160,7 @@
       <label>パスワード</label>
       <div style="position: relative; margin-bottom: 16px;">
         <input type="password" id="join-password" placeholder="アクセスコード" style="margin-bottom: 0; padding-right: 40px;" />
-        <span style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #aaa; font-size: 16px;" onclick="togglePassword('join-password')">👁️</span>
+        <span style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #aaa; font-size: 16px;" onclick="togglePassword('join-password')"><i class="fas fa-eye" id="toggle-icon-join"></i></span>
       </div>
       <label>あなたの名前</label>
       <input type="text" id="join-name" placeholder="例：山田太郎" />
@@ -173,11 +175,11 @@
     <!-- 新規作成セクション -->
     <div id="section-create" style="display: none;">
       <label>プロジェクト名（大会名など）</label>
-      <input type="text" id="create-project-name" placeholder="例：CIQ the 13th" />
-      <label>パスワード（他人の不正アクセスを防ぐ）</label>
+      <input type="text" id="create-project-name" placeholder="例：QuizOpus 2026" />
+      <label>パスワード（英大・英小・数字を含む8文字以上）</label>
       <div style="position: relative; margin-bottom: 16px;">
         <input type="password" id="create-password" placeholder="任意のパスワード" style="margin-bottom: 0; padding-right: 40px;" />
-        <span style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #aaa; font-size: 16px;" onclick="togglePassword('create-password')">👁️</span>
+        <span style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #aaa; font-size: 16px;" onclick="togglePassword('create-password')"><i class="fas fa-eye" id="toggle-icon-create"></i></span>
       </div>
       <label>あなたの名前（最初の作成者）</label>
       <input type="text" id="create-name" placeholder="例：山田太郎" />
@@ -186,7 +188,7 @@
       </div>
       <div
         style="font-size:12px;color:#ef5350;margin-bottom:16px;line-height:1.4;background:rgba(239,83,80,0.1);padding:10px;border-radius:6px;border:1px solid rgba(239,83,80,0.3);">
-        <strong>⚠️ データの取り扱いに関する注意</strong><br>
+        <strong><i class="fa-solid fa-triangle-exclamation"></i> データの取り扱いに関する注意</strong><br>
         ・サーバーの容量制限のため、最後にアクセスしてから<strong>半年が経過したプロジェクトは自動的に削除</strong>されます。<br>
         ・アップロードされた答案画像の元データは<strong>3日経過で削除</strong>されます。<br>
         大会が終了したら、必ず管理画面の<strong>「全データをエクスポート」</strong>から成績などのバックアップを保存してください。
@@ -196,23 +198,47 @@
 
     <!-- 作成完了セクション -->
     <div id="section-success" style="display: none; text-align: center;">
-      <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+      <div style="font-size: 48px; margin-bottom: 16px;"><i class="fa-solid fa-circle-check" style="color: #4caf50"></i></div>
       <h3 style="margin-bottom: 8px;">プロジェクト作成完了！</h3>
       <p style="margin-bottom: 24px; font-size: 14px; color: #aaa;">以下の情報を他のスタッフに共有してください。</p>
       
       <div style="background: #0f3460; padding: 16px; border-radius: 8px; margin-bottom: 24px; text-align: left;">
         <label>参加ID</label>
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <input type="text" id="success-id" readonly style="margin-bottom: 0;" />
-          <button class="btn" style="width: auto; padding: 0 16px; font-size: 14px;" onclick="copyToClipboard('success-id')">コピー</button>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: nowrap;">
+          <input type="text" id="success-id" readonly style="margin-bottom: 0; min-width: 0;" />
+          <button class="btn" style="width: auto; padding: 0 16px; font-size: 14px; flex-shrink: 0;" onclick="copyToClipboard('success-id')">コピー</button>
         </div>
         <label>パスワード</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="success-pwd" readonly style="margin-bottom: 0;" />
-          <button class="btn" style="width: auto; padding: 0 16px; font-size: 14px;" onclick="copyToClipboard('success-pwd')">コピー</button>
+        <div style="display: flex; gap: 8px; flex-wrap: nowrap;">
+          <input type="text" id="success-pwd" readonly style="margin-bottom: 0; min-width: 0;" />
+          <button class="btn" style="width: auto; padding: 0 16px; font-size: 14px; flex-shrink: 0;" onclick="copyToClipboard('success-pwd')">コピー</button>
         </div>
       </div>
       <button class="btn" onclick="location.href='admin.html'">管理画面へ進む</button>
+    </div>
+
+    <!-- 復元(インポート)セクション -->
+    <div id="section-import" style="display: none;">
+      <div style="font-size:13px;color:#aaa;margin-bottom:16px;">
+        以前バックアップした <code>.ciq</code> ファイルを選択し、新しいプロジェクトとして復元します。<br>
+        ※過去のIDとの競合を防ぐため、常に「新しい参加ID」が発行されます。
+      </div>
+      <label>バックアップファイル (.ciq)</label>
+      <input type="file" id="import-file" accept=".ciq,application/json" style="margin-bottom: 16px; width: 100%; box-sizing: border-box;" />
+      
+      <label>新しいプロジェクト名</label>
+      <input type="text" id="import-project-name" placeholder="例：QuizOpus 2026" />
+      
+      <label>新しいパスワード（英大・英小・数字を含む8文字以上）</label>
+      <div style="position: relative; margin-bottom: 16px;">
+        <input type="password" id="import-password" placeholder="任意のパスワード" style="margin-bottom: 0; padding-right: 40px;" />
+        <span style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #aaa; font-size: 16px;" onclick="togglePassword('import-password')"><i class="fas fa-eye"></i></span>
+      </div>
+      
+      <label>あなたの名前（管理者）</label>
+      <input type="text" id="import-name" placeholder="例：山田太郎" />
+      
+      <button class="btn" id="import-btn" onclick="importProject()">バックアップを復元して新設</button>
     </div>
   </div>
   <script>
@@ -223,8 +249,10 @@
         currentTab = tab;
         document.getElementById('tab-join').className = tab === 'join' ? 'tab active' : 'tab';
         document.getElementById('tab-create').className = tab === 'create' ? 'tab active' : 'tab';
+        document.getElementById('tab-import').className = tab === 'import' ? 'tab active' : 'tab';
         document.getElementById('section-join').style.display = tab === 'join' ? 'block' : 'none';
         document.getElementById('section-create').style.display = tab === 'create' ? 'block' : 'none';
+        document.getElementById('section-import').style.display = tab === 'import' ? 'block' : 'none';
       }
 
       function selectRole(role) {
@@ -242,10 +270,13 @@
 
       function togglePassword(id) {
         const input = document.getElementById(id);
+        const icon = input.nextElementSibling.querySelector('i');
         if (input.type === "password") {
           input.type = "text";
+          if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
         } else {
           input.type = "password";
+          if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
         }
       }
 
@@ -303,6 +334,11 @@
           return;
         }
 
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(pwd)) {
+          showError('パスワードは英大文字、英小文字、数字をそれぞれ1つ以上含む8文字以上である必要があります');
+          return;
+        }
+
         // ランダムなIDを生成
         const pid = Math.random().toString(36).substring(2, 10).toLowerCase();
 
@@ -324,6 +360,59 @@
         document.getElementById('section-success').style.display = 'block';
         document.getElementById('success-id').value = pid;
         document.getElementById('success-pwd').value = pwd;
+      }
+
+      async function importProject() {
+        const file = document.getElementById('import-file').files[0];
+        const pName = document.getElementById('import-project-name').value.trim();
+        const pwd = document.getElementById('import-password').value;
+        const name = document.getElementById('import-name').value.trim();
+        const btn = document.getElementById('import-btn');
+
+        if (!file || !pName || !pwd || !name) {
+          showError('全ての項目を入力・選択してください');
+          return;
+        }
+
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(pwd)) {
+          showError('パスワードは英大文字、英小文字、数字をそれぞれ1つ以上含む8文字以上である必要があります');
+          return;
+        }
+
+        try {
+            btn.disabled = true;
+            btn.textContent = '復元中...';
+            
+            const text = await file.text();
+            const data = JSON.parse(text);
+            
+            const pid = Math.random().toString(36).substring(2, 10).toLowerCase();
+            const pwdHash = await hashPassword(pwd);
+
+            if (!data.settings) data.settings = {};
+            data.settings.projectName = pName;
+            data.settings.passwordHash = pwdHash;
+            data.settings.password = null; // Clear any old plain text password
+            data.settings.createdAt = firebase.database.ServerValue.TIMESTAMP;
+            data.settings.adminCreator = name;
+
+            await db.ref('projects/' + pid).set(data);
+
+            session.set('projectId', pid);
+            session.set('scorer_name', name);
+            session.set('scorer_role', 'admin');
+
+            document.querySelector('.tabs').style.display = 'none';
+            document.getElementById('section-import').style.display = 'none';
+            document.getElementById('section-success').style.display = 'block';
+            document.getElementById('success-id').value = pid;
+            document.getElementById('success-pwd').value = pwd;
+
+        } catch (e) {
+            showError('インポートに失敗しました: ' + e.message);
+            btn.disabled = false;
+            btn.textContent = 'バックアップを復元して新設';
+        }
       }
 
       // エンターキー対応（IME変換確定のEnterを確実に無視）

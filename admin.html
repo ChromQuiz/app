@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CIQ the 13th 採点システム - 管理画面</title>
+    <title>QuizOpus</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="js/config.js"></script>
@@ -357,20 +357,24 @@
             border: 1px solid #444;
         }
     </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
+    <div id="admin-toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:10000; color:white; padding:12px 24px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3); font-size:14px; text-align:center;"></div>
     <div class="top-bar">
         <button class="btn secondary" onclick="location.href='judge.html'">← 問題一覧へ</button>
         <h1>管理画面</h1>
-        <div class="id-badge" id="project-id-display" style="cursor:pointer" title="クリックでIDをコピー" onclick="navigator.clipboard.writeText(projectId).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='ID: '+projectId,1500)})"></div>
+        <div class="id-badge" id="project-id-display" style="cursor:pointer" title="クリックでIDをコピー" onclick="navigator.clipboard.writeText(projectId).then(()=>{this.innerHTML='<i class=&quot;fa-solid fa-check&quot;></i> コピー済み';setTimeout(()=>this.textContent='ID: '+projectId,1500)})"></div>
     </div>
 
+    <div class="tabs" style="display:flex;overflow-x:auto;">
         <button class="tab-btn" onclick="switchTab('tab-entries')">参加者管理</button>
-        <button class="tab-btn active" onclick="switchTab('tab-sheet')">解答用紙</button>
+        <button class="tab-btn active" onclick="switchTab('tab-sheet')">回答用紙</button>
         <button class="tab-btn" onclick="switchTab('tab-scan')">答案管理</button>
         <button class="tab-btn" onclick="switchTab('tab-model')">模範解答</button>
         <button class="tab-btn" onclick="switchTab('tab-stats')">集計・開示設定</button>
+        <button class="tab-btn" onclick="switchTab('tab-settings')">プロジェクト設定</button>
     </div>
 
     <!-- ==================== TAB 0: 参加者管理 ==================== -->
@@ -420,15 +424,19 @@
 
 
 
-    <!-- ==================== TAB 1: 解答用紙 ==================== -->
+    <!-- ==================== TAB 1: 回答用紙 ==================== -->
     <div class="tab-content active" id="tab-sheet">
         <div class="section">
-            <h2>解答用紙ジェネレーター</h2>
+            <h2>回答用紙ジェネレーター</h2>
             <label>問題数 (デフォルト: 100)</label>
             <input type="number" id="question-count" value="100" min="10" max="200" step="10" />
             <div style="font-size: 12px; color: #888; margin-top: 4px;">問題数は10の倍数で指定してください。列数は5で固定です。</div>
-            <button class="btn" style="width:100%;margin-top:24px;padding:14px;font-weight:bold"
-                onclick="generateAndSave()">解答用紙PDFの発行 と 座標データ保存</button>
+            <div style="display:flex;gap:16px;margin-top:24px;">
+                <button class="btn secondary" style="padding:14px;font-weight:bold"
+                    onclick="generatePDF()">回答用紙PDFのダウンロード</button>
+                <button class="btn" style="padding:14px;font-weight:bold"
+                    onclick="saveQuestionCount()">問題数を設定 (Firebaseに保存)</button>
+            </div>
             <div id="save-status" class="status-msg"></div>
         </div>
     </div>
@@ -557,12 +565,37 @@
         <div class="section">
             <h2>データバックアップ (エクスポート)</h2>
             <p style="font-size:13px;color:#aaa;margin-bottom:16px;">プロジェクトの全データ（設定、参加者情報、採点結果など）を.ciqファイルとして書き出します。</p>
-            <button class="btn" style="background:#0f3460;border:1px solid #444;" onclick="exportProjectData()">📦 全データをエクスポート (.ciq)</button>
+            <button class="btn" style="background:#0f3460;border:1px solid #444;" onclick="exportProjectData()"><i class="fa-solid fa-box-archive"></i> 全データをエクスポート (.ciq)</button>
         </div>
         <div class="section" style="border:2px solid #c62828;">
-            <h2 style="color:#ef5350;">⚠ 危険な操作</h2>
+            <h2 style="color:#ef5350;"><i class="fa-solid fa-triangle-exclamation"></i> 危険な操作</h2>
             <p style="font-size:13px;color:#aaa;margin-bottom:16px;">プロジェクトを完全に削除します。この操作は取り消せません。</p>
             <button class="btn danger" onclick="openDeleteModal()">プロジェクトを削除</button>
+        </div>
+    </div>
+
+    <!-- ==================== TAB 5: 設定 ==================== -->
+    <div class="tab-content" id="tab-settings">
+        <div class="section">
+            <h2>プロジェクト名の変更</h2>
+            <div style="display:flex;gap:12px;margin-bottom:24px;">
+                <input type="text" id="setting-project-name" placeholder="新しいプロジェクト名" style="flex:1;" />
+                <button class="btn" style="width:auto;padding:0 24px;" onclick="updateProjectName()">更新</button>
+            </div>
+
+            <h2>パスワードの変更</h2>
+            <div style="background:#0f3460;padding:16px;border-radius:8px;">
+                <label>現在のパスワード</label>
+                <input type="password" id="setting-old-pwd" placeholder="現在のパスワード" />
+                <label>新しいパスワード（英大・英小・数字を含む8文字以上）</label>
+                <div style="position:relative;margin-bottom:16px;">
+                    <input type="password" id="setting-new-pwd" placeholder="新しいパスワード" style="margin-bottom:0;" />
+                    <span style="position:absolute;right:12px;top:14px;cursor:pointer;color:#aaa;font-size:16px;" onclick="toggleSettingPassword('setting-new-pwd')"><i class="fas fa-eye"></i></span>
+                </div>
+                <label>新しいパスワード（確認用）</label>
+                <input type="password" id="setting-confirm-pwd" placeholder="もう一度入力" />
+                <button class="btn" style="margin-top:8px;" onclick="updateProjectPassword()">パスワードを変更</button>
+            </div>
         </div>
     </div>
 
@@ -570,9 +603,18 @@
     <canvas id="transform-canvas" style="display:none"></canvas>
 
     <script>
+        const db = firebase.database();
+        function showAdminToast(msg, type = 'error') {
+            const t = document.getElementById('admin-toast');
+            if(!t) return;
+            t.innerHTML = msg;
+            t.style.background = type === 'error' ? '#ef5350' : '#4caf50';
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
         // ============================
         // 共通初期化
-        // ============================
         // ============================
         const projectId = session.projectId;
         const scorerRole = session.scorerRole;
@@ -591,7 +633,7 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             const btns = document.querySelectorAll('.tab-btn');
-            const tabs = ['tab-entries', 'tab-sheet', 'tab-scan', 'tab-model', 'tab-stats'];
+            const tabs = ['tab-entries', 'tab-sheet', 'tab-scan', 'tab-model', 'tab-stats', 'tab-settings'];
             btns[tabs.indexOf(tabId)]?.classList.add('active');
         }
 
@@ -683,7 +725,7 @@
         }
 
         // ============================
-        // TAB 1: 解答用紙
+        // TAB 1: 回答用紙
         // ============================
         const marker_b64 = [
             "data:image/png;base64,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",
@@ -694,7 +736,51 @@
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        async function generateAndSave() {
+        async function buildLayoutConfig(qCount) {
+            const qCols = 5;
+            const pageWidth = 210, pageHeight = 297;
+            const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: 3, tombo: [], markCells: [], answerRegions: [] };
+            const markerSize = 10, margin = 5;
+            const markerPositions = [{ x: margin, y: margin, id: 0 }, { x: pageWidth - margin - markerSize, y: margin, id: 1 }, { x: margin, y: pageHeight - margin - markerSize, id: 2 }, { x: pageWidth - margin - markerSize, y: pageHeight - margin - markerSize, id: 3 }];
+            
+            for (const p of markerPositions) config.tombo.push({ x: p.x, y: p.y, w: markerSize, h: markerSize });
+            
+            const gridMarginX = 15, gridMarginTop = 5, gridSpaceWidth = pageWidth - gridMarginX * 2;
+            const colWidth = gridSpaceWidth / qCols, rows = Math.ceil(qCount / qCols), maxGridHeight = 255, rowHeight = maxGridHeight / rows;
+            
+            for (let i = 0; i < qCount; i++) {
+                const row = Math.floor(i / qCols), col = i % qCols;
+                const x = gridMarginX + col * colWidth, y = gridMarginTop + row * rowHeight;
+                config.answerRegions.push({ x, y, w: colWidth, h: rowHeight });
+            }
+            
+            const boxX = 15, boxY = gridMarginTop + maxGridHeight + 5, boxW = 180, boxH = 26, rH = boxH / 3;
+            const L2 = boxX + 13, bubbleW = 3.2, bubbleH = 5.0;
+            
+            for (let row = 0; row < 3; row++) {
+                const cy = boxY + row * rH + rH / 2;
+                for (let col = 0; col < 10; col++) {
+                    const cx = L2 + 1.5 + col * 4.2;
+                    config.markCells.push({ x: cx, y: cy - bubbleH / 2, w: bubbleW, h: bubbleH, row, col });
+                }
+            }
+            return config;
+        }
+
+        async function saveQuestionCount() {
+            const qCount = parseInt(document.getElementById('question-count').value);
+            if (!qCount || qCount < 10 || qCount % 10 !== 0) { showAdminToast("問題数は10の倍数で指定してください"); return; }
+            try {
+                const config = await buildLayoutConfig(qCount);
+                await db.ref(`projects/${projectId}/config`).set(config);
+                totalQuestions = qCount;
+                showAdminToast("問題数とレイアウトをFirebaseに保存しました！", "success");
+            } catch (err) {
+                showAdminToast("保存エラー: " + err.message);
+            }
+        }
+
+        async function generatePDF() {
             try {
                 const qCount = parseInt(document.getElementById('question-count').value);
                 const qCols = 5;
@@ -715,7 +801,6 @@
                     mctx.fillStyle = '#ffffff'; mctx.fillRect(0, 0, mc.width, mc.height);
                     mctx.drawImage(img, 0, 0);
                     doc.addImage(mc, 'PNG', p.x, p.y, markerSize, markerSize);
-                    config.tombo.push({ x: p.x, y: p.y, w: markerSize, h: markerSize });
                 }
                 const fontRes = await fetch("fonts/BIZUDGothic-Regular.ttf");
                 const fontBuffer = await fontRes.arrayBuffer();
@@ -731,7 +816,6 @@
                     const row = Math.floor(i / qCols), col = i % qCols;
                     const x = gridMarginX + col * colWidth, y = gridMarginTop + row * rowHeight;
                     doc.rect(x, y, colWidth, rowHeight, 'S'); doc.text((i + 1).toString(), x + 2, y + 4);
-                    config.answerRegions.push({ x, y, w: colWidth, h: rowHeight });
                 }
                 function drawVerticalText(doc, str, x, centerY) {
                     const chars = str.split(''), spacing = 3.5, startY = centerY - ((chars.length - 1) * spacing) / 2;
@@ -755,19 +839,13 @@
                         const cx = L2 + 1.5 + col * 4.2;
                         doc.ellipse(cx + bubbleW / 2, cy, bubbleW / 2, bubbleH / 2, 'S');
                         doc.text(col.toString(), cx + bubbleW / 2, cy, { align: 'center', baseline: 'middle' });
-                        config.markCells.push({ x: cx, y: cy - bubbleH / 2, w: bubbleW, h: bubbleH, row, col });
                     }
                 }
                 doc.save(`answer_sheet_${qCount}q.pdf`);
-                await db.ref(`projects/${projectId}/config`).set(config);
-                totalQuestions = qCount;
-                const s = document.getElementById('save-status');
-                s.innerHTML = '✅ PDFが生成され、座標データが保存されました！'; s.style.background = '#1b5e20'; s.style.display = 'block';
-                setTimeout(() => s.style.display = 'none', 5000);
+                showAdminToast("PDFのダウンロードが完了しました！", "success");
             } catch (err) {
                 console.error(err);
-                const s = document.getElementById('save-status');
-                s.innerHTML = '❌ エラー: ' + err.message; s.style.background = '#b71c1c'; s.style.display = 'block';
+                showAdminToast("エラー: " + err.message);
             }
         }
 
@@ -782,7 +860,7 @@
             const file = document.getElementById('pdf-file').files[0];
             if (!file) { showAdminToast('PDFを選択してください'); return; }
             const snap = await db.ref(`projects/${projectId}/config`).get();
-            if (!snap.exists()) { showAdminToast('座標設定が見つかりません。先に解答用紙を発行してください。'); return; }
+            if (!snap.exists()) { showAdminToast('座標設定が見つかりません。先に回答用紙を発行してください。'); return; }
             scanConfig = snap.val();
             const arrayBuffer = await file.arrayBuffer();
             let pdfDoc;
@@ -878,11 +956,11 @@
                 if (valid && !a.tomboError) ok++; else if (!valid) err++; else warn++;
                 const item = document.createElement('div'); item.className = 'answer-item';
                 if (!valid || a.tomboError) item.style.background = a.tomboError ? '#3a2b00' : '#3a1b1b';
-                item.innerHTML = `<img src="${a.cells[0]?.imageData}" alt="1問目"/><span>P${a.page}</span><span>受付番号: <strong>${a.entryNumber}</strong></span>${a.tomboError ? '<span style="font-size:11px;color:#ff9800">⚠ トンボ検出失敗</span>' : ''}<span class="badge ${valid ? (a.tomboError ? 'warn' : 'ok') : 'error'}">${valid ? 'OK' : 'エラー'}</span>`;
+                item.innerHTML = `<img src="${a.cells[0]?.imageData}" alt="1問目"/><span>P${a.page}</span><span>受付番号: <strong>${a.entryNumber}</strong></span>${a.tomboError ? '<span style="font-size:11px;color:#ff9800"><i class="fa-solid fa-triangle-exclamation"></i> トンボ検出失敗</span>' : ''}<span class="badge ${valid ? (a.tomboError ? 'warn' : 'ok') : 'error'}">${valid ? 'OK' : 'エラー'}</span>`;
                 list.appendChild(item);
             });
             let txt = `${ok}件OK / ${warn}件警告 / ${err}件エラー`;
-            if (warn > 0 || err > 0) txt += '  ⚠ エラーのあるページは再スキャンを推奨';
+            if (warn > 0 || err > 0) txt += '  <i class="fa-solid fa-triangle-exclamation"></i> エラーのあるページは再スキャンを推奨';
             document.getElementById('result-summary').textContent = txt;
             if (err === 0) document.getElementById('save-btn').disabled = false;
         }
@@ -1074,6 +1152,7 @@
         async function confirmDeleteProject() {
             const typed = document.getElementById('delete-id-input').value;
             if (typed !== projectId) { showAdminToast('プロジェクトIDが一致しません。'); return; }
+            document.getElementById('delete-modal').style.display = 'none';
             try {
                 await db.ref(`projects/${projectId}`).remove(); 
                 showAdminToast('プロジェクトが削除されました。', 'success'); 
@@ -1081,6 +1160,56 @@
             } catch(e) {
                 showAdminToast('削除エラー: ' + e.message);
             }
+        }
+
+        // ============================
+        // 設定更新処理
+        // ============================
+        function toggleSettingPassword(id) {
+            const input = document.getElementById(id);
+            const icon = input.nextElementSibling.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                if(icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+            } else {
+                input.type = 'password';
+                if(icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+            }
+        }
+
+        async function updateProjectName() {
+            const name = document.getElementById('setting-project-name').value.trim();
+            if(!name) return showAdminToast('プロジェクト名を入力してください');
+            await db.ref(`projects/${projectId}/settings/projectName`).set(name);
+            showAdminToast('プロジェクト名を更新しました', 'success');
+        }
+
+        async function updateProjectPassword() {
+            const oldP = document.getElementById('setting-old-pwd').value;
+            const newP = document.getElementById('setting-new-pwd').value;
+            const confirmP = document.getElementById('setting-confirm-pwd').value;
+            if(!oldP || !newP || !confirmP) return showAdminToast('全てのパスワード欄を入力してください');
+            if(newP !== confirmP) return showAdminToast('新しいパスワードが一致しません');
+            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(newP)) {
+                return showAdminToast('パスワードは英大文字、英小文字、数字をそれぞれ含み8文字以上である必要があります');
+            }
+
+            const snap = await db.ref(`projects/${projectId}/settings`).get();
+            const set = snap.val();
+            const oldHash = await hashPassword(oldP);
+            const isValid = set.passwordHash ? (set.passwordHash === oldHash) : (set.password === oldP);
+            
+            if(!isValid) return showAdminToast('現在のパスワードが間違っています');
+
+            const newHash = await hashPassword(newP);
+            await db.ref(`projects/${projectId}/settings/passwordHash`).set(newHash);
+            // Delete old plaintext pwd if exists
+            if (set.password) await db.ref(`projects/${projectId}/settings/password`).remove();
+            
+            showAdminToast('パスワードを更新しました', 'success');
+            document.getElementById('setting-old-pwd').value = '';
+            document.getElementById('setting-new-pwd').value = '';
+            document.getElementById('setting-confirm-pwd').value = '';
         }
 
         // ============================
@@ -1227,7 +1356,7 @@
             const btn = event.target;
             const originalText = btn.textContent;
             try {
-                btn.textContent = '📦 データ取得中...';
+                btn.innerHTML = '<i class="fa-solid fa-box-archive"></i> データ取得中...';
                 btn.disabled = true;
                 const sections = ['settings', 'config', 'answers', 'answers_text', 'scores', 'entries', 'entryConfig', 'disclosure'];
                 const data = {};
@@ -1265,7 +1394,7 @@
                     URL.revokeObjectURL(url);
                 }, 100);
 
-                btn.textContent = '✅ エクスポート完了';
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> エクスポート完了';
                 setTimeout(() => {
                     btn.textContent = originalText;
                     btn.disabled = false;
