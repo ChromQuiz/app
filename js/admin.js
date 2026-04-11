@@ -1,4 +1,3 @@
-const db = firebase.database();
         function showAdminToast(msg, type = 'error') {
             const t = document.getElementById('admin-toast');
             if(!t) return;

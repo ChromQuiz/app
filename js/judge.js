@@ -25,7 +25,7 @@ const projectId = session.projectId;
                 `${scorerName}（${scorerRole === 'admin' ? '管理者' : '採点者'}）`;
 
             if (scorerRole === 'admin') {
-                document.getElementById('admin-bar').style.display = 'flex';
+                document.getElementById('admin-bar').style.display = 'inline-block';
             }
 
             const qGrid = document.getElementById('q-grid');

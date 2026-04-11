@@ -79,21 +79,21 @@ const projectId = session.projectId;
                 const snap = await db.ref(`projects/${projectId}/entries/${uuid}`).once('value');
 
                 if (!snap.exists()) {
-                    showResultUI('error', '❌ 該当者が見つかりません', '', '');
+                    showResultUI('error', '<i class="fa-solid fa-xmark"></i> 該当者が見つかりません', '', '');
                 } else {
                     const data = snap.val();
                     if (data.status === 'canceled') {
-                        showResultUI('canceled', '❌ キャンセル済み', `${data.familyName} ${data.firstName}`, `受付番号 ${data.entryNumber}`);
+                        showResultUI('canceled', '<i class="fa-solid fa-xmark"></i> キャンセル済み', `${data.familyName} ${data.firstName}`, `受付番号 ${data.entryNumber}`);
                     } else if (data.checkedIn) {
-                        showResultUI('already', '⚠️ 受付済み', `${data.familyName} ${data.firstName}`, `受付番号 ${data.entryNumber}`);
+                        showResultUI('already', '<i class="fa-solid fa-triangle-exclamation"></i>️ 受付済み', `${data.familyName} ${data.firstName}`, `受付番号 ${data.entryNumber}`);
                     } else {
                         await db.ref(`projects/${projectId}/entries/${uuid}/checkedIn`).set(true);
-                        showResultUI('success', '✅ 受付完了', `${data.familyName} ${data.firstName}`, `受付番号 ${data.entryNumber}`);
+                        showResultUI('success', '<i class="fa-solid fa-check"></i> 受付完了', `${data.familyName} ${data.firstName}`, `受付番号 ${data.entryNumber}`);
                         loadStats();
                     }
                 }
             } catch (err) {
-                showResultUI('error', '❌ エラーが発生しました', err.message, '');
+                showResultUI('error', '<i class="fa-solid fa-xmark"></i> エラーが発生しました', err.message, '');
                 lastUUID = ''; // エラー時はリトライ可能に
             }
             processing = false;

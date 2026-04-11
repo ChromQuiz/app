@@ -187,6 +187,47 @@
             background: #333;
             color: #555;
         }
+
+        /* Hamburger Dropdown */
+        .admin-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background-color: #16213e;
+            min-width: 180px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+            z-index: 100;
+            border-radius: 8px;
+            border: 1px solid #444;
+            overflow: hidden;
+        }
+        .dropdown-content button {
+            width: 100%;
+            text-align: left;
+            border-radius: 0;
+            border: none;
+            border-bottom: 1px solid #333;
+            background: transparent;
+            padding: 12px 16px;
+        }
+        .dropdown-content button:last-child {
+            border-bottom: none;
+        }
+        .dropdown-content button:hover {
+            background-color: #1a4a7a;
+        }
+        .dropdown-content button.danger:hover {
+            background-color: #b71c1c;
+        }
+        .show { display: block; }
+        
+        .btn.danger { background: #ef5350; }
+        .btn.danger:hover { background: #b71c1c; }
     </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -195,14 +236,19 @@
     <div class="top-bar">
         <h1 id="project-title">読み込み中...</h1>
         <div class="scorer-badge" id="scorer-badge"></div>
-        <button class="btn secondary" style="margin-left:auto" onclick="logout()">ログアウト</button>
-    </div>
-
-    <div class="admin-bar" id="admin-bar" style="display:none">
-        <span class="admin-label">管理者：</span>
-        <button class="btn secondary" onclick="location.href='admin.html'">管理画面</button>
-        <button class="btn secondary" onclick="location.href='checkin.html'">受付</button>
-        <button class="btn warning" onclick="location.href='conflict.html'">要確認一覧</button>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+            <div class="admin-dropdown" id="admin-bar" style="display:none">
+                <button class="btn secondary" onclick="document.getElementById('admin-menu').classList.toggle('show')">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div id="admin-menu" class="dropdown-content">
+                    <button class="btn secondary" onclick="location.href='admin.html'"><i class="fa-solid fa-gear"></i> 管理画面</button>
+                    <button class="btn secondary" onclick="location.href='checkin.html'"><i class="fa-solid fa-user-check"></i> 受付</button>
+                    <button class="btn danger" onclick="location.href='conflict.html'"><i class="fa-solid fa-triangle-exclamation"></i> 要確認一覧</button>
+                </div>
+            </div>
+            <button class="btn secondary" onclick="logout()">ログアウト</button>
+        </div>
     </div>
 
     <div class="legend">

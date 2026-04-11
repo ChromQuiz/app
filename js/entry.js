@@ -106,8 +106,8 @@ const params = new URLSearchParams(location.search);
 
                         fetch(SYSTEM_GAS_URL + '?' + mailParams.toString())
                             .then(r => r.text())
-                            .then(t => )
-                            .catch(e => );
+                            .then(t => {})
+                            .catch(e => {});
                     } catch (e) {
                     }
                 }
