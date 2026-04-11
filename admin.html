@@ -562,7 +562,7 @@
         <div class="section" style="border:2px solid #c62828;">
             <h2 style="color:#ef5350;">⚠ 危険な操作</h2>
             <p style="font-size:13px;color:#aaa;margin-bottom:16px;">プロジェクトを完全に削除します。この操作は取り消せません。</p>
-            <button class="btn danger" onclick="deleteProject()">プロジェクトを削除</button>
+            <button class="btn danger" onclick="openDeleteModal()">プロジェクトを削除</button>
         </div>
     </div>
 
@@ -573,9 +573,10 @@
         // ============================
         // 共通初期化
         // ============================
+        // ============================
         const projectId = session.projectId;
         const scorerRole = session.scorerRole;
-        if (!projectId || scorerRole !== 'admin') { alert('管理者としてプロジェクトに入室してください'); location.href = 'index.html'; }
+        if (!projectId || scorerRole !== 'admin') { showAdminToast('管理者としてプロジェクトに入室してください'); setTimeout(() => location.href = 'index.html', 1500); }
 
         document.getElementById('project-id-display').textContent = `ID: ${projectId}`;
 
@@ -697,7 +698,7 @@
             try {
                 const qCount = parseInt(document.getElementById('question-count').value);
                 const qCols = 5;
-                if (qCount < 10 || qCount % 10 !== 0) { alert("問題数は10の倍数で指定してください"); return; }
+                if (qCount < 10 || qCount % 10 !== 0) { showAdminToast("問題数は10の倍数で指定してください"); return; }
                 window.jsPDF = window.jspdf.jsPDF;
                 const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 const pageWidth = 210, pageHeight = 297;
@@ -779,14 +780,14 @@
 
         async function loadAnswers() {
             const file = document.getElementById('pdf-file').files[0];
-            if (!file) { alert('PDFを選択してください'); return; }
+            if (!file) { showAdminToast('PDFを選択してください'); return; }
             const snap = await db.ref(`projects/${projectId}/config`).get();
-            if (!snap.exists()) { alert('座標設定が見つかりません。先に解答用紙を発行してください。'); return; }
+            if (!snap.exists()) { showAdminToast('座標設定が見つかりません。先に解答用紙を発行してください。'); return; }
             scanConfig = snap.val();
             const arrayBuffer = await file.arrayBuffer();
             let pdfDoc;
             try { pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise; }
-            catch (e) { alert('PDFの読み込みに失敗: ' + e.message); return; }
+            catch (e) { showAdminToast('PDFの読み込みに失敗: ' + e.message); return; }
             const total = pdfDoc.numPages; scanAnswers = [];
             document.getElementById('status-text').textContent = `0 / ${total} ページ処理中...`;
             document.getElementById('progress-bar').style.width = '0%';
@@ -978,7 +979,7 @@
         }
         function loadCSV() {
             const file = document.getElementById('csv-file').files[0];
-            if (!file) { alert('CSVファイルを選択してください'); return; }
+            if (!file) { showAdminToast('CSVファイルを選択してください'); return; }
             const reader = new FileReader();
             reader.onload = e => {
                 const lines = e.target.result.split('\n').filter(l => l.trim());
@@ -1064,11 +1065,22 @@
             const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'analytics_all_qs.csv'; a.click();
         }
 
-        async function deleteProject() {
-            if (!confirm('本当にこのプロジェクトを完全に削除しますか？\nすべてのデータが失われます。')) return;
-            const typed = prompt(`確認のため、プロジェクトID「${projectId}」を入力してください：`);
-            if (typed !== projectId) { alert('プロジェクトIDが一致しません。削除を中止しました。'); return; }
-            await db.ref(`projects/${projectId}`).remove(); alert('プロジェクトが削除されました。'); session.clear(); location.href = 'index.html';
+        function openDeleteModal() {
+            document.getElementById('delete-target-id').textContent = projectId;
+            document.getElementById('delete-id-input').value = '';
+            document.getElementById('delete-modal').style.display = 'flex';
+        }
+
+        async function confirmDeleteProject() {
+            const typed = document.getElementById('delete-id-input').value;
+            if (typed !== projectId) { showAdminToast('プロジェクトIDが一致しません。'); return; }
+            try {
+                await db.ref(`projects/${projectId}`).remove(); 
+                showAdminToast('プロジェクトが削除されました。', 'success'); 
+                setTimeout(() => { session.clear(); location.href = 'index.html'; }, 1500);
+            } catch(e) {
+                showAdminToast('削除エラー: ' + e.message);
+            }
         }
 
         // ============================
@@ -1206,7 +1218,7 @@
                 setTimeout(() => msg.style.display = 'none', 3500);
 
             } catch (e) {
-                alert('生成に失敗: ' + e.message);
+                showAdminToast('生成に失敗: ' + e.message);
             }
             btn.disabled = false; btn.textContent = '開示データを生成';
         }
@@ -1217,15 +1229,21 @@
             try {
                 btn.textContent = '📦 データ取得中...';
                 btn.disabled = true;
-
-                const snap = await db.ref(`projects/${projectId}`).get();
-                if (!snap.exists()) {
-                    alert('エクスポートするデータが見つかりません。');
+                const sections = ['settings', 'config', 'answers', 'answers_text', 'scores', 'entries', 'entryConfig', 'disclosure'];
+                const data = {};
+                for (const sec of sections) {
+                    const snap = await db.ref(`projects/${projectId}/${sec}`).get();
+                    if (snap.exists()) {
+                        data[sec] = snap.val();
+                    }
+                }
+                
+                if (Object.keys(data).length === 0) {
+                    showAdminToast('エクスポートするデータが見つかりません。');
                     btn.textContent = originalText;
                     btn.disabled = false;
                     return;
                 }
-                const data = snap.val();
                 
                 // Get project name if available, else use ID
                 const pName = data.settings?.projectName || projectId;
@@ -1255,7 +1273,7 @@
 
             } catch (error) {
                 console.error("エクスポートエラー:", error);
-                alert("エクスポート中にエラーが発生しました: " + error.message);
+                showAdminToast("エクスポートエラー: " + error.message);
                 btn.textContent = originalText;
                 btn.disabled = false;
             }

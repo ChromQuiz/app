@@ -144,6 +144,8 @@
   <p>プロジェクトを作成するか、IDを入力して参加してください</p>
 
   <div class="card">
+    <div id="status-msg" style="display:none; color: #ef5350; font-size: 14px; margin-bottom: 16px; padding: 10px; background: rgba(239,83,80,0.1); border-radius: 6px; border: 1px solid rgba(239,83,80,0.3); text-align: center;"></div>
+
     <div class="tabs">
       <div class="tab active" id="tab-join" onclick="setTab('join')">参加する</div>
       <div class="tab" id="tab-create" onclick="setTab('create')">新規作成</div>
@@ -154,7 +156,10 @@
       <label>プロジェクトID</label>
       <input type="text" id="join-id" placeholder="例: project-1234" />
       <label>パスワード</label>
-      <input type="password" id="join-password" placeholder="アクセスコード" />
+      <div style="position: relative; margin-bottom: 16px;">
+        <input type="password" id="join-password" placeholder="アクセスコード" style="margin-bottom: 0; padding-right: 40px;" />
+        <span style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #aaa; font-size: 16px;" onclick="togglePassword('join-password')">👁️</span>
+      </div>
       <label>あなたの名前</label>
       <input type="text" id="join-name" placeholder="例：山田太郎" />
       <label>ご自身のロール（入室後の権限）</label>
@@ -170,7 +175,10 @@
       <label>プロジェクト名（大会名など）</label>
       <input type="text" id="create-project-name" placeholder="例：CIQ the 13th" />
       <label>パスワード（他人の不正アクセスを防ぐ）</label>
-      <input type="password" id="create-password" placeholder="任意のパスワード" />
+      <div style="position: relative; margin-bottom: 16px;">
+        <input type="password" id="create-password" placeholder="任意のパスワード" style="margin-bottom: 0; padding-right: 40px;" />
+        <span style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #aaa; font-size: 16px;" onclick="togglePassword('create-password')">👁️</span>
+      </div>
       <label>あなたの名前（最初の作成者）</label>
       <input type="text" id="create-name" placeholder="例：山田太郎" />
       <div class="role-select" style="display:none">
@@ -183,9 +191,31 @@
         ・アップロードされた答案画像の元データは<strong>3日経過で削除</strong>されます。<br>
         大会が終了したら、必ず管理画面の<strong>「全データをエクスポート」</strong>から成績などのバックアップを保存してください。
       </div>
-      <button class="btn" onclick="createProject()">システムを新設する</button>
+      <button class="btn" onclick="createProject()">プロジェクトを作成する</button>
     </div>
-    <script>
+
+    <!-- 作成完了セクション -->
+    <div id="section-success" style="display: none; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+      <h3 style="margin-bottom: 8px;">プロジェクト作成完了！</h3>
+      <p style="margin-bottom: 24px; font-size: 14px; color: #aaa;">以下の情報を他のスタッフに共有してください。</p>
+      
+      <div style="background: #0f3460; padding: 16px; border-radius: 8px; margin-bottom: 24px; text-align: left;">
+        <label>参加ID</label>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="success-id" readonly style="margin-bottom: 0;" />
+          <button class="btn" style="width: auto; padding: 0 16px; font-size: 14px;" onclick="copyToClipboard('success-id')">コピー</button>
+        </div>
+        <label>パスワード</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="success-pwd" readonly style="margin-bottom: 0;" />
+          <button class="btn" style="width: auto; padding: 0 16px; font-size: 14px;" onclick="copyToClipboard('success-pwd')">コピー</button>
+        </div>
+      </div>
+      <button class="btn" onclick="location.href='admin.html'">管理画面へ進む</button>
+    </div>
+  </div>
+  <script>
       let selectedRole = 'scorer';
       let currentTab = 'join';
 
@@ -203,19 +233,48 @@
         document.getElementById('btn-admin-join').className = role === 'admin' ? 'role-btn selected' : 'role-btn';
       }
 
+      function showError(msg) {
+        const el = document.getElementById('status-msg');
+        el.textContent = msg;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 4000);
+      }
+
+      function togglePassword(id) {
+        const input = document.getElementById(id);
+        if (input.type === "password") {
+          input.type = "text";
+        } else {
+          input.type = "password";
+        }
+      }
+
+      async function copyToClipboard(id) {
+        const input = document.getElementById(id);
+        try {
+          await navigator.clipboard.writeText(input.value);
+          const btn = input.nextElementSibling;
+          const orig = btn.textContent;
+          btn.textContent = '完了';
+          setTimeout(() => btn.textContent = orig, 1500);
+        } catch (err) {
+          showError('コピーに失敗しました');
+        }
+      }
+
       async function joinProject() {
         const pid = document.getElementById('join-id').value.trim();
         const pwd = document.getElementById('join-password').value;
         const name = document.getElementById('join-name').value.trim();
 
         if (!pid || !pwd || !name) {
-          alert('全ての項目を入力してください');
+          showError('全ての項目を入力してください');
           return;
         }
 
         const snap = await db.ref('projects/' + pid + '/settings').get();
         if (!snap.exists()) {
-          alert('指定されたプロジェクトIDが見つかりません');
+          showError('指定されたプロジェクトIDが見つかりません');
           return;
         }
 
@@ -223,7 +282,7 @@
         const pwdHash = await hashPassword(pwd);
         // 旧平文パスワードとの後方互換性を維持
         if (settings.passwordHash ? settings.passwordHash !== pwdHash : settings.password !== pwd) {
-          alert('パスワードが間違っています');
+          showError('パスワードが間違っています');
           return;
         }
 
@@ -240,7 +299,7 @@
         const name = document.getElementById('create-name').value.trim();
 
         if (!pName || !pwd || !name) {
-          alert('全ての項目を入力してください');
+          showError('全ての項目を入力してください');
           return;
         }
 
@@ -255,14 +314,16 @@
           adminCreator: name
         });
 
-        alert(`プロジェクトが作成されました！\n\n参加ID: ${pid}\nパスワード: ${pwd}\n\n※このIDを他のスタッフに共有してください`);
-
         session.set('projectId', pid);
         session.set('scorer_name', name);
         session.set('scorer_role', 'admin');
 
-        // 作成直後は管理画面へ遷移してPDF等を作ってもらう
-        location.href = 'admin.html';
+        // タブを消して成功画面を表示
+        document.querySelector('.tabs').style.display = 'none';
+        document.getElementById('section-create').style.display = 'none';
+        document.getElementById('section-success').style.display = 'block';
+        document.getElementById('success-id').value = pid;
+        document.getElementById('success-pwd').value = pwd;
       }
 
       // エンターキー対応（IME変換確定のEnterを確実に無視）
