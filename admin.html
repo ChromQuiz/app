@@ -98,12 +98,13 @@
                     <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> エントリー</span><a id="registration-link" href="#" target="_blank" style="display:none"></a><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="window.open(document.getElementById('registration-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="copyUrl('registration-link', this)"><i class="fa-solid fa-copy"></i></button></div>
                     <div class="link-row"><span class="link-label"><i class="fa-solid fa-list"></i> 名簿</span><a id="entry-link" href="#" target="_blank" style="display:none"></a><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="window.open(document.getElementById('entry-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="copyUrl('entry-link', this)"><i class="fa-solid fa-copy"></i></button></div>
                     <div class="link-row"><span class="link-label"><i class="fa-solid fa-user-xmark"></i> キャンセル</span><a id="cancel-link" href="#" target="_blank" style="display:none"></a><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="window.open(document.getElementById('cancel-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="copyUrl('cancel-link', this)"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-chart-column"></i> 成績開示</span><a id="disclosure-link" href="#" target="_blank" style="display:none"></a><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="window.open(document.getElementById('disclosure-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="copyUrl('disclosure-link', this)"><i class="fa-solid fa-copy"></i></button></div>
                 </div>
                 <button class="btn secondary" style="margin-top:16px" onclick="exportEntriesCSV()"><i class="fa-solid fa-file-csv"></i> CSV エクスポート</button>
             </div>
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-address-book"></i> 参加者一覧</h2>
-                <button class="btn secondary" style="margin-bottom:12px" onclick="loadAdminEntries()"><i class="fa-solid fa-arrows-rotate"></i> 最新情報を読み込む</button>
+                <button class="btn secondary" style="margin-bottom:12px" onclick="loadAdminEntries()"><i class="fa-solid fa-arrows-rotate"></i> 読み込む</button>
                 <div class="table-container" style="max-height:400px;">
                     <table>
                         <thead>
@@ -132,7 +133,7 @@
                 <label><i class="fa-solid fa-list-ol"></i> 問題数</label>
                 <input type="number" id="question-count" value="100" min="10" max="200" step="10" style="max-width:200px" />
                 <div style="font-size:12px;color:var(--text-muted);margin-top:6px"><i class="fa-solid fa-circle-info"></i> 10の倍数で指定 / 列数は5固定</div>
-                <button class="btn" style="margin-top:20px" onclick="generatePDF()"><i class="fa-solid fa-download"></i> 用紙を生成してダウンロード</button>
+                <button class="btn" style="margin-top:20px" onclick="generatePDF()"><i class="fa-solid fa-download"></i> ダウンロード</button>
                 <div id="save-status" class="status-msg"></div>
             </div>
         </div>
@@ -145,10 +146,9 @@
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <div class="file-label">クリックしてPDFファイルを選択</div>
                     <div class="file-name" id="pdf-file-name"></div>
-                    <input type="file" id="pdf-file" accept="application/pdf" onchange="document.getElementById('pdf-file-name').textContent=this.files[0]?.name||'';document.getElementById('pdf-file-name').style.display=this.files[0]?'block':'none';document.getElementById('pdf-upload-zone').classList.toggle('active',!!this.files[0])" />
+                    <input type="file" id="pdf-file" accept="application/pdf" onchange="document.getElementById('pdf-file-name').textContent=this.files[0]?.name||'';document.getElementById('pdf-file-name').style.display=this.files[0]?'block':'none';document.getElementById('pdf-upload-zone').classList.toggle('active',!!this.files[0]);loadAnswers()" />
                 </div>
                 <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
-                    <button class="btn" onclick="loadAnswers()"><i class="fa-solid fa-magnifying-glass"></i> 読み込み開始</button>
                     <button class="btn success" id="save-btn" disabled onclick="saveToFirebase()"><i class="fa-solid fa-floppy-disk"></i> 保存</button>
                 </div>
                 <div class="progress-bar-wrap">
@@ -192,9 +192,6 @@
                             <div class="file-label">CSVファイルを選択</div>
                             <div class="file-name" id="csv-file-name"></div>
                             <input type="file" id="csv-file" accept=".csv" onchange="document.getElementById('csv-file-name').textContent=this.files[0]?.name||'';document.getElementById('csv-file-name').style.display=this.files[0]?'block':'none';loadCSV()" />
-                        </div>
-                        <div style="margin-top:12px">
-                            <button class="btn success" onclick="saveModelAnswers()"><i class="fa-solid fa-floppy-disk"></i> 保存</button>
                         </div>
                         <div id="model-status" class="status-msg"></div>
                     </div>
@@ -257,18 +254,7 @@
                 </div>
             </div>
 
-            <div class="section glass-panel">
-                <h2><i class="fa-solid fa-eye"></i> 成績開示</h2>
-                <div class="toggle-row" style="margin-bottom:16px">
-                    <label class="toggle-switch"><input type="checkbox" id="disclosure-toggle" onchange="toggleDisclosure()"><span class="toggle-slider"></span></label>
-                    <span>成績開示を有効にする</span>
-                </div>
-                <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px"><i class="fa-solid fa-circle-info"></i> 有効にすると開示データが自動生成されます</div>
-                <div id="disclosure-status" class="status-msg"></div>
-                <div id="disclosure-url" style="margin-top:12px;display:none">
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-chart-column"></i> 開示ページ</span><a id="disclosure-link" href="#" target="_blank" style="display:none"></a><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="window.open(document.getElementById('disclosure-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="copyUrl('disclosure-link', this)"><i class="fa-solid fa-copy"></i></button></div>
-                </div>
-            </div>
+
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-box-archive"></i> データバックアップ</h2>
                 <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;"><i class="fa-solid fa-circle-info"></i> 全データを.ciqファイルとして書き出します。</p>

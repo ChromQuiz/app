@@ -77,16 +77,26 @@ function showDbAuthError() {
 
             window.copyUrl = function(linkId, btn) {
                 const url = document.getElementById(linkId).href;
-                navigator.clipboard.writeText(url).then(() => {
-                    const original = btn.innerHTML;
+                const original = btn.innerHTML;
+                function onSuccess() {
                     btn.innerHTML = '<i class="fa-solid fa-check"></i>';
                     btn.style.background = '#10b981';
-                    setTimeout(() => {
-                        btn.innerHTML = original;
-                        btn.style.background = '';
-                    }, 1500);
-                });
+                    setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 1500);
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
+                        fallbackCopy(url); onSuccess();
+                    });
+                } else {
+                    fallbackCopy(url); onSuccess();
+                }
             };
+            function fallbackCopy(text) {
+                const ta = document.createElement('textarea');
+                ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+            }
 
             const configSnap = await db.ref(`projects/${projectId}/protected/${secretHash}/config`).once('value');
             if (configSnap.exists()) {
@@ -99,10 +109,9 @@ function showDbAuthError() {
             if (entryConfigSnap.exists()) {
                 const ec = entryConfigSnap.val();
                 document.getElementById('entry-list-toggle').checked = !!ec.listEnabled;
-                const dt = document.getElementById('disclosure-toggle');
-                if (dt) dt.checked = !!ec.disclosureEnabled;
-                if (ec.disclosureEnabled) document.getElementById('disclosure-url').style.display = 'block';
             }
+            // 開示は常に有効
+            await db.ref(`projects/${projectId}/protected/${secretHash}/entryConfig/disclosureEnabled`).set(true);
 
             // 集計用: 問題セル初期化
             const po = document.getElementById('progress-overview');
@@ -476,7 +485,7 @@ function showDbAuthError() {
             const file = document.getElementById('csv-file').files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = e => {
+            reader.onload = async e => {
                 const lines = e.target.result.split('\n').filter(l => l.trim());
                 modelAnswers = new Array(totalQuestions).fill('');
                 lines.forEach((line, idx) => {
@@ -485,7 +494,9 @@ function showDbAuthError() {
                     else if (idx < totalQuestions) modelAnswers[idx] = cols[0];
                 });
                 renderModelGrid();
-                document.getElementById('model-status').textContent = `${lines.length}件読み込みました`; document.getElementById('model-status').style.display = 'block';
+                document.getElementById('model-status').textContent = `${lines.length}件読み込み・保存中...`; document.getElementById('model-status').style.display = 'block';
+                await saveModelAnswers();
+                document.getElementById('model-status').textContent = `${lines.length}件保存しました`;
                 setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
             };
             reader.readAsText(file, 'UTF-8');
@@ -493,9 +504,11 @@ function showDbAuthError() {
         async function saveModelAnswers() {
             const data = {};
             modelAnswers.forEach((ans, idx) => { if (ans) data[idx + 1] = ans; });
-            await db.ref(`projects/${projectId}/protected/${secretHash}/answers_text`).set(data);
-            document.getElementById('model-status').textContent = '保存しました'; document.getElementById('model-status').style.display = 'block';
-            setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
+            try {
+                await db.ref(`projects/${projectId}/protected/${secretHash}/answers_text`).set(data);
+            } catch(e) {
+                showAdminToast('保存に失敗: ' + e.message);
+            }
         }
 
         // ============================
@@ -515,6 +528,9 @@ function showDbAuthError() {
             if (allConfirmed && confirmedCount === totalQuestions) { csvS.textContent = '全問確定済み。CSV出力できます。'; csvS.className = 'csv-status ready'; csvB.disabled = false; }
             else { csvS.textContent = `未確定の問題があります（確定済み: ${confirmedCount}/${totalQuestions}）`; csvS.className = 'csv-status notready'; csvB.disabled = true; }
             renderAnalytics();
+            
+            // 開示データは常に自動連携
+            generateDisclosure();
         }
 
         async function exportCSV() {
@@ -747,14 +763,8 @@ function showDbAuthError() {
                     };
                 });
                 await db.ref().update(updates);
-
-                const msg = document.getElementById('disclosure-status');
-                msg.textContent = '開示データを自動生成しました';
-                msg.style.display = 'block';
-                setTimeout(() => msg.style.display = 'none', 3500);
-
             } catch (e) {
-                showAdminToast('生成に失敗: ' + e.message);
+                console.error('開示連携エラー:', e);
             }
         }
 
