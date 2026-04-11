@@ -11,6 +11,7 @@
         // 共通初期化
         // ============================
         const projectId = session.projectId;
+        const secretHash = session.get("secretHash");
         const scorerRole = session.scorerRole;
         if (!projectId || scorerRole !== 'admin') { showAdminToast('管理者としてプロジェクトに入室してください'); setTimeout(() => location.href = 'index.html', 1500); }
 

@@ -1,4 +1,5 @@
 const projectId = session.projectId;
+        const secretHash = session.get("secretHash");
         const scorerName = session.scorerName;
         const currentQ = parseInt(localStorage.getItem('current_q') || '1');
 

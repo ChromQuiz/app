@@ -1,4 +1,5 @@
 const projectId = session.projectId;
+        const secretHash = session.get("secretHash");
         const scorerRole = session.scorerRole;
         if (!projectId || scorerRole !== 'admin') {
             alert('管理者としてプロジェクトに入室してください');

@@ -1,4 +1,5 @@
 const projectId = session.projectId;
+        const secretHash = session.get("secretHash");
         if (!projectId) { alert('プロジェクトに入室してください'); location.href = 'index.html'; }
 
         const video = document.getElementById('video');

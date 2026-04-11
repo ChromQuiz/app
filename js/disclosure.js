@@ -1,5 +1,6 @@
 const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');
+        const secretHash = session.get("secretHash");
 
     if (!projectId) {
         document.querySelector('.container').innerHTML = '<div class="card disabled-msg"><p>プロジェクトが指定されていません。</p><p style="margin-top:8px;font-size:13px">URLに ?pid=プロジェクトID を追加してアクセスしてください。</p></div>';

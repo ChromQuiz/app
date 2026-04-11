@@ -1,5 +1,6 @@
 const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');
+        const secretHash = session.get("secretHash");
 
     if (!projectId) {
         document.getElementById('disabled-msg').innerHTML = 'プロジェクトが指定されていません。正しいURLへアクセスしてください。';
