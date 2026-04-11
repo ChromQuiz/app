@@ -506,10 +506,9 @@ function showDbAuthError() {
                     else if (idx < totalQuestions) modelAnswers[idx] = cols[0];
                 });
                 renderModelGrid();
-                document.getElementById('model-status').textContent = `${lines.length}件読み込み・保存中...`; document.getElementById('model-status').style.display = 'block';
+                showAdminToast(`${lines.length}件読み込み中...`);
                 await saveModelAnswers();
-                document.getElementById('model-status').textContent = `${lines.length}件保存しました`;
-                setTimeout(() => document.getElementById('model-status').style.display = 'none', 3000);
+                showAdminToast(`${lines.length}件の模範解答を保存しました`, 'success');
             };
             reader.readAsText(file, 'UTF-8');
         }

@@ -134,7 +134,6 @@
                 <input type="number" id="question-count" value="100" min="10" max="200" step="10" style="max-width:200px" />
                 <div style="font-size:12px;color:var(--text-muted);margin-top:6px"><i class="fa-solid fa-circle-info"></i> 10の倍数で指定 / 列数は5固定</div>
                 <button class="btn" style="margin-top:20px" onclick="generatePDF()"><i class="fa-solid fa-download"></i> ダウンロード</button>
-                <div id="save-status" class="status-msg"></div>
             </div>
         </div>
 
@@ -193,7 +192,6 @@
                             <div class="file-name" id="csv-file-name"></div>
                             <input type="file" id="csv-file" accept=".csv" onchange="document.getElementById('csv-file-name').textContent=this.files[0]?.name||'';document.getElementById('csv-file-name').style.display=this.files[0]?'block':'none';loadCSV()" />
                         </div>
-                        <div id="model-status" class="status-msg"></div>
                     </div>
                 </div>
                 <div class="model-grid" id="model-answer-grid" style="display:grid;gap:8px;margin-top:16px"></div>
