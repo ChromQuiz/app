@@ -78,11 +78,11 @@ function showDbAuthError() {
             window.copyUrl = function(linkId, btn) {
                 const url = document.getElementById(linkId).href;
                 navigator.clipboard.writeText(url).then(() => {
-                    const originalText = btn.textContent;
-                    btn.textContent = '完了';
-                    btn.style.background = '#4caf50';
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    btn.style.background = '#10b981';
                     setTimeout(() => {
-                        btn.textContent = originalText;
+                        btn.innerHTML = original;
                         btn.style.background = '';
                     }, 1500);
                 });
