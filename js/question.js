@@ -25,7 +25,7 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
             document.getElementById('answer-badge').textContent = answerText;
 
             if (entryNumbers.length === 0) {
-                document.getElementById('answer-grid').innerHTML = '<div class="loading">答案データがありません</div>';
+                document.getElementById('answer-grid').innerHTML = '<div class="loading-state" style="grid-column:1/-1"><i class="fa-solid fa-inbox"></i> 答案データがありません</div>';
                 return;
             }
 

@@ -81,6 +81,7 @@ a:hover { text-decoration: underline; }
 }
 .btn.secondary { background: var(--bg-secondary); border: 1px solid var(--glass-border); box-shadow: none; }
 .btn.secondary:hover { background: #334155; box-shadow: var(--shadow-sm); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.5); }
 
 .btn.danger { background: linear-gradient(135deg, #f87171, var(--danger)); }
 .btn.danger:hover { box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
@@ -502,10 +503,14 @@ input[type="number"]::-webkit-outer-spin-button {
 .fixed-header {
   position: fixed; top: 0; left: 0; right: 0;
   background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur));
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   padding: 12px 20px;
-  display: grid; grid-template-columns: 120px 1fr 120px; gap: 12px; align-items: center;
-  z-index: 100; box-shadow: var(--shadow-md);
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  z-index: 100; box-shadow: 0 1px 24px rgba(0,0,0,0.2);
+}
+.fixed-header::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 1px; background: linear-gradient(90deg, transparent, rgba(59,130,246,0.3), rgba(139,92,246,0.3), transparent);
 }
 .fixed-header .header-left,
 .fixed-header .header-right { display: flex; align-items: center; }
@@ -513,8 +518,8 @@ input[type="number"]::-webkit-outer-spin-button {
 .fixed-header .header-center {
   display: flex; align-items: center; justify-content: center; gap: 12px;
 }
-.fixed-header .header-center h1 {
-  font-size: 18px; margin: 0; white-space: nowrap;
+.fixed-header h1 {
+  font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 /* ============================
@@ -675,3 +680,33 @@ input[type="number"]::-webkit-outer-spin-button {
   margin-top: auto; padding: 16px;
   border-top: 1px solid rgba(255,255,255,0.06);
 }
+.menu-item:focus-visible {
+  outline: none; box-shadow: 0 0 0 2px rgba(59,130,246,0.5);
+}
+
+/* ============================
+   Back Navigation Button
+   ============================ */
+.back-nav-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-muted); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s ease;
+  text-decoration: none;
+}
+.back-nav-btn:hover {
+  background: rgba(255,255,255,0.1); color: var(--text-main);
+  border-color: rgba(255,255,255,0.2);
+}
+.back-nav-btn i { font-size: 12px; }
+
+/* ============================
+   Unified Loading Spinner
+   ============================ */
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 60px 20px;
+  color: var(--text-muted); font-size: 14px; font-weight: 600;
+}
+.loading-state i { font-size: 24px; color: var(--primary); }

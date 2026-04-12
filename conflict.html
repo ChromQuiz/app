@@ -47,10 +47,10 @@
 <body>
     <div class="fixed-header">
         <div class="header-left">
-            <button class="btn secondary" onclick="location.href='judge.html'" style="padding:6px 12px;font-size:13px"><i class="fa-solid fa-arrow-left"></i> 戻る</button>
+            <button class="back-nav-btn" onclick="location.href='judge.html'"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
         </div>
         <div class="header-center">
-            <h1 style="font-size:18px;margin:0;white-space:nowrap;"><i class="fa-solid fa-triangle-exclamation"></i> 要確認</h1>
+            <h1><i class="fa-solid fa-triangle-exclamation"></i> 要確認</h1>
         </div>
         <div class="header-right">
             <div class="counter has-conflicts" id="counter"><i class="fa-solid fa-spinner fa-spin-pulse"></i> 読み込み中...</div>
@@ -58,7 +58,7 @@
     </div>
 
     <div id="conflict-grid" class="conflict-grid">
-        <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div>
+        <div class="loading-state" style="grid-column:1/-1"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div>
     </div>
 
 

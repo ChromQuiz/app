@@ -49,6 +49,8 @@
         const { projectId, secretHash } = auth;
 
         document.getElementById('project-id-display').innerHTML = `<i class="fa-solid fa-copy"></i> ${projectId}`;
+        const menuName = document.getElementById('menu-scorer-name');
+        if (menuName) menuName.textContent = auth.scorerName;
 
         function copyProjectId() {
             const el = document.getElementById('project-id-display');

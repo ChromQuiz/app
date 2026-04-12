@@ -202,13 +202,54 @@
 <body>
     <div class="fixed-header">
         <div class="header-left">
-            <button class="btn secondary" onclick="location.href='judge.html'" style="padding:6px 12px;font-size:13px"><i class="fa-solid fa-arrow-left"></i> 戻る</button>
+            <button class="back-nav-btn" onclick="location.href='judge.html'"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
         </div>
         <div class="header-center">
             <h1><i class="fa-solid fa-gear"></i> 管理画面</h1>
         </div>
         <div class="header-right">
             <div class="id-copy-badge" id="project-id-display" title="クリックでコピー" onclick="copyProjectId()"></div>
+            <button class="menu-trigger" onclick="toggleMenu()" style="margin-left:8px">
+                <div class="trigger-icon"><span></span><span></span><span></span></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Slide Panel Menu -->
+    <div class="menu-backdrop" id="menu-backdrop" onclick="toggleMenu()"></div>
+    <div class="menu-panel" id="menu-panel">
+        <button class="menu-panel-close" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+        <div class="menu-profile">
+            <div class="menu-avatar"><i class="fa-solid fa-crown"></i></div>
+            <div class="menu-profile-name" id="menu-scorer-name"></div>
+            <div><span class="menu-role-badge admin"><i class="fa-solid fa-crown"></i> 管理者</span></div>
+        </div>
+        <div class="menu-section">
+            <div class="menu-section-label">ナビゲーション</div>
+            <button class="menu-item" onclick="location.href='judge.html'">
+                <i class="fa-solid fa-th"></i> 問題一覧
+            </button>
+            <button class="menu-item warn" onclick="location.href='conflict.html'">
+                <i class="fa-solid fa-triangle-exclamation"></i> 要確認
+            </button>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-section">
+            <div class="menu-section-label">ツール</div>
+            <button class="menu-item" onclick="location.href='checkin.html'">
+                <i class="fa-solid fa-qrcode"></i> 当日受付
+            </button>
+            <button class="menu-item" onclick="window.open('entry.html?pid='+projectId,'_blank')">
+                <i class="fa-solid fa-pen-to-square"></i> エントリーフォーム
+            </button>
+            <button class="menu-item" onclick="window.open('entry_list.html?pid='+projectId,'_blank')">
+                <i class="fa-solid fa-list"></i> エントリーリスト
+            </button>
+        </div>
+        <div class="menu-footer">
+            <button class="menu-item danger" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i> ログアウト
+            </button>
         </div>
     </div>
 
