@@ -144,7 +144,6 @@ function showDbAuthError() {
                 const ec = entryConfigSnap.val();
                 const isOpen = ec.entryOpen !== false; // default true
                 document.getElementById('entry-open-toggle').checked = isOpen;
-                updateEntryOpenStatus(isOpen);
                 if (ec.periodStart) {
                     document.getElementById('entry-period-start').value = ec.periodStart;
                     document.getElementById('dt-start-display').textContent = formatDtDisplay(ec.periodStart);
@@ -153,6 +152,7 @@ function showDbAuthError() {
                     document.getElementById('entry-period-end').value = ec.periodEnd;
                     document.getElementById('dt-end-display').textContent = formatDtDisplay(ec.periodEnd);
                 }
+                updateEntryOpenStatus();
             }
 
             // 統計用: 総問題数
@@ -868,19 +868,37 @@ function showDbAuthError() {
             const enabled = document.getElementById('entry-open-toggle').checked;
             await db.ref(`projects/${projectId}/protected/${secretHash}/entryConfig/entryOpen`).set(enabled);
             await db.ref(`projects/${projectId}/publicSettings/entryOpen`).set(enabled);
-            updateEntryOpenStatus(enabled);
-            showAdminToast(enabled ? 'エントリー受付を開始しました' : 'エントリー受付を停止しました', 'success');
+            updateEntryOpenStatus();
+            showAdminToast(enabled ? 'エントリー受付設定を更新しました' : 'エントリー受付を停止しました', 'success');
         }
-        function updateEntryOpenStatus(isOpen) {
+        function updateEntryOpenStatus() {
+            const isOpen = document.getElementById('entry-open-toggle').checked;
+            const ps = document.getElementById('entry-period-start').value;
+            const pe = document.getElementById('entry-period-end').value;
             const el = document.getElementById('entry-open-status');
-            if (isOpen) {
-                el.textContent = '受付中';
-                el.style.cssText = 'padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:700;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)';
-            } else {
+
+            if (!isOpen) {
                 el.textContent = '停止中';
                 el.style.cssText = 'padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:700;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)';
+                return;
             }
+
+            const now = new Date();
+            if (ps && new Date(ps) > now) {
+                el.textContent = '期間外（開始前）';
+                el.style.cssText = 'padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:700;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)';
+                return;
+            }
+            if (pe && new Date(pe) < now) {
+                el.textContent = '期間外（終了済）';
+                el.style.cssText = 'padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:700;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)';
+                return;
+            }
+
+            el.textContent = '受付中';
+            el.style.cssText = 'padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:700;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)';
         }
+
         async function saveEntryPeriod() {
             const start = document.getElementById('entry-period-start').value || null;
             const end = document.getElementById('entry-period-end').value || null;
@@ -1009,6 +1027,7 @@ function showDbAuthError() {
             document.getElementById(`dt-${dtTarget}-display`).textContent = formatDtDisplay(val);
             closeDatePicker();
             saveEntryPeriod();
+            updateEntryOpenStatus();
         }
 
         function dtClear() {
@@ -1016,6 +1035,7 @@ function showDbAuthError() {
             document.getElementById(`dt-${dtTarget}-display`).textContent = '未設定';
             closeDatePicker();
             saveEntryPeriod();
+            updateEntryOpenStatus();
         }
 
         async function loadAdminEntries() {

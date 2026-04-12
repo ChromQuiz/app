@@ -12,14 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/design_system.css">
     <style>
-        body { padding: 24px; display: flex; flex-direction: column; align-items: center; }
-
-        .top-bar {
-            width: 100%;
-            display: flex; align-items: center; gap: 12px;
-            margin-bottom: 20px;
-        }
-        .top-bar h1 { font-size: 22px; flex: 1; }
+        body { padding: 0; margin: 0; background: var(--bg-main); color: var(--text-main); font-family: var(--font-family); }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: rgba(15, 36, 64, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 24px; display: flex; align-items: center; gap: 12px; z-index: 100; box-shadow: var(--shadow-md); }
+        .fixed-header h1 { font-size: 20px; margin: 0; flex: 1; }
+        .main-content { margin-top: 70px; padding: 24px; max-width: 1400px; margin-left: auto; margin-right: auto; display: grid; gap: 32px; grid-template-columns: 1fr; }
+        @media(min-width: 900px) { .main-content { grid-template-columns: 1fr 1fr; } }
 
         #camera-container { position: relative; width: 100%; }
         #video {
@@ -60,32 +57,38 @@
     </style>
 </head>
 <body>
-    <div class="top-bar" style="width:100%; max-width:500px; display:flex; align-items:center; gap:12px; margin-bottom:20px;">
-        <button class="btn secondary" onclick="location.href='judge.html'"><i class="fa-solid fa-arrow-left"></i> 戻る</button>
-        <h1 id="page-title" style="font-size:22px; flex:1;"><i class="fa-solid fa-qrcode"></i> 当日受付</h1>
+    <div class="fixed-header">
+        <button class="btn secondary" onclick="location.href='judge.html'" style="padding:6px 16px;font-size:14px;"><i class="fa-solid fa-arrow-left"></i> 戻る</button>
+        <h1 id="page-title"><i class="fa-solid fa-qrcode"></i> 当日受付</h1>
     </div>
 
-    <div id="camera-container">
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas"></canvas>
-    </div>
-    <p id="scanning-text"><i class="fa-solid fa-camera"></i> QRコードをカメラにかざしてください</p>
-    <div id="result"></div>
+    <div class="main-content">
+        <div class="left-col">
+            <div id="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
+            </div>
+            <p id="scanning-text"><i class="fa-solid fa-camera"></i> QRコードをカメラにかざしてください</p>
+            <div id="result"></div>
+        </div>
 
-    <div class="stats-bar glass-panel" id="stats-bar" style="display:none;">
-        <h3><i class="fa-solid fa-chart-bar"></i> 受付状況</h3>
-        <div class="stats-row">
-            <div class="stat-item glass-panel">
-                <div class="stat-num" id="stat-total" style="color: var(--primary)">-</div>
-                <div class="stat-label"><i class="fa-solid fa-users"></i> エントリー数</div>
-            </div>
-            <div class="stat-item glass-panel">
-                <div class="stat-num" id="stat-checked" style="color: #34d399">-</div>
-                <div class="stat-label"><i class="fa-solid fa-check"></i> 受付済み</div>
-            </div>
-            <div class="stat-item glass-panel">
-                <div class="stat-num" id="stat-remaining" style="color: #fbbf24">-</div>
-                <div class="stat-label"><i class="fa-solid fa-clock"></i> 未受付</div>
+        <div class="right-col">
+            <div class="stats-bar glass-panel" id="stats-bar" style="display:none;margin-top:0;">
+                <h3><i class="fa-solid fa-chart-bar"></i> 受付状況</h3>
+                <div class="stats-row" style="flex-wrap:wrap;">
+                    <div class="stat-item glass-panel">
+                        <div class="stat-num" id="stat-total" style="color: var(--primary)">-</div>
+                        <div class="stat-label"><i class="fa-solid fa-users"></i> エントリー</div>
+                    </div>
+                    <div class="stat-item glass-panel">
+                        <div class="stat-num" id="stat-checked" style="color: #34d399">-</div>
+                        <div class="stat-label"><i class="fa-solid fa-check"></i> 受付済み</div>
+                    </div>
+                    <div class="stat-item glass-panel">
+                        <div class="stat-num" id="stat-remaining" style="color: #fbbf24">-</div>
+                        <div class="stat-label"><i class="fa-solid fa-clock"></i> 未受付</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
