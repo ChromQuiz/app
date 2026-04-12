@@ -313,7 +313,7 @@ function showDbAuthError() {
 
                 for (let i = 1; i <= total; i++) {
                     overlayText.textContent = `${i} / ${total} ページ読込中`;
-                    overlayBar.style.width = `${(i / total) * 50}%`;
+                    overlayBar.style.width = `${(i / total) * 100}%`;
 
                     const page = await pdfDoc.getPage(i);
                     const viewport = page.getViewport({ scale: scanConfig.scale || 1.8 });
@@ -356,6 +356,7 @@ function showDbAuthError() {
                 }
 
                 overlayTitle.textContent = 'サーバーへ保存中...';
+                overlayBar.style.width = '0%';
                 let current = 0; const totalBatch = scanAnswers.length;
                 for (const a of scanAnswers) {
                     const data = {
@@ -365,7 +366,7 @@ function showDbAuthError() {
                     };
                     await db.ref(`projects/${projectId}/protected/${secretHash}/answers/${a.entryNumber}`).set(data);
                     current++;
-                    overlayBar.style.width = `${50 + (current / totalBatch) * 50}%`;
+                    overlayBar.style.width = `${(current / totalBatch) * 100}%`;
                     overlayText.textContent = `${current} / ${totalBatch} 件保存`;
                 }
 
