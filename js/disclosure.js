@@ -1,33 +1,24 @@
 const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');
-        const secretHash = session.get("secretHash");
+    const secretHash = params.get('secret');
 
     if (!projectId) {
-        document.querySelector('.container').innerHTML = '<div class="card disabled-msg"><p>プロジェクトが指定されていません。</p><p style="margin-top:8px;font-size:13px">URLに ?pid=プロジェクトID を追加してアクセスしてください。</p></div>';
+        document.querySelector('.page-container').innerHTML = '<div class="page-card page-disabled"><i class="fa-solid fa-ban"></i><p>プロジェクトが指定されていません。</p><p style="margin-top:8px;font-size:13px">正しいリンクからアクセスしてください。</p></div>';
     }
-
-    let disclosureEnabled = false;
 
     async function init() {
         if (!projectId) return;
 
         // プロジェクト名を取得して表示
-        const settingsSnap = await db.ref(`projects/${projectId}/settings`).once('value');
-        if (settingsSnap.exists()) {
-            const pName = settingsSnap.val().projectName || '成績開示';
-            document.getElementById('logo-title').textContent = pName;
-            document.getElementById('logo-subtitle').textContent = pName + ' 成績開示';
-            document.title = pName + ' - 成績開示';
-        }
-
-        // 開示が有効かチェック
-        const cfgSnap = await db.ref(`projects/${projectId}/protected/${secretHash}/entryConfig/disclosureEnabled`).get();
-        disclosureEnabled = cfgSnap.exists() && cfgSnap.val() === true;
-
-        if (!disclosureEnabled) {
-            document.getElementById('login-card').style.display = 'none';
-            document.getElementById('disabled-card').style.display = 'block';
-        }
+        try {
+            const settingsSnap = await db.ref(`projects/${projectId}/publicSettings/projectName`).once('value');
+            if (settingsSnap.exists()) {
+                const pName = settingsSnap.val();
+                document.getElementById('logo-title').textContent = pName;
+                document.getElementById('logo-subtitle').textContent = '成績開示';
+                document.title = pName + ' - 成績開示';
+            }
+        } catch(e) {}
     }
 
     async function checkDisclosure() {

@@ -7,6 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/crypto.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/design_system.css">
     <style>
@@ -22,8 +23,8 @@
     <div class="page-container">
         <div class="page-logo">
             <span class="logo-icon"><i class="fa-solid fa-user-xmark"></i></span>
-            <h1>エントリーキャンセル</h1>
-            <div class="logo-sub">Cancellation Form</div>
+            <h1 id="cancel-title">エントリーキャンセル</h1>
+            <div class="logo-sub" id="cancel-subtitle">キャンセルフォーム</div>
         </div>
 
         <div class="page-card" id="form-card">

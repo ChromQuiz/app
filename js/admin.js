@@ -115,8 +115,6 @@ function showDbAuthError() {
                 if (ec.periodStart) document.getElementById('entry-period-start').value = ec.periodStart;
                 if (ec.periodEnd) document.getElementById('entry-period-end').value = ec.periodEnd;
             }
-            // 開示は常に有効
-            await db.ref(`projects/${projectId}/protected/${secretHash}/entryConfig/disclosureEnabled`).set(true);
 
             // 集計用: 問題セル初期化
             const po = document.getElementById('progress-overview');
@@ -837,8 +835,13 @@ function showDbAuthError() {
         }
         function updateEntryOpenStatus(isOpen) {
             const el = document.getElementById('entry-open-status');
-            if (isOpen) { el.textContent = '受付中'; el.style.color = '#34d399'; }
-            else { el.textContent = '停止中'; el.style.color = '#f87171'; }
+            if (isOpen) {
+                el.textContent = '受付中';
+                el.style.cssText = 'padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:700;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)';
+            } else {
+                el.textContent = '停止中';
+                el.style.cssText = 'padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:700;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)';
+            }
         }
         async function saveEntryPeriod() {
             const start = document.getElementById('entry-period-start').value || null;

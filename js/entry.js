@@ -134,39 +134,42 @@ const params = new URLSearchParams(location.search);
                 if (snap.exists()) {
                     const settings = snap.val();
                     const pName = settings.projectName || '大会エントリー';
-                    document.getElementById('project-title').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> ${pName}`;
+                    document.getElementById('project-title').textContent = pName;
+                    document.getElementById('project-subtitle').textContent = '参加登録フォーム';
                     document.title = pName + ' - エントリー';
 
                     // エントリー受付チェック
                     let blocked = false;
-                    let blockMsg = '';
+                    let blockTitle = '';
+                    let blockDetail = '';
                     if (settings.entryOpen === false) {
                         blocked = true;
-                        blockMsg = '<p>エントリー受付は現在停止中です。</p><p style="margin-top:8px;font-size:13px">管理者が受付を再開するまでお待ちください。</p>';
+                        blockTitle = '受付は現在停止中です';
+                        blockDetail = '管理者が受付を再開するまでお待ちください。';
                     } else {
                         const now = new Date();
                         if (settings.periodStart && new Date(settings.periodStart) > now) {
                             blocked = true;
-                            const startStr = new Date(settings.periodStart).toLocaleString('ja-JP');
-                            blockMsg = `<p>エントリー受付はまだ開始されていません。</p><p style="margin-top:8px;font-size:13px">受付開始: ${startStr}</p>`;
+                            blockTitle = 'エントリー受付はまだ開始されていません';
+                            blockDetail = '受付開始: ' + new Date(settings.periodStart).toLocaleString('ja-JP');
                         }
                         if (settings.periodEnd && new Date(settings.periodEnd) < now) {
                             blocked = true;
-                            const endStr = new Date(settings.periodEnd).toLocaleString('ja-JP');
-                            blockMsg = `<p>エントリー受付は終了しました。</p><p style="margin-top:8px;font-size:13px">受付終了: ${endStr}</p>`;
+                            blockTitle = 'エントリー受付は終了しました';
+                            blockDetail = '受付終了: ' + new Date(settings.periodEnd).toLocaleString('ja-JP');
                         }
                     }
                     if (blocked) {
                         document.getElementById('form-card').style.display = 'none';
-                        const d = document.getElementById('disabled-card');
-                        d.innerHTML = '<i class="fa-solid fa-lock" style="font-size:32px;margin-bottom:12px;display:block"></i>' + blockMsg;
-                        d.style.display = 'block';
+                        document.getElementById('disabled-title').textContent = blockTitle;
+                        document.getElementById('disabled-detail').textContent = blockDetail;
+                        document.getElementById('disabled-card').style.display = 'block';
                     }
                 } else {
                     document.getElementById('form-card').style.display = 'none';
-                    const d = document.getElementById('disabled-card');
-                    d.innerHTML = '<p>プロジェクトが見つかりません。</p><p style="margin-top:8px;font-size:13px">正しいエントリーURLへアクセスしてください。</p>';
-                    d.style.display = 'block';
+                    document.getElementById('disabled-title').textContent = 'プロジェクトが見つかりません';
+                    document.getElementById('disabled-detail').textContent = '正しいエントリーURLへアクセスしてください。';
+                    document.getElementById('disabled-card').style.display = 'block';
                 }
             } catch (e) {
             }

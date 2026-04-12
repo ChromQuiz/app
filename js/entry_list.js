@@ -1,21 +1,24 @@
 const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');
-        const secretHash = session.get("secretHash");
+    const secretHash = params.get('secret');
 
     if (!projectId) {
-        document.getElementById('disabled-msg').innerHTML = 'プロジェクトが指定されていません。正しいURLへアクセスしてください。';
+        document.getElementById('disabled-msg').innerHTML = '<i class="fa-solid fa-ban"></i>プロジェクトが指定されていません。正しいURLへアクセスしてください。';
     }
 
     async function init() {
         if (!projectId) return;
 
-        // 設定の購読
-        db.ref(`projects/${projectId}/settings`).once('value', s => {
-            if(s.exists()) {
-                const pName = s.val().projectName;
-                if(pName) document.getElementById('page-title').innerHTML = `<i class="fa-solid fa-clipboard-list"></i> ${pName} - リスト`;
+        // プロジェクト名を取得して表示
+        try {
+            const s = await db.ref(`projects/${projectId}/publicSettings/projectName`).once('value');
+            if (s.exists()) {
+                const pName = s.val();
+                document.getElementById('page-title').textContent = pName;
+                document.getElementById('page-subtitle').textContent = 'エントリーリスト';
+                document.title = pName + ' - エントリーリスト';
             }
-        });
+        } catch(e) {}
 
         // リストを常に表示
         document.getElementById('disabled-msg').style.display = 'none';

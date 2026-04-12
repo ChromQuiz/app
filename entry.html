@@ -67,12 +67,13 @@
         <div class="page-logo">
             <span class="logo-icon"><i class="fa-solid fa-pen-to-square"></i></span>
             <h1 id="project-title">大会エントリー</h1>
-            <div class="logo-sub">参加登録フォーム</div>
+            <div class="logo-sub" id="project-subtitle">参加登録フォーム</div>
         </div>
 
-        <div class="page-card page-disabled" id="disabled-card" style="display:none">
-            <i class="fa-solid fa-ban"></i>
-            <p>エントリーは現在受け付けていません。</p>
+        <div class="page-card" id="disabled-card" style="display:none;text-align:center;padding:40px 28px">
+            <i class="fa-solid fa-door-closed" style="font-size:40px;display:block;margin-bottom:16px;color:var(--text-muted)"></i>
+            <h2 id="disabled-title" style="margin-bottom:12px;font-size:18px">受付は現在停止中です</h2>
+            <p id="disabled-detail" style="color:var(--text-muted);font-size:14px;line-height:1.6">管理者が受付を再開するまでお待ちください。</p>
         </div>
 
         <div class="page-card" id="form-card">

@@ -10,6 +10,20 @@ const params = new URLSearchParams(location.search);
         }
     }
 
+    // 大会名を取得して表示
+    (async () => {
+        if (!projectId) return;
+        try {
+            const snap = await db.ref(`projects/${projectId}/publicSettings/projectName`).once('value');
+            if (snap.exists()) {
+                const pName = snap.val();
+                document.getElementById('cancel-title').textContent = pName;
+                document.getElementById('cancel-subtitle').textContent = 'エントリーキャンセル';
+                document.title = pName + ' - キャンセル';
+            }
+        } catch(e) {}
+    })();
+
     function showStatus(msg, type) {
         const sm = document.getElementById('status-msg');
         sm.innerHTML = msg;

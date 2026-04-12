@@ -131,25 +131,30 @@
         <div class="tab-content" id="tab-entries">
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-clipboard-check"></i> エントリー受付設定</h2>
-                <div style="display:flex;flex-direction:column;gap:16px">
-                    <div class="toggle-row">
-                        <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked onchange="toggleEntryOpen()"><span class="toggle-slider"></span></label>
-                        <span>エントリーフォームの受付</span>
-                        <span id="entry-open-status" style="margin-left:auto;font-size:12px;font-weight:600;color:#34d399">受付中</span>
+                
+                <!-- メインスイッチ -->
+                <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:rgba(15,23,42,0.5);border-radius:var(--radius-md);border:1px solid var(--glass-border);margin-bottom:16px">
+                    <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked onchange="toggleEntryOpen()"><span class="toggle-slider"></span></label>
+                    <div style="flex:1">
+                        <div style="font-weight:600;font-size:14px">エントリー受付</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">OFFにすると期間に関わらず即時停止</div>
                     </div>
-                    <div style="background:rgba(15,23,42,0.5);padding:14px 16px;border-radius:var(--radius-md);border:1px solid var(--glass-border)">
-                        <div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:10px"><i class="fa-solid fa-clock"></i> 受付期間（任意）</div>
-                        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-                            <div style="flex:1;min-width:180px">
-                                <label style="font-size:11px;color:var(--text-muted)">開始</label>
-                                <input type="datetime-local" id="entry-period-start" onchange="saveEntryPeriod()" style="width:100%;margin-top:4px" />
-                            </div>
-                            <div style="flex:1;min-width:180px">
-                                <label style="font-size:11px;color:var(--text-muted)">終了</label>
-                                <input type="datetime-local" id="entry-period-end" onchange="saveEntryPeriod()" style="width:100%;margin-top:4px" />
-                            </div>
+                    <span id="entry-open-status" style="padding:4px 12px;border-radius:var(--radius-pill);font-size:12px;font-weight:700;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)">受付中</span>
+                </div>
+
+                <!-- 期間設定 -->
+                <div style="padding:16px 18px;background:rgba(15,23,42,0.5);border-radius:var(--radius-md);border:1px solid var(--glass-border)">
+                    <div style="font-size:13px;font-weight:600;margin-bottom:12px"><i class="fa-solid fa-calendar-days" style="color:var(--primary);margin-right:6px"></i>受付期間<span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:6px">（任意 — 空欄＝制限なし）</span></div>
+                    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end">
+                        <div>
+                            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px"><i class="fa-solid fa-play" style="font-size:9px;margin-right:4px;color:#34d399"></i>開始</label>
+                            <input type="datetime-local" id="entry-period-start" onchange="saveEntryPeriod()" />
                         </div>
-                        <div style="font-size:11px;color:var(--text-muted);margin-top:8px"><i class="fa-solid fa-circle-info"></i> 空欄の場合は制限なし。スイッチOFFの場合は期間に関わらず受付停止。</div>
+                        <div style="padding-bottom:10px;color:var(--text-muted);font-size:14px">→</div>
+                        <div>
+                            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px"><i class="fa-solid fa-stop" style="font-size:9px;margin-right:4px;color:#f87171"></i>終了</label>
+                            <input type="datetime-local" id="entry-period-end" onchange="saveEntryPeriod()" />
+                        </div>
                     </div>
                 </div>
             </div>
