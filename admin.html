@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="js/config.js"></script>
     <script src="js/crypto.js"></script>
+    <script src="js/shared.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
     <script src="js/cv.js"></script>
@@ -17,12 +18,6 @@
     <style>
         body { padding: 0; }
         .admin-container { width: 100%; margin: 0 auto; }
-
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border-bottom: 1px solid var(--glass-border); padding: 12px 20px; display: grid; grid-template-columns: 120px 1fr 120px; gap: 12px; align-items: center; z-index: 100; box-shadow: var(--shadow-md); }
-        .fixed-header .header-left, .fixed-header .header-right { display: flex; align-items: center; }
-        .fixed-header .header-right { justify-content: flex-end; }
-        .fixed-header .header-center { display: flex; align-items: center; justify-content: center; gap: 12px; }
-        .fixed-header .header-center h1 { font-size: 18px; margin: 0; white-space: nowrap; }
 
         .admin-body { margin-top: 60px; padding: 24px; }
         .tabs { display: flex; gap: 4px; margin-bottom: 24px; overflow-x: auto; padding: 4px; background: rgba(15,23,42,0.5); border-radius: var(--radius-md); border: 1px solid var(--glass-border); }

@@ -53,7 +53,7 @@ const params = new URLSearchParams(location.search);
 
             let matched = false;
             let entryData = null;
-            const pwHash = await hashPassword(pw);
+            const pwHash = await AppCrypto.hashPassword(pw);
 
             entriesSnap.forEach(child => {
                 const d = child.val();

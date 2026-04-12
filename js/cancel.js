@@ -58,7 +58,7 @@ const params = new URLSearchParams(location.search);
             let targetData = null;
             let matched = false;
 
-            const pwHash = await hashPassword(pw);
+            const pwHash = await AppCrypto.hashPassword(pw);
 
             snap.forEach(child => {
                 const data = child.val();

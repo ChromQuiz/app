@@ -1,30 +1,8 @@
 
-window.addEventListener('unhandledrejection', function(event) {
-    if (event.reason && event.reason.message && event.reason.message.includes('PERMISSION_DENIED')) {
-        event.preventDefault(); // hide from console
-        document.body.innerHTML = ''; // wipe loading
-        showDbAuthError();
-    }
-});
-
-function showDbAuthError() {
-    const div = document.createElement('div');
-    div.className = 'error-overlay';
-    div.innerHTML = `
-        <div class="error-dialog">
-            <h2><i class="fa-solid fa-triangle-exclamation"></i> データベース通信拒否</h2>
-            <p>データベースへの接続が拒否されました。<br><br><br>運営者にお問い合わせください。</p>
-            <button class="btn danger" onclick="location.href='index.html'"><i class="fa-solid fa-arrow-left"></i> ログイン画面へ戻る</button>
-        </div>
-    `;
-    document.body.appendChild(div);
-}
-const projectId = session.projectId;
-        const secretHash = session.get("secretHash");
-        const scorerName = session.scorerName;
-        const currentQ = parseInt(localStorage.getItem('current_q') || '1');
-
-        if (!projectId || !scorerName) location.href = 'index.html';
+const auth = requireAuth();
+const { projectId, secretHash, scorerName } = auth || {};
+if (!auth) throw new Error('auth');
+const currentQ = parseInt(localStorage.getItem('current_q') || '1');
 
         document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
@@ -35,19 +13,16 @@ const projectId = session.projectId;
         let selectedIndex = 0;
 
         async function init() {
-            // 模範解答読み込み
-            const answerSnap = await db.ref(`projects/${projectId}/protected/${secretHash}/answers_text/${currentQ}`).get();
+            // 模範解答と答案キーを並列取得
+            const [answerSnap] = await Promise.all([
+                db.ref(`projects/${projectId}/protected/${secretHash}/answers_text/${currentQ}`).get(),
+                fetch(`${FIREBASE_REST_BASE}/projects/${projectId}/protected/${secretHash}/answers.json?shallow=true`)
+                    .then(r => r.json())
+                    .then(data => { if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b); })
+                    .catch(e => console.error('答案キー取得エラー:', e))
+            ]);
             const answerText = answerSnap.exists() ? answerSnap.val() : '未設定';
             document.getElementById('answer-badge').textContent = answerText;
-
-            // 答案データのキー(受付番号)のみ取得
-            try {
-                const res = await fetch(`https://quziopus-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/protected/${secretHash}/answers.json?shallow=true`);
-                const data = await res.json();
-                if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b);
-            } catch(e) {
-                console.error('答案キー取得エラー:', e);
-            }
 
             if (entryNumbers.length === 0) {
                 document.getElementById('answer-grid').innerHTML = '<div class="loading">答案データがありません</div>';
@@ -86,8 +61,7 @@ const projectId = session.projectId;
             const done = entryNumbers.filter(n => myScores[n] !== null).length;
             document.getElementById('progress-text').textContent = `${done} / ${total} 件`;
 
-            let masterData = {};
-            try { masterData = JSON.parse(localStorage.getItem(`masterData_${projectId}`) || '{}'); } catch(e) {}
+            let masterData = getMasterData(projectId);
 
             // DOMを毎度作り直すと画像がチラつくため、既に要素があればクラスのみ更新
             if (grid.children.length === entryNumbers.length && grid.children[0].className.includes('answer-card')) {
@@ -110,7 +84,7 @@ const projectId = session.projectId;
               <div class="entry-num">${displayName}</div>
             `;
                     card.addEventListener('click', () => selectCard(idx));
-                    card.addEventListener('dblclick', () => showPreview(entryNum));
+                    card.addEventListener('dblclick', () => showPreview(projectId, secretHash, entryNum));
                     grid.appendChild(card);
                 });
             }
@@ -265,23 +239,5 @@ document.addEventListener('keydown', (e) => {
             }
         }
 
+
         init();
-        async function showPreview(entryNum) {
-            let overlay = document.getElementById('preview-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'preview-overlay';
-                overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);z-index:10000;display:none;overflow-y:auto;padding:24px;';
-                document.body.appendChild(overlay);
-            }
-            let masterData = {}; try { masterData = JSON.parse(localStorage.getItem(`masterData_${projectId}`)||'{}'); } catch(e) {}
-            const name = masterData[entryNum]?.name || `受付番号 ${entryNum}`;
-            overlay.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;"><h2 style="color:white;font-size:18px"><i class="fa-solid fa-file-image"></i> ${name} の解答用紙</h2><button class="btn secondary" onclick="document.getElementById('preview-overlay').style.display='none'">✕ 閉じる</button></div><div id="preview-content" style="text-align:center"><div style="color:#aaa"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div></div>`;
-            overlay.style.display = 'block';
-            const snap = await db.ref(`projects/${projectId}/protected/${secretHash}/answers/${entryNum}/pageImage`).get();
-            const pc = document.getElementById('preview-content');
-            if (snap.exists()) {
-                pc.innerHTML = `<img src="${snap.val()}" alt="${name}" style="max-width:100%;max-height:85vh;border-radius:8px;background:white;box-shadow:0 4px 24px rgba(0,0,0,0.5)">`;
-            } else { pc.innerHTML = '<div style="color:#aaa;padding:40px">ページ画像が保存されていません。管理画面から答案を再読み込みしてください。</div>'; }
-        }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.getElementById('preview-overlay'); if (o) o.style.display = 'none'; }});

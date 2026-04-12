@@ -1,32 +1,9 @@
 
-window.addEventListener('unhandledrejection', function(event) {
-    if (event.reason && event.reason.message && event.reason.message.includes('PERMISSION_DENIED')) {
-        event.preventDefault(); // hide from console
-        document.body.innerHTML = ''; // wipe loading
-        showDbAuthError();
-    }
-});
+const auth = requireAuth();
+const { projectId, secretHash, scorerName, scorerRole } = auth || {};
+if (!auth) throw new Error('auth');
 
-function showDbAuthError() {
-    const div = document.createElement('div');
-    div.className = 'error-overlay';
-    div.innerHTML = `
-        <div class="error-dialog">
-            <h2><i class="fa-solid fa-triangle-exclamation"></i> データベース通信拒否</h2>
-            <p>データベースへの接続が拒否されました。<br><br><br>運営者にお問い合わせください。</p>
-            <button class="btn danger" onclick="location.href='index.html'"><i class="fa-solid fa-arrow-left"></i> ログイン画面へ戻る</button>
-        </div>
-    `;
-    document.body.appendChild(div);
-}
-const projectId = session.projectId;
-        const secretHash = session.get("secretHash");
-        const scorerName = session.scorerName;
-        const scorerRole = session.scorerRole;
-
-        if (!projectId || !scorerName) location.href = 'index.html';
-
-        let totalQuestions = 100;
+let totalQuestions = 100;
 
         async function initializeApp() {
             // プロジェクト設定を取得
@@ -155,11 +132,6 @@ const projectId = session.projectId;
             if (card.classList.contains('locked')) return;
             localStorage.setItem('current_q', q);
             location.href = 'question.html';
-        }
-
-        function logout() {
-            session.clear();
-            location.href = 'index.html';
         }
 
         initializeApp();

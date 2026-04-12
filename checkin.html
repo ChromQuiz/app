@@ -9,13 +9,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="js/config.js"></script>
     <script src="js/crypto.js"></script>
+    <script src="js/shared.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/design_system.css">
     <style>
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border-bottom: 1px solid var(--glass-border); padding: 12px 20px; display: grid; grid-template-columns: 120px 1fr 120px; gap: 12px; align-items: center; z-index: 100; box-shadow: var(--shadow-md); }
-        .fixed-header .header-left, .fixed-header .header-right { display: flex; align-items: center; }
-        .fixed-header .header-right { justify-content: flex-end; }
-        .fixed-header .header-center { display: flex; align-items: center; justify-content: center; gap: 12px; }
 
         .main-content { margin-top: 70px; padding: 24px 40px; max-width: 1200px; margin-left: auto; margin-right: auto; display: grid; gap: 32px; grid-template-columns: 1fr; }
         @media(min-width: 900px) { .main-content { grid-template-columns: 1fr 1fr; } }

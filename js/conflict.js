@@ -1,10 +1,6 @@
-const projectId = session.projectId;
-        const secretHash = session.get("secretHash");
-        const scorerRole = session.scorerRole;
-        if (!projectId || scorerRole !== 'admin') {
-            document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#f87171;font-weight:bold;">管理者としてプロジェクトに入室してください。3秒後にトップページへ戻ります。</div>';
-            setTimeout(() => location.href = 'index.html', 3000);
-        } else {
+const auth = requireAuth({ requireAdmin: true });
+if (!auth) throw new Error('auth');
+const { projectId, secretHash } = auth;
 
         let answersData = {};
         let answersText = {};
@@ -15,30 +11,20 @@ const projectId = session.projectId;
 
         let totalQuestions = 100;
 
-        function logout() {
-            session.clear();
-            location.href = 'index.html';
-        }
-
         async function init() {
 
-            const configSnap = await db.ref(`projects/${projectId}/protected/${secretHash}/config`).once('value');
-            if(configSnap.exists()) {
-                totalQuestions = configSnap.val().questionCount || 100;
-            }
+            // 独立した3つのクエリを並列実行
+            const [configSnap, , answersTextSnap] = await Promise.all([
+                db.ref(`projects/${projectId}/protected/${secretHash}/config`).once('value'),
+                fetch(`${FIREBASE_REST_BASE}/projects/${projectId}/protected/${secretHash}/answers.json?shallow=true`)
+                    .then(r => r.json())
+                    .then(data => { if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b); })
+                    .catch(e => console.error('答案キー取得エラー:', e)),
+                db.ref(`projects/${projectId}/protected/${secretHash}/answers_text`).get()
+            ]);
 
-            try {
-                const res = await fetch(`https://quziopus-default-rtdb.asia-southeast1.firebasedatabase.app/projects/${projectId}/protected/${secretHash}/answers.json?shallow=true`);
-                const data = await res.json();
-                if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b);
-            } catch(e) {
-                console.error('答案キー取得エラー:', e);
-            }
-
-            const answersTextSnap = await db.ref(`projects/${projectId}/protected/${secretHash}/answers_text`).get();
-            if (answersTextSnap.exists()) {
-                answersText = answersTextSnap.val();
-            }
+            if (configSnap.exists()) totalQuestions = configSnap.val().questionCount || 100;
+            if (answersTextSnap.exists()) answersText = answersTextSnap.val();
 
             db.ref(`projects/${projectId}/protected/${secretHash}/scores`).on('value', snap => {
                 scoresData = snap.val() || {};
@@ -99,8 +85,7 @@ const projectId = session.projectId;
 
             grid.innerHTML = '';
 
-            let masterData = {};
-            try { masterData = JSON.parse(localStorage.getItem(`masterData_${projectId}`) || '{}'); } catch(e) {}
+            const masterData = getMasterData(projectId);
 
             conflicts.forEach(({ q, entryNum, qScores, finalResult }, idx) => {
                 const imageData = answersData[entryNum]?.cells[`q${q}`];
@@ -125,7 +110,7 @@ const projectId = session.projectId;
                   <div class="votes-mini">${votesHtml}</div>
                 `;
                 card.addEventListener('click', () => selectConflictCard(idx));
-                card.addEventListener('dblclick', () => showPreview(entryNum));
+                card.addEventListener('dblclick', () => showPreview(projectId, secretHash, entryNum));
                 grid.appendChild(card);
             });
 
@@ -198,23 +183,3 @@ const projectId = session.projectId;
 
 
         init();
-        async function showPreview(entryNum) {
-            let overlay = document.getElementById('preview-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'preview-overlay';
-                overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);z-index:10000;display:none;overflow-y:auto;padding:24px;';
-                document.body.appendChild(overlay);
-            }
-            let masterData = {}; try { masterData = JSON.parse(localStorage.getItem(`masterData_${projectId}`)||'{}'); } catch(e) {}
-            const name = masterData[entryNum]?.name || `受付番号 ${entryNum}`;
-            overlay.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;"><h2 style="color:white;font-size:18px"><i class="fa-solid fa-file-image"></i> ${name} の解答用紙</h2><button class="btn secondary" onclick="document.getElementById('preview-overlay').style.display='none'">✕ 閉じる</button></div><div id="preview-content" style="text-align:center"><div style="color:#aaa"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div></div>`;
-            overlay.style.display = 'block';
-            const snap = await db.ref(`projects/${projectId}/protected/${secretHash}/answers/${entryNum}/pageImage`).get();
-            const pc = document.getElementById('preview-content');
-            if (snap.exists()) {
-                pc.innerHTML = `<img src="${snap.val()}" alt="${name}" style="max-width:100%;max-height:85vh;border-radius:8px;background:white;box-shadow:0 4px 24px rgba(0,0,0,0.5)">`;
-            } else { pc.innerHTML = '<div style="color:#aaa;padding:40px">ページ画像が保存されていません。管理画面から答案を再読み込みしてください。</div>'; }
-        }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.getElementById('preview-overlay'); if (o) o.style.display = 'none'; }});
-        }
