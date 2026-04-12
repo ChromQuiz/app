@@ -147,15 +147,29 @@ const params = new URLSearchParams(location.search);
                         blockDetail = '管理者が受付を再開するまでお待ちください。';
                     } else {
                         const now = new Date();
-                        if (settings.periodStart && new Date(settings.periodStart) > now) {
+                        const parseLocal = (dtStr) => {
+                            if (!dtStr) return null;
+                            if (dtStr.includes('T')) {
+                                const [d, t] = dtStr.split('T');
+                                const [y, m, day] = d.split('-');
+                                const [hr, min] = t.split(':');
+                                return new Date(y, m - 1, day, hr, min);
+                            }
+                            return new Date(dtStr);
+                        };
+                        
+                        const startDt = parseLocal(settings.periodStart);
+                        const endDt = parseLocal(settings.periodEnd);
+                        
+                        if (startDt && startDt > now) {
                             blocked = true;
                             blockTitle = 'エントリー受付はまだ開始されていません';
-                            blockDetail = '受付開始: ' + new Date(settings.periodStart).toLocaleString('ja-JP');
+                            blockDetail = '受付開始: ' + startDt.toLocaleString('ja-JP');
                         }
-                        if (settings.periodEnd && new Date(settings.periodEnd) < now) {
+                        if (endDt && endDt < now) {
                             blocked = true;
                             blockTitle = 'エントリー受付は終了しました';
-                            blockDetail = '受付終了: ' + new Date(settings.periodEnd).toLocaleString('ja-JP');
+                            blockDetail = '受付終了: ' + endDt.toLocaleString('ja-JP');
                         }
                     }
                     if (blocked) {

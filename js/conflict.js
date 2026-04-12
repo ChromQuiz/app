@@ -4,8 +4,7 @@ const projectId = session.projectId;
         if (!projectId || scorerRole !== 'admin') {
             document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#f87171;font-weight:bold;">管理者としてプロジェクトに入室してください。3秒後にトップページへ戻ります。</div>';
             setTimeout(() => location.href = 'index.html', 3000);
-            return;
-        }
+        } else {
 
         let answersData = {};
         let answersText = {};
@@ -218,3 +217,4 @@ const projectId = session.projectId;
             } else { pc.innerHTML = '<div style="color:#aaa;padding:40px">ページ画像が保存されていません。管理画面から答案を再読み込みしてください。</div>'; }
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.getElementById('preview-overlay'); if (o) o.style.display = 'none'; }});
+        }
