@@ -196,12 +196,13 @@
 
                     const transform = calcPerspectiveTransform(scanConfig.tombo.map(r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })), detectedResult.points);
                     const entryNumber = readEntryNumber(scanConfig.markCells.map(cell => transformRegion(cell, transform)));
-                    const cells = [];
+                    // セルのクロップ座標を計算（画像は保存しない — 採点画面でオンデマンドクロップ）
+                    const cellRegions = {};
                     for (let q = 0; q < (scanConfig.questionCount || 100); q++) {
                         const cr = transformRegion(scanConfig.answerRegions[q], transform);
-                        cells.push({ q: q + 1, imageData: cutRegion(cr) });
+                        cellRegions[`q${q + 1}`] = { x: Math.round(cr.x), y: Math.round(cr.y), w: Math.round(cr.w), h: Math.round(cr.h) };
                     }
-                    scanAnswers.push({ page: i, entryNumber, cells, tomboError: detectedResult.error, pageImage: workCanvas.toDataURL('image/webp', 0.5) });
+                    scanAnswers.push({ page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: workCanvas.toDataURL('image/webp', 0.5) });
                 }
 
                 overlayTitle.textContent = 'サーバーへ保存中...';
@@ -210,34 +211,17 @@
 
                 for (const a of scanAnswers) {
                     let pageImageUrl = null;
-                    const cellUrls = {};
 
-                    // Firebase Storage にアップロード
+                    // Firebase Storage にアップロード（ページ画像のみ — セル画像は不要）
                     if (storage) {
                         try {
-                            // ページ全体画像
-                            console.log(`[Upload] Entry ${a.entryNumber}: ページ画像アップロード開始 (${(a.pageImage.length / 1024).toFixed(0)}KB)`);
                             const pageRef = storage.ref(`projects/${projectId}/answers/${a.entryNumber}/pageImage`);
                             const pageSnap = await pageRef.putString(a.pageImage, 'data_url');
                             pageImageUrl = await pageSnap.ref.getDownloadURL();
-
-                            // セル画像（並列バッチアップロード — 10同時）
-                            const BATCH_SIZE = 10;
-                            for (let batchStart = 0; batchStart < a.cells.length; batchStart += BATCH_SIZE) {
-                                const batch = a.cells.slice(batchStart, batchStart + BATCH_SIZE);
-                                const results = await Promise.all(batch.map(async c => {
-                                    const cellRef = storage.ref(`projects/${projectId}/answers/${a.entryNumber}/cells/q${c.q}`);
-                                    const cellSnap = await cellRef.putString(c.imageData, 'data_url');
-                                    const url = await cellSnap.ref.getDownloadURL();
-                                    return { key: `q${c.q}`, url };
-                                }));
-                                results.forEach(r => { cellUrls[r.key] = r.url; });
-                            }
-                            console.log(`[Upload] Entry ${a.entryNumber}: 完了`);
                         } catch (e) {
                             console.error('Storage upload error:', e);
-                            showAdminToast(`受付番号 ${a.entryNumber}: 画像アップロード失敗 — Firebase Storage を有効にしてください`, 'error');
-                            continue; // RTDB への巨大 Base64 書き込みを防止
+                            showAdminToast(`受付番号 ${a.entryNumber}: 画像アップロード失敗`, 'error');
+                            continue;
                         }
                     } else {
                         showAdminToast('Firebase Storage が未設定です。管理者に連絡してください。', 'error');
@@ -249,7 +233,7 @@
                         page: a.page,
                         uploadedAt: SERVER_TIMESTAMP,
                         pageImageUrl: pageImageUrl,
-                        cellUrls: cellUrls
+                        cellRegions: a.cellRegions
                     };
 
                     await dbSet(`projects/${projectId}/protected/${secretHash}/answers/${a.entryNumber}`, data);

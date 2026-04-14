@@ -36,11 +36,22 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
 
             // 現在の設問の画像のみを並列取得 (REST)
             const fetchPromises = entryNumbers.map(async (entryNum) => {
-                // Storage URL 優先、旧 Base64 フォールバック
                 const cellData = await dbGet(`projects/${projectId}/protected/${secretHash}/answers/${entryNum}`);
                 if (!answers[entryNum]) answers[entryNum] = { cells: {} };
-                const cellUrl = cellData?.cellUrls?.[`q${currentQ}`] || cellData?.cells?.[`q${currentQ}`];
-                answers[entryNum].cells[`q${currentQ}`] = cellUrl;
+
+                // 新方式: ページ画像URL + CSSクロップ座標（canvasクロップ不要）
+                const region = cellData?.cellRegions?.[`q${currentQ}`];
+                if (region && cellData?.pageImageUrl) {
+                    answers[entryNum].cells[`q${currentQ}`] = {
+                        type: 'crop',
+                        url: cellData.pageImageUrl,
+                        x: region.x, y: region.y, w: region.w, h: region.h
+                    };
+                } else {
+                    // 旧方式フォールバック: cellUrls または Base64
+                    const cellUrl = cellData?.cellUrls?.[`q${currentQ}`] || cellData?.cells?.[`q${currentQ}`];
+                    answers[entryNum].cells[`q${currentQ}`] = cellUrl;
+                }
             });
             await Promise.all(fetchPromises);
 
@@ -123,10 +134,20 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
 
                     const card = document.createElement('div');
                     card.className = `answer-card ${myScore === 'correct' ? 'correct' : myScore === 'wrong' ? 'wrong' : myScore === 'hold' ? 'hold' : ''} ${idx === selectedIndex ? 'selected' : ''}`;
-                    card.innerHTML = `
-              <img src="${imageData || ''}" alt="${displayName}" loading="lazy" />
-              <div class="entry-num">${displayName}</div>
-            `;
+
+                    // CSSクロップ方式 vs 旧方式(データURL)
+                    let imgHtml;
+                    if (imageData?.type === 'crop') {
+                        // overflow:hidden の div でクロップ。画像はネイティブサイズで配置し、marginで位置調整
+                        imgHtml = `<div class="cell-crop" style="overflow:hidden;max-height:120px">
+                            <img src="${imageData.url}" alt="${displayName}" loading="lazy"
+                                 style="margin-left:${-imageData.x}px;margin-top:${-imageData.y}px;max-width:none;display:block" />
+                        </div>`;
+                    } else {
+                        imgHtml = `<img src="${imageData || ''}" alt="${displayName}" loading="lazy" />`;
+                    }
+
+                    card.innerHTML = `${imgHtml}<div class="entry-num">${displayName}</div>`;
                     card.addEventListener('click', () => selectCard(idx));
                     card.addEventListener('dblclick', () => showPreview(projectId, secretHash, entryNum));
                     grid.appendChild(card);
