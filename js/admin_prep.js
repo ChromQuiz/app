@@ -139,6 +139,12 @@
 
             scanConfig = await dbGet(`projects/${projectId}/protected/${secretHash}/config`);
             if (!scanConfig) { showAdminToast('座標設定が見つかりません。先に回答用紙を発行してください。'); return; }
+            // レイアウト座標が未生成の場合は自動生成して保存
+            if (!scanConfig.tombo || !scanConfig.markCells || !scanConfig.answerRegions) {
+                const qCount = scanConfig.questionCount || totalQuestions;
+                scanConfig = await buildLayoutConfig(qCount);
+                await dbSet(`projects/${projectId}/protected/${secretHash}/config`, scanConfig);
+            }
 
             const overlay = document.getElementById('save-overlay');
             const overlayBar = document.getElementById('save-overlay-bar');
