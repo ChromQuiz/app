@@ -25,19 +25,17 @@ const params = new URLSearchParams(location.search);
         // リストを常に表示
         document.getElementById('disabled-msg').style.display = 'none';
         document.getElementById('content-area').style.display = 'block';
-        loadList();
 
-        // 10秒ごとに自動更新（WebSocket .on() の代替）
-        setInterval(loadList, 10000);
+        // リアルタイムリスナーで自動更新
+        new Poller(`projects/${projectId}/entries`, (data) => {
+            renderList(data);
+        }).start();
     }
 
-    async function loadList() {
+    function renderList(data) {
         const body = document.getElementById('list-body');
-
-        try {
-            const data = await dbGet(`projects/${projectId}/entries`);
-            body.innerHTML = '';
-            let count = 0;
+        body.innerHTML = '';
+        let count = 0;
 
             if (data) {
                 // 配列化してソート (エントリー番号順)
@@ -87,9 +85,6 @@ const params = new URLSearchParams(location.search);
                 body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;">まだエントリーはありません。</td></tr>';
             }
             document.getElementById('total-count').textContent = count;
-        } catch (e) {
-            console.error('リスト取得エラー:', e);
-        }
     }
 
     init();

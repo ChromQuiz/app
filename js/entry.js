@@ -128,9 +128,13 @@ const params = new URLSearchParams(location.search);
 
                         fetch(SYSTEM_GAS_URL + '?' + mailParams.toString())
                             .then(r => r.text())
-                            .then(t => {})
-                            .catch(e => {});
+                            .then(t => console.log('メール送信完了'))
+                            .catch(e => {
+                                console.warn('メール送信失敗:', e);
+                                showToast('確認メールの送信に失敗しました。エントリー自体は完了しています。', 'error', 5000);
+                            });
                     } catch (e) {
+                        console.warn('メール送信準備エラー:', e);
                     }
                 }
 

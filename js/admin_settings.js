@@ -322,7 +322,9 @@
                     
                     const tr = document.createElement('tr');
                     if (v.status === 'canceled') tr.style.opacity = '0.5';
+                    if (v.status === 'waitlist') tr.style.opacity = '0.7';
                     const statText = v.status === 'canceled' ? '<span class="badge danger"><i class="fa-solid fa-xmark"></i> キ</span>'
+                        : v.status === 'waitlist' ? '<span class="badge" style="background:rgba(245,158,11,0.2);color:#f59e0b"><i class="fa-solid fa-clock"></i> 待</span>'
                         : v.checkedIn ? '<span class="badge success"><i class="fa-solid fa-check"></i> 受付済</span>' : '<span class="badge muted"><i class="fa-regular fa-clock"></i> 未受付</span>';
 
                     tr.innerHTML = `
@@ -358,7 +360,7 @@
                     } catch(e) { console.error("Decryption failed", e); }
                 }
                 
-                const stat = v.status === 'canceled' ? 'canceled' : v.checkedIn ? 'checkedIn' : 'registered';
+                const stat = v.status === 'canceled' ? 'canceled' : v.status === 'waitlist' ? 'waitlist' : v.checkedIn ? 'checkedIn' : 'registered';
                 rows.push([
                     v.entryNumber, pii.familyName || '', pii.firstName || '', pii.familyNameKana || '', pii.firstNameKana || '',
                     pii.email || '', pii.affiliation || '', pii.grade || '', pii.entryName || '', `"${(pii.message || '').replace(/"/g, '""')}"`,
