@@ -14,11 +14,12 @@ const params = new URLSearchParams(location.search);
 
         // プロジェクト名を取得して表示
         try {
-            const pName = await dbGet(`projects/${projectId}/publicSettings/projectName`);
-            document.getElementById('page-title').textContent = pName || 'エントリーリスト';
-            document.title = (pName || 'エントリーリスト') + ' - エントリーリスト';
+            let pName = await dbGet(`projects/${projectId}/publicSettings/projectName`);
+            if (!pName) pName = await dbGet(`projects/${projectId}/settings/projectName`);
+            document.getElementById('page-title').textContent = pName || projectId;
+            document.title = (pName || projectId) + ' - エントリーリスト';
         } catch(e) {
-            document.getElementById('page-title').textContent = 'エントリーリスト';
+            document.getElementById('page-title').textContent = projectId;
         }
 
         // リストを常に表示
