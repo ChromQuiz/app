@@ -124,9 +124,10 @@ const { projectId, secretHash } = auth;
                     const pctW = imageData.pageW / imageData.w * 100;
                     const pctML = -imageData.x / imageData.w * 100;
                     const pctMT = -imageData.y / imageData.w * 100;
-                    imgHtml = `<div style="width:100%;height:60px;overflow:hidden;background:white;border-radius:4px">
+                    const pctH = imageData.h / imageData.w * 100;
+                    imgHtml = `<div style="width:100%;padding-top:${pctH}%;position:relative;overflow:hidden;background:white;border-radius:4px">
                         <img src="${imageData.url}" alt="${displayName} ${q}問" loading="lazy"
-                             style="display:block;width:${pctW}%;height:auto;object-fit:initial;max-width:none;margin-left:${pctML}%;margin-top:${pctMT}%" />
+                             style="position:absolute;top:0;left:0;display:block;width:${pctW}%;height:auto;object-fit:initial;max-width:none;margin-left:${pctML}%;margin-top:${pctMT}%" />
                     </div>`;
                 } else {
                     imgHtml = `<img src="${imageData || ''}" alt="${displayName} ${q}問" loading="lazy" />`;

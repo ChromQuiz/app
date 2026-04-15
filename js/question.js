@@ -16,6 +16,8 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
         let selectedIndex = 0;
         // 楽観的UI更新: 自分が送信した変更をポーリング到着まで保護するバッファ
         let pendingWrites = {};
+        // answer データキャッシュ（同一ページ内での再fetch防止）
+        const answerDataCache = {};
 
         async function init() {
             // 模範解答と答案キーを並列取得 (REST)
@@ -34,9 +36,14 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
                 return;
             }
 
+
             // 現在の設問の画像のみを並列取得 (REST)
             const fetchPromises = entryNumbers.map(async (entryNum) => {
-                const cellData = await dbGet(`projects/${projectId}/protected/${secretHash}/answers/${entryNum}`);
+                // キャッシュがあれば再fetch不要
+                if (!answerDataCache[entryNum]) {
+                    answerDataCache[entryNum] = await dbGet(`projects/${projectId}/protected/${secretHash}/answers/${entryNum}`);
+                }
+                const cellData = answerDataCache[entryNum];
                 if (!answers[entryNum]) answers[entryNum] = { cells: {} };
 
                 // 新方式: CSSクロップ（CORS不要・canvas不要）
@@ -139,14 +146,14 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
                     // CSSクロップ方式 vs 旧方式(データURL)
                     let imgHtml;
                     if (imageData?.type === 'crop') {
-                        // パーセント計算: 画像幅 = pageW/w*100%、マージン = -座標/w*100%
-                        // margin-top の %はコンテナ幅基準なので正しくスケールする
+                        // パーセント計算: padding-topでセルのアスペクト比を維持
                         const pctW = imageData.pageW / imageData.w * 100;
                         const pctML = -imageData.x / imageData.w * 100;
                         const pctMT = -imageData.y / imageData.w * 100;
-                        imgHtml = `<div style="width:100%;height:60px;overflow:hidden;background:white;border-radius:4px">
+                        const pctH = imageData.h / imageData.w * 100; // セルのアスペクト比
+                        imgHtml = `<div style="width:100%;padding-top:${pctH}%;position:relative;overflow:hidden;background:white;border-radius:4px">
                             <img src="${imageData.url}" alt="${displayName}" loading="lazy"
-                                 style="display:block;width:${pctW}%;height:auto;object-fit:initial;max-width:none;margin-left:${pctML}%;margin-top:${pctMT}%" />
+                                 style="position:absolute;top:0;left:0;display:block;width:${pctW}%;height:auto;object-fit:initial;max-width:none;margin-left:${pctML}%;margin-top:${pctMT}%" />
                         </div>`;
                     } else {
                         imgHtml = `<img src="${imageData || ''}" alt="${displayName}" loading="lazy" />`;
