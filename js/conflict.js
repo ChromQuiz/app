@@ -10,22 +10,27 @@ const { projectId, secretHash } = auth;
         let entryNumbers = [];
         let selectedIndex = 0;
         let currentConflicts = [];
+        let answersDataCache = {}; // 全答案データキャッシュ
 
         let totalQuestions = 100;
 
         async function init() {
             await waitForAuth();
-            const [config, shallowData, answersTextData] = await Promise.all([
+            // config, 全答案データ, 模範解答を並列取得
+            const [config, allAnswersData, answersTextData] = await Promise.all([
                 dbGet(`projects/${projectId}/protected/${secretHash}/config`),
-                dbShallow(`projects/${projectId}/protected/${secretHash}/answers`).catch(e => { console.error('答案キー取得エラー:', e); return null; }),
+                dbGet(`projects/${projectId}/protected/${secretHash}/answers`).catch(e => { console.error('答案取得エラー:', e); return null; }),
                 dbGet(`projects/${projectId}/protected/${secretHash}/answers_text`)
             ]);
 
             if (config) totalQuestions = config.questionCount || 100;
-            if (shallowData) entryNumbers = Object.keys(shallowData).map(Number).sort((a, b) => a - b);
+            if (allAnswersData) {
+                answersDataCache = allAnswersData;
+                entryNumbers = Object.keys(allAnswersData).map(Number).filter(n => n > 0).sort((a, b) => a - b);
+            }
             if (answersTextData) answersText = answersTextData;
 
-            // ポーリングでスコアを定期取得（WebSocket .on() の代替）
+            // スコアリスナー即開始
             const scorePoller = new Poller(
                 `projects/${projectId}/protected/${secretHash}/scores`,
                 (data) => {
@@ -60,10 +65,11 @@ const { projectId, secretHash } = auth;
                 });
             }
 
-            const promises = conflicts.map(async c => {
+            // キャッシュから画像データを同期的に構築（ネットワーク不要）
+            conflicts.forEach(c => {
                 if (!answersData[c.entryNum]) answersData[c.entryNum] = { cells: {} };
                 if (answersData[c.entryNum].cells[`q${c.q}`] === undefined) {
-                    const ansData = await dbGet(`projects/${projectId}/protected/${secretHash}/answers/${c.entryNum}`);
+                    const ansData = answersDataCache[c.entryNum];
                     const region = ansData?.cellRegions?.[`q${c.q}`];
                     if (region && ansData?.pageImageUrl && ansData?.pageWidth) {
                         answersData[c.entryNum].cells[`q${c.q}`] = {
@@ -77,7 +83,7 @@ const { projectId, secretHash } = auth;
                     }
                 }
             });
-            Promise.all(promises).then(() => {
+            {
 
             currentConflicts = conflicts;
             if (selectedIndex >= conflicts.length) selectedIndex = Math.max(0, conflicts.length - 1);
@@ -126,11 +132,13 @@ const { projectId, secretHash } = auth;
                     const pctMT = -imageData.y / imageData.w * 100;
                     const pctH = imageData.h / imageData.w * 100;
                     imgHtml = `<div style="width:100%;padding-top:${pctH}%;position:relative;overflow:hidden;background:white;border-radius:4px">
-                        <img src="${imageData.url}" alt="${displayName} ${q}問" loading="lazy"
+                        <img src="${imageData.url}" alt="${displayName} ${q}問" loading="eager" decoding="sync"
                              style="position:absolute;top:0;left:0;display:block;width:${pctW}%;height:auto;object-fit:initial;max-width:none;margin-left:${pctML}%;margin-top:${pctMT}%" />
                     </div>`;
+                } else if (imageData) {
+                    imgHtml = `<img src="${imageData}" alt="${displayName} ${q}問" loading="eager" decoding="sync" />`;
                 } else {
-                    imgHtml = `<img src="${imageData || ''}" alt="${displayName} ${q}問" loading="lazy" />`;
+                    imgHtml = `<div class="img-expired"><i class="fa-solid fa-clock"></i> 画像の有効期限切れ</div>`;
                 }
                 card.innerHTML = `
                   ${imgHtml}
@@ -145,7 +153,7 @@ const { projectId, secretHash } = auth;
             });
 
             scrollToSelectedConflict();
-            }); // End of Promise.all
+            } // End of render block
         }
 
         async function setFinal(q, entryNum, result) {

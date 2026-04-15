@@ -59,42 +59,19 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
                 }
             });
 
-            // ETag トランザクションで採点者として登録（4人目防止）
-            try {
-                await dbTransaction(
-                    `projects/${projectId}/protected/${secretHash}/scores/__scorers__q${currentQ}`,
-                    (current) => {
-                        const scorers = current || {};
-                        const names = Object.keys(scorers);
-                        if (names.includes(scorerName)) return { ...scorers }; // 既に登録済み
-                        if (names.length >= 3) return undefined; // 満員 → 中止
-                        return { ...scorers, [scorerName]: true };
-                    }
-                );
-            } catch (e) {
-                if (e.message.includes('中止') || e.message.includes('リトライ')) {
-                    showToast('すれ違いで満員になりました。問題一覧に戻ります。', 'error', 3000);
-                    setTimeout(() => location.href = 'judge.html', 2000);
-                    return;
-                }
-                throw e;
-            }
-
-            // ポーリングでスコアを定期取得（WebSocket .on() の代替）
+            // スコアリスナーを即開始（描画を最速にする）
             const scorePoller = new Poller(
                 `projects/${projectId}/protected/${secretHash}/scores`,
                 (allScores) => {
                     allScores = allScores || {};
                     myScores = {};
                     entryNumbers.forEach(entryNum => {
-                        // 楽観的更新バッファを優先
                         if (pendingWrites[entryNum] !== undefined) {
                             myScores[entryNum] = pendingWrites[entryNum];
                         } else {
                             myScores[entryNum] = allScores[entryNum]?.[`q${currentQ}`]?.[scorerName] || null;
                         }
                     });
-                    // サーバーからの値が到着したらバッファをクリア
                     for (const en of Object.keys(pendingWrites)) {
                         const serverVal = allScores[en]?.[`q${currentQ}`]?.[scorerName];
                         if (serverVal === pendingWrites[en]) {
@@ -110,6 +87,23 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
             IdleManager.register(scorePoller);
             scorePoller.start();
             IdleManager.init();
+
+            // 採点者登録はバックグラウンドで実行（描画をブロックしない）
+            dbTransaction(
+                `projects/${projectId}/protected/${secretHash}/scores/__scorers__q${currentQ}`,
+                (current) => {
+                    const scorers = current || {};
+                    const names = Object.keys(scorers);
+                    if (names.includes(scorerName)) return { ...scorers };
+                    if (names.length >= 3) return undefined;
+                    return { ...scorers, [scorerName]: true };
+                }
+            ).catch(e => {
+                if (e.message.includes('中止') || e.message.includes('リトライ')) {
+                    showToast('すれ違いで満員になりました。問題一覧に戻ります。', 'error', 3000);
+                    setTimeout(() => location.href = 'judge.html', 2000);
+                }
+            });
         }
 
         function renderGrid() {

@@ -299,7 +299,7 @@ body.page-conflict { padding: 24px; }
 .conflict-grid { margin-top: 80px; padding: 20px; display: grid; gap: 8px; grid-template-columns: repeat(2, 1fr); padding-bottom: 60px; }
 @media (min-width: 600px) { .conflict-grid { grid-template-columns: repeat(5, 1fr); } }
 @media (min-width: 1024px) { .conflict-grid { grid-template-columns: repeat(8, 1fr); } }
-.conflict-card { position: relative; background: var(--glass-bg); backdrop-filter: blur(12px) saturate(180%); border-radius: var(--radius-md); padding: 8px; cursor: pointer; transition: transform 0.4s var(--spring), box-shadow 0.35s var(--smooth), border-color 0.3s, background 0.3s, opacity 0.3s; text-align: center; box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border); }
+.conflict-card { position: relative; background: rgba(15, 23, 42, 0.65); border-radius: var(--radius-md); padding: 8px; cursor: pointer; transition: transform 0.4s var(--spring), box-shadow 0.35s var(--smooth), border-color 0.3s, background 0.3s, opacity 0.3s; text-align: center; box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border); }
 .conflict-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-lg); background: rgba(255,255,255,0.05); border-color: var(--glass-border-hover); }
 .conflict-card.resolved.correct { border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.08); opacity: 0.75; }
 .conflict-card.resolved.wrong { border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.08); opacity: 0.75; }
