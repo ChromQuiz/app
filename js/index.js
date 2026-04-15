@@ -107,6 +107,28 @@ async function joinProject() {
 		const configData = await dbGet(`projects/${pid}/protected/${hash}/settings`);
 		if (configData) {
 			if (configData.role === 'scorer') {
+				// 同名チェック: 既に採点中の同名採点者がいるか
+				const scoresData = await dbGet(`projects/${pid}/protected/${hash}/scores`);
+				if (scoresData) {
+					const usedNames = new Set();
+					for (const key in scoresData) {
+						if (key.startsWith('__scorers__')) {
+							const scorers = scoresData[key];
+							if (scorers) Object.keys(scorers).forEach(n => usedNames.add(n));
+						}
+					}
+					if (usedNames.has(name)) {
+						const isSame = await showConfirm(
+							`「${name}」は既にこのプロジェクトで採点に参加しています。\n\n同一人物ですか？\n（別人の場合は「いいえ」を選んで名前を変更してください）`,
+							'はい、同一人物です'
+						);
+						if (!isSame) {
+							btn.disabled = false;
+							btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> ログイン';
+							return;
+						}
+					}
+				}
 				// Scorer login
 				session.set('projectId', pid);
 				session.set('scorer_name', name);
