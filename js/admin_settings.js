@@ -499,6 +499,7 @@
         }
 
         async function deleteProject() {
+            const pName = document.getElementById('setting-project-name')?.value || projectId;
             if (!(await showConfirm(
                 'このプロジェクトの全データをサーバーから完全に削除しますか？\n\n' +
                 '⚠️ この操作は取り消せません。\n' +
@@ -508,34 +509,46 @@
 
             // 2段階確認
             if (!(await showConfirm(
-                `プロジェクト「${projectId}」を本当に削除しますか？\nすべてのエントリー・答案・スコアが失われます。`,
+                `プロジェクト「${pName}」を本当に削除しますか？\nすべてのエントリー・答案・スコアが失われます。`,
                 '削除を確定'
             ))) return;
 
             try {
                 showAdminToast('プロジェクトを削除しています...', 'info', 10000);
 
-                // Storage の画像データを削除
+                // Storage の画像データを再帰削除
                 if (storage) {
                     try {
-                        const storageRef = storage.ref(`projects/${projectId}`);
-                        const list = await storageRef.listAll();
-                        for (const folder of list.prefixes) {
-                            const files = await folder.listAll();
-                            for (const file of files.items) {
-                                await file.delete().catch(() => {});
-                            }
+                        async function deleteFolder(ref) {
+                            const list = await ref.listAll();
+                            for (const item of list.items) { await item.delete().catch(() => {}); }
+                            for (const prefix of list.prefixes) { await deleteFolder(prefix); }
                         }
-                    } catch (e) { console.warn('Storage cleanup partial:', e); }
+                        await deleteFolder(storage.ref(`projects/${projectId}`));
+                    } catch (e) { console.warn('Storage削除スキップ:', e); }
                 }
 
-                // RTDB のプロジェクトデータを削除
-                await dbRemove(`projects/${projectId}`);
+                // DB のサブパスを個別に削除（ルート一括はDB権限エラー）
+                const removePath = async (p) => {
+                    try { await dbRef(p).remove(); } catch(e) { console.warn(`削除スキップ: ${p}`, e.message); }
+                };
+                const protectedBase = `projects/${projectId}/protected/${secretHash}`;
+                await Promise.all([
+                    removePath(`${protectedBase}/scores`),
+                    removePath(`${protectedBase}/answers`),
+                    removePath(`${protectedBase}/answers_text`),
+                    removePath(`${protectedBase}/config`),
+                    removePath(`${protectedBase}/requiredScorers`),
+                    removePath(`projects/${projectId}/entries`),
+                    removePath(`projects/${projectId}/publicSettings`),
+                    removePath(`projects/${projectId}/disclosure`),
+                ]);
 
                 showAdminToast('プロジェクトを削除しました。トップページに戻ります。', 'success', 3000);
                 session.clear();
                 setTimeout(() => { location.href = 'index.html'; }, 2000);
             } catch (e) {
+                console.error('削除エラー:', e);
                 showAdminToast('削除エラー: ' + e.message, 'error');
             }
         }
