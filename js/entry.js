@@ -1,5 +1,5 @@
-// entry.js — エントリーフォーム（完全REST版・WebSocket接続ゼロ）
-// 受付番号の採番には ETag トランザクションを使用し、競合を完全に防止する。
+// entry.js — エントリーフォーム（Firebase SDK版）
+// 受付番号の採番には SDK トランザクションを使用し、競合を完全に防止する。
 
 const params = new URLSearchParams(location.search);
         const projectId = params.get('pid');
@@ -62,7 +62,7 @@ const params = new URLSearchParams(location.search);
             const pw = generatePW();
 
             try {
-                // ETag トランザクションで受付番号をアトミックに取得
+                // SDK トランザクションで受付番号をアトミックに取得
                 const txResult = await dbTransaction(
                     `projects/${projectId}/publicSettings/lastEntryNumber`,
                     (currentValue) => (currentValue || 0) + 1
@@ -94,7 +94,7 @@ const params = new URLSearchParams(location.search);
                     timestamp: SERVER_TIMESTAMP
                 };
 
-                // DBに保存 (REST)
+                // DBに保存
                 await dbSet(`projects/${projectId}/entries/${uuid}`, entryData);
 
                 // GAS APIを呼び出してメール送信

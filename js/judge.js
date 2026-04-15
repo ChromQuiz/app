@@ -1,4 +1,4 @@
-// judge.js — 問題一覧（REST + ポーリング版・WebSocket接続ゼロ）
+// judge.js — 問題一覧（Firebase SDK WebSocket版）
 
 const auth = requireAuth();
 const { projectId, secretHash, scorerName, scorerRole } = auth || {};
@@ -45,7 +45,7 @@ let totalQuestions = 100;
                 qGrid.appendChild(card);
             }
 
-            // ポーリングでスコア状態を定期取得（WebSocket .on() の代替）
+            // リアルタイムリスナーでスコア状態を取得
             const scorePoller = new Poller(
                 `projects/${projectId}/protected/${secretHash}/scores`,
                 (data) => updateGrid(data || {}),

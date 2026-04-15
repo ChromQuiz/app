@@ -1,4 +1,4 @@
-// cancel.js — キャンセル処理（完全REST版・WebSocket接続ゼロ）
+// cancel.js — キャンセル処理（Firebase SDK版）
 
 const params = new URLSearchParams(location.search);
     let projectId = params.get('pid');
@@ -46,7 +46,7 @@ const params = new URLSearchParams(location.search);
         showStatus('データを確認しています...', '');
 
         try {
-            // 受付番号で検索 (REST query)
+            // 受付番号で検索
             const entriesData = await dbQuery(`projects/${projectId}/entries`, 'entryNumber', entryNum);
 
             if (!entriesData || Object.keys(entriesData).length === 0) {
@@ -82,7 +82,7 @@ const params = new URLSearchParams(location.search);
                 return;
             }
 
-            // 更新処理 (REST)
+            // 更新処理
             await dbUpdate(`projects/${projectId}/entries/${targetKey}`, {
                 status: 'canceled',
                 canceledAt: SERVER_TIMESTAMP

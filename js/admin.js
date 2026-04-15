@@ -138,7 +138,7 @@
                 document.execCommand('copy'); document.body.removeChild(ta);
             }
 
-            // 設定データ読み込み (REST)
+            // 設定データ読み込み
             const cfg = await dbGet(`projects/${projectId}/protected/${secretHash}/config`);
             if (cfg) {
                 totalQuestions = cfg.questionCount || 100;
@@ -181,7 +181,7 @@
 
             document.getElementById('stat-total').textContent = totalQuestions;
 
-            // エントリ番号取得（REST shallow）
+            // エントリ番号取得
             try {
                 const data = await dbShallow(`projects/${projectId}/protected/${secretHash}/answers`);
                 if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b);
@@ -189,7 +189,7 @@
                 console.error('エントリ番号取得エラー:', e);
             }
 
-            // スコアポーリング（WebSocket .on() の代替 — 5秒間隔）
+            // リアルタイムリスナーでスコア取得
             const scorePoller = new Poller(
                 `projects/${projectId}/protected/${secretHash}/scores`,
                 (data) => {

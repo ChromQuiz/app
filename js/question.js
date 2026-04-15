@@ -1,5 +1,5 @@
-// question.js — 採点画面（REST + ポーリング版・WebSocket接続ゼロ）
-// ETag トランザクションによる採点者ロック（4人目滑り込み防止）
+// question.js — 採点画面（Firebase SDK WebSocket版）
+// SDK トランザクションによる採点者ロック（4人目滑り込み防止）
 // 楽観的UI更新（ポーリングの空白中もサクサク操作可能）
 
 const auth = requireAuth();
@@ -165,7 +165,7 @@ const currentQ = parseInt(localStorage.getItem('current_q') || '1');
             pendingWrites[entryNum] = result;
             myScores[entryNum] = result;
             renderGrid();
-            // バックグラウンドでサーバーに書き込み (REST)
+            // バックグラウンドでサーバーに書き込み
             dbSet(`projects/${projectId}/protected/${secretHash}/scores/${entryNum}/q${currentQ}/${scorerName}`, result)
                 .catch(e => {
                     console.error('スコア書き込みエラー:', e);

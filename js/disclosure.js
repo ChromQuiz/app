@@ -1,4 +1,4 @@
-// disclosure.js — 成績開示（完全REST版・WebSocket接続ゼロ）
+// disclosure.js — 成績開示（Firebase SDK版）
 
 const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');

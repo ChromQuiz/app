@@ -1,4 +1,4 @@
-// checkin.js — QR受付（完全REST版・WebSocket接続ゼロ）
+// checkin.js — QR受付（Firebase SDK版）
 
 const projectId = session.projectId;
 const secretHash = session.get("secretHash");
@@ -16,7 +16,7 @@ if (!projectId) {
         let lastUUID = '';
         let hideTimer = null;
 
-        // プロジェクト名読み込み (REST)
+        // プロジェクト名読み込み
         (async function init() {
             await waitForAuth();
             const s = await dbGet(`projects/${projectId}/settings`);
@@ -83,7 +83,7 @@ if (!projectId) {
             resultDiv.innerHTML = '<div>⏳ 読み込み中...</div>';
         }
 
-        // Firebase REST直接参照
+        // Firebase直接参照
         async function processQR(uuid) {
             try {
                 const data = await dbGet(`projects/${projectId}/entries/${uuid}`);

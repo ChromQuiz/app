@@ -1,4 +1,4 @@
-// conflict.js — コンフリクト解消（REST + ポーリング版・WebSocket接続ゼロ）
+// conflict.js — コンフリクト解消（Firebase SDK WebSocket版）
 
 const auth = requireAuth({ requireAdmin: true });
 if (!auth) throw new Error('auth');

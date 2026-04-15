@@ -282,7 +282,7 @@ function getMasterData(projectId) {
 }
 
 /**
- * 答案画像プレビューオーバーレイ (REST版)
+ * 答案画像プレビューオーバーレイ
  * question.html / conflict.html で共通利用
  */
 async function showPreview(projectId, secretHash, entryNum) {

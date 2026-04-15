@@ -1,4 +1,4 @@
-// entry_list.js — エントリーリスト（完全REST版・WebSocket接続ゼロ）
+// entry_list.js — エントリーリスト（Firebase SDK版）
 
 const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');

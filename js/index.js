@@ -1,4 +1,4 @@
-// index.js — ログイン / プロジェクト作成（完全REST版・WebSocket接続ゼロ）
+// index.js — ログイン / プロジェクト作成（Firebase SDK版）
 
 function generateStrongPassword() {
 	const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -81,7 +81,7 @@ async function joinProject() {
 	btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 認証中...';
 
 	try {
-		// まず公開設定が存在するか確認する (REST)
+		// まず公開設定が存在するか確認する
 		const pubSettings = await dbGet(`projects/${pid}/publicSettings`);
 		if (!pubSettings) {
 			// 旧バージョンとの互換性チェック
@@ -171,7 +171,7 @@ async function createProject() {
 		// 秘密鍵を管理者パスワードでAES暗号化
 		const encryptedPriv = await AppCrypto.encryptAES(JSON.stringify(privateKeyJwk), adminPwd);
 
-		// DB保存 (REST multi-path update)
+		// DB保存 (multi-path update)
 		const updates = {};
 		updates[`publicSettings`] = {
 			projectName: pName,
