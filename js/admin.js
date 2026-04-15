@@ -165,6 +165,9 @@
             // publicSettings の一括読み込み（フルオープン、規約、エントリーネーム使用設定）
             const publicSettings = await dbGet(`projects/${projectId}/publicSettings`) || {};
             
+            if (publicSettings.projectName) {
+                document.getElementById('setting-project-name').value = publicSettings.projectName;
+            }
             if (publicSettings.fullOpen) {
                 document.getElementById('full-open-toggle').checked = true;
                 document.getElementById('full-open-status').textContent = 'フルオープン';
