@@ -409,7 +409,7 @@ body.page-conflict { padding: 24px; }
 body.page-legal { background: var(--bg-base, #0a0e1a); color: var(--text-primary, #e2e8f0); font-family: 'Noto Sans JP', 'Inter', sans-serif; line-height: 1.8; }
 .legal-container { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
 .legal-header { text-align: center; margin-bottom: 48px; }
-.legal-header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+.legal-header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
 .legal-header p { color: var(--text-muted, #8e8ea0); font-size: 14px; }
 .legal-section { background: var(--surface-1, rgba(255,255,255,0.03)); border: 1px solid var(--border-subtle, rgba(255,255,255,0.06)); border-radius: 16px; padding: 32px; margin-bottom: 24px; }
 .legal-section h2 { font-size: 20px; font-weight: 700; color: #60a5fa; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
