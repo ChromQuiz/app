@@ -71,7 +71,7 @@ const params = new URLSearchParams(location.search);
             }
 
             if (!matched) {
-                showStatus('メールアドレスまたはパスワードが正しくありません。', 'error');
+                showStatus('パスワードが正しくありません。', 'error');
                 btn.disabled = false; btn.textContent = 'キャンセルを確定する';
                 return;
             }
@@ -92,7 +92,7 @@ const params = new URLSearchParams(location.search);
                 <div style="text-align:center;">
                     <h2 style="color:#ef5350;margin-bottom:16px;">キャンセル完了</h2>
                     <p style="color:#8e8ea0;line-height:1.6;">
-                        受付番号 ${entryNum} (${targetData.entryName} 様) の<br>エントリーキャンセルを受け付けました。<br>
+                        受付番号 ${entryNum} のエントリーキャンセルを受け付けました。<br>
                         ご利用ありがとうございました。
                     </p>
                 </div>

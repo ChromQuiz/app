@@ -1618,3 +1618,43 @@ kbd {
   background: rgba(59, 130, 246, 0.3);
   color: #f1f5f9;
 }
+
+/* Number Input Group (stepper) */
+.number-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.number-btn {
+  width: 36px;
+  height: 36px;
+  background: var(--bg-secondary);
+  border: none;
+  color: var(--text-main);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.number-btn:hover { background: var(--glass-border); }
+.number-btn:active { background: var(--primary); color: #fff; }
+.number-input {
+  width: 60px;
+  text-align: center;
+  border: none;
+  border-left: 1px solid var(--glass-border);
+  border-right: 1px solid var(--glass-border);
+  background: var(--bg-dark);
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 0;
+  -moz-appearance: textfield;
+}
+.number-input::-webkit-outer-spin-button,
+.number-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
