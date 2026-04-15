@@ -143,9 +143,38 @@
                 return { entryNumber: en, name, affiliation: m.affiliation || '', grade: m.grade || '', score, answers, streaks };
             });
 
-            // ソート: 点数降順 → 問題番号順比較
+            // 同点処理モードを取得
+            const tiebreakMode = document.getElementById('tiebreak-mode')?.value || 'streak';
+
+            // 近似値モード: 参加者の回答テキストを取得
+            let approxData = {};
+            if (tiebreakMode === 'approx') {
+                const approxQ = parseInt(document.getElementById('approx-question')?.value) || 1;
+                const approxCorrect = parseFloat(document.getElementById('approx-answer')?.value);
+                if (!isNaN(approxCorrect)) {
+                    const textAnswers = await dbGet(`projects/${projectId}/protected/${secretHash}/answers_text`);
+                    for (const en of entryNumbers) {
+                        const playerAnswer = parseFloat(textAnswers?.[en]?.[`q${approxQ}`]);
+                        approxData[en] = isNaN(playerAnswer) ? Infinity : Math.abs(playerAnswer - approxCorrect);
+                    }
+                }
+            }
+
+            // ソート: 点数降順 → 同点処理
             results.sort((a, b) => {
                 if (b.score !== a.score) return b.score - a.score;
+                if (tiebreakMode === 'approx' && Object.keys(approxData).length > 0) {
+                    // 近似値: 差が小さい方が上位
+                    const diffA = approxData[a.entryNumber] ?? Infinity;
+                    const diffB = approxData[b.entryNumber] ?? Infinity;
+                    if (diffA !== diffB) return diffA - diffB;
+                } else {
+                    // 連答: 最長連続正解数で比較
+                    const maxA = a.streaks.length ? Math.max(...a.streaks) : 0;
+                    const maxB = b.streaks.length ? Math.max(...b.streaks) : 0;
+                    if (maxA !== maxB) return maxB - maxA;
+                }
+                // それでも同じなら問題番号順
                 for (let i = 0; i < totalQuestions; i++) { const d = b.answers[i] - a.answers[i]; if (d !== 0) return d; }
                 return 0;
             });
