@@ -280,6 +280,10 @@
                     </div>
                     <span>人以下をハイライト</span>
                 </div>
+                <div class="config-panel config-row" style="margin-top:8px;">
+                    <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" onchange="renderAnalytics()"><span class="toggle-slider"></span></label>
+                    <span style="font-size:13px;">エントリーネームで表示</span>
+                </div>
                 <button class="btn secondary" onclick="exportAnalyticsCSV()"><i class="fa-solid fa-file-csv"></i> 正答率分析CSV</button>
                 <div class="table-container mt-md" style="max-height:400px;">
                     <table id="analytics-table">

@@ -21,7 +21,7 @@
             for (const p of markerPositions) config.tombo.push({ x: p.x, y: p.y, w: markerSize, h: markerSize });
             
             const gridMarginX = 15, gridMarginTop = 5, gridSpaceWidth = pageWidth - gridMarginX * 2;
-            const colWidth = gridSpaceWidth / qCols, rows = Math.ceil(qCount / qCols), maxGridHeight = 255, rowHeight = maxGridHeight / rows;
+            const colWidth = gridSpaceWidth / qCols, rows = Math.ceil(qCount / qCols), maxGridHeight = 260, rowHeight = maxGridHeight / rows;
             
             for (let i = 0; i < qCount; i++) {
                 const row = Math.floor(i / qCols), col = i % qCols;
@@ -30,7 +30,7 @@
             }
             
             const markerBottom = pageHeight - margin; // 292mm
-            const boxX = 15, boxY = gridMarginTop + maxGridHeight + 5, boxW = 180, boxH = markerBottom - boxY, rH = boxH / 3;
+            const boxX = 15, boxY = gridMarginTop + maxGridHeight + 2, boxW = 180, boxH = markerBottom - boxY, rH = boxH / 3;
             const L2 = boxX + 13, bubbleW = 3.2, bubbleH = 5.0;
             
             for (let row = 0; row < 3; row++) {
@@ -88,7 +88,7 @@
                 doc.addFont('BIZUDGothic.ttf', 'BIZUDGothic', 'normal');
                 doc.setFont('BIZUDGothic'); doc.setFontSize(8); doc.setTextColor(50);
                 const gridMarginX = 15, gridMarginTop = 5, gridSpaceWidth = pageWidth - gridMarginX * 2;
-                const colWidth = gridSpaceWidth / qCols, rows = Math.ceil(qCount / qCols), maxGridHeight = 255, rowHeight = maxGridHeight / rows;
+                const colWidth = gridSpaceWidth / qCols, rows = Math.ceil(qCount / qCols), maxGridHeight = 260, rowHeight = maxGridHeight / rows;
                 doc.setLineWidth(0.2);
                 for (let i = 0; i < qCount; i++) {
                     const row = Math.floor(i / qCols), col = i % qCols;
@@ -100,7 +100,7 @@
                     chars.forEach((c, i) => doc.text(c, x, startY + i * spacing, { align: 'center', baseline: 'middle' }));
                 }
                 const markerBottom = pageHeight - margin; // 292mm
-                const boxX = 15, boxY = gridMarginTop + maxGridHeight + 5, boxW = 180, boxH = markerBottom - boxY;
+                const boxX = 15, boxY = gridMarginTop + maxGridHeight + 2, boxW = 180, boxH = markerBottom - boxY;
                 doc.rect(boxX, boxY, boxW, boxH, 'S');
                 const L1 = boxX + 6, L2 = boxX + 13, L3 = boxX + 57, L4 = L3 + 6, L5 = L4 + 18, L6 = L5 + 6, L7 = L6 + 40, L8 = L7 + 6;
                 [L1, L2, L3, L4, L5, L6, L7, L8].forEach(lx => doc.line(lx, boxY, lx, boxY + boxH, 'S'));

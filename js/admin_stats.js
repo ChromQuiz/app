@@ -148,7 +148,15 @@
                     if (fd[en] === 'correct') { cc++; ce.push(en); }
                 });
                 const rate = Math.round((cc / tp) * 100);
-                const names = ce.map(e => { const m = masterData[e] || {}; return m.name ? `${m.affiliation || ''} ${m.name}`.trim() : `番号${e}`; }).join(' / ');
+                const useEntryName = document.getElementById('analytics-name-toggle')?.checked || false;
+                const names = (cc <= threshold && cc > 0) ? ce.map(e => {
+                    if (useEntryName) {
+                        // エントリーネームは entries の entryName フィールドから取得
+                        const entryData = window._entriesRaw ? Object.values(window._entriesRaw).find(d => d.entryNumber === e) : null;
+                        return entryData?.entryName || `番号${e}`;
+                    }
+                    const m = masterData[e] || {}; return m.name ? `${m.affiliation || ''} ${m.name}`.trim() : `番号${e}`;
+                }).join(' / ') : '';
                 let type = ''; if (cc === 0) type = '全滅'; else if (cc === 1) type = '単独正解'; else if (cc <= threshold) type = '少数正解';
                 qStats.push({ q, correctCount: cc, rate, type, names, isRare: cc <= threshold && cc > 0 });
             } return qStats;

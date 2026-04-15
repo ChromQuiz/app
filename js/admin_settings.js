@@ -324,6 +324,7 @@
 
             try {
                 const entriesData = await dbGet(`projects/${projectId}/entries`);
+                window._entriesRaw = entriesData; // アナリティクスのエントリーネーム表示用
                 if (!entriesData) {
                     tbody.innerHTML = '<tr><td colspan="7" class="td-loading">名簿データがありません。</td></tr>';
                     return;
