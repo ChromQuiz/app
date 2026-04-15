@@ -12,6 +12,12 @@
 /** 受付番号を3桁ゼロ埋めする共通ヘルパー */
 function padNum(n) { return String(n).padStart(3, '0'); }
 
+/** HTMLエスケープ（XSS防止） */
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // ============================================
 //  Firebase Database リファレンス
 // ============================================

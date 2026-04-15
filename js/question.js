@@ -151,7 +151,7 @@ let requiredScorers = 3;
                         imgHtml = `<div class="img-expired"><i class="fa-solid fa-clock"></i> 画像の有効期限切れ</div>`;
                     }
 
-                    card.innerHTML = `${imgHtml}<div class="entry-num">${displayName}</div>`;
+                    card.innerHTML = `${imgHtml}<div class="entry-num">${escapeHtml(displayName)}</div>`;
                     card.addEventListener('click', () => selectCard(idx));
                     card.addEventListener('dblclick', () => showPreview(projectId, secretHash, entryNum));
                     grid.appendChild(card);

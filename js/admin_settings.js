@@ -329,17 +329,17 @@
 
                     tr.innerHTML = `
                     <td >${padNum(v.entryNumber) || '-'}</td>
-                    <td >${pii.familyName || '-'} ${pii.firstName || '-'}<br><span class="text-muted-sm">${pii.familyNameKana || ''} ${pii.firstNameKana || ''}</span></td>
-                    <td >${pii.entryName || ''}</td>
-                    <td >${pii.affiliation || ''}</td>
-                    <td >${pii.grade || ''}</td>
-                    <td ><span class="text-muted-sm">${pii.email || ''}</span><br>${pii.inquiry || '-'}</td>
+                    <td >${escapeHtml(pii.familyName || '-')} ${escapeHtml(pii.firstName || '-')}<br><span class="text-muted-sm">${escapeHtml(pii.familyNameKana || '')} ${escapeHtml(pii.firstNameKana || '')}</span></td>
+                    <td >${escapeHtml(pii.entryName || '')}</td>
+                    <td >${escapeHtml(pii.affiliation || '')}</td>
+                    <td >${escapeHtml(pii.grade || '')}</td>
+                    <td ><span class="text-muted-sm">${escapeHtml(pii.email || '')}</span><br>${escapeHtml(pii.inquiry || '-')}</td>
                     <td >${statText}</td>
                 `;
                     tbody.appendChild(tr);
                 }
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="7" class="td-loading-error">読み込みに失敗しました: ' + e.message + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="td-loading-error">読み込みに失敗しました: ' + escapeHtml(e.message) + '</td></tr>';
             }
         }
 

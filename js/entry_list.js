@@ -61,10 +61,10 @@ const params = new URLSearchParams(location.search);
                     if (isWaitlist) tr.style.opacity = '0.6';
                     tr.innerHTML = `
                         <td class="c-time">${waitIcon}${timeStr} <span style="color:#555;font-size:11px;margin-left:4px">#${padNum(e.entryNumber)}</span></td>
-                        <td><span class="c-affil">${e.affiliation}</span></td>
-                        <td><span class="c-grade">${grade}</span></td>
-                        <td class="c-name">${e.entryName}</td>
-                        <td class="c-msg">${e.message || ''}</td>
+                        <td><span class="c-affil">${escapeHtml(e.affiliation)}</span></td>
+                        <td><span class="c-grade">${escapeHtml(grade)}</span></td>
+                        <td class="c-name">${escapeHtml(e.entryName)}</td>
+                        <td class="c-msg">${escapeHtml(e.message || '')}</td>
                     `;
                     body.appendChild(tr);
                 };
