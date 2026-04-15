@@ -149,7 +149,7 @@
                     <div class="period-heading"><i class="fa-solid fa-users"></i> 定員<span class="period-hint">（0 = 制限なし。超過分はキャンセル待ちに）</span></div>
                     <div class="number-input-group" style="max-width:200px;">
                         <button type="button" class="number-btn" onclick="adjustNumberInput('setting-max-entries', -10)">−</button>
-                        <input type="number" id="setting-max-entries" min="0" max="9999" value="0" class="number-input" />
+                        <input type="number" id="setting-max-entries" min="0" max="9999" value="0" class="number-input" onchange="saveEntryPeriod()" />
                         <button type="button" class="number-btn" onclick="adjustNumberInput('setting-max-entries', 10)">+</button>
                     </div>
                 </div>

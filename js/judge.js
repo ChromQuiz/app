@@ -86,6 +86,7 @@ let requiredScorers = 3;
         }
 
         function updateGrid(scores) {
+            let doneCount = 0;
             for (let q = 1; q <= totalQuestions; q++) {
                 const scorers = new Set();
                 Object.keys(scores).forEach(key => {
@@ -101,6 +102,7 @@ let requiredScorers = 3;
                 const isMine = scorerList.includes(scorerName);
                 const isFull = scorerList.length >= requiredScorers && !isMine;
                 const allDone = scorerList.length >= requiredScorers && completedScorers.length >= requiredScorers;
+                if (allDone) doneCount++;
 
                 const card = document.getElementById(`qcard-${q}`);
                 const statusEl = document.getElementById(`qstatus-${q}`);
@@ -114,7 +116,7 @@ let requiredScorers = 3;
 
                 scorersEl.innerHTML = scorerList.map(name => {
                     const done = completedScorers.includes(name);
-                    return `${done ? '✓' : '…'} ${name}`;
+                    return `${done ? '✓' : '…'} ${escapeHtml(name)}`;
                 }).join('<br>');
 
                 if (isFull && !isMine) {
@@ -129,6 +131,18 @@ let requiredScorers = 3;
                 } else {
                     statusEl.className = 'q-status status-open';
                     statusEl.innerHTML = '<i class="fa-solid fa-minus"></i> 未着手';
+                }
+            }
+
+            // プログレスバー更新
+            const pct = totalQuestions > 0 ? Math.round((doneCount / totalQuestions) * 100) : 0;
+            const pBar = document.getElementById('judge-progress');
+            if (pBar) {
+                pBar.style.display = 'block';
+                document.getElementById('progress-pct').textContent = `${doneCount}/${totalQuestions} (${pct}%)`;
+                document.getElementById('progress-fill').style.width = `${pct}%`;
+                if (pct === 100) {
+                    document.getElementById('progress-fill').style.background = 'linear-gradient(90deg, #22c55e, #10b981)';
                 }
             }
         }

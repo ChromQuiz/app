@@ -220,7 +220,7 @@
         async function renderAnalytics() {
             const tbody = document.getElementById('analytics-tbody'); if (!entryNumbers.length) { tbody.innerHTML = '<tr><td colspan="5" class="td-loading">データがありません</td></tr>'; return; }
             const qs = await getAnalyticsData();
-            tbody.innerHTML = qs.map(s => `<tr class="${s.isRare ? 'row-rare' : ''}"><td >${s.q}</td><td >${s.correctCount}人</td><td >${s.rate}%</td><td >${s.type}</td><td >${s.names}</td></tr>`).join('');
+            tbody.innerHTML = qs.map(s => `<tr class="${s.isRare ? 'row-rare' : ''}"><td >${s.q}</td><td >${s.correctCount}人</td><td >${s.rate}%</td><td >${escapeHtml(s.type)}</td><td >${escapeHtml(s.names)}</td></tr>`).join('');
         }
         async function exportAnalyticsCSV() {
             const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率(%)', '状態', '正解者一覧']; const rows = [headers];
