@@ -46,56 +46,12 @@
         // 設定更新処理
         // ============================
 
-        async function updateProjectName() {
-            const name = document.getElementById('setting-project-name').value.trim();
-            if(!name) return showAdminToast('プロジェクト名を入力してください');
-            await dbSet(`projects/${projectId}/publicSettings/projectName`, name);
-            showAdminToast('プロジェクト名を更新しました', 'success');
-        }
-
-        async function toggleFullOpen() {
-            const toggle = document.getElementById('full-open-toggle');
-            const isFullOpen = toggle.checked;
-            // エントリーが1件以上あれば変更不可
-            const entries = await dbShallow(`projects/${projectId}/entries`);
-            if (entries && Object.keys(entries).length > 0) {
-                toggle.checked = !isFullOpen; // 元に戻す
-                showAdminToast('エントリーが存在するため大会形式を変更できません', 'error');
-                return;
-            }
-            await dbSet(`projects/${projectId}/publicSettings/fullOpen`, isFullOpen);
-            const badge = document.getElementById('full-open-status');
-            if (isFullOpen) {
-                badge.textContent = 'フルオープン';
-                badge.className = 'status-badge status-open';
-                showAdminToast('フルオープン大会モードに切り替えました', 'success');
-            } else {
-                badge.textContent = '学生以下';
-                badge.className = 'status-badge status-closed';
-                showAdminToast('学生以下モードに切り替えました', 'success');
-            }
-        }
-
         async function updateTerms() {
             const termsText = document.getElementById('setting-terms').value.trim();
             await dbSet(`projects/${projectId}/publicSettings/terms`, termsText || null);
             showAdminToast('参加規約を更新しました', 'success');
         }
 
-        async function toggleAllowEntryName() {
-            const isAllowed = document.getElementById('allow-entry-name-toggle').checked;
-            await dbSet(`projects/${projectId}/publicSettings/allowEntryNameForParticipation`, isAllowed);
-            const badge = document.getElementById('allow-entry-name-status');
-            if (isAllowed) {
-                badge.textContent = '許可';
-                badge.className = 'status-badge status-open';
-                showAdminToast('エントリーネーム参加を許可しました', 'success');
-            } else {
-                badge.textContent = '本名のみ';
-                badge.className = 'status-badge status-closed';
-                showAdminToast('本名での参加のみに制限しました', 'success');
-            }
-        }
 
         async function purgeOldImages() {
             // 24時間以上前の answers の画像データを削除（RTDB内のBase64）
@@ -402,72 +358,10 @@
             }
         }
 
-        async function exportProjectData(btnEl) {
-            const btn = btnEl || document.querySelector('[onclick*="exportProjectData"]');
-            if (!btn) return;
-            const originalText = btn.textContent;
-            try {
-                btn.innerHTML = '<i class="fa-solid fa-box-archive"></i> データ取得中...';
-                btn.disabled = true;
-                const data = {};
-                // protected配下のデータを取得
-                const protectedSections = ['config', 'answers', 'answers_text', 'scores', 'entryConfig', 'settings'];
-                for (const sec of protectedSections) {
-                    const secData = await dbGet(`projects/${projectId}/protected/${secretHash}/${sec}`);
-                    if (secData) data[sec] = secData;
-                }
-                // プロジェクト直下のデータ
-                const rootSections = ['entries', 'disclosure'];
-                for (const sec of rootSections) {
-                    const secData = await dbGet(`projects/${projectId}/${sec}`);
-                    if (secData) data[sec] = secData;
-                }
-                // publicSettings
-                const pubSettings = await dbGet(`projects/${projectId}/publicSettings`);
-                if (pubSettings) data.publicSettings = pubSettings;
-                
-                if (Object.keys(data).length === 0) {
-                    showAdminToast('エクスポートするデータが見つかりません。');
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                    return;
-                }
-                
-                // Get project name if available
-                const pName = data.publicSettings?.projectName || pubSettings?.projectName || projectId;
-                
-                // JSON to Blob
-                const jsonStr = JSON.stringify(data, null, 2);
-                const blob = new Blob([jsonStr], { type: 'application/json' });
-                
-                // Download
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${pName}_backup.ciq`;
-                document.body.appendChild(a);
-                a.click();
-                
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
 
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> エクスポート完了';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }, 2000);
-
-            } catch (error) {
-                showAdminToast("エクスポートエラー: " + error.message);
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        }
 
         async function deleteProject() {
-            const pName = document.getElementById('setting-project-name')?.value || projectId;
+            const pName = projectId;
             if (!(await showConfirm(
                 'このプロジェクトの全データをサーバーから完全に削除しますか？\n\n' +
                 '⚠️ この操作は取り消せません。\n' +
@@ -506,146 +400,6 @@
             } catch (e) {
                 console.error('削除エラー:', e);
                 showAdminToast('削除エラー: ' + e.message, 'error');
-            }
-        }
-
-        async function renderOnboarding() {
-            // オンボーディング非表示設定チェック
-            if (localStorage.getItem(`onboarding_dismissed_${projectId}`)) return;
-
-            try {
-                const [config, answersKeys] = await Promise.all([
-                    dbGet(`projects/${projectId}/protected/${secretHash}/settings`),
-                    dbShallow(`projects/${projectId}/protected/${secretHash}/answers`)
-                ]);
-                const modelAnswers = await dbShallow(`projects/${projectId}/protected/${secretHash}/answers_text`);
-                const entriesCount = await dbShallow(`projects/${projectId}/entries`);
-
-                const steps = [
-                    { id: 'entries',   label: 'エントリーを受け付ける', done: entriesCount && Object.keys(entriesCount).length > 0, tab: 'tab-entries' },
-                    { id: 'model',     label: '模範解答を登録する', done: modelAnswers && Object.keys(modelAnswers).length > 0, tab: 'tab-prep' },
-                    { id: 'answers',   label: '答案をアップロードする', done: answersKeys && Object.keys(answersKeys).length > 0, tab: 'tab-scan' },
-                ];
-
-                const doneCount = steps.filter(s => s.done).length;
-
-                // 全部完了していたら表示しない
-                if (doneCount >= steps.length) {
-                    localStorage.setItem(`onboarding_dismissed_${projectId}`, '1');
-                    return;
-                }
-
-                const container = document.querySelector('.admin-body');
-                const panel = document.createElement('div');
-                panel.className = 'onboarding-panel';
-                panel.id = 'onboarding-panel';
-                panel.innerHTML = `
-                    <h3><i class="fa-solid fa-rocket"></i> セットアップガイド</h3>
-                    <div class="onboarding-desc">大会の準備を進めましょう。完了した項目は自動的にチェックされます。</div>
-                    <div class="onboarding-progress"><div class="onboarding-progress-bar" style="width:${(doneCount / steps.length) * 100}%"></div></div>
-                    <ul class="onboarding-steps">
-                        ${steps.map(s => `
-                            <li class="onboarding-step ${s.done ? 'done' : ''}">
-                                <div class="step-icon">${s.done ? '<i class="fa-solid fa-check"></i>' : ''}</div>
-                                <span class="step-label">${s.label}</span>
-                                ${!s.done ? `<span class="step-action" onclick="switchTab('${s.tab}')">設定 →</span>` : ''}
-                            </li>
-                        `).join('')}
-                    </ul>
-                    <span class="onboarding-dismiss" onclick="dismissOnboarding()">× このガイドを閉じる</span>
-                `;
-                const tabs = container.querySelector('.tabs');
-                container.insertBefore(panel, tabs);
-            } catch(e) {
-                console.warn('Onboarding check failed:', e);
-            }
-        }
-
-        function dismissOnboarding() {
-            localStorage.setItem(`onboarding_dismissed_${projectId}`, '1');
-            const panel = document.getElementById('onboarding-panel');
-            if (panel) { panel.style.transition = 'all 0.3s ease'; panel.style.opacity = '0'; panel.style.transform = 'translateY(-10px)'; setTimeout(() => panel.remove(), 300); }
-        }
-
-        // ============================
-        // プロジェクト寿命表示
-        // ============================
-        const PROJECT_LIFETIME_DAYS = 180; // 半年
-
-        function renderProjectLifetime(publicSettings) {
-            const createdAt = publicSettings.createdAt;
-            const lastAccess = publicSettings.lastAccess;
-
-            const formatDate = (ts) => {
-                if (!ts) return null;
-                const d = new Date(ts);
-                return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
-            };
-            const formatDateFull = (ts) => {
-                if (!ts) return '—';
-                const d = new Date(ts);
-                const pad = n => String(n).padStart(2, '0');
-                return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-            };
-
-            const elCreated = document.getElementById('lifetime-created');
-            const elLastAccess = document.getElementById('lifetime-last-access');
-            const elExpiry = document.getElementById('lifetime-expiry');
-            const elBarWrap = document.getElementById('lifetime-bar-wrap');
-            const elBarFill = document.getElementById('lifetime-bar-fill');
-            const elBarLabel = document.getElementById('lifetime-bar-label');
-            const elWarning = document.getElementById('lifetime-warning');
-
-            if (createdAt) {
-                elCreated.textContent = formatDateFull(createdAt);
-            } else {
-                elCreated.textContent = '記録なし（旧プロジェクト）';
-                elCreated.style.color = 'var(--text-muted)';
-            }
-
-            if (lastAccess) {
-                const ago = Math.floor((Date.now() - lastAccess) / (1000 * 60 * 60 * 24));
-                elLastAccess.textContent = `${formatDateFull(lastAccess)}（${ago}日前）`;
-            }
-
-            // 期限計算: lastAccess から180日後
-            const baseTs = lastAccess || createdAt;
-            if (baseTs) {
-                const expiryDate = new Date(baseTs + PROJECT_LIFETIME_DAYS * 24 * 60 * 60 * 1000);
-                const remainingDays = Math.ceil((expiryDate - Date.now()) / (1000 * 60 * 60 * 24));
-                const elapsedDays = PROJECT_LIFETIME_DAYS - remainingDays;
-                const pct = Math.min(100, Math.max(0, (elapsedDays / PROJECT_LIFETIME_DAYS) * 100));
-
-                elExpiry.textContent = `${formatDate(expiryDate.getTime())}（残り ${remainingDays} 日）`;
-
-                // プログレスバー
-                elBarWrap.hidden = false;
-                elBarFill.style.width = pct + '%';
-
-                if (remainingDays <= 30) {
-                    elBarFill.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)';
-                    elExpiry.style.color = '#ef4444';
-                    elExpiry.style.fontWeight = '700';
-                } else if (remainingDays <= 60) {
-                    elBarFill.style.background = 'linear-gradient(90deg, #34d399, #f59e0b)';
-                } else {
-                    elBarFill.style.background = 'linear-gradient(90deg, #6366f1, #34d399)';
-                }
-
-                elBarLabel.textContent = `${elapsedDays} / ${PROJECT_LIFETIME_DAYS} 日経過`;
-
-                // 警告表示
-                if (remainingDays <= 0) {
-                    elWarning.hidden = false;
-                    elWarning.className = 'lifetime-warning danger';
-                    elWarning.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i> 自動削除期限を超過しています。データが削除される可能性があります。アクセスすることで期限がリセットされます。';
-                } else if (remainingDays <= 30) {
-                    elWarning.hidden = false;
-                    elWarning.className = 'lifetime-warning caution';
-                    elWarning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 自動削除まで残り ' + remainingDays + ' 日です。定期的にアクセスするか、エクスポートでバックアップを取ってください。';
-                } else {
-                    elWarning.hidden = true;
-                }
             }
         }
 

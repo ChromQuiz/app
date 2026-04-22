@@ -70,7 +70,6 @@
                 </div>
 
                 <div id="affiliation-section">
-                    <!-- デフォルト: 学校限定モード -->
                     <div class="form-row" id="school-mode-fields">
                         <div class="form-group" style="flex:2">
                             <label class="required"><i class="fa-solid fa-school"></i> 所属教育機関</label>
@@ -90,37 +89,13 @@
                             </select>
                         </div>
                     </div>
-                    <!-- フルオープンモード用（非表示） -->
-                    <div class="form-group" id="open-mode-fields" style="display:none">
-                        <label class="required"><i class="fa-solid fa-map-location-dot"></i> 都道府県</label>
-                        <select id="f-prefecture" class="custom-select">
-                            <option value="">選択してください</option>
-                            <option value="北海道">北海道</option><option value="青森県">青森県</option><option value="岩手県">岩手県</option>
-                            <option value="宮城県">宮城県</option><option value="秋田県">秋田県</option><option value="山形県">山形県</option>
-                            <option value="福島県">福島県</option><option value="茨城県">茨城県</option><option value="栃木県">栃木県</option>
-                            <option value="群馬県">群馬県</option><option value="埼玉県">埼玉県</option><option value="千葉県">千葉県</option>
-                            <option value="東京都">東京都</option><option value="神奈川県">神奈川県</option><option value="新潟県">新潟県</option>
-                            <option value="富山県">富山県</option><option value="石川県">石川県</option><option value="福井県">福井県</option>
-                            <option value="山梨県">山梨県</option><option value="長野県">長野県</option><option value="岐阜県">岐阜県</option>
-                            <option value="静岡県">静岡県</option><option value="愛知県">愛知県</option><option value="三重県">三重県</option>
-                            <option value="滋賀県">滋賀県</option><option value="京都府">京都府</option><option value="大阪府">大阪府</option>
-                            <option value="兵庫県">兵庫県</option><option value="奈良県">奈良県</option><option value="和歌山県">和歌山県</option>
-                            <option value="鳥取県">鳥取県</option><option value="島根県">島根県</option><option value="岡山県">岡山県</option>
-                            <option value="広島県">広島県</option><option value="山口県">山口県</option><option value="徳島県">徳島県</option>
-                            <option value="香川県">香川県</option><option value="愛媛県">愛媛県</option><option value="高知県">高知県</option>
-                            <option value="福岡県">福岡県</option><option value="佐賀県">佐賀県</option><option value="長崎県">長崎県</option>
-                            <option value="熊本県">熊本県</option><option value="大分県">大分県</option><option value="宮崎県">宮崎県</option>
-                            <option value="鹿児島県">鹿児島県</option><option value="沖縄県">沖縄県</option>
-                            <option value="海外">海外</option>
-                        </select>
-                    </div>
                 </div>
 
                 <div class="form-group">
                     <label class="required"><i class="fa-solid fa-id-badge"></i> エントリーネーム</label>
                     <input type="text" id="f-entry-name" required placeholder="エントリーシートでの表示名">
                     <div id="entry-name-pref-area" style="margin-top:10px;">
-                        <!-- JSで動的に注意書きまたはチェックボックスを挿入 -->
+                        <div style="font-size:12px;color:#f87171;line-height:1.4;font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> 大会当日は本名（姓名）でのご参加・表示となります。エントリーネームはシステム上の登録用です。</div>
                     </div>
                 </div>
 
@@ -139,7 +114,7 @@
                         <input type="checkbox" id="f-tos" required>
                         <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
                         <div style="flex:1">
-                            <span id="tos-text">私は<a id="terms-link" href="terms.html" target="_blank" style="color:#60a5fa;text-decoration:underline">参加規約</a>および<a href="legal.html" target="_blank" style="color:#60a5fa;text-decoration:underline">プライバシーポリシー・利用規約</a>に同意し、入力した情報が正確であることを確認しました。</span>
+                            <span id="tos-text">私は<a id="terms-link" href="terms.html" target="_blank" style="color:#60a5fa;text-decoration:underline">参加規約</a>に同意し、入力した情報が正確であることを確認しました。</span>
                         </div>
                     </label>
                 </div>

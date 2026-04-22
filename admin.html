@@ -84,9 +84,7 @@
             <button class="menu-item" onclick="window.open('help.html','_blank')">
                 <i class="fa-solid fa-circle-question"></i> ヘルプ
             </button>
-            <button class="menu-item" onclick="openFeedback()">
-                <i class="fa-solid fa-comment-dots"></i> フィードバック
-            </button>
+
             <button class="menu-item danger" onclick="logout()">
                 <i class="fa-solid fa-right-from-bracket"></i> ログアウト
             </button>
@@ -378,37 +376,8 @@
 
         <!-- ==================== TAB 5: 設定 ==================== -->
         <div class="tab-content" id="tab-settings">
-            <div class="section glass-panel" id="project-lifetime-panel">
-                <h2><i class="fa-solid fa-hourglass-half"></i> プロジェクト寿命</h2>
-                <div id="lifetime-content" class="lifetime-grid">
-                    <div class="lifetime-item">
-                        <div class="lifetime-label"><i class="fa-solid fa-calendar-plus"></i> 作成日</div>
-                        <div class="lifetime-value" id="lifetime-created">—</div>
-                    </div>
-                    <div class="lifetime-item">
-                        <div class="lifetime-label"><i class="fa-solid fa-clock-rotate-left"></i> 最終アクセス</div>
-                        <div class="lifetime-value" id="lifetime-last-access">—</div>
-                    </div>
-                    <div class="lifetime-item">
-                        <div class="lifetime-label"><i class="fa-solid fa-calendar-xmark"></i> 自動削除予定</div>
-                        <div class="lifetime-value" id="lifetime-expiry">—</div>
-                    </div>
-                </div>
-                <div id="lifetime-bar-wrap" class="lifetime-bar-wrap" hidden>
-                    <div class="lifetime-bar">
-                        <div class="lifetime-bar-fill" id="lifetime-bar-fill"></div>
-                    </div>
-                    <div class="lifetime-bar-label" id="lifetime-bar-label"></div>
-                </div>
-                <div id="lifetime-warning" hidden></div>
-            </div>
-            <div class="section glass-panel">
-                <h2><i class="fa-solid fa-signature"></i> プロジェクト名</h2>
-                <div class="name-input-flex">
-                    <input type="text" id="setting-project-name" placeholder="プロジェクト名を入力" />
-                    <button class="btn" style="width:auto;padding:10px 20px;" onclick="updateProjectName()"><i class="fa-solid fa-arrows-rotate"></i> 更新</button>
-                </div>
-            </div>
+
+
             
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-scroll"></i> 参加規約</h2>
@@ -418,27 +387,7 @@
                     <button class="btn" style="width:100%;" onclick="updateTerms()"><i class="fa-solid fa-arrows-rotate"></i> 参加規約を更新</button>
                 </div>
             </div>
-            <div class="section glass-panel">
-                <h2><i class="fa-solid fa-earth-asia"></i> 大会形式</h2>
-                
-                <div class="config-panel config-row">
-                    <label class="toggle-switch"><input type="checkbox" id="full-open-toggle" onchange="toggleFullOpen()"><span class="toggle-slider"></span></label>
-                    <div class="toggle-info">
-                        <div class="toggle-info-title">フルオープン大会モード</div>
-                        <div class="toggle-info-desc">ONにすると、エントリーフォームの「学校名・学年」が「都道府県」に変わります</div>
-                    </div>
-                    <span id="full-open-status" class="status-badge status-closed">学生以下</span>
-                </div>
 
-                <div class="config-panel config-row mt-md">
-                    <label class="toggle-switch"><input type="checkbox" id="allow-entry-name-toggle" onchange="toggleAllowEntryName()"><span class="toggle-slider"></span></label>
-                    <div class="toggle-info">
-                        <div class="toggle-info-title">本戦でのエントリーネーム使用制限</div>
-                        <div class="toggle-info-desc">許可しない場合、当日システム上での本名表示が告知されます</div>
-                    </div>
-                    <span id="allow-entry-name-status" class="status-badge status-closed">本名のみ</span>
-                </div>
-            </div>
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-user-check"></i> 採点設定</h2>
                 <div class="config-panel config-row">
@@ -453,11 +402,7 @@
                     </div>
                 </div>
             </div>
-            <div class="section glass-panel">
-                <h2><i class="fa-solid fa-box-archive"></i> データバックアップ</h2>
-                <p class="desc-text"><i class="fa-solid fa-circle-info"></i> 全データを.ciqファイルとして書き出します。</p>
-                <button class="btn secondary" onclick="exportProjectData(this)"><i class="fa-solid fa-box-archive"></i> エクスポート</button>
-            </div>
+
             <div class="section glass-panel danger-zone">
                 <h2 class="danger-title"><i class="fa-solid fa-skull-crossbones"></i> 危険な操作</h2>
                 <p class="desc-text">プロジェクトを完全に削除します。元に戻せません。</p>

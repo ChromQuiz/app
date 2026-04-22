@@ -80,8 +80,6 @@
             dbSet(`projects/${projectId}/publicSettings/lastAccess`, SERVER_TIMESTAMP).catch(() => {});
             purgeOldImages();
 
-            // オンボーディングチェックリスト（セットアップ状況に応じて表示）
-            renderOnboarding();
 
             // キーボードショートカット登録（管理画面固有）
             KeyboardShortcuts.register('1', '参加者タブ', () => switchTab('tab-entries'));
@@ -89,19 +87,6 @@
             KeyboardShortcuts.register('3', '答案管理タブ', () => switchTab('tab-scan'));
             KeyboardShortcuts.register('4', '集計タブ', () => switchTab('tab-stats'));
             KeyboardShortcuts.register('5', '設定タブ', () => switchTab('tab-settings'));
-            KeyboardShortcuts.register('e', 'データエクスポート', () => exportProjectData());
-
-            // インタラクティブチュートリアル（初回訪問時に自動開始）
-            const adminTour = new TourGuide('admin_tour', [
-                { selector: '.tabs', title: 'タブナビゲーション', text: 'ここで各機能を切り替えます。キーボードの 1〜5 でも切替可能です。' },
-                { selector: '#entry-open-toggle', title: 'エントリー受付', text: 'トグルで受付の開始・停止を制御します。期間設定も可能です。', position: 'bottom' },
-                { selector: '.link-row', title: '公開リンク', text: 'エントリーフォーム、名簿、キャンセルフォーム等のURLです。参加者に共有してください。', position: 'bottom' },
-                { selector: '[onclick="switchTab(\'tab-prep\')"]', title: '採点準備タブ', text: '回答用紙の生成と、模範解答の登録を行います。' },
-                { selector: '[onclick="switchTab(\'tab-scan\')"]', title: '答案管理タブ', text: '回収した答案PDFをアップロードして読み取り・保存します。' },
-                { selector: '[onclick="switchTab(\'tab-stats\')"]', title: '集計タブ', text: '採点状況のリアルタイム集計とCSV出力を行います。' },
-                { selector: '[onclick="switchTab(\'tab-settings\')"]', title: '設定タブ', text: 'プロジェクト名の変更、大会形式の設定、データのバックアップ・削除はここから。' },
-            ]);
-            adminTour.autoStart(2000);
 
             // リンクURL設定
             const lOrigins = window.location.origin + window.location.pathname.replace('admin.html', '');
@@ -164,28 +149,12 @@
                 updateEntryOpenStatus();
             }
 
-            // publicSettings の一括読み込み（フルオープン、規約、エントリーネーム使用設定）
+            // publicSettings の読み込み（規約等）
             const publicSettings = await dbGet(`projects/${projectId}/publicSettings`) || {};
-            
-            if (publicSettings.projectName) {
-                document.getElementById('setting-project-name').value = publicSettings.projectName;
-            }
-            if (publicSettings.fullOpen) {
-                document.getElementById('full-open-toggle').checked = true;
-                document.getElementById('full-open-status').textContent = 'フルオープン';
-                document.getElementById('full-open-status').className = 'status-badge status-open';
-            }
+
             if (publicSettings.terms) {
                 document.getElementById('setting-terms').value = publicSettings.terms;
             }
-            if (publicSettings.allowEntryNameForParticipation) {
-                document.getElementById('allow-entry-name-toggle').checked = true;
-                document.getElementById('allow-entry-name-status').textContent = '許可';
-                document.getElementById('allow-entry-name-status').className = 'status-badge status-open';
-            }
-
-            // プロジェクト寿命表示
-            renderProjectLifetime(publicSettings);
 
             document.getElementById('stat-total').textContent = totalQuestions;
 
@@ -193,26 +162,10 @@
             const reqScorers = await dbGet(`projects/${projectId}/protected/${secretHash}/requiredScorers`);
             if (reqScorers) document.getElementById('required-scorers').value = reqScorers;
 
-            // ロック状態の確認と表示
-            const [entries, scores] = await Promise.all([
-                dbShallow(`projects/${projectId}/entries`),
-                dbShallow(`projects/${projectId}/protected/${secretHash}/scores`)
-            ]);
-            const hasEntries = entries && Object.keys(entries).length > 0;
-            const hasScores = scores && Object.keys(scores).filter(k => !k.startsWith('__')).length > 0;
-
-            // エントリーありでフルオープン切替ロック
-            if (hasEntries) {
-                const toggle = document.getElementById('full-open-toggle');
-                toggle.disabled = true;
-                toggle.closest('.config-row').classList.add('config-locked');
-                toggle.closest('.config-row').insertAdjacentHTML('beforeend',
-                    '<div class="lock-reason"><i class="fa-solid fa-lock"></i> エントリーがあるため変更できません</div>');
-            }
-
             // スコアありで採点者数ロック
+            const scores = await dbShallow(`projects/${projectId}/protected/${secretHash}/scores`);
+            const hasScores = scores && Object.keys(scores).filter(k => !k.startsWith('__')).length > 0;
             if (hasScores) {
-                document.querySelectorAll('.number-spinner-wrap')[1]?.closest('.config-row')?.classList.add('config-locked');
                 const scorerBtns = document.getElementById('required-scorers')?.closest('.number-spinner-wrap')?.querySelectorAll('.number-spinner-btn');
                 scorerBtns?.forEach(b => b.disabled = true);
                 document.getElementById('required-scorers')?.closest('.config-row')?.insertAdjacentHTML('beforeend',

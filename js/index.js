@@ -1,5 +1,16 @@
 // index.js — ログイン / プロジェクト作成（Firebase SDK版）
 
+function getOrdinalSuffix(n) {
+	const mod100 = n % 100;
+	if (mod100 >= 11 && mod100 <= 13) return 'th';
+	switch (n % 10) {
+		case 1: return 'st';
+		case 2: return 'nd';
+		case 3: return 'rd';
+		default: return 'th';
+	}
+}
+
 function generateStrongPassword() {
 	const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	const lower = 'abcdefghijklmnopqrstuvwxyz';
@@ -25,11 +36,9 @@ function setTab(tab) {
 	const tabCreate = document.getElementById('tab-create');
 	if (tabJoin) tabJoin.className = tab === 'join' ? 'tab active' : 'tab';
 	if (tabCreate) tabCreate.className = tab === 'create' ? 'tab active' : 'tab';
-	
 
 	document.getElementById('section-join').hidden = tab !== 'join';
 	document.getElementById('section-create').hidden = tab !== 'create';
-	document.getElementById('section-import').hidden = tab !== 'import';
 }
 
 function showError(msg) {
@@ -61,10 +70,6 @@ async function copyToClipboard(id, btn) {
 	} catch (err) {
 		showError('コピーに失敗しました');
 	}
-}
-
-function generateSecureId() {
-	return [1, 2, 3, 4].map(() => Math.random().toString(36).substring(2, 6).padStart(4, '0')).join('-');
 }
 
 async function joinProject() {
@@ -170,26 +175,29 @@ async function joinProject() {
 
 async function createProject() {
 	await waitForAuth();
-	const pName = document.getElementById('create-project-name').value.trim();
+	const edition = parseInt(document.getElementById('create-edition').value);
+	const name = document.getElementById('create-name').value.trim();
 	const adminPwd = generateStrongPassword();
 	const scorerPwd = generateStrongPassword();
-	const name = document.getElementById('create-name').value.trim();
 	const btn = document.getElementById('create-btn');
 
-	if (!pName || !name) {
-		showError('全ての項目を入力してください');
+	if (!edition || edition < 1 || !name) {
+		showError('回数とお名前を入力してください');
 		return;
 	}
-	if (!document.getElementById('create-tos').checked) {
-		showError('利用規約・プライバシーポリシーに同意してください');
-		return;
-	}
+
+	const pid = `ciq${edition}`;
+	const pName = `CIQ the ${edition}${getOrdinalSuffix(edition)}`;
 
 	btn.disabled = true;
 	btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 作成中...';
 
 	try {
-		const pid = generateSecureId();
+		// 既存プロジェクトの重複チェック
+		const existing = await dbGet(`projects/${pid}/publicSettings`);
+		if (existing) {
+			throw new Error(`プロジェクト "${pid}" は既に存在します。別の回数を指定してください。`);
+		}
 
 		// ハッシュ計算
 		const adminHash = await AppCrypto.hashPassword(adminPwd);
@@ -242,78 +250,6 @@ async function createProject() {
 		showError('作成に失敗しました: ' + e.message);
 		btn.disabled = false;
 		btn.innerHTML = '新しいプロジェクトを作成 <i class="fa-solid fa-plus"></i>';
-	}
-}
-
-async function importProject() {
-	await waitForAuth();
-	const file = document.getElementById('import-file').files[0];
-	const pName = document.getElementById('import-project-name').value.trim();
-	const adminPwd = generateStrongPassword();
-	const scorerPwd = generateStrongPassword();
-	const name = document.getElementById('import-name').value.trim();
-	const btn = document.getElementById('import-btn');
-
-	if (!file || !pName || !name) {
-		showError('全ての項目を入力・選択してください');
-		return;
-	}
-
-	btn.disabled = true;
-	btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 復元中...';
-
-	try {
-		const text = await file.text();
-		const data = JSON.parse(text);
-
-		const pid = generateSecureId();
-		const adminHash = await AppCrypto.hashPassword(adminPwd);
-		const scorerHash = await AppCrypto.hashPassword(scorerPwd);
-
-		const { publicKeyJwk, privateKeyJwk } = await AppCrypto.generateRSAKeyPair();
-		const encryptedPriv = await AppCrypto.encryptAES(JSON.stringify(privateKeyJwk), adminPwd);
-
-		const updates = {};
-		updates[`publicSettings`] = { projectName: pName, publicKey: publicKeyJwk, createdAt: SERVER_TIMESTAMP, lastAccess: SERVER_TIMESTAMP };
-		if (data.entries) updates[`entries`] = data.entries;
-		
-		updates[`protected/${scorerHash}`] = {
-			answers: data.answers || {},
-			answers_text: data.answers_text || {},
-			scores: data.scores || {},
-			config: data.config || {},
-			entryConfig: data.entryConfig || {},
-			disclosure: data.disclosure || {},
-			settings: { role: 'scorer', createdAt: SERVER_TIMESTAMP }
-		};
-		
-		updates[`protected/${adminHash}/settings`] = {
-			adminCreator: name,
-			scorerHash: scorerHash,
-			encryptedPrivateKey: encryptedPriv
-		};
-
-		await dbUpdate(`projects/${pid}`, updates);
-
-		session.set('projectId', pid);
-		session.set('scorer_name', name);
-		session.set('scorer_role', 'admin');
-		session.set('secretHash', scorerHash);
-		session.set('adminHash', adminHash);
-		session.set('privateKeyJwk', JSON.stringify(privateKeyJwk));
-
-		const tabsContainer2 = document.getElementById('tabs-container');
-		if (tabsContainer2) tabsContainer2.hidden = true;
-		document.getElementById('section-import').hidden = true;
-		document.getElementById('section-success').hidden = false;
-		document.getElementById('success-id').value = pid;
-		document.getElementById('success-admin-pwd').value = adminPwd;
-		document.getElementById('success-pwd').value = scorerPwd;
-
-	} catch (e) {
-		showError('インポートに失敗しました: ' + e.message);
-		btn.disabled = false;
-		btn.innerHTML = '復元して新設 <i class="fa-solid fa-upload"></i>';
 	}
 }
 
