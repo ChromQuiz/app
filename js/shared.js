@@ -39,6 +39,8 @@ function waitForAuth() {
         const unsub = firebase.auth().onAuthStateChanged(user => {
             if (user) { unsub(); resolve(user); }
         });
+        // タイムアウト: 5秒以内に認証完了しなければ続行（ローカル環境対策）
+        setTimeout(() => resolve(null), 5000);
     });
 }
 
