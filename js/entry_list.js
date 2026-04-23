@@ -54,7 +54,7 @@ const params = new URLSearchParams(location.search);
                     const h = d.getHours().toString().padStart(2,'0');
                     const min = d.getMinutes().toString().padStart(2,'0');
                     const timeStr = `${m}/${day} ${h}:${min}`;
-                    const grade = e.grade !== '非表示' ? `(${e.grade})` : '';
+                    const grade = e.grade !== '非表示' ? e.grade : '';
                     const waitIcon = isWaitlist ? '<i class="fa-solid fa-clock" style="color:#f59e0b;margin-right:4px;" title="キャンセル待ち"></i>' : '';
                     
                     const tr = document.createElement('tr');
