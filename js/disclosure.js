@@ -133,23 +133,6 @@ const params = new URLSearchParams(location.search);
         }
     }
 
-    async function shareWithFile(fallbackFn) {
-        if (!shareBlob) return;
-        if (navigator.share && navigator.canShare) {
-            const file = new File([shareBlob], 'ciq_result.png', { type: 'image/png' });
-            const shareData = { text: getShareText(), files: [file] };
-            if (navigator.canShare(shareData)) {
-                try {
-                    await navigator.share(shareData);
-                    return;
-                } catch(e) {
-                    if (e.name === 'AbortError') return;
-                }
-            }
-        }
-        if (fallbackFn) fallbackFn();
-    }
-
     function downloadBlob() {
         if (!shareBlob) return;
         const a = document.createElement('a');
@@ -158,26 +141,23 @@ const params = new URLSearchParams(location.search);
         a.click();
     }
 
-    function copyShareText() {
+    async function shareResult() {
+        if (!shareBlob) return;
+        const file = new File([shareBlob], 'ciq_result.png', { type: 'image/png' });
+        const shareData = { text: getShareText(), files: [file] };
+
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+            try {
+                await navigator.share(shareData);
+                return;
+            } catch(e) {
+                if (e.name === 'AbortError') return;
+            }
+        }
+        // デスクトップ等フォールバック
+        downloadBlob();
         navigator.clipboard.writeText(getShareText()).catch(() => {});
-    }
-
-    function shareToX() {
-        shareWithFile(() => {
-            // デスクトップ: 画像DL + テキストでX投稿画面を開く
-            downloadBlob();
-            const text = encodeURIComponent(getShareText());
-            window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
-        });
-    }
-
-    function shareToInstagram() {
-        shareWithFile(() => {
-            // デスクトップ: 画像DL + テキストコピー + 案内
-            downloadBlob();
-            copyShareText();
-            alert('画像を保存しました。Instagramアプリで投稿してください。\nキャプションはクリップボードにコピー済みです。');
-        });
+        alert('画像を保存しました。テキストはクリップボードにコピー済みです。');
     }
 
     function downloadShareImage() {

@@ -492,9 +492,8 @@ body.page-404 { display: flex; align-items: center; justify-content: center; min
   display: flex; align-items: center; justify-content: center;
 }
 .share-btn:hover { transform: scale(1.12); }
-.share-x:hover { background: #000; color: #fff; border-color: #000; }
-.share-instagram:hover { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; border-color: transparent; }
-.share-download:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.share-main:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.share-download:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2); }
 
 /* Inline edit input (model answer edit) */
 .inline-edit-input {
