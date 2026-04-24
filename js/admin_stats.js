@@ -65,11 +65,15 @@
             if (allConfirmed && totalQuestions > 0) { 
                 csvS.innerHTML = '<i class="fa-solid fa-circle-check"></i> 全問確定済み — CSV出力できます'; 
                 csvS.className = 'csv-status ready'; 
-                csvB.disabled = false; 
+                csvB.disabled = false;
+                const pdfB = document.getElementById('graded-pdf-btn');
+                if (pdfB) pdfB.disabled = false;
             } else { 
                 csvS.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> 未確定の問題があります（${confirmedCount} / ${totalQuestions} 確定済み）`; 
                 csvS.className = 'csv-status notready'; 
-                csvB.disabled = true; 
+                csvB.disabled = true;
+                const pdfB2 = document.getElementById('graded-pdf-btn');
+                if (pdfB2) pdfB2.disabled = true;
             }
             renderAnalytics();
             generateDisclosure();
