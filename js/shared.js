@@ -226,15 +226,22 @@ class Poller {
 /**
  * データベース認証エラー表示
  * PERMISSION_DENIED 時に呼び出す共通オーバーレイ
+ * 公開ページではリロードボタン、管理ページではログイン画面へのリンクを表示
  */
 function showDbAuthError() {
+    const publicPages = ['entry.html', 'entry_list.html', 'cancel.html', 'late.html', 'edit.html', 'disclosure.html', 'terms.html'];
+    const currentPage = location.pathname.split('/').pop();
+    const isPublic = publicPages.includes(currentPage);
+
     const div = document.createElement('div');
     div.className = 'error-overlay';
     div.innerHTML = `
         <div class="error-dialog">
-            <h2><i class="fa-solid fa-triangle-exclamation"></i> データベース通信拒否</h2>
-            <p>データベースへの接続が拒否されました。<br><br><br>運営者にお問い合わせください。</p>
-            <button class="btn danger" onclick="location.href='index.html'"><i class="fa-solid fa-arrow-left"></i> ログイン画面へ戻る</button>
+            <h2><i class="fa-solid fa-triangle-exclamation"></i> 接続エラー</h2>
+            <p>データベースへの接続が切断されました。<br><br>${isPublic ? 'ページを再読み込みしてください。' : '再ログインが必要な場合があります。'}</p>
+            ${isPublic
+                ? '<button class="btn primary" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> ページを再読み込み</button>'
+                : '<button class="btn danger" onclick="location.href=\'index.html\'"><i class="fa-solid fa-arrow-left"></i> ログイン画面へ戻る</button>'}
         </div>
     `;
     document.body.appendChild(div);
@@ -246,7 +253,6 @@ function showDbAuthError() {
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes('PERMISSION_DENIED')) {
         event.preventDefault();
-        document.body.innerHTML = '';
         showDbAuthError();
     }
 });
