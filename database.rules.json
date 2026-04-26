@@ -16,6 +16,10 @@
             ".read": "auth != null",
             ".write": "auth != null"
           }
+        },
+        "disclosure": {
+          ".read": "auth != null",
+          ".write": "auth != null"
         }
       }
     },
