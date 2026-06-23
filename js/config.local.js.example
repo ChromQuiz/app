@@ -1,0 +1,5 @@
+// ローカル/本番用の秘密設定（gitignore 対象）
+// このファイルを js/config.local.js としてコピーして apiKey を設定してください。
+window.__CIQ_LOCAL_CONFIG = {
+  apiKey: 'your-api-secret-key-here',
+};

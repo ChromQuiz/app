@@ -1,0 +1,14 @@
+---
+description: コード変更後は commit して remote へ push まで行う
+alwaysApply: true
+---
+
+# Git: 常に push まで
+
+コード変更を行ったセッションでは、ユーザーの明示的な依頼がなくても以下まで完了する:
+
+1. 関連ファイルを stage する（秘密情報・`.env`・`js/config.local.js` は含めない）
+2. 変更内容を反映した commit message で commit する
+3. `git push` で remote に push する
+
+push 前に `git status` で成功を確認する。push が失敗した場合は原因を報告し、可能なら修正して再 push する。

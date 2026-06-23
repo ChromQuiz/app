@@ -37,11 +37,14 @@ const session = {
 };
 
 // メール通知設定 (AWS SES via Lambda)
-// AWS セットアップ完了後に endpoint と apiKey を記入する
+// apiKey は js/config.local.js（config.local.js.example をコピー）で上書きする
 const EMAIL_CONFIG = {
   endpoint: 'https://x6fnhov5w5.execute-api.ap-northeast-1.amazonaws.com/send-email',
-  apiKey: 'ciq2026ses',
+  apiKey: '',
 };
+if (typeof window.__CIQ_LOCAL_CONFIG !== 'undefined') {
+  Object.assign(EMAIL_CONFIG, window.__CIQ_LOCAL_CONFIG);
+}
 // email.js より後に実行されるよう遅延初期化
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof CIQEmail !== 'undefined' && EMAIL_CONFIG.endpoint) {
