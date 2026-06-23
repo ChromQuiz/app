@@ -1428,8 +1428,7 @@ textarea::placeholder { color: var(--text-faint); }
   box-shadow: 0 4px 20px rgba(220,38,38,0.4);
 }
 .offline-banner.visible { transform: translateY(0); }
-.offline-banner i { animation: pulse-icon 2s infinite; }
-@keyframes pulse-icon { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.offline-banner i { opacity: 1; }
 
 .online-banner {
   position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
@@ -1585,15 +1584,10 @@ kbd {
   box-shadow: var(--shadow-lg);
 }
 
-/* Pulse dot for live indicators */
-@keyframes pulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.85); }
-}
+/* Static dot for live indicators */
 .pulse-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--success);
-  animation: pulseDot 2s ease infinite;
   flex-shrink: 0;
 }
 
