@@ -630,7 +630,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 .page-logo .logo-icon {
   font-size: 44px; margin-bottom: 10px; display: block;
-  background: linear-gradient(135deg, #60a5fa, #8b5cf6, #ec4899);
+  background: linear-gradient(135deg, #60a5fa, var(--primary));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   animation: fadeSlideUp 0.5s var(--smooth);
   filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3));
@@ -655,7 +655,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 .page-card::before {
   content: ''; position: absolute; top: -1px; left: 15%; right: 15%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(59,130,246,0.45), rgba(139,92,246,0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(79, 143, 216, 0.45), var(--primary), rgba(79, 143, 216, 0.45), transparent);
   border-radius: 2px;
 }
 
@@ -762,7 +762,7 @@ textarea::placeholder { color: var(--text-faint); }
 }
 .fixed-header::after {
   content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
-  height: 1px; background: linear-gradient(90deg, transparent 5%, rgba(59,130,246,0.35) 30%, rgba(139,92,246,0.3) 70%, transparent 95%);
+  height: 1px; background: linear-gradient(90deg, transparent 5%, rgba(79, 143, 216, 0.35) 30%, var(--primary-soft) 70%, transparent 95%);
 }
 .fixed-header .header-left,
 .fixed-header .header-right { display: flex; align-items: center; min-width: 0; }
@@ -871,7 +871,7 @@ textarea::placeholder { color: var(--text-faint); }
 }
 .menu-avatar {
   width: 56px; height: 56px; border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 12px; font-size: 22px; color: white;
   box-shadow: 0 4px 12px rgba(59,130,246,0.3);
@@ -1179,7 +1179,7 @@ textarea::placeholder { color: var(--text-faint); }
   position: absolute; right: 16px; top: 16px;
   cursor: pointer; color: #94a3b8;
 }
-.magic-icon { color: #fbbf24; }
+.helper-icon { color: var(--text-muted); }
 
 .success-icon {
   font-size: 56px; margin-bottom: 16px; color: #4ade80;
@@ -1485,8 +1485,8 @@ kbd {
    Onboarding Checklist
    ============================================ */
 .onboarding-panel {
-  background: linear-gradient(145deg, rgba(59,130,246,0.08), rgba(139,92,246,0.05));
-  border: 1px solid rgba(59,130,246,0.2);
+  background: rgba(79, 143, 216, 0.04);
+  border: 1.5px solid rgba(79, 143, 216, 0.15);
   border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
 }
 .onboarding-panel h3 {
@@ -1502,7 +1502,7 @@ kbd {
   overflow: hidden; margin-bottom: 16px;
 }
 .onboarding-progress-bar {
-  height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  height: 100%; background: var(--primary);
   border-radius: 3px; transition: width 0.5s ease;
 }
 .onboarding-steps { list-style: none; padding: 0; margin: 0; }
