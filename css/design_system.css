@@ -1653,3 +1653,213 @@ kbd {
 }
 .number-input::-webkit-outer-spin-button,
 .number-input::-webkit-inner-spin-button { appearance: none; margin: 0; }
+
+/* ============================================
+   CIQ Humanized Theme Pass
+   Brand-led, paper-first operations UI.
+   ============================================ */
+:root {
+  --bg-dark: #e9edf0;
+  --bg-primary: #f4f2ec;
+  --bg-secondary: #ebe7dc;
+  --surface-1: #fffdf7;
+  --surface-2: #f3f0e7;
+  --surface-3: #e7efe7;
+  --glass-bg: #fffdf7;
+  --glass-bg-elevated: rgba(255, 253, 247, 0.96);
+  --glass-border: rgba(48, 65, 58, 0.16);
+  --glass-border-hover: rgba(48, 65, 58, 0.32);
+  --glass-highlight: rgba(255, 255, 255, 0.7);
+
+  --primary: #1f6f5b;
+  --primary-hover: #175744;
+  --primary-soft: rgba(31, 111, 91, 0.12);
+  --primary-glow: rgba(31, 111, 91, 0.16);
+  --accent: #b77b1d;
+  --danger: #c0443e;
+  --danger-glow: rgba(192, 68, 62, 0.18);
+  --success: #2f8f63;
+  --success-glow: rgba(47, 143, 99, 0.16);
+  --warning: #b77b1d;
+  --warning-glow: rgba(183, 123, 29, 0.16);
+
+  --text-main: #18231f;
+  --text-muted: #5d6a63;
+  --text-faint: #8b948d;
+  --font-family: 'BIZ UDPGothic', 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 7px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+
+  --shadow-sm: 0 1px 2px rgba(39, 48, 43, 0.08);
+  --shadow-md: 0 10px 24px -18px rgba(39, 48, 43, 0.34);
+  --shadow-lg: 0 18px 40px -28px rgba(39, 48, 43, 0.42);
+  --shadow-xl: 0 24px 54px -34px rgba(39, 48, 43, 0.48);
+}
+
+@font-face {
+  font-family: 'BIZ UDPGothic';
+  src: url('../fonts/BIZUDGothic-Subset.ttf') format('truetype');
+  font-display: swap;
+}
+
+body {
+  background:
+    linear-gradient(180deg, rgba(31, 111, 91, 0.08), transparent 360px),
+    radial-gradient(circle at 12% 0%, rgba(183, 123, 29, 0.10), transparent 280px),
+    var(--bg-primary);
+  color: var(--text-main);
+}
+
+.btn,
+.page-btn,
+button,
+input,
+select,
+textarea {
+  letter-spacing: 0;
+}
+
+.btn,
+.page-btn {
+  background: var(--primary);
+  color: #fffdf7;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover,
+.page-btn:hover {
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-md);
+  filter: none;
+}
+
+.btn.secondary,
+.btn.ghost,
+.back-nav-btn,
+.menu-trigger,
+.id-copy-badge {
+  background: var(--surface-1);
+  color: var(--text-main);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="email"],
+select,
+textarea,
+.page-input,
+.custom-dropdown .cd-trigger {
+  background: var(--surface-1);
+  color: var(--text-main);
+  border-color: var(--glass-border);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.page-input:focus,
+.custom-dropdown.open .cd-trigger {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(31, 111, 91, 0.14);
+}
+
+label {
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.glass-panel,
+.page-card,
+.table-container,
+.list-container,
+.custom-dropdown .cd-menu,
+.dt-picker,
+.confirm-dialog,
+.kbd-modal {
+  background: var(--surface-1);
+  color: var(--text-main);
+  border-color: var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.badge.primary,
+.page-msg.info,
+.count-badge,
+.tour-step-badge,
+.menu-role-badge.scorer {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: rgba(31, 111, 91, 0.24);
+}
+
+table th,
+.custom-dropdown .cd-search,
+.list-container th {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+table td,
+.list-container td {
+  border-bottom-color: rgba(48, 65, 58, 0.09);
+}
+
+table tbody tr:hover,
+.list-container tbody tr:hover,
+.custom-dropdown .cd-option:hover {
+  background: rgba(31, 111, 91, 0.07);
+}
+
+.custom-dropdown .cd-option,
+.custom-dropdown .cd-search input,
+select option {
+  background: var(--surface-1);
+  color: var(--text-main);
+}
+
+.custom-dropdown .cd-option.selected {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.progress-bar-wrap,
+.number-spinner-wrap,
+.file-upload-zone,
+.credential-panel,
+.format-box {
+  background: var(--surface-2);
+  border-color: var(--glass-border);
+}
+
+.progress-bar-inner,
+.onboarding-progress-bar,
+.lifetime-bar-fill {
+  background: var(--primary);
+}
+
+.toast {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: none;
+}
+
+.toast-success { background: #2f8f63; }
+.toast-error { background: #c0443e; }
+.toast-info { background: #1f6f5b; }
+
+::selection {
+  background: rgba(31, 111, 91, 0.22);
+  color: var(--text-main);
+}
+
+::-webkit-scrollbar-thumb { background: rgba(48, 65, 58, 0.22); }
+::-webkit-scrollbar-thumb:hover { background: rgba(48, 65, 58, 0.34); }
+* { scrollbar-color: rgba(48, 65, 58, 0.26) transparent; }
