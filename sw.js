@@ -4,7 +4,7 @@
  * REST API通信はキャッシュしない（常にライブデータを使用）。
  */
 
-const CACHE_NAME = 'ciq-v4';
+const CACHE_NAME = 'ciq-v5';
 const STATIC_ASSETS = [
     'css/design_system.css',
     'js/config.js',
