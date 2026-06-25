@@ -75,6 +75,7 @@
                 const pdfB2 = document.getElementById('graded-pdf-btn');
                 if (pdfB2) pdfB2.disabled = true;
             }
+            window.updateAdminOverview?.();
             renderAnalytics();
             generateDisclosure();
         }

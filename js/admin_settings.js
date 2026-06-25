@@ -90,24 +90,28 @@
 
             if (!isOpen) {
                 el.textContent = '停止中';
-                el.className = 'status-badge closed';
+                el.className = 'status-badge status-closed';
+                window.updateAdminOverview?.();
                 return;
             }
 
             const now = new Date();
             if (ps && new Date(ps) > now) {
                 el.textContent = '期間外（開始前）';
-                el.className = 'status-badge pending';
+                el.className = 'status-badge status-warning';
+                window.updateAdminOverview?.();
                 return;
             }
             if (pe && new Date(pe) < now) {
                 el.textContent = '期間外（終了済）';
-                el.className = 'status-badge pending';
+                el.className = 'status-badge status-warning';
+                window.updateAdminOverview?.();
                 return;
             }
 
             el.textContent = '受付中';
-            el.className = 'status-badge open';
+            el.className = 'status-badge status-open';
+            window.updateAdminOverview?.();
         }
 
         async function saveEntryPeriod() {
@@ -264,12 +268,14 @@
                 window._entriesRaw = entriesData; // アナリティクスのエントリーネーム表示用
                 if (!entriesData) {
                     tbody.innerHTML = '<tr><td colspan="7" class="td-loading">名簿データがありません。</td></tr>';
+                    window.setAdminEntriesCount?.(0);
                     return;
                 }
 
                 tbody.innerHTML = '';
                 // entryNumber順にソート
                 const children = Object.values(entriesData).sort((a, b) => (a.entryNumber || 0) - (b.entryNumber || 0));
+                window.setAdminEntriesCount?.(children.length);
                 
                 for (const v of children) {
                     let pii = v;

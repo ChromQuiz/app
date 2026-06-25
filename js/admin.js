@@ -35,6 +35,35 @@
         let scoresData = {};
         let entryNumbers = [];
         let modelAnswers = [];
+        let adminEntriesCount = 0;
+
+        function updateAdminOverview() {
+            const entryStatus = document.getElementById('entry-open-status')?.textContent?.trim() || '確認中';
+            const entryCount = adminEntriesCount || (window._entriesRaw ? Object.keys(window._entriesRaw).length : 0);
+            const done = document.getElementById('stat-done')?.textContent || '-';
+            const conflict = document.getElementById('stat-conflict')?.textContent || '-';
+            const total = totalQuestions || document.getElementById('stat-total')?.textContent || '-';
+            const csvStatus = document.getElementById('csv-status');
+            const outputReady = csvStatus?.classList.contains('ready');
+
+            const setText = (id, text) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text;
+            };
+
+            setText('overview-entry-status', entryStatus);
+            setText('overview-entry-count', `参加者 ${entryCount} 名`);
+            setText('overview-scoring-status', conflict !== '-' && Number(conflict) > 0 ? '要確認あり' : '進行中');
+            setText('overview-scoring-count', `${done} / ${total} 問完了`);
+            setText('overview-output-status', outputReady ? '出力可能' : '未確定');
+            setText('overview-output-meta', outputReady ? 'CSV / PDF を出力できます' : '全問確定後に出力できます');
+        }
+
+        window.updateAdminOverview = updateAdminOverview;
+        window.setAdminEntriesCount = function(count) {
+            adminEntriesCount = count || 0;
+            updateAdminOverview();
+        };
 
         // タブ切り替え（遅延ロード対応）
         const tabLoaded = { 'tab-entries': false, 'tab-prep': false, 'tab-scan': false, 'tab-stats': false, 'tab-settings': false };
@@ -61,6 +90,7 @@
             }
             // 集計タブは毎回更新
             if (tabId === 'tab-stats') updateStatsView();
+            updateAdminOverview();
         }
 
         async function init() {
@@ -167,6 +197,7 @@
             }
 
             document.getElementById('stat-total').textContent = totalQuestions;
+            updateAdminOverview();
 
             // 必要採点者数を3人に固定（DB書き込み）
             await dbSet(`projects/${projectId}/protected/${secretHash}/requiredScorers`, 3);
