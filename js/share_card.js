@@ -94,10 +94,7 @@ const ShareCard = (() => {
         // バナー背景（平行四辺形）
         ctx.save();
         paraPath(ctx, 60, bannerY, W - 160, bannerH, skew);
-        const grad = ctx.createLinearGradient(0, bannerY, W, bannerY);
-        grad.addColorStop(0, C.dark);
-        grad.addColorStop(1, C.darkSub);
-        ctx.fillStyle = grad;
+        ctx.fillStyle = C.dark;
         ctx.fill();
 
         // 上辺の青ライン
@@ -181,10 +178,7 @@ const ShareCard = (() => {
 
         // ヘッダーバー — カード本体の上部を切り取った平行四辺形
         ctx.save();
-        const hGrad = ctx.createLinearGradient(x, y, x + w, y);
-        hGrad.addColorStop(0, C.dark);
-        hGrad.addColorStop(1, C.darkSub);
-        ctx.fillStyle = hGrad;
+        ctx.fillStyle = C.dark;
         // カード本体と同じ傾斜を使う（skewは高さに比例して減少）
         const topSkew = skew;
         const botSkew = skew * (1 - headerH / h);

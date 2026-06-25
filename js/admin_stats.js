@@ -142,6 +142,7 @@
                 const score = answers.reduce((a, b) => a + b, 0);
                 const streaks = []; let cur = 0;
                 answers.forEach(a => { if (a === 1) { cur++; } else { streaks.push(cur); cur = 0; } });
+                streaks.push(cur);
                 const m = masterData[en] || {};
                 const name = formatCsvName(m.familyName || '', m.firstName || '', m.entryName || '', m.useEntryName, sepType, fixedLen);
                 return { entryNumber: en, name, affiliation: m.affiliation || '', grade: m.grade || '', score, answers, streaks };
@@ -165,7 +166,14 @@
             const streakHeaders = [];
             for (let i = 0; i < maxStreakLen; i++) streakHeaders.push(`連答${i + 1}`);
 
-            const headers = ['順位', '所属', '学年', '氏名', '点数', ...streakHeaders];
+            const tieKey = r => `${r.score}|${r.streaks.join('/')}`;
+            const tieCounts = results.reduce((map, r) => {
+                const key = tieKey(r);
+                map[key] = (map[key] || 0) + 1;
+                return map;
+            }, {});
+
+            const headers = ['順位', '完全一致同順位', '同順位人数', '所属', '学年', '氏名', '点数', ...streakHeaders];
             const rows = [headers];
             let currentRank = 1;
             results.forEach((r, idx) => {
@@ -176,7 +184,17 @@
                 }
                 const streakCols = [];
                 for (let i = 0; i < maxStreakLen; i++) streakCols.push(r.streaks[i] ?? '');
-                rows.push([currentRank, r.affiliation, r.grade, `"${r.name.replace(/"/g, '""')}"`, r.score, ...streakCols]);
+                const sameCount = tieCounts[tieKey(r)] || 1;
+                rows.push([
+                    currentRank,
+                    sameCount > 1 ? '完全一致' : '',
+                    sameCount > 1 ? sameCount : '',
+                    r.affiliation,
+                    r.grade,
+                    `"${r.name.replace(/"/g, '""')}"`,
+                    r.score,
+                    ...streakCols
+                ]);
             });
             const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ciq_result.csv'; a.click();
         }
@@ -226,4 +244,3 @@
             qs.forEach(s => rows.push([s.q, s.correctCount, s.rate, s.type, `"${s.names.replace(/"/g, '""')}"`]));
             const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'analytics_all_qs.csv'; a.click();
         }
-
