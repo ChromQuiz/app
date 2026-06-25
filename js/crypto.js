@@ -3,6 +3,35 @@
  */
 
 const AppCrypto = {
+    randomBytes(length) {
+        return crypto.getRandomValues(new Uint8Array(length));
+    },
+
+    randomString(length, alphabet) {
+        if (!Number.isInteger(length) || length < 1) throw new Error('Invalid random string length');
+        if (!alphabet || alphabet.length < 2) throw new Error('Invalid random string alphabet');
+        const max = Math.floor(256 / alphabet.length) * alphabet.length;
+        let result = '';
+        while (result.length < length) {
+            const bytes = this.randomBytes(Math.max(16, length - result.length));
+            for (const byte of bytes) {
+                if (byte >= max) continue;
+                result += alphabet[byte % alphabet.length];
+                if (result.length === length) break;
+            }
+        }
+        return result;
+    },
+
+    randomUUID() {
+        if (crypto.randomUUID) return crypto.randomUUID();
+        const bytes = this.randomBytes(16);
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+        const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+        return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    },
+
     // === SHA-256 Hashing ===
     async hashPassword(password) {
         const msgUint8 = new TextEncoder().encode(password);
@@ -12,13 +41,11 @@ const AppCrypto = {
     },
 
     // === AES-GCM Encryption (Symmetric, Password-based) ===
-    async _getAESKey(password) {
+    async _getAESKey(password, salt) {
         const enc = new TextEncoder();
         const keyMaterial = await crypto.subtle.importKey(
             "raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]
         );
-        // Using a fixed static salt for simplicity since hashes are per-project
-        const salt = enc.encode("CIQ_Salt_2026");
         return crypto.subtle.deriveKey(
             { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
             keyMaterial,
@@ -29,7 +56,8 @@ const AppCrypto = {
     },
 
     async encryptAES(text, password) {
-        const key = await this._getAESKey(password);
+        const salt = this.randomBytes(16);
+        const key = await this._getAESKey(password, salt);
         const iv = crypto.getRandomValues(new Uint8Array(12));
         const enc = new TextEncoder();
         
@@ -39,19 +67,24 @@ const AppCrypto = {
             enc.encode(text)
         );
         
-        // Return Base64 of IV + Ciphertext
-        const combined = new Uint8Array(iv.length + encrypted.byteLength);
-        combined.set(iv, 0);
-        combined.set(new Uint8Array(encrypted), iv.length);
+        // v2 format: "v2." + Base64(salt + IV + ciphertext)
+        const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+        combined.set(salt, 0);
+        combined.set(iv, salt.length);
+        combined.set(new Uint8Array(encrypted), salt.length + iv.length);
         
-        return btoa(String.fromCharCode.apply(null, combined));
+        return 'v2.' + btoa(String.fromCharCode.apply(null, combined));
     },
 
     async decryptAES(base64Data, password) {
-        const key = await this._getAESKey(password);
-        const combined = new Uint8Array(atob(base64Data).split('').map(c => c.charCodeAt(0)));
-        const iv = combined.slice(0, 12);
-        const data = combined.slice(12);
+        const isV2 = typeof base64Data === 'string' && base64Data.startsWith('v2.');
+        const payload = isV2 ? base64Data.slice(3) : base64Data;
+        const combined = new Uint8Array(atob(payload).split('').map(c => c.charCodeAt(0)));
+        const legacySalt = new TextEncoder().encode("CIQ_Salt_2026");
+        const salt = isV2 ? combined.slice(0, 16) : legacySalt;
+        const iv = isV2 ? combined.slice(16, 28) : combined.slice(0, 12);
+        const data = isV2 ? combined.slice(28) : combined.slice(12);
+        const key = await this._getAESKey(password, salt);
         
         const decrypted = await crypto.subtle.decrypt(
             { name: "AES-GCM", iv: iv },

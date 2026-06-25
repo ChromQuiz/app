@@ -7,7 +7,11 @@ import { describe, it, expect, beforeAll } from 'vitest';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function loadAppCrypto() {
-  globalThis.crypto = webcrypto;
+  Object.defineProperty(globalThis, 'crypto', {
+    value: webcrypto,
+    configurable: true,
+  });
+  globalThis.window = globalThis;
   const src = readFileSync(join(__dirname, '../js/crypto.js'), 'utf8');
   const fn = new Function(src + '; return AppCrypto;');
   return fn();

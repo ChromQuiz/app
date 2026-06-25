@@ -13,10 +13,7 @@ const params = new URLSearchParams(location.search);
         }
 
         function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
+            return AppCrypto.randomUUID();
         }
 
         // メール認証状態
@@ -161,11 +158,7 @@ const params = new URLSearchParams(location.search);
 
         function generatePW() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-            let pw = '';
-            for (let i = 0; i < 6; i++) {
-                pw += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return pw;
+            return AppCrypto.randomString(8, chars);
         }
 
         function showStatus(msg, type) {

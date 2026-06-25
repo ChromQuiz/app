@@ -16,14 +16,18 @@ function generateStrongPassword() {
 	const lower = 'abcdefghijklmnopqrstuvwxyz';
 	const num = '0123456789';
 	const all = upper + lower + num;
-	let pwd = '';
-	pwd += upper[Math.floor(Math.random() * upper.length)];
-	pwd += lower[Math.floor(Math.random() * lower.length)];
-	pwd += num[Math.floor(Math.random() * num.length)];
-	for(let i = 3; i < 14; i++) {
-		pwd += all[Math.floor(Math.random() * all.length)];
+	const required = [
+		AppCrypto.randomString(1, upper),
+		AppCrypto.randomString(1, lower),
+		AppCrypto.randomString(1, num)
+	];
+	const chars = (required.join('') + AppCrypto.randomString(11, all)).split('');
+	const bytes = AppCrypto.randomBytes(chars.length);
+	for (let i = chars.length - 1; i > 0; i--) {
+		const j = bytes[i] % (i + 1);
+		[chars[i], chars[j]] = [chars[j], chars[i]];
 	}
-	return pwd.split('').sort(() => 0.5 - Math.random()).join('');
+	return chars.join('');
 }
 
 

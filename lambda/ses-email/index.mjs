@@ -8,6 +8,7 @@
 //   AWS_REGION        — SESリージョン (デフォルト: ap-northeast-1)
 
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { createHmac, randomInt, timingSafeEqual } from "crypto";
 
 const ses = new SESClient({ region: process.env.AWS_REGION || "ap-northeast-1" });
 const FROM = process.env.SES_FROM_ADDRESS;
@@ -18,21 +19,48 @@ function qrUrl(data, size = 200) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function safeUrl(value) {
+  const url = String(value ?? "");
+  return /^https?:\/\//i.test(url) ? escapeHtml(url) : "";
+}
+
+function safeCompare(a, b) {
+  const left = Buffer.from(String(a ?? ""));
+  const right = Buffer.from(String(b ?? ""));
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
 // ── テンプレート ──────────────────────────────────
 
 const templates = {
   // エントリー完了通知（HTML + QRコード）
-  entry_confirmation: ({ projectName, entryNumber, password, uuid, familyName, firstName, status, editUrl }) => ({
-    subject: `【${projectName}】エントリー受付完了（No.${entryNumber}）`,
-    html: `
+  entry_confirmation: ({ projectName, entryNumber, password, uuid, familyName, firstName, status, editUrl }) => {
+    const safeProjectName = escapeHtml(projectName);
+    const safeEntryNumber = escapeHtml(entryNumber);
+    const safeFamilyName = escapeHtml(familyName);
+    const safeFirstName = escapeHtml(firstName);
+    const safePassword = escapeHtml(password);
+    const safeEditUrl = safeUrl(editUrl);
+    return {
+      subject: `【${projectName}】エントリー受付完了（No.${entryNumber}）`,
+      html: `
       <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:480px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
         <div style="background:linear-gradient(135deg,#1e293b,#0f172a);padding:24px;text-align:center;">
           <h1 style="color:white;font-size:20px;margin:0;">エントリー受付完了</h1>
-          <p style="color:#94a3b8;font-size:13px;margin:8px 0 0;">${projectName}</p>
+          <p style="color:#94a3b8;font-size:13px;margin:8px 0 0;">${safeProjectName}</p>
         </div>
         <div style="padding:24px;">
           <p style="color:#334155;font-size:14px;margin:0 0 16px;">
-            ${familyName} ${firstName} 様<br>
+            ${safeFamilyName} ${safeFirstName} 様<br>
             エントリーを受け付けました。${status === 'waitlist' ? '<br><strong style="color:#f59e0b;">※ 定員超過のためキャンセル待ちです</strong>' : ''}
           </p>
 
@@ -40,23 +68,23 @@ const templates = {
             <table style="width:100%;border-collapse:collapse;font-size:14px;">
               <tr>
                 <td style="color:#64748b;padding:6px 0;">受付番号</td>
-                <td style="text-align:right;font-weight:700;color:#1e293b;font-size:18px;">${entryNumber}</td>
+                <td style="text-align:right;font-weight:700;color:#1e293b;font-size:18px;">${safeEntryNumber}</td>
               </tr>
               <tr>
                 <td style="color:#64748b;padding:6px 0;">パスワード</td>
-                <td style="text-align:right;font-weight:700;color:#1e293b;font-family:monospace;font-size:16px;letter-spacing:2px;">${password}</td>
+                <td style="text-align:right;font-weight:700;color:#1e293b;font-family:monospace;font-size:16px;letter-spacing:2px;">${safePassword}</td>
               </tr>
             </table>
           </div>
 
           <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:16px;text-align:center;margin-bottom:16px;">
             <p style="color:#64748b;font-size:12px;margin:0 0 12px;">当日受付用QRコード</p>
-            <img src="${qrUrl(uuid)}" alt="QR Code" width="200" height="200" style="border-radius:8px;" />
+            <img src="${escapeHtml(qrUrl(uuid))}" alt="QR Code" width="200" height="200" style="border-radius:8px;" />
             <p style="color:#94a3b8;font-size:11px;margin:12px 0 0;">当日このQRコードを受付でご提示ください</p>
           </div>
 
-          ${editUrl ? `<div style="text-align:center;margin-bottom:16px;">
-            <a href="${editUrl}" style="display:inline-block;background:#3b82f6;color:white;text-decoration:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;">エントリー内容を編集する</a>
+          ${safeEditUrl ? `<div style="text-align:center;margin-bottom:16px;">
+            <a href="${safeEditUrl}" style="display:inline-block;background:#3b82f6;color:white;text-decoration:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;">エントリー内容を編集する</a>
           </div>` : ''}
 
           <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;font-size:12px;color:#9a3412;">
@@ -68,33 +96,37 @@ const templates = {
         </div>
       </div>
     `,
-    text: [
-      `${familyName} ${firstName} 様`,
-      ``,
-      `${projectName} へのエントリーを受け付けました。`,
-      ``,
-      `受付番号: ${entryNumber}`,
-      `パスワード: ${password}`,
-      status === 'waitlist' ? `状態: キャンセル待ち` : `状態: 登録完了`,
-      ``,
-      `※ パスワードは成績照合・キャンセル時に必要です。`,
-      `※ QRコードはHTML対応メーラーで表示されます。`,
-      ``,
-      `CIQ — このメールは自動送信されています。`,
-    ].filter(Boolean).join('\n'),
-  }),
+      text: [
+        `${familyName} ${firstName} 様`,
+        ``,
+        `${projectName} へのエントリーを受け付けました。`,
+        ``,
+        `受付番号: ${entryNumber}`,
+        `パスワード: ${password}`,
+        status === 'waitlist' ? `状態: キャンセル待ち` : `状態: 登録完了`,
+        ``,
+        `※ パスワードは成績照合・キャンセル時に必要です。`,
+        `※ QRコードはHTML対応メーラーで表示されます。`,
+        ``,
+        `CIQ — このメールは自動送信されています。`,
+      ].filter(Boolean).join('\n'),
+    };
+  },
 
   // キャンセル完了通知
-  entry_cancelled: ({ projectName, entryNumber }) => ({
+  entry_cancelled: ({ projectName, entryNumber }) => {
+    const safeProjectName = escapeHtml(projectName);
+    const safeEntryNumber = escapeHtml(entryNumber);
+    return {
     subject: `【${projectName}】エントリーキャンセル完了（No.${entryNumber}）`,
     html: `
       <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:480px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
         <div style="background:linear-gradient(135deg,#7f1d1d,#991b1b);padding:24px;text-align:center;">
           <h1 style="color:white;font-size:20px;margin:0;">キャンセル完了</h1>
-          <p style="color:#fca5a5;font-size:13px;margin:8px 0 0;">${projectName}</p>
+          <p style="color:#fca5a5;font-size:13px;margin:8px 0 0;">${safeProjectName}</p>
         </div>
         <div style="padding:24px;">
-          <p style="color:#334155;font-size:14px;">受付番号 ${entryNumber} のエントリーをキャンセルしました。</p>
+          <p style="color:#334155;font-size:14px;">受付番号 ${safeEntryNumber} のエントリーをキャンセルしました。</p>
           <p style="color:#64748b;font-size:13px;">ご利用ありがとうございました。</p>
         </div>
         <div style="background:#f1f5f9;padding:12px;text-align:center;font-size:11px;color:#94a3b8;">
@@ -109,12 +141,11 @@ const templates = {
       `ご利用ありがとうございました。`,
       `CIQ — このメールは自動送信されています。`,
     ].join('\n'),
-  }),
+    };
+  },
 };
 
 // ── HMAC署名ユーティリティ（認証コード検証用）──────
-import { createHmac } from "crypto";
-
 function signCode(code, email, expiresAt) {
   const payload = `${code}:${email.toLowerCase()}:${expiresAt}`;
   return createHmac('sha256', API_KEY).update(payload).digest('hex');
@@ -175,7 +206,7 @@ export const handler = async (event) => {
 
     // API Key 認証
     const reqKey = event.headers?.["x-api-key"] || body.apiKey;
-    if (reqKey !== API_KEY) {
+    if (!safeCompare(reqKey, API_KEY)) {
       return { statusCode: 403, headers, body: JSON.stringify({ error: "Forbidden" }) };
     }
 
@@ -193,12 +224,14 @@ export const handler = async (event) => {
       if (!to) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing 'to' field" }) };
       }
-      const code = String(Math.floor(100000 + Math.random() * 900000)); // 6桁
+      const code = String(randomInt(100000, 1000000)); // 6桁
       const expiresAt = Date.now() + 10 * 60 * 1000; // 10分有効
       const signature = signCode(code, to, expiresAt);
 
       const projectName = data?.projectName || 'CIQ';
       const senderName = data?.senderName || projectName;
+      const safeProjectName = escapeHtml(projectName);
+      const safeCode = escapeHtml(code);
       const sourceStr = `${senderName} <${FROM}>`;
       const replyTo = data?.replyTo || null;
 
@@ -213,12 +246,12 @@ export const handler = async (event) => {
               <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:480px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
                 <div style="background:linear-gradient(135deg,#1e293b,#0f172a);padding:24px;text-align:center;">
                   <h1 style="color:white;font-size:20px;margin:0;">メール認証コード</h1>
-                  <p style="color:#94a3b8;font-size:13px;margin:8px 0 0;">${projectName}</p>
+                  <p style="color:#94a3b8;font-size:13px;margin:8px 0 0;">${safeProjectName}</p>
                 </div>
                 <div style="padding:24px;text-align:center;">
                   <p style="color:#334155;font-size:14px;margin:0 0 16px;">エントリーフォームに以下のコードを入力してください。</p>
                   <div style="background:white;border:2px solid #3b82f6;border-radius:12px;padding:20px;margin-bottom:16px;">
-                    <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#1e293b;font-family:monospace;">${code}</span>
+                    <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#1e293b;font-family:monospace;">${safeCode}</span>
                   </div>
                   <p style="color:#94a3b8;font-size:12px;">このコードは10分間有効です。</p>
                 </div>
@@ -245,7 +278,7 @@ export const handler = async (event) => {
         return { statusCode: 400, headers, body: JSON.stringify({ error: "Code expired", verified: false }) };
       }
       const expected = signCode(code, to, expiresAt);
-      const verified = expected === signature;
+      const verified = safeCompare(expected, signature);
       return { statusCode: 200, headers, body: JSON.stringify({ verified }) };
     }
 
