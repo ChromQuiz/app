@@ -1870,3 +1870,208 @@ table tbody tr:hover,
     padding: 20px;
   }
 }
+
+/* ──────────────────────────────────────────
+   Blue Accent + Admin Contrast Fix
+   ────────────────────────────────────────── */
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: rgba(37, 99, 235, 0.10);
+  --primary-glow: rgba(37, 99, 235, 0.16);
+  --accent: #b7791f;
+  --text-main: #17202a;
+  --text-muted: #4b5563;
+  --text-faint: #7b8794;
+  --glass-border: rgba(23, 32, 42, 0.16);
+  --glass-border-hover: rgba(37, 99, 235, 0.38);
+}
+
+body::before {
+  background:
+    linear-gradient(180deg, rgba(37, 99, 235, 0.045), transparent 220px),
+    linear-gradient(90deg, rgba(183, 121, 31, 0.030), transparent 38%);
+}
+
+.btn,
+.page-btn,
+.page-index .btn:not(.credential-row .btn),
+.dt-ok,
+.tour-next {
+  background: var(--primary);
+}
+
+.btn:hover,
+.page-btn:hover,
+.page-index .btn:not(.credential-row .btn):hover,
+.dt-ok:hover,
+.tour-next:hover {
+  background: var(--primary-hover);
+}
+
+.page-index input:focus,
+input:focus,
+select:focus,
+textarea:focus,
+.page-input:focus,
+.custom-dropdown.open .cd-trigger,
+.dt-trigger:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
+}
+
+.page-msg.info,
+.badge.primary,
+.entry-card .entry-num-badge,
+.q-badge,
+.status-inprogress,
+.status-open,
+.count-badge {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.24);
+}
+
+body.page-admin {
+  background: #f7f8fa;
+}
+
+.page-admin .admin-body {
+  color: var(--text-main);
+}
+
+.page-admin .tabs {
+  background: #e9edf3;
+  border-color: rgba(23, 32, 42, 0.18);
+}
+
+.page-admin .tab-btn {
+  color: #374151;
+}
+
+.page-admin .tab-btn.active {
+  background: #ffffff;
+  color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.22);
+  box-shadow: 0 1px 2px rgba(23, 32, 42, 0.08);
+}
+
+.page-admin .glass-panel,
+.page-admin .section.glass-panel,
+.page-admin .config-panel,
+.page-admin .format-box,
+.page-admin .table-container,
+.page-admin .list-container,
+.page-admin .model-cell,
+.page-admin .entry-card,
+.page-admin .file-upload-zone,
+.page-admin .number-spinner-wrap,
+.page-admin .dt-trigger {
+  background: #ffffff;
+  border-color: rgba(23, 32, 42, 0.17);
+}
+
+.page-admin .config-panel,
+.page-admin .format-box {
+  box-shadow: none;
+}
+
+.page-admin .config-panel {
+  background: #fbfcfe;
+}
+
+.page-admin .section h2,
+.page-admin .toggle-info-title,
+.page-admin .period-heading,
+.page-admin .link-row .link-label,
+.page-admin table td,
+.page-admin .lifetime-value {
+  color: #17202a;
+}
+
+.page-admin .toggle-info-desc,
+.page-admin .period-hint,
+.page-admin .period-label,
+.page-admin .info-hint,
+.page-admin .entry-card .entry-sub,
+.page-admin .stats-legend,
+.page-admin .lifetime-label,
+.page-admin .lifetime-bar-label {
+  color: #53606d;
+}
+
+.page-admin table th,
+.page-admin .list-container th {
+  background: #eef2f7;
+  color: #334155;
+  border-bottom-color: rgba(23, 32, 42, 0.16);
+}
+
+.page-admin table td,
+.page-admin .list-container td {
+  border-bottom-color: rgba(23, 32, 42, 0.09);
+}
+
+.page-admin table tbody tr:nth-child(even),
+.page-admin .list-container tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+
+.page-admin table tbody tr:hover,
+.page-admin .list-container tbody tr:hover {
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.page-admin .fixed-header {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.page-admin .id-copy-badge,
+.page-admin .back-nav-btn,
+.page-admin .menu-trigger,
+.page-admin .btn.secondary,
+.page-admin .dt-picker-nav button,
+.page-admin .dt-clear {
+  background: #ffffff;
+  border-color: rgba(23, 32, 42, 0.17);
+  color: #17202a;
+}
+
+.page-admin .id-copy-badge:hover,
+.page-admin .back-nav-btn:hover,
+.page-admin .menu-trigger:hover,
+.page-admin .btn.secondary:hover,
+.page-admin .dt-trigger:hover {
+  background: #f3f6fb;
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.page-admin .section h2 i,
+.page-admin .period-heading i,
+.page-admin .link-row .link-label i,
+.page-admin .dt-trigger i,
+.page-admin .id-copy-badge i,
+.page-admin .time-icon,
+.page-admin .lifetime-label i {
+  color: var(--primary);
+}
+
+.page-admin .status-open,
+.page-admin .badge.primary,
+.page-admin .entry-card .entry-num-badge,
+.page-admin .q-badge {
+  background: rgba(37, 99, 235, 0.09);
+  color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.22);
+}
+
+.page-admin .toggle-slider {
+  background: #cbd5e1;
+}
+
+.page-admin input:checked + .toggle-slider {
+  background: var(--primary);
+}
+
+.page-admin .menu-panel {
+  background: #ffffff;
+}
