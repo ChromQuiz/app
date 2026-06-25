@@ -105,8 +105,8 @@ const params = new URLSearchParams(location.search);
             const min = d.getMinutes().toString().padStart(2,'0');
             const timeStr = `${m}/${day} ${h}:${min}`;
             const grade = e.grade !== '非表示' ? e.grade : '';
-            const waitIcon = isWaitlist ? '<i class="fa-solid fa-clock" style="color:#f59e0b;margin-right:4px;" title="キャンセル待ち"></i>' : '';
-            const chubuMark = e.isChubu ? '<i class="fa-solid fa-check" style="color:#34d399;" title="中部地方"></i>' : '';
+            const waitIcon = isWaitlist ? '<i class="fa-solid fa-clock" style="color:var(--warning);margin-right:4px;" title="キャンセル待ち"></i>' : '';
+            const chubuMark = e.isChubu ? '<i class="fa-solid fa-check" style="color:var(--success);" title="中部地方"></i>' : '';
 
             const tr = document.createElement('tr');
             if (isWaitlist) tr.style.opacity = '0.6';
@@ -128,7 +128,7 @@ const params = new URLSearchParams(location.search);
             if (!graceDividerInserted && hasGraceSplit && e._isAfterGrace) {
                 graceDividerInserted = true;
                 const divider = document.createElement('tr');
-                divider.innerHTML = `<td colspan="7" style="text-align:center;padding:8px;background:rgba(96,165,250,0.1);color:#60a5fa;font-size:12px;font-weight:600;letter-spacing:1px;">
+                divider.innerHTML = `<td colspan="7" style="text-align:center;padding:8px;background:var(--primary-soft);color:var(--primary);font-size:12px;font-weight:600;letter-spacing:1px;">
                     <i class="fa-solid fa-map-location-dot"></i> 以降中部地方優先
                 </td>`;
                 body.appendChild(divider);
@@ -138,7 +138,7 @@ const params = new URLSearchParams(location.search);
 
         if (waitlist.length > 0) {
             const divider = document.createElement('tr');
-            divider.innerHTML = `<td colspan="7" style="text-align:center;padding:8px;background:rgba(245,158,11,0.1);color:#f59e0b;font-size:12px;font-weight:600;letter-spacing:1px;">
+            divider.innerHTML = `<td colspan="7" style="text-align:center;padding:8px;background:var(--warning-soft);color:var(--warning);font-size:12px;font-weight:600;letter-spacing:1px;">
                 <i class="fa-solid fa-clock"></i> キャンセル待ち（${waitlist.length}名）
             </td>`;
             body.appendChild(divider);

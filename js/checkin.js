@@ -3,7 +3,7 @@
 const projectId = session.projectId;
 const secretHash = session.get("secretHash");
 if (!projectId) {
-    document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#f87171;font-weight:bold;">プロジェクトに入室してください。3秒後にトップページへ戻ります。</div>';
+    document.body.innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger);font-weight:bold;">プロジェクトに入室してください。3秒後にトップページへ戻ります。</div>';
     setTimeout(() => location.href = 'index.html', 3000);
 } else {
 

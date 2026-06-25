@@ -4,7 +4,7 @@ const params = new URLSearchParams(location.search);
     let projectId = params.get('pid');
 
     if (!projectId) {
-        document.getElementById('form-card').innerHTML = '<p style="text-align:center;color:#ef4444;font-weight:600;">プロジェクトIDが不明です。正しいURLからアクセスしてください。</p>';
+        document.getElementById('form-card').innerHTML = '<p style="text-align:center;color:var(--danger);font-weight:600;">プロジェクトIDが不明です。正しいURLからアクセスしてください。</p>';
         throw new Error('No Project ID');
     }
 

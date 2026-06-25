@@ -147,7 +147,7 @@ const ShareCard = (() => {
 
             // 数字部分 — 明るい水色で目立たせる
             ctx.font = 'bold 54px "Inter", "Noto Sans JP", sans-serif';
-            ctx.fillStyle = '#60a5fa';
+            ctx.fillStyle = '#2563eb';
             ctx.fillText(part2, x, textY);
             x += w2;
 

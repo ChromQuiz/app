@@ -26,8 +26,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=13">
-    <link rel="stylesheet" href="css/pages.css?v=13">
+    <link rel="stylesheet" href="css/design_system.css?v=14">
+    <link rel="stylesheet" href="css/pages.css?v=14">
 </head>
 
 <body class="page-wrapper">
@@ -73,7 +73,7 @@
 
                 <!-- 認証完了後に表示されるフォーム本体 -->
                 <div id="form-body" style="display:none">
-                    <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:20px;font-size:13px;color:#34d399;">
+                    <div style="background:var(--success-soft);border:1px solid rgba(21,128,61,0.24);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--success);">
                         <i class="fa-solid fa-circle-check"></i> メール認証済: <strong id="verified-email"></strong>
                     </div>
 
@@ -137,7 +137,7 @@
                     <label class="required"><i class="fa-solid fa-id-badge"></i> エントリーネーム</label>
                     <input type="text" id="f-entry-name" required placeholder="エントリーシートでの表示名">
                     <div id="entry-name-pref-area" style="margin-top:10px;">
-                        <div style="font-size:12px;color:#f87171;line-height:1.4;font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> 当日は本名（姓名）での表示となります。</div>
+                        <div style="font-size:12px;color:var(--danger);line-height:1.4;font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> 当日は本名（姓名）での表示となります。</div>
                     </div>
                 </div>
 
@@ -156,7 +156,7 @@
                         <input type="checkbox" id="f-tos" required>
                         <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
                         <div style="flex:1">
-                            <span id="tos-text">私は<a id="terms-link" href="terms.html" target="_blank" style="color:#60a5fa;text-decoration:underline">参加規約</a>に同意し、入力した情報が正確であることを確認しました。</span>
+                            <span id="tos-text">私は<a id="terms-link" href="terms.html" target="_blank" style="color:var(--primary);text-decoration:underline">参加規約</a>に同意し、入力した情報が正確であることを確認しました。</span>
                         </div>
                     </label>
                 </div>
@@ -176,9 +176,9 @@
                 <div class="info-value" id="r-entry-number">---</div>
             </div>
 
-            <div style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center;">
-                <i class="fa-solid fa-envelope" style="color:#60a5fa;font-size:18px;display:block;margin-bottom:6px"></i>
-                <strong style="color:#60a5fa;font-size:14px">受付情報をメールで送信しました</strong>
+            <div style="background:var(--primary-soft);border:1px solid rgba(37, 99, 235, 0.24);border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center;">
+                <i class="fa-solid fa-envelope" style="color:var(--primary);font-size:18px;display:block;margin-bottom:6px"></i>
+                <strong style="color:var(--primary);font-size:14px">受付情報をメールで送信しました</strong>
                 <div style="color:#9ca3af;font-size:12px;margin-top:6px">パスワード・当日受付用QRコードはメールをご確認ください</div>
             </div>
 

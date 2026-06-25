@@ -95,14 +95,14 @@
                         if (isCorrect) {
                             // ○ 緑（半透明）
                             ctx.globalAlpha = 0.45;
-                            ctx.strokeStyle = '#22c55e';
+                            ctx.strokeStyle = '#15803d';
                             ctx.beginPath();
                             ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                             ctx.stroke();
                         } else {
                             // × 赤（半透明）
                             ctx.globalAlpha = 0.45;
-                            ctx.strokeStyle = '#ef4444';
+                            ctx.strokeStyle = '#dc2626';
                             const d = radius * 0.75;
                             ctx.beginPath();
                             ctx.moveTo(cx - d, cy - d);
@@ -118,7 +118,7 @@
                     const fontSize = Math.round(canvas.width * 0.022);
                     ctx.save();
                     ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
-                    ctx.fillStyle = '#ef4444';
+                    ctx.fillStyle = '#dc2626';
                     ctx.globalAlpha = 0.9;
 
                     // 最後の問題セルの下

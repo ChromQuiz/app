@@ -306,7 +306,7 @@ const params = new URLSearchParams(location.search);
                     const waitMsg = document.createElement('div');
                     waitMsg.className = 'status-msg warning';
                     waitMsg.innerHTML = '<i class="fa-solid fa-clock"></i> 定員に達したため、<strong>キャンセル待ち</strong>として登録されました。';
-                    waitMsg.style.cssText = 'display:block;margin:12px 0;padding:12px 16px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);border-radius:8px;color:#fbbf24;font-size:13px;';
+                    waitMsg.style.cssText = 'display:block;margin:12px 0;padding:12px 16px;background:var(--warning-soft);border:1px solid rgba(183,121,31,0.26);border-radius:8px;color:var(--warning);font-size:13px;';
                     document.getElementById('r-entry-number').parentElement.after(waitMsg);
                 }
 

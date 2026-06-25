@@ -21,7 +21,7 @@
             const el = document.getElementById('project-id-display');
             navigator.clipboard.writeText(projectId).then(() => {
                 el.querySelector('i').className = 'fa-solid fa-check';
-                el.querySelector('i').style.color = '#34d399';
+                el.querySelector('i').style.color = 'var(--success)';
                 setTimeout(() => {
                     el.querySelector('i').className = 'fa-solid fa-copy';
                     el.querySelector('i').style.color = '';
@@ -107,7 +107,7 @@
                 const original = btn.innerHTML;
                 function onSuccess() {
                     btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                    btn.style.background = '#10b981';
+                    btn.style.background = 'var(--success)';
                     setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 1500);
                 }
                 if (navigator.clipboard && navigator.clipboard.writeText) {
