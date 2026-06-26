@@ -90,8 +90,13 @@ const params = new URLSearchParams(location.search);
 
 
 
+            const shouldPromoteWaitlist = targetData.status !== 'waitlist';
+
             // エントリーを完全削除
             await dbRef(`projects/${projectId}/entries/${targetKey}`).remove();
+            if (shouldPromoteWaitlist) {
+                promoteNextWaitlist().catch(e => console.warn('キャンセル待ち繰り上げスキップ:', e));
+            }
 
             // メール通知（非同期・失敗しても処理済み）
             CIQEmail.sendCancellation(email, {
@@ -118,4 +123,28 @@ const params = new URLSearchParams(location.search);
             showStatus('システムエラーが発生しました。', 'error');
             btn.disabled = false; btn.textContent = 'キャンセルを確定する';
         }
+    }
+
+    async function promoteNextWaitlist() {
+        const entriesData = await dbGet(`projects/${projectId}/entries`);
+        if (!entriesData) return null;
+
+        const next = Object.entries(entriesData)
+            .filter(([, data]) => data?.status === 'waitlist')
+            .sort(([, a], [, b]) => {
+                const at = typeof a.timestamp === 'number' ? a.timestamp : 0;
+                const bt = typeof b.timestamp === 'number' ? b.timestamp : 0;
+                if (at !== bt) return at - bt;
+                return (a.entryNumber || 0) - (b.entryNumber || 0);
+            })[0];
+
+        if (!next) return null;
+
+        const [entryKey, entry] = next;
+        await dbUpdate(`projects/${projectId}/entries/${entryKey}`, {
+            status: 'registered',
+            waitlistPromotedAt: SERVER_TIMESTAMP,
+            waitlistPromotionNotice: 'pending'
+        });
+        return entry;
     }

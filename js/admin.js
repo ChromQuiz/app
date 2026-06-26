@@ -36,9 +36,12 @@
         let entryNumbers = [];
         let modelAnswers = [];
         let adminEntriesCount = 0;
+        let adminProjectName = '';
+        let adminReplyTo = null;
 
         function updateAdminOverview() {
             const entryStatus = document.getElementById('entry-open-status')?.textContent?.trim() || '確認中';
+            const disclosureStatus = document.getElementById('disclosure-open-status')?.textContent?.trim() || '確認中';
             const entryCount = adminEntriesCount || (window._entriesRaw ? Object.keys(window._entriesRaw).length : 0);
             const done = document.getElementById('stat-done')?.textContent || '-';
             const conflict = document.getElementById('stat-conflict')?.textContent || '-';
@@ -53,6 +56,8 @@
 
             setText('overview-entry-status', entryStatus);
             setText('overview-entry-count', `参加者 ${entryCount} 名`);
+            setText('overview-disclosure-status', disclosureStatus);
+            setText('overview-disclosure-meta', '本人照会ページ');
             setText('overview-scoring-status', conflict !== '-' && Number(conflict) > 0 ? '要確認あり' : '進行中');
             setText('overview-scoring-count', `${done} / ${total} 問完了`);
             setText('overview-output-status', outputReady ? '出力可能' : '未確定');
@@ -138,7 +143,8 @@
                 function onSuccess() {
                     btn.innerHTML = '<i class="fa-solid fa-check"></i>';
                     btn.style.background = 'var(--success)';
-                    setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 1500);
+                    btn.style.color = '#ffffff';
+                    setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; btn.style.color = ''; }, 1500);
                 }
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
@@ -188,6 +194,8 @@
 
             // publicSettings の読み込み（規約等）
             const publicSettings = await dbGet(`projects/${projectId}/publicSettings`) || {};
+            adminProjectName = publicSettings.projectName || projectId;
+            adminReplyTo = publicSettings.replyTo || null;
 
             if (publicSettings.terms) {
                 document.getElementById('setting-terms').value = publicSettings.terms;
@@ -261,6 +269,5 @@
             }
             renderModelGrid();
         }
-
 
         // init() は admin_settings.js（最後に読み込まれるスクリプト）の末尾で呼び出し

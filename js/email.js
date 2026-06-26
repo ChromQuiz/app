@@ -57,6 +57,13 @@ const CIQEmail = (() => {
         });
     }
 
+    // キャンセル待ち繰り上げ通知
+    async function sendWaitlistPromotion(to, { projectName, entryNumber, familyName, firstName, senderName, replyTo }) {
+        return _send('waitlist_promoted', to, {
+            projectName, entryNumber, familyName, firstName, senderName, replyTo
+        });
+    }
+
     // メール認証コード送信
     async function sendVerificationCode(to, projectName, senderName, replyTo) {
         if (!_endpoint) {
@@ -101,5 +108,5 @@ const CIQEmail = (() => {
         }
     }
 
-    return { configure, sendEntryConfirmation, sendCancellation, sendVerificationCode, verifyCode };
+    return { configure, sendEntryConfirmation, sendCancellation, sendWaitlistPromotion, sendVerificationCode, verifyCode };
 })();

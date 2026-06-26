@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
     <link rel="stylesheet" href="css/design_system.css?v=15">
-    <link rel="stylesheet" href="css/pages.css?v=15">
+    <link rel="stylesheet" href="css/pages.css?v=17">
 </head>
 
 <body class="page-admin">
@@ -115,6 +115,11 @@
                     <div class="overview-meta" id="overview-entry-count">参加者 -</div>
                 </div>
                 <div class="overview-card">
+                    <div class="overview-label"><i class="fa-solid fa-chart-column"></i> 開示</div>
+                    <div class="overview-value" id="overview-disclosure-status">確認中</div>
+                    <div class="overview-meta" id="overview-disclosure-meta">成績照会</div>
+                </div>
+                <div class="overview-card">
                     <div class="overview-label"><i class="fa-solid fa-list-check"></i> 採点</div>
                     <div class="overview-value" id="overview-scoring-status">未集計</div>
                     <div class="overview-meta" id="overview-scoring-count">0 / 0 問</div>
@@ -143,9 +148,21 @@
 
         <!-- ==================== TAB 0: 参加者管理 ==================== -->
         <div class="tab-content active" id="tab-entries">
-            <div class="section glass-panel">
-                <h2><i class="fa-solid fa-clipboard-check"></i> エントリー受付設定</h2>
-                
+            <div class="section glass-panel admin-public-section">
+                <h2><i class="fa-solid fa-tower-broadcast"></i> 公開管理</h2>
+                <div class="public-state-grid" aria-label="公開状態">
+                    <div class="public-state-card">
+                        <div class="public-state-label"><i class="fa-solid fa-pen-to-square"></i> エントリー受付</div>
+                        <div class="public-state-value" id="entry-state-summary">確認中</div>
+                        <div class="public-state-meta" id="entry-state-meta">受付フォーム</div>
+                    </div>
+                    <div class="public-state-card">
+                        <div class="public-state-label"><i class="fa-solid fa-chart-column"></i> 成績開示</div>
+                        <div class="public-state-value" id="disclosure-state-summary">確認中</div>
+                        <div class="public-state-meta" id="disclosure-state-meta">成績照会ページ</div>
+                    </div>
+                </div>
+
                 <!-- メインスイッチ -->
                 <div class="config-panel config-row">
                     <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked onchange="toggleEntryOpen()"><span class="toggle-slider"></span></label>
@@ -180,31 +197,6 @@
                     </div>
                 </div>
 
-                <!-- 定員設定 -->
-                <div class="config-panel">
-                    <div class="config-row">
-                        <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked onchange="toggleMaxEntries()"><span class="toggle-slider"></span></label>
-                        <div class="toggle-info">
-                            <div class="toggle-info-title">定員制限</div>
-                            <div class="toggle-info-desc">ONにすると定員を超えたエントリーはキャンセル待ちになります</div>
-                        </div>
-                        <span id="max-entries-status" class="status-badge status-open">120人</span>
-                    </div>
-                    <div id="max-entries-input-area" style="margin-top:12px;">
-                        <div class="number-spinner-wrap" style="max-width:180px;">
-                            <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('setting-max-entries', -10)"><i class="fa-solid fa-minus"></i></button>
-                            <input type="number" id="setting-max-entries" min="1" max="9999" value="120" onchange="saveEntryPeriod()" />
-                            <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('setting-max-entries', 10)"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-solid fa-circle-info"></i> 10人単位で増減</div>
-                    </div>
-                </div>
-
-
-            </div>
-            <div class="section glass-panel">
-                <h2><i class="fa-solid fa-chart-column"></i> 成績開示設定</h2>
-
                 <div class="config-panel config-row">
                     <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" onchange="toggleDisclosureOpen()"><span class="toggle-slider"></span></label>
                     <div class="toggle-info">
@@ -236,16 +228,34 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="section glass-panel">
-                <h2><i class="fa-solid fa-link"></i> 公開リンク</h2>
-                <div class="format-box" style="gap:10px;display:flex;flex-direction:column">
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> エントリー</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('registration-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('registration-link', this)"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-list"></i> リスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('entry-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('entry-link', this)"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> 編集</span><a id="edit-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('edit-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('edit-link', this)"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-user-xmark"></i> キャンセル</span><a id="cancel-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('cancel-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('cancel-link', this)"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-clock-rotate-left"></i> 遅刻</span><a id="late-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('late-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('late-link', this)"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-chart-column"></i> 成績照会</span><a id="disclosure-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('disclosure-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('disclosure-link', this)"><i class="fa-solid fa-copy"></i></button></div>
+
+                <!-- 定員設定 -->
+                <div class="config-panel">
+                    <div class="config-row">
+                        <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked onchange="toggleMaxEntries()"><span class="toggle-slider"></span></label>
+                        <div class="toggle-info">
+                            <div class="toggle-info-title">定員制限</div>
+                            <div class="toggle-info-desc">ONにすると定員を超えたエントリーはキャンセル待ちになります</div>
+                        </div>
+                        <span id="max-entries-status" class="status-badge status-open">120人</span>
+                    </div>
+                    <div id="max-entries-input-area" style="margin-top:12px;">
+                        <div class="number-spinner-wrap" style="max-width:180px;">
+                            <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('setting-max-entries', -10)"><i class="fa-solid fa-minus"></i></button>
+                            <input type="number" id="setting-max-entries" min="1" max="9999" value="120" onchange="saveEntryPeriod()" />
+                            <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('setting-max-entries', 10)"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-solid fa-circle-info"></i> 10人単位で増減</div>
+                    </div>
+                </div>
+
+                <div class="public-links">
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> エントリー</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('registration-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('registration-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-list"></i> リスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('entry-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('entry-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> 編集</span><a id="edit-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('edit-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('edit-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-user-xmark"></i> キャンセル</span><a id="cancel-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('cancel-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('cancel-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-clock-rotate-left"></i> 遅刻</span><a id="late-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('late-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('late-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-chart-column"></i> 成績照会</span><a id="disclosure-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('disclosure-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('disclosure-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
                 </div>
             </div>
             <div class="section glass-panel">
@@ -501,11 +511,11 @@
     <canvas id="work-canvas" class="hidden-canvas"></canvas>
     <canvas id="transform-canvas" class="hidden-canvas"></canvas>
 
-    <script defer src="js/admin.js?v=10"></script>
+    <script defer src="js/admin.js?v=11"></script>
     <script defer src="js/admin_prep.js?v=8"></script>
     <script defer src="js/admin_scan.js?v=8"></script>
     <script defer src="js/admin_stats.js?v=9"></script>
     <script defer src="js/admin_graded_pdf.js?v=8"></script>
-    <script defer src="js/admin_settings.js?v=10"></script>
+    <script defer src="js/admin_settings.js?v=11"></script>
 </body>
 </html>

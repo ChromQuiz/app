@@ -216,6 +216,17 @@ body.page-judge { padding: 24px; }
 .header-bar .header-left { display: flex; align-items: center; gap: 16px; }
 .header-bar .header-right { display: flex; align-items: center; gap: 8px; }
 
+.header-bar {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.page-judge .menu-trigger,
+.page-conflict .menu-trigger {
+  box-shadow: none;
+}
+
 #project-title {
   font-size: 24px;
   font-weight: 800;
@@ -2623,7 +2634,7 @@ table tbody tr:hover,
 
 .admin-overview-main {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -2738,7 +2749,7 @@ table tbody tr:hover,
 
 .page-admin .link-row {
   display: grid;
-  grid-template-columns: minmax(120px, 180px) 38px 38px;
+  grid-template-columns: minmax(0, 1fr) 38px 38px;
   align-items: center;
   gap: 8px;
   min-height: 42px;
@@ -2758,6 +2769,90 @@ table tbody tr:hover,
   width: 38px;
   height: 34px;
   padding: 0;
+}
+
+.admin-public-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.public-state-grid,
+.public-links {
+  display: grid;
+  gap: 12px;
+}
+
+.public-state-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.public-links {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.public-state-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: var(--radius-md);
+  background: #f8fbff;
+}
+
+.public-state-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.public-state-value {
+  margin-top: 8px;
+  color: var(--text-main);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.public-state-meta {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.public-links {
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: #fbfdff;
+}
+
+.page-admin .model-grid {
+  gap: 8px;
+}
+
+.page-admin .model-cell {
+  padding: 10px 8px;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.page-admin .model-cell:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.page-admin .model-cell .q-label {
+  margin-bottom: 6px;
+  padding: 3px 7px;
+  font-size: 10px;
+  background: var(--surface-2);
+}
+
+.page-admin .model-cell .q-answer {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
 }
 
 .page-admin .table-container {
@@ -2794,9 +2889,7 @@ table tbody tr:hover,
   }
 
   .admin-overview-main {
-    grid-template-columns: repeat(3, minmax(150px, 1fr));
-    overflow-x: auto;
-    padding-bottom: 2px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .overview-card {
@@ -2818,5 +2911,10 @@ table tbody tr:hover,
 
   .page-admin .link-row {
     grid-template-columns: minmax(0, 1fr) 38px 38px;
+  }
+
+  .public-state-grid,
+  .public-links {
+    grid-template-columns: 1fr;
   }
 }

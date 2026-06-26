@@ -87,10 +87,18 @@
             const ps = document.getElementById('entry-period-start').value;
             const pe = document.getElementById('entry-period-end').value;
             const el = document.getElementById('entry-open-status');
+            const summary = document.getElementById('entry-state-summary');
+            const meta = document.getElementById('entry-state-meta');
+
+            const setPublicState = (label, detail) => {
+                if (summary) summary.textContent = label;
+                if (meta) meta.textContent = detail;
+            };
 
             if (!isOpen) {
                 el.textContent = '停止中';
                 el.className = 'status-badge status-closed';
+                setPublicState('停止中', '受付フォームは利用不可');
                 window.updateAdminOverview?.();
                 return;
             }
@@ -99,18 +107,21 @@
             if (ps && new Date(ps) > now) {
                 el.textContent = '期間外（開始前）';
                 el.className = 'status-badge status-warning';
+                setPublicState('開始前', `${formatDtDisplay(ps)} から`);
                 window.updateAdminOverview?.();
                 return;
             }
             if (pe && new Date(pe) < now) {
                 el.textContent = '期間外（終了済）';
                 el.className = 'status-badge status-warning';
+                setPublicState('終了済', `${formatDtDisplay(pe)} まで`);
                 window.updateAdminOverview?.();
                 return;
             }
 
             el.textContent = '受付中';
             el.className = 'status-badge status-open';
+            setPublicState('受付中', pe ? `${formatDtDisplay(pe)} まで` : '終了日時なし');
             window.updateAdminOverview?.();
         }
 
@@ -144,10 +155,19 @@
             const isOpen = toggle.checked;
             const ps = document.getElementById('disclosure-period-start').value;
             const pe = document.getElementById('disclosure-period-end').value;
+            const summary = document.getElementById('disclosure-state-summary');
+            const meta = document.getElementById('disclosure-state-meta');
+
+            const setPublicState = (label, detail) => {
+                if (summary) summary.textContent = label;
+                if (meta) meta.textContent = detail;
+            };
 
             if (!isOpen) {
                 el.textContent = '停止中';
                 el.className = 'status-badge status-closed';
+                setPublicState('停止中', '成績照会ページは利用不可');
+                window.updateAdminOverview?.();
                 return;
             }
 
@@ -155,16 +175,22 @@
             if (ps && new Date(ps) > now) {
                 el.textContent = '期間外（開始前）';
                 el.className = 'status-badge status-warning';
+                setPublicState('開始前', `${formatDtDisplay(ps)} から`);
+                window.updateAdminOverview?.();
                 return;
             }
             if (pe && new Date(pe) < now) {
                 el.textContent = '期間外（終了済）';
                 el.className = 'status-badge status-warning';
+                setPublicState('終了済', `${formatDtDisplay(pe)} まで`);
+                window.updateAdminOverview?.();
                 return;
             }
 
             el.textContent = '開示中';
             el.className = 'status-badge status-open';
+            setPublicState('開示中', pe ? `${formatDtDisplay(pe)} まで` : '終了日時なし');
+            window.updateAdminOverview?.();
         }
 
         async function saveDisclosurePeriod() {
@@ -353,10 +379,10 @@
 
                 tbody.innerHTML = '';
                 // entryNumber順にソート
-                const children = Object.values(entriesData).sort((a, b) => (a.entryNumber || 0) - (b.entryNumber || 0));
+                const children = Object.entries(entriesData).sort(([, a], [, b]) => (a.entryNumber || 0) - (b.entryNumber || 0));
                 window.setAdminEntriesCount?.(children.length);
                 
-                for (const v of children) {
+                for (const [entryKey, v] of children) {
                     let pii = v;
                     if (v.encryptedPII) {
                         try {
@@ -365,10 +391,20 @@
                             pii = JSON.parse(jsonStr);
                         } catch(e) { console.error("Decryption failed", e); }
                     }
+                    if (v.waitlistPromotionNotice === 'pending') {
+                        sendWaitlistPromotionNotice(entryKey, v, pii).catch(e => console.warn('繰り上げ通知スキップ:', e));
+                    }
                     
                     const tr = document.createElement('tr');
                     if (v.status === 'canceled') tr.style.opacity = '0.5';
                     if (v.status === 'waitlist') tr.style.opacity = '0.7';
+                    const noticeIcon = v.waitlistPromotionNotice === 'pending' || v.waitlistPromotionNotice === 'sending'
+                        ? '<span class="badge" style="background:rgba(37,99,235,0.10);color:var(--primary)" title="繰り上げ通知送信待ち"><i class="fa-solid fa-envelope"></i></span>'
+                        : v.waitlistPromotionNotice === 'sent'
+                            ? '<span class="badge success" title="繰り上げ通知送信済み"><i class="fa-solid fa-envelope-circle-check"></i></span>'
+                            : v.waitlistPromotionNotice === 'error' || v.waitlistPromotionNotice === 'missing_email'
+                                ? '<span class="badge danger" title="繰り上げ通知未送信"><i class="fa-solid fa-envelope-circle-xmark"></i></span>'
+                                : '';
                     const statText = v.status === 'canceled' ? '<span class="badge danger" title="キャンセル"><i class="fa-solid fa-xmark"></i></span>'
                         : v.status === 'waitlist' ? '<span class="badge" style="background:var(--warning-soft);color:var(--warning)" title="キャンセル待ち"><i class="fa-solid fa-clock"></i></span>'
                         : v.status === 'late' ? '<span class="badge" style="background:rgba(168,85,247,0.2);color:#a855f7" title="遅刻"><i class="fa-solid fa-clock-rotate-left"></i></span>'
@@ -381,13 +417,43 @@
                     <td >${escapeHtml(pii.affiliation || '')}</td>
                     <td >${escapeHtml(pii.grade || '')}</td>
                     <td ><span class="text-muted-sm">${escapeHtml(pii.email || '')}</span><br>${escapeHtml(pii.inquiry || '-')}</td>
-                    <td >${statText}</td>
+                    <td >${statText}${noticeIcon}</td>
                 `;
                     tbody.appendChild(tr);
                 }
             } catch (e) {
                 tbody.innerHTML = '<tr><td colspan="7" class="td-loading-error">読み込みに失敗しました: ' + escapeHtml(e.message) + '</td></tr>';
             }
+        }
+
+        async function sendWaitlistPromotionNotice(entryKey, entry, pii) {
+            if (!pii?.email) {
+                await dbUpdate(`projects/${projectId}/entries/${entryKey}`, {
+                    waitlistPromotionNotice: 'missing_email'
+                });
+                return;
+            }
+            await dbUpdate(`projects/${projectId}/entries/${entryKey}`, {
+                waitlistPromotionNotice: 'sending'
+            });
+            if (!adminProjectName) {
+                const publicSettings = await dbGet(`projects/${projectId}/publicSettings`) || {};
+                adminProjectName = publicSettings.projectName || projectId;
+                adminReplyTo = publicSettings.replyTo || null;
+            }
+            const ok = await CIQEmail.sendWaitlistPromotion(pii.email, {
+                projectName: adminProjectName || projectId,
+                entryNumber: String(entry.entryNumber).padStart(3, '0'),
+                familyName: pii.familyName || '',
+                firstName: pii.firstName || '',
+                senderName: (adminProjectName || projectId) + ' 実行委員会',
+                replyTo: adminReplyTo
+            });
+            await dbUpdate(`projects/${projectId}/entries/${entryKey}`, {
+                waitlistPromotionNotice: ok ? 'sent' : 'error',
+                waitlistPromotionNotifiedAt: ok ? SERVER_TIMESTAMP : null
+            });
+            if (ok) showAdminToast(`受付番号 ${padNum(entry.entryNumber)} へ繰り上げ通知を送信しました`, 'success');
         }
 
         async function exportEntriesCSV() {

@@ -143,6 +143,57 @@ const templates = {
     ].join('\n'),
     };
   },
+
+  // キャンセル待ち繰り上げ通知
+  waitlist_promoted: ({ projectName, entryNumber, familyName, firstName }) => {
+    const safeProjectName = escapeHtml(projectName);
+    const safeEntryNumber = escapeHtml(entryNumber);
+    const safeFamilyName = escapeHtml(familyName || '');
+    const safeFirstName = escapeHtml(firstName || '');
+    return {
+      subject: `【${projectName}】キャンセル待ち繰り上げのお知らせ（No.${entryNumber}）`,
+      html: `
+      <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:480px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
+        <div style="background:#2563eb;padding:24px;text-align:center;">
+          <h1 style="color:white;font-size:20px;margin:0;">キャンセル待ち繰り上げ</h1>
+          <p style="color:#dbeafe;font-size:13px;margin:8px 0 0;">${safeProjectName}</p>
+        </div>
+        <div style="padding:24px;">
+          <p style="color:#334155;font-size:14px;margin:0 0 16px;">
+            ${safeFamilyName} ${safeFirstName} 様<br>
+            キャンセル待ちから通常エントリーへ繰り上がりました。
+          </p>
+          <div style="background:white;border:1px solid #dbeafe;border-radius:8px;padding:16px;margin-bottom:16px;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <tr>
+                <td style="color:#64748b;padding:6px 0;">受付番号</td>
+                <td style="text-align:right;font-weight:700;color:#1e293b;font-size:18px;">${safeEntryNumber}</td>
+              </tr>
+              <tr>
+                <td style="color:#64748b;padding:6px 0;">状態</td>
+                <td style="text-align:right;font-weight:700;color:#2563eb;">登録完了</td>
+              </tr>
+            </table>
+          </div>
+          <p style="color:#64748b;font-size:13px;margin:0;">当日は受付完了メールに記載されたQRコードをご提示ください。</p>
+        </div>
+        <div style="background:#f1f5f9;padding:12px;text-align:center;font-size:11px;color:#94a3b8;">
+          CIQ — このメールは自動送信されています
+        </div>
+      </div>
+    `,
+      text: [
+        `${familyName || ''} ${firstName || ''} 様`,
+        ``,
+        `${projectName} のキャンセル待ちから通常エントリーへ繰り上がりました。`,
+        `受付番号: ${entryNumber}`,
+        `状態: 登録完了`,
+        ``,
+        `当日は受付完了メールに記載されたQRコードをご提示ください。`,
+        `CIQ — このメールは自動送信されています。`,
+      ].join('\n'),
+    };
+  },
 };
 
 // ── HMAC署名ユーティリティ（認証コード検証用）──────
