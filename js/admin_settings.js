@@ -128,9 +128,64 @@
             showAdminToast('受付期間・定員を保存しました', 'success');
         }
 
+        async function toggleDisclosureOpen() {
+            const enabled = document.getElementById('disclosure-open-toggle').checked;
+            await dbUpdate(`projects/${projectId}/protected/${secretHash}/entryConfig`, { disclosureEnabled: enabled });
+            await dbUpdate(`projects/${projectId}/publicSettings`, { disclosureOpen: enabled });
+            updateDisclosureOpenStatus();
+            showAdminToast(enabled ? '成績開示を有効にしました' : '成績開示を停止しました', 'success');
+            if (enabled) await generateDisclosure();
+        }
+
+        function updateDisclosureOpenStatus() {
+            const toggle = document.getElementById('disclosure-open-toggle');
+            const el = document.getElementById('disclosure-open-status');
+            if (!toggle || !el) return;
+            const isOpen = toggle.checked;
+            const ps = document.getElementById('disclosure-period-start').value;
+            const pe = document.getElementById('disclosure-period-end').value;
+
+            if (!isOpen) {
+                el.textContent = '停止中';
+                el.className = 'status-badge status-closed';
+                return;
+            }
+
+            const now = new Date();
+            if (ps && new Date(ps) > now) {
+                el.textContent = '期間外（開始前）';
+                el.className = 'status-badge status-warning';
+                return;
+            }
+            if (pe && new Date(pe) < now) {
+                el.textContent = '期間外（終了済）';
+                el.className = 'status-badge status-warning';
+                return;
+            }
+
+            el.textContent = '開示中';
+            el.className = 'status-badge status-open';
+        }
+
+        async function saveDisclosurePeriod() {
+            const start = document.getElementById('disclosure-period-start').value || null;
+            const end = document.getElementById('disclosure-period-end').value || null;
+            await dbUpdate(`projects/${projectId}/protected/${secretHash}/entryConfig`, {
+                disclosurePeriodStart: start,
+                disclosurePeriodEnd: end
+            });
+            await dbUpdate(`projects/${projectId}/publicSettings`, {
+                disclosurePeriodStart: start,
+                disclosurePeriodEnd: end
+            });
+            updateDisclosureOpenStatus();
+            showAdminToast('開示期間を保存しました', 'success');
+        }
+
         // ============================
         // Custom DateTime Picker
         // ============================
+        let dtScope = 'entry'; // 'entry' or 'disclosure'
         let dtTarget = null; // 'start' or 'end'
         let dtYear, dtMonth, dtDay, dtHour = 0, dtMin = 0;
 
@@ -143,9 +198,23 @@
             return `${d.getFullYear()}/${mm}/${dd} ${hh}:${mi}`;
         }
 
-        function openDatePicker(target) {
-            dtTarget = target;
-            const existing = document.getElementById(`entry-period-${target}`).value;
+        function getPeriodPrefix(scope = dtScope) {
+            return scope === 'disclosure' ? 'disclosure' : 'entry';
+        }
+
+        function getDtDisplayId(scope, target) {
+            return scope === 'disclosure' ? `dt-disclosure-${target}-display` : `dt-${target}-display`;
+        }
+
+        function getDtTriggerId(scope, target) {
+            return scope === 'disclosure' ? `dt-disclosure-${target}-trigger` : `dt-${target}-trigger`;
+        }
+
+        function openDatePicker(scopeOrTarget, maybeTarget) {
+            dtScope = maybeTarget ? scopeOrTarget : 'entry';
+            dtTarget = maybeTarget || scopeOrTarget;
+            const prefix = getPeriodPrefix(dtScope);
+            const existing = document.getElementById(`${prefix}-period-${dtTarget}`).value;
             const now = existing ? new Date(existing) : new Date();
             dtYear = now.getFullYear(); dtMonth = now.getMonth();
             dtDay = now.getDate();
@@ -171,7 +240,7 @@
             renderDtDays();
 
             // Position
-            const trigger = document.getElementById(`dt-${target}-trigger`);
+            const trigger = document.getElementById(getDtTriggerId(dtScope, dtTarget));
             const rect = trigger.getBoundingClientRect();
             const picker = document.getElementById('dt-picker');
             picker.style.top = (rect.bottom + 8) + 'px';
@@ -244,19 +313,29 @@
             const pad = n => String(n).padStart(2, '0');
             const val = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
             
-            document.getElementById(`entry-period-${dtTarget}`).value = val;
-            document.getElementById(`dt-${dtTarget}-display`).textContent = formatDtDisplay(val);
+            const prefix = getPeriodPrefix();
+            document.getElementById(`${prefix}-period-${dtTarget}`).value = val;
+            document.getElementById(getDtDisplayId(dtScope, dtTarget)).textContent = formatDtDisplay(val);
             closeDatePicker();
-            saveEntryPeriod();
-            updateEntryOpenStatus();
+            if (dtScope === 'disclosure') {
+                saveDisclosurePeriod();
+            } else {
+                saveEntryPeriod();
+                updateEntryOpenStatus();
+            }
         }
 
         function dtClear() {
-            document.getElementById(`entry-period-${dtTarget}`).value = '';
-            document.getElementById(`dt-${dtTarget}-display`).textContent = '未設定';
+            const prefix = getPeriodPrefix();
+            document.getElementById(`${prefix}-period-${dtTarget}`).value = '';
+            document.getElementById(getDtDisplayId(dtScope, dtTarget)).textContent = '未設定';
             closeDatePicker();
-            saveEntryPeriod();
-            updateEntryOpenStatus();
+            if (dtScope === 'disclosure') {
+                saveDisclosurePeriod();
+            } else {
+                saveEntryPeriod();
+                updateEntryOpenStatus();
+            }
         }
 
         async function loadAdminEntries() {

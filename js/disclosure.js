@@ -13,12 +13,58 @@ const params = new URLSearchParams(location.search);
 
         // プロジェクト名を取得して表示
         try {
-            let pName = await dbGet(`projects/${projectId}/publicSettings/projectName`);
+            const settings = await dbGet(`projects/${projectId}/publicSettings`);
+            let pName = settings?.projectName || projectId;
             document.getElementById('logo-title').textContent = pName || projectId;
             document.title = (pName || projectId) + ' - 成績照会';
+
+            const closed = getDisclosureClosedReason(settings || {});
+            if (closed) {
+                document.getElementById('login-card').style.display = 'none';
+                document.getElementById('disabled-title').textContent = closed.title;
+                document.getElementById('disabled-detail').textContent = closed.detail;
+                document.getElementById('disabled-card').style.display = 'block';
+            }
         } catch(e) {
             document.getElementById('logo-title').textContent = projectId;
         }
+    }
+
+    function parseLocalDateTime(dtStr) {
+        if (!dtStr) return null;
+        if (dtStr.includes('T')) {
+            const [d, t] = dtStr.split('T');
+            const [y, m, day] = d.split('-').map(Number);
+            const [hr, min] = t.split(':').map(Number);
+            return new Date(y, m - 1, day, hr, min);
+        }
+        return new Date(dtStr);
+    }
+
+    function getDisclosureClosedReason(settings) {
+        if (settings.disclosureOpen !== true) {
+            return {
+                title: '成績開示は現在停止中です',
+                detail: '管理者が開示を開始するまでお待ちください。'
+            };
+        }
+
+        const now = new Date();
+        const start = parseLocalDateTime(settings.disclosurePeriodStart);
+        const end = parseLocalDateTime(settings.disclosurePeriodEnd);
+        if (start && start > now) {
+            return {
+                title: '成績開示はまだ開始されていません',
+                detail: '開示開始: ' + start.toLocaleString('ja-JP')
+            };
+        }
+        if (end && end < now) {
+            return {
+                title: '成績開示は終了しました',
+                detail: '開示終了: ' + end.toLocaleString('ja-JP')
+            };
+        }
+        return null;
     }
 
     async function checkDisclosure() {

@@ -48,6 +48,12 @@
             <div class="page-msg error" id="error-msg"></div>
         </div>
 
+        <div class="page-card page-disabled" id="disabled-card" style="display:none">
+            <i class="fa-solid fa-lock"></i>
+            <p id="disabled-title">成績開示は現在停止中です</p>
+            <p id="disabled-detail" style="margin-top:8px;font-size:13px">管理者が開示を開始するまでお待ちください。</p>
+        </div>
+
         <div class="page-card result" id="result-card">
             <div class="result-header">
                 <div class="result-name" id="result-name"></div>
@@ -72,6 +78,6 @@
     </div>
 
     <script defer src="js/share_card.js"></script>
-    <script defer src="js/disclosure.js"></script>
+    <script defer src="js/disclosure.js?v=2"></script>
 </body>
 </html>

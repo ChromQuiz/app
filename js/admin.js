@@ -195,6 +195,18 @@
             if (publicSettings.replyTo) {
                 document.getElementById('setting-reply-to').value = publicSettings.replyTo;
             }
+            const disclosureOpen = publicSettings.disclosureOpen === true || ec?.disclosureEnabled === true;
+            const disclosureToggle = document.getElementById('disclosure-open-toggle');
+            if (disclosureToggle) disclosureToggle.checked = disclosureOpen;
+            if (publicSettings.disclosurePeriodStart) {
+                document.getElementById('disclosure-period-start').value = publicSettings.disclosurePeriodStart;
+                document.getElementById('dt-disclosure-start-display').textContent = formatDtDisplay(publicSettings.disclosurePeriodStart);
+            }
+            if (publicSettings.disclosurePeriodEnd) {
+                document.getElementById('disclosure-period-end').value = publicSettings.disclosurePeriodEnd;
+                document.getElementById('dt-disclosure-end-display').textContent = formatDtDisplay(publicSettings.disclosurePeriodEnd);
+            }
+            if (typeof updateDisclosureOpenStatus === 'function') updateDisclosureOpenStatus();
 
             document.getElementById('stat-total').textContent = totalQuestions;
             updateAdminOverview();
