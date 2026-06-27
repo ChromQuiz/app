@@ -365,7 +365,7 @@
             // populate hour/min selectors
             const hSel = document.getElementById('dt-picker-hour');
             const mSel = document.getElementById('dt-picker-min');
-            hSel.innerHTML = ''; mSel.innerHTML = '';
+            hSel.textContent = ''; mSel.textContent = '';
             for (let h = 0; h < 24; h++) {
                 const o = document.createElement('option'); o.value = h;
                 o.textContent = String(h).padStart(2, '0');
@@ -408,7 +408,7 @@
             document.getElementById('dt-picker-month').textContent = `${dtYear}年 ${months[dtMonth]}`;
 
             const container = document.getElementById('dt-picker-days');
-            container.innerHTML = '';
+            container.textContent = '';
 
             const firstDay = new Date(dtYear, dtMonth, 1).getDay();
             const daysInMonth = new Date(dtYear, dtMonth + 1, 0).getDate();

@@ -30,7 +30,7 @@
                 }
                 document.getElementById('select-all-label').hidden = false;
                 document.getElementById('batch-delete-btn').hidden = false;
-                el.innerHTML = '';
+                el.textContent = '';
                 const grid = document.createElement('div');
                 grid.className = 'entry-list-grid';
                 pages.forEach(page => {
@@ -48,7 +48,13 @@
                     cb.dataset.num = String(num);
                     const mark = document.createElement('span');
                     mark.className = 'checkbox-mark';
-                    mark.innerHTML = '<svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg>';
+                    const checkSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    checkSvg.classList.add('checkbox-svg');
+                    checkSvg.setAttribute('viewBox', '0 0 16 16');
+                    const checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    checkPath.setAttribute('d', 'M3 8.5L6.5 12L13 4');
+                    checkSvg.appendChild(checkPath);
+                    mark.appendChild(checkSvg);
                     checkboxLabel.append(cb, mark);
 
                     const entryInfo = document.createElement('div');
@@ -164,7 +170,7 @@
         // ============================
         let dragSrcIdx = null;
         function renderModelGrid() {
-            const grid = document.getElementById('model-answer-grid'); grid.innerHTML = '';
+            const grid = document.getElementById('model-answer-grid'); grid.textContent = '';
             modelAnswers.forEach((ans, i) => {
                 const item = document.createElement('div'); item.className = 'model-cell';
                 item.style.cursor = 'grab';

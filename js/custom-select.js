@@ -29,11 +29,21 @@ class CustomSelect {
         this.trigger.className = 'cd-trigger';
         this.trigger.setAttribute('tabindex', '0');
         this.trigger.setAttribute('role', 'combobox');
-        this.trigger.innerHTML = `
-            <span class="cd-label cd-placeholder">${this.options[0]?.text || '選択'}</span>
-            <svg class="cd-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        `;
-        this.labelSpan = this.trigger.querySelector('.cd-label');
+        this.labelSpan = document.createElement('span');
+        this.labelSpan.className = 'cd-label cd-placeholder';
+        this.labelSpan.textContent = this.options[0]?.text || '選択';
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        arrow.classList.add('cd-arrow');
+        arrow.setAttribute('viewBox', '0 0 24 24');
+        arrow.setAttribute('fill', 'none');
+        arrow.setAttribute('stroke', 'currentColor');
+        arrow.setAttribute('stroke-width', '2.5');
+        arrow.setAttribute('stroke-linecap', 'round');
+        arrow.setAttribute('stroke-linejoin', 'round');
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', '6 9 12 15 18 9');
+        arrow.appendChild(polyline);
+        this.trigger.append(this.labelSpan, arrow);
 
         this.menu = document.createElement('div');
         this.menu.className = 'cd-menu';
@@ -41,9 +51,12 @@ class CustomSelect {
         if (this.searchable) {
             const searchWrap = document.createElement('div');
             searchWrap.className = 'cd-search';
-            searchWrap.innerHTML = '<input type="text" placeholder="検索..." class="cd-search-input">';
+            this.searchInput = document.createElement('input');
+            this.searchInput.type = 'text';
+            this.searchInput.placeholder = '検索...';
+            this.searchInput.className = 'cd-search-input';
+            searchWrap.appendChild(this.searchInput);
             this.menu.appendChild(searchWrap);
-            this.searchInput = searchWrap.querySelector('input');
         }
 
         this.optionEls = [];

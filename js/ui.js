@@ -263,19 +263,34 @@ const KeyboardShortcuts = {
         if (this._modalEl) { this._closeHelp(); return; }
         const backdrop = document.createElement('div');
         backdrop.className = 'kbd-modal-backdrop';
-        backdrop.innerHTML = `
-            <div class="kbd-modal">
-                <h3><i class="fa-solid fa-keyboard"></i> キーボードショートカット</h3>
-                ${this._shortcuts
-                    .filter(s => s.key !== 'Escape')
-                    .map(s => `
-                        <div class="kbd-row">
-                            <span>${s.description}</span>
-                            <span>${s.shift ? '<kbd>Shift</kbd> + ' : ''}${s.ctrl ? '<kbd>Ctrl</kbd> + ' : ''}<kbd>${s.key}</kbd></span>
-                        </div>
-                    `).join('')}
-            </div>
-        `;
+        const modal = document.createElement('div');
+        modal.className = 'kbd-modal';
+        const title = document.createElement('h3');
+        const titleIcon = document.createElement('i');
+        titleIcon.className = 'fa-solid fa-keyboard';
+        title.append(titleIcon, ' キーボードショートカット');
+        modal.appendChild(title);
+
+        this._shortcuts
+            .filter(s => s.key !== 'Escape')
+            .forEach((s) => {
+                const row = document.createElement('div');
+                row.className = 'kbd-row';
+                const description = document.createElement('span');
+                description.textContent = s.description;
+                const keys = document.createElement('span');
+                if (s.shift) {
+                    keys.append(createShortcutKey('Shift'), ' + ');
+                }
+                if (s.ctrl) {
+                    keys.append(createShortcutKey('Ctrl'), ' + ');
+                }
+                keys.appendChild(createShortcutKey(s.key));
+                row.append(description, keys);
+                modal.appendChild(row);
+            });
+
+        backdrop.appendChild(modal);
         backdrop.addEventListener('click', e => { if (e.target === backdrop) this._closeHelp(); });
         document.body.appendChild(backdrop);
         requestAnimationFrame(() => backdrop.classList.add('visible'));
@@ -289,20 +304,36 @@ const KeyboardShortcuts = {
     }
 };
 
+function createShortcutKey(label) {
+    const key = document.createElement('kbd');
+    key.textContent = label;
+    return key;
+}
+
 function renderSkeleton(container, rows = 5) {
-    container.innerHTML = Array.from({ length: rows }, () => `
-        <div class="skeleton-row">
-            <div class="skeleton skeleton-avatar"></div>
-            <div class="confirm-body">
-                <div class="skeleton skeleton-text"></div>
-                <div class="skeleton skeleton-text short"></div>
-            </div>
-        </div>
-    `).join('');
+    container.textContent = '';
+    Array.from({ length: rows }).forEach(() => {
+        const row = document.createElement('div');
+        row.className = 'skeleton-row';
+        const avatar = document.createElement('div');
+        avatar.className = 'skeleton skeleton-avatar';
+        const body = document.createElement('div');
+        body.className = 'confirm-body';
+        const text = document.createElement('div');
+        text.className = 'skeleton skeleton-text';
+        const shortText = document.createElement('div');
+        shortText.className = 'skeleton skeleton-text short';
+        body.append(text, shortText);
+        row.append(avatar, body);
+        container.appendChild(row);
+    });
 }
 
 function renderSkeletonCards(container, count = 6) {
-    container.innerHTML = Array.from({ length: count }, () =>
-        '<div class="skeleton skeleton-card"></div>'
-    ).join('');
+    container.textContent = '';
+    Array.from({ length: count }).forEach(() => {
+        const card = document.createElement('div');
+        card.className = 'skeleton skeleton-card';
+        container.appendChild(card);
+    });
 }
