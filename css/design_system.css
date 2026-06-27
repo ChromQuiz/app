@@ -646,8 +646,12 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 .page-logo h1 {
   font-size: 24px; font-weight: 800; letter-spacing: 0.3px;
+  align-items: center; display: flex; gap: 8px; justify-content: center;
+  line-height: 1.25; margin-left: auto; margin-right: auto;
+  max-width: min(100%, 720px); text-align: center; overflow-wrap: anywhere;
   animation: fadeSlideUp 0.6s var(--smooth) 0.08s both;
 }
+.page-logo h1 i { flex: 0 0 auto; }
 .page-logo .logo-sub {
   color: var(--text-muted); font-size: 13px; margin-top: 6px; font-weight: 500;
   animation: fadeSlideUp 0.6s var(--smooth) 0.16s both;

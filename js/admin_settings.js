@@ -193,13 +193,13 @@
 
 
         // ============================
-        // 参加者管理・受付管理
+        // 参加者管理・エントリー管理
         // ============================
         async function toggleEntryOpen() {
             const enabled = document.getElementById('entry-open-toggle').checked;
             await CIQSupabaseAPI.updateProject(projectId, { entry_open: enabled });
             updateEntryOpenStatus();
-            showAdminToast(enabled ? 'エントリー受付設定を更新しました' : 'エントリー受付を停止しました', 'success');
+            showAdminToast(enabled ? 'エントリー設定を更新しました' : 'エントリーを停止しました', 'success');
         }
         function updateEntryOpenStatus() {
             const isOpen = document.getElementById('entry-open-toggle').checked;
@@ -217,7 +217,7 @@
             if (!isOpen) {
                 el.textContent = '停止中';
                 el.className = 'status-badge status-closed';
-                setPublicState('停止中', '受付フォームは利用不可');
+                setPublicState('停止中', 'エントリーフォームは利用不可');
                 window.updateAdminOverview?.();
                 return;
             }
@@ -238,9 +238,9 @@
                 return;
             }
 
-            el.textContent = '受付中';
+            el.textContent = 'エントリー中';
             el.className = 'status-badge status-open';
-            setPublicState('受付中', pe ? `${formatDtDisplay(pe)} まで` : '終了日時なし');
+            setPublicState('エントリー中', pe ? `${formatDtDisplay(pe)} まで` : '終了日時なし');
             window.updateAdminOverview?.();
         }
 
@@ -258,7 +258,7 @@
             if (hasLimit) {
                 document.getElementById('max-entries-status').textContent = maxEntries + '人';
             }
-            showAdminToast('受付期間・定員を保存しました', 'success');
+            showAdminToast('エントリー期間・定員を保存しました', 'success');
         }
 
         async function toggleDisclosureOpen() {
@@ -511,7 +511,7 @@
                     tbody.appendChild(tr);
                 }
             } catch (e) {
-                setTableMessage(tbody, 7, `読み込みに失敗しました: ${e.message}`, 'td-loading-error');
+                setTableMessage(tbody, 7, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
             }
         }
 

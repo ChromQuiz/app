@@ -3,6 +3,35 @@
  */
 
 const CIQSupabaseAPI = {
+    _cache: new Map(),
+    _answerPagesCacheMs: 15000,
+    _signedUrlCacheMs: 5 * 60 * 1000,
+
+    getCachedValue(key) {
+        const cached = this._cache.get(key);
+        if (!cached) return null;
+        if (cached.expiresAt <= Date.now()) {
+            this._cache.delete(key);
+            return null;
+        }
+        return cached.value;
+    },
+
+    setCachedValue(key, value, ttlMs) {
+        this._cache.set(key, {
+            value,
+            expiresAt: Date.now() + Math.max(0, ttlMs),
+        });
+        return value;
+    },
+
+    invalidateProjectAnswerCache(projectId) {
+        const prefix = `${projectId}:`;
+        Array.from(this._cache.keys()).forEach(key => {
+            if (String(key).startsWith(prefix)) this._cache.delete(key);
+        });
+    },
+
     getConfigStatus() {
         const cfg = window.CIQ_SUPABASE_CONFIG;
         if (!cfg) return { ok: false, reason: 'missing-config' };
@@ -159,7 +188,7 @@ const CIQSupabaseAPI = {
         return entries;
     },
 
-    subscribePublicEntries(projectId, callback) {
+    subscribePublicEntries(projectId, callback, onError = null) {
         const client = this.client();
         let active = true;
 
@@ -167,6 +196,7 @@ const CIQSupabaseAPI = {
             if (active) callback(entries);
         }).catch((error) => {
             console.error('Supabase public entry list load error:', error);
+            if (active && onError) onError(error);
         });
 
         const channel = client
@@ -185,6 +215,7 @@ const CIQSupabaseAPI = {
                         if (active) callback(entries);
                     } catch (error) {
                         console.error('Supabase public entry list refresh error:', error);
+                        if (active && onError) onError(error);
                     }
                 }
             )
@@ -451,6 +482,7 @@ const CIQSupabaseAPI = {
             .select('id, project_id, entry_id, storage_path, cells, uploaded_at')
             .single();
         if (error) throw error;
+        this.invalidateProjectAnswerCache(projectId);
         return data;
     },
 
@@ -465,6 +497,7 @@ const CIQSupabaseAPI = {
                 upsert: true,
             });
         if (error) throw error;
+        this.invalidateProjectAnswerCache(projectId);
         return path;
     },
 
@@ -483,6 +516,10 @@ const CIQSupabaseAPI = {
     },
 
     async listAnswerPages(projectId) {
+        const cacheKey = `${projectId}:answer-pages`;
+        const cached = this.getCachedValue(cacheKey);
+        if (cached) return cached;
+
         const { data, error } = await this.client()
             .from('answer_pages')
             .select(`
@@ -495,7 +532,8 @@ const CIQSupabaseAPI = {
             `)
             .eq('project_id', projectId);
         if (error) throw error;
-        return (data || []).sort((a, b) => Number(a.entries?.entry_number || 0) - Number(b.entries?.entry_number || 0));
+        const pages = (data || []).sort((a, b) => Number(a.entries?.entry_number || 0) - Number(b.entries?.entry_number || 0));
+        return this.setCachedValue(cacheKey, pages, this._answerPagesCacheMs);
     },
 
     async getAnswerPageByEntryNumber(projectId, entryNumber) {
@@ -542,17 +580,32 @@ const CIQSupabaseAPI = {
             .filter(request => request.key && request.path);
         if (!normalized.length) return {};
 
+        const signedUrls = {};
+        const missing = [];
+        const ttlMs = Math.min(this._signedUrlCacheMs, Math.max(0, expiresIn * 1000 - 60000));
+        for (const request of normalized) {
+            const cacheKey = `${projectId}:answer-cell-url:${request.path}`;
+            const cachedUrl = this.getCachedValue(cacheKey);
+            if (cachedUrl) {
+                signedUrls[request.key] = cachedUrl;
+            } else {
+                missing.push({ ...request, cacheKey });
+            }
+        }
+        if (!missing.length) return signedUrls;
+
         const { data, error } = await this.client()
             .storage
             .from('answer-cells')
-            .createSignedUrls(normalized.map(request => request.path), expiresIn);
+            .createSignedUrls(missing.map(request => request.path), expiresIn);
         if (error) throw error;
 
-        const signedUrls = {};
         (data || []).forEach((item, index) => {
-            const request = normalized[index];
+            const request = missing[index];
             if (!request) return;
-            signedUrls[request.key] = item?.signedUrl || item?.signed_url || '';
+            const signedUrl = item?.signedUrl || item?.signed_url || '';
+            signedUrls[request.key] = signedUrl;
+            if (signedUrl && ttlMs > 0) this.setCachedValue(request.cacheKey, signedUrl, ttlMs);
         });
 
         return signedUrls;
@@ -561,6 +614,7 @@ const CIQSupabaseAPI = {
     async deleteAnswerPage(projectId, entryNumber) {
         const page = await this.getAnswerPageByEntryNumber(projectId, entryNumber);
         if (!page) return;
+        this.invalidateProjectAnswerCache(projectId);
         const cellPaths = Object.keys(page.cells?.regions || {}).map(key => {
             const q = String(key).replace(/^q/, '');
             return `${projectId}/${entryNumber}/q${q}.webp`;
@@ -706,6 +760,7 @@ const CIQSupabaseAPI = {
 
     async resetProjectData(projectId) {
         const pages = await this.listAnswerPages(projectId).catch(() => []);
+        this.invalidateProjectAnswerCache(projectId);
         await Promise.all((pages || []).map(page => {
             const entryNumber = Number(page.entries?.entry_number || 0);
             return entryNumber ? this.deleteAnswerPage(projectId, entryNumber) : Promise.resolve();

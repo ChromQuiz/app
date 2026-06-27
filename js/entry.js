@@ -318,21 +318,21 @@ async function init() {
         let blockDetail = '';
         if (settings.entryOpen !== true) {
             blocked = true;
-            blockTitle = '受付は現在停止中です';
-            blockDetail = '管理者が受付を再開するまでお待ちください。';
+            blockTitle = 'エントリーは現在停止中です';
+            blockDetail = '管理者がエントリーを再開するまでお待ちください。';
         } else {
             const now = Date.now();
             const startDt = settings.periodStart ? new Date(settings.periodStart) : null;
             const endDt = settings.periodEnd ? new Date(settings.periodEnd) : null;
             if (startDt && startDt.getTime() > now) {
                 blocked = true;
-                blockTitle = 'エントリー受付はまだ開始されていません';
-                blockDetail = '受付開始: ' + startDt.toLocaleString('ja-JP');
+                blockTitle = 'エントリーはまだ開始されていません';
+                blockDetail = 'エントリー開始: ' + startDt.toLocaleString('ja-JP');
             }
             if (endDt && endDt.getTime() < now) {
                 blocked = true;
-                blockTitle = 'エントリー受付は終了しました';
-                blockDetail = '受付終了: ' + endDt.toLocaleString('ja-JP');
+                blockTitle = 'エントリーは終了しました';
+                blockDetail = 'エントリー終了: ' + endDt.toLocaleString('ja-JP');
             }
         }
         if (blocked) showDisabled(blockTitle, blockDetail);

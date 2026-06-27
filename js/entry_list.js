@@ -57,9 +57,11 @@ const params = new URLSearchParams(location.search);
         hideEl(document.getElementById('disabled-msg'));
         showEl(document.getElementById('content-area'));
 
-        publicEntrySubscription = CIQSupabaseAPI.subscribePublicEntries(projectId, (data) => {
-            renderList(data);
-        });
+        publicEntrySubscription = CIQSupabaseAPI.subscribePublicEntries(
+            projectId,
+            (data) => renderList(data),
+            (error) => showEntryListError(error)
+        );
         window.addEventListener('beforeunload', () => publicEntrySubscription?.stop?.());
     }
 
@@ -110,6 +112,12 @@ const params = new URLSearchParams(location.search);
         }
 
         const entries = Object.values(data);
+        if (entries.length === 0) {
+            appendTableMessage(body, 'まだエントリーはありません。');
+            document.getElementById('total-count').textContent = 0;
+            return;
+        }
+
         const { ordered, earlyCount, hasGraceSplit } = calcPriority(entries);
 
         const confirmed = ordered.filter(e => !e._isWaitlist);
@@ -204,6 +212,16 @@ const params = new URLSearchParams(location.search);
         td.append(icon, ` ${label}`);
         divider.appendChild(td);
         body.appendChild(divider);
+    }
+
+    function showEntryListError(error) {
+        hideEl(document.getElementById('disabled-msg'));
+        showEl(document.getElementById('content-area'));
+        document.getElementById('total-count').textContent = '-';
+        const body = document.getElementById('list-body');
+        body.textContent = '';
+        const detail = error?.message ? `（${error.message}）` : '';
+        appendTableMessage(body, `参加者一覧を読み込めませんでした。時間をおいて再読み込みしてください。${detail}`);
     }
 
     init();

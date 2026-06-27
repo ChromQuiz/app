@@ -17,7 +17,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=2"></script>
+    <script defer src="js/supabase_api.js?v=3"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/ui.js?v=2"></script>
     <script defer src="js/custom-select.js"></script>
@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=19">
+    <link rel="stylesheet" href="css/design_system.css?v=20">
     <link rel="stylesheet" href="css/pages.css?v=19">
 </head>
 
@@ -40,8 +40,8 @@
 
         <div class="page-card page-disabled u-hidden" id="disabled-card">
             <i class="fa-solid fa-door-closed"></i>
-            <h2 id="disabled-title">受付は現在停止中です</h2>
-            <p id="disabled-detail">管理者が受付を再開するまでお待ちください。</p>
+            <h2 id="disabled-title">エントリーは現在停止中です</h2>
+            <p id="disabled-detail">管理者がエントリーを再開するまでお待ちください。</p>
         </div>
 
         <div class="page-card" id="form-card">
@@ -169,7 +169,7 @@
 
         <div class="page-card result-card u-hidden" id="result-card">
             <h2 class="result-title"><i class="fa-solid fa-circle-check"></i> エントリー完了！</h2>
-            <p class="result-desc">エントリーを受け付けました。</p>
+            <p class="result-desc">エントリーが完了しました。</p>
 
             <div class="result-info-box">
                 <div class="info-label"><i class="fa-solid fa-hashtag"></i> あなたの受付番号</div>
@@ -178,7 +178,7 @@
 
             <div class="entry-mail-notice">
                 <i class="fa-solid fa-envelope"></i>
-                <strong>受付情報をメールで送信しました</strong>
+                <strong>エントリー情報をメールで送信しました</strong>
                 <div>パスワード・当日受付用QRコードはメールをご確認ください</div>
             </div>
 
@@ -189,7 +189,7 @@
     </div>
 
     <script defer src="js/email.js"></script>
-    <script defer src="js/entry.js?v=2"></script>
+    <script defer src="js/entry.js?v=3"></script>
 </body>
 
 </html>
