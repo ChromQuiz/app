@@ -36,23 +36,23 @@
 <body class="page-admin">
     <div class="fixed-header">
         <div class="header-left">
-            <button class="back-nav-btn" onclick="location.href='judge.html'"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
+            <button class="back-nav-btn" data-nav-target="judge.html"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
         </div>
         <div class="header-center">
             <h1><i class="fa-solid fa-gear"></i> 管理画面</h1>
         </div>
         <div class="header-right">
-            <div class="id-copy-badge" id="project-id-display" title="クリックでコピー" onclick="copyProjectId()"></div>
-            <button class="menu-trigger" onclick="toggleMenu()" style="margin-left:8px">
+            <div class="id-copy-badge" id="project-id-display" title="クリックでコピー"></div>
+            <button class="menu-trigger" data-toggle-menu style="margin-left:8px">
                 <div class="trigger-icon"><span></span><span></span><span></span></div>
             </button>
         </div>
     </div>
 
     <!-- Slide Panel Menu -->
-    <div class="menu-backdrop" id="menu-backdrop" onclick="toggleMenu()"></div>
+    <div class="menu-backdrop" id="menu-backdrop" data-toggle-menu></div>
     <div class="menu-panel" id="menu-panel">
-        <button class="menu-panel-close" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+        <button class="menu-panel-close" data-toggle-menu><i class="fa-solid fa-xmark"></i></button>
         <div class="menu-profile">
             <div class="menu-avatar"><i class="fa-solid fa-crown"></i></div>
             <div class="menu-profile-name" id="menu-scorer-name"></div>
@@ -60,44 +60,44 @@
         </div>
         <div class="menu-section">
             <div class="menu-section-label">ナビゲーション</div>
-            <button class="menu-item" onclick="location.href='judge.html'">
+            <button class="menu-item" data-nav-target="judge.html">
                 <i class="fa-solid fa-th"></i> 問題一覧
             </button>
-            <button class="menu-item warn" onclick="location.href='conflict.html'">
+            <button class="menu-item warn" data-nav-target="conflict.html">
                 <i class="fa-solid fa-triangle-exclamation"></i> 要確認
             </button>
         </div>
         <div class="menu-divider"></div>
         <div class="menu-section">
             <div class="menu-section-label">ツール</div>
-            <button class="menu-item" onclick="location.href='checkin.html'">
+            <button class="menu-item" data-nav-target="checkin.html">
                 <i class="fa-solid fa-qrcode"></i> 当日受付
             </button>
-            <button class="menu-item" onclick="window.open('entry.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="entry.html">
                 <i class="fa-solid fa-pen-to-square"></i> エントリーフォーム
             </button>
-            <button class="menu-item" onclick="window.open('entry_list.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="entry_list.html">
                 <i class="fa-solid fa-list"></i> エントリーリスト
             </button>
-            <button class="menu-item" onclick="window.open('edit.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="edit.html">
                 <i class="fa-solid fa-pen-to-square"></i> エントリー編集
             </button>
-            <button class="menu-item" onclick="window.open('cancel.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="cancel.html">
                 <i class="fa-solid fa-user-xmark"></i> キャンセルフォーム
             </button>
-            <button class="menu-item" onclick="window.open('late.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="late.html">
                 <i class="fa-solid fa-clock-rotate-left"></i> 遅刻フォーム
             </button>
-            <button class="menu-item" onclick="window.open('disclosure.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="disclosure.html">
                 <i class="fa-solid fa-chart-column"></i> 成績照会
             </button>
         </div>
         <div class="menu-footer">
-            <button class="menu-item" onclick="window.open('help.html','_blank')">
+            <button class="menu-item" data-open-static="help.html">
                 <i class="fa-solid fa-circle-question"></i> ヘルプ
             </button>
 
-            <button class="menu-item danger" onclick="logout()">
+            <button class="menu-item danger" id="admin-logout-btn">
                 <i class="fa-solid fa-right-from-bracket"></i> ログアウト
             </button>
         </div>
@@ -131,19 +131,19 @@
                 </div>
             </div>
             <div class="admin-quick-actions" aria-label="主要操作">
-                <button class="btn secondary" onclick="location.href='judge.html'"><i class="fa-solid fa-table-cells-large"></i> 問題一覧</button>
-                <button class="btn secondary" onclick="location.href='conflict.html'"><i class="fa-solid fa-triangle-exclamation"></i> 要確認</button>
-                <button class="btn secondary" onclick="location.href='checkin.html'"><i class="fa-solid fa-qrcode"></i> 当日受付</button>
-                <button class="btn secondary" onclick="window.open(document.getElementById('registration-link').href)"><i class="fa-solid fa-arrow-up-right-from-square"></i> 受付フォーム</button>
+                <button class="btn secondary" data-nav-target="judge.html"><i class="fa-solid fa-table-cells-large"></i> 問題一覧</button>
+                <button class="btn secondary" data-nav-target="conflict.html"><i class="fa-solid fa-triangle-exclamation"></i> 要確認</button>
+                <button class="btn secondary" data-nav-target="checkin.html"><i class="fa-solid fa-qrcode"></i> 当日受付</button>
+                <button class="btn secondary" data-open-link="registration-link"><i class="fa-solid fa-arrow-up-right-from-square"></i> 受付フォーム</button>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('tab-entries')"><i class="fa-solid fa-users"></i> 参加者</button>
-            <button class="tab-btn" onclick="switchTab('tab-prep')"><i class="fa-solid fa-file-lines"></i> 採点準備</button>
-            <button class="tab-btn" onclick="switchTab('tab-scan')"><i class="fa-solid fa-camera"></i> 答案管理</button>
-            <button class="tab-btn" onclick="switchTab('tab-stats')"><i class="fa-solid fa-chart-pie"></i> 集計</button>
-            <button class="tab-btn" onclick="switchTab('tab-settings')"><i class="fa-solid fa-wrench"></i> 設定</button>
+            <button class="tab-btn active" data-tab-target="tab-entries"><i class="fa-solid fa-users"></i> 参加者</button>
+            <button class="tab-btn" data-tab-target="tab-prep"><i class="fa-solid fa-file-lines"></i> 採点準備</button>
+            <button class="tab-btn" data-tab-target="tab-scan"><i class="fa-solid fa-camera"></i> 答案管理</button>
+            <button class="tab-btn" data-tab-target="tab-stats"><i class="fa-solid fa-chart-pie"></i> 集計</button>
+            <button class="tab-btn" data-tab-target="tab-settings"><i class="fa-solid fa-wrench"></i> 設定</button>
         </div>
 
         <!-- ==================== TAB 0: 参加者管理 ==================== -->
@@ -250,12 +250,12 @@
                 </div>
 
                 <div class="public-links">
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> エントリー</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('registration-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('registration-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-list"></i> リスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('entry-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('entry-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> 編集</span><a id="edit-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('edit-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('edit-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-user-xmark"></i> キャンセル</span><a id="cancel-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('cancel-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('cancel-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-clock-rotate-left"></i> 遅刻</span><a id="late-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('late-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('late-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
-                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-chart-column"></i> 成績照会</span><a id="disclosure-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" onclick="window.open(document.getElementById('disclosure-link').href)" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" onclick="copyUrl('disclosure-link', this)" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> エントリー</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="registration-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="registration-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-list"></i> リスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="entry-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="entry-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-pen-to-square"></i> 編集</span><a id="edit-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="edit-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="edit-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-user-xmark"></i> キャンセル</span><a id="cancel-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="cancel-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="cancel-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-clock-rotate-left"></i> 遅刻</span><a id="late-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="late-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="late-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-chart-column"></i> 成績照会</span><a id="disclosure-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="disclosure-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="disclosure-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
                 </div>
             </div>
             <div class="section glass-panel">
@@ -534,7 +534,7 @@
     <canvas id="work-canvas" class="hidden-canvas"></canvas>
     <canvas id="transform-canvas" class="hidden-canvas"></canvas>
 
-    <script defer src="js/admin.js?v=11"></script>
+    <script defer src="js/admin.js?v=12"></script>
     <script defer src="js/admin_prep.js?v=11"></script>
     <script defer src="js/admin_scan.js?v=9"></script>
     <script defer src="js/admin_stats.js?v=10"></script>

@@ -14,7 +14,23 @@
         const isSupabaseMode = auth.supabaseMode === true;
         const adminHash = session.get('adminHash');
 
-        document.getElementById('project-id-display').innerHTML = `<i class="fa-solid fa-copy"></i> ${projectId}`;
+        function adminIcon(className) {
+            const icon = document.createElement('i');
+            icon.className = className;
+            return icon;
+        }
+
+        function setIconOnlyButton(btn, iconClass) {
+            if (!btn) return;
+            btn.textContent = '';
+            btn.appendChild(adminIcon(iconClass));
+        }
+
+        const projectIdDisplay = document.getElementById('project-id-display');
+        if (projectIdDisplay) {
+            projectIdDisplay.textContent = '';
+            projectIdDisplay.append(adminIcon('fa-solid fa-copy'), ` ${projectId}`);
+        }
         const menuName = document.getElementById('menu-scorer-name');
         if (menuName) menuName.textContent = auth.scorerName;
 
@@ -28,6 +44,43 @@
                     el.querySelector('i').style.color = '';
                 }, 1500);
             });
+        }
+
+        function openProjectPage(page) {
+            window.open(`${page}?pid=${encodeURIComponent(projectId)}`, '_blank');
+        }
+
+        function openLinkById(linkId) {
+            const href = document.getElementById(linkId)?.href;
+            if (href) window.open(href, '_blank');
+        }
+
+        function setupAdminEventHandlers() {
+            document.getElementById('project-id-display')?.addEventListener('click', copyProjectId);
+            document.querySelectorAll('[data-toggle-menu]').forEach((el) => {
+                el.addEventListener('click', toggleMenu);
+            });
+            document.querySelectorAll('[data-nav-target]').forEach((el) => {
+                el.addEventListener('click', () => {
+                    location.href = el.dataset.navTarget;
+                });
+            });
+            document.querySelectorAll('[data-open-page]').forEach((el) => {
+                el.addEventListener('click', () => openProjectPage(el.dataset.openPage));
+            });
+            document.querySelectorAll('[data-open-static]').forEach((el) => {
+                el.addEventListener('click', () => window.open(el.dataset.openStatic, '_blank'));
+            });
+            document.querySelectorAll('[data-open-link]').forEach((el) => {
+                el.addEventListener('click', () => openLinkById(el.dataset.openLink));
+            });
+            document.querySelectorAll('[data-copy-link]').forEach((el) => {
+                el.addEventListener('click', () => copyUrl(el.dataset.copyLink, el));
+            });
+            document.querySelectorAll('[data-tab-target]').forEach((el) => {
+                el.addEventListener('click', () => switchTab(el.dataset.tabTarget));
+            });
+            document.getElementById('admin-logout-btn')?.addEventListener('click', logout);
         }
 
         function setupPublicLinks() {
@@ -64,13 +117,14 @@
         window.copyUrl = function(linkId, btn) {
             const url = document.getElementById(linkId)?.href;
             if (!url) return;
-            const original = btn.innerHTML;
+            const originalNodes = [...btn.childNodes].map(node => node.cloneNode(true));
             function onSuccess() {
-                btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                setIconOnlyButton(btn, 'fa-solid fa-check');
                 btn.style.background = 'var(--success)';
                 btn.style.color = '#ffffff';
                 setTimeout(() => {
-                    btn.innerHTML = original;
+                    btn.textContent = '';
+                    btn.append(...originalNodes.map(node => node.cloneNode(true)));
                     btn.style.background = '';
                     btn.style.color = '';
                 }, 1500);
@@ -303,6 +357,7 @@
         }
 
         async function init() {
+            setupAdminEventHandlers();
             setupPublicLinks();
             registerAdminShortcuts();
 
