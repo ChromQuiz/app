@@ -18,10 +18,7 @@ function setPageTitle(projectName) {
 if (!projectId) {
     document.body.textContent = '';
     const message = document.createElement('div');
-    message.style.padding = '40px';
-    message.style.textAlign = 'center';
-    message.style.color = 'var(--danger)';
-    message.style.fontWeight = 'bold';
+    message.className = 'checkin-missing-project';
     message.textContent = 'プロジェクトに入室してください。3秒後にトップページへ戻ります。';
     document.body.appendChild(message);
     setTimeout(() => location.href = 'index.html', 3000);
@@ -66,7 +63,7 @@ if (!projectId) {
         document.getElementById('stat-total').textContent = stats.total || 0;
         document.getElementById('stat-checked').textContent = stats.checked || 0;
         document.getElementById('stat-remaining').textContent = stats.remaining || 0;
-        document.getElementById('stats-bar').style.display = 'block';
+        document.getElementById('stats-bar').classList.remove('u-hidden');
     }
 
     function startCamera() {
@@ -101,7 +98,7 @@ if (!projectId) {
 
     function showLoading() {
         if (hideTimer) clearTimeout(hideTimer);
-        resultDiv.style.display = 'block';
+        resultDiv.classList.add('is-visible');
         resultDiv.className = 'loading';
         resultDiv.textContent = '';
         const loading = document.createElement('div');
@@ -139,7 +136,7 @@ if (!projectId) {
 
     function showResultUI(type, iconClass, title, name, number) {
         if (hideTimer) clearTimeout(hideTimer);
-        resultDiv.style.display = 'block';
+        resultDiv.classList.add('is-visible');
         resultDiv.className = type;
         resultDiv.textContent = '';
         const titleEl = document.createElement('div');
@@ -160,7 +157,7 @@ if (!projectId) {
         scanningText.textContent = 'QRコードをカメラにかざしてください';
 
         hideTimer = setTimeout(() => {
-            resultDiv.style.display = 'none';
+            resultDiv.classList.remove('is-visible');
             lastUUID = '';
         }, 3000);
     }

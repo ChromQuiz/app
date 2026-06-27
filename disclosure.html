@@ -49,10 +49,10 @@
             <div class="page-msg error" id="error-msg"></div>
         </div>
 
-        <div class="page-card page-disabled" id="disabled-card" style="display:none">
+        <div class="page-card page-disabled u-hidden" id="disabled-card">
             <i class="fa-solid fa-lock"></i>
             <p id="disabled-title">成績照会は現在停止中です</p>
-            <p id="disabled-detail" style="margin-top:8px;font-size:13px">管理者が照会を開始するまでお待ちください。</p>
+            <p id="disabled-detail" class="disclosure-disabled-detail">管理者が照会を開始するまでお待ちください。</p>
         </div>
 
         <div class="page-card result" id="result-card">
@@ -64,7 +64,7 @@
             </div>
 
             <!-- SNS共有エリア -->
-            <div id="share-area" style="display:none">
+            <div id="share-area" class="u-hidden">
                 <div id="share-preview"></div>
                 <div class="share-buttons">
                     <button class="share-btn share-main" id="share-main-btn" title="シェア"><i class="fa-solid fa-share-from-square"></i></button>
@@ -72,7 +72,7 @@
                 </div>
             </div>
 
-            <button class="back-nav-btn" id="disclosure-back-btn" style="margin:20px auto 0;display:flex"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
+            <button class="back-nav-btn disclosure-back-btn" id="disclosure-back-btn"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
         </div>
 
         <div class="page-footer">Powered by CIQ</div>

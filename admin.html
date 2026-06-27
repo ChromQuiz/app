@@ -43,7 +43,7 @@
         </div>
         <div class="header-right">
             <div class="id-copy-badge" id="project-id-display" title="クリックでコピー"></div>
-            <button class="menu-trigger" data-toggle-menu style="margin-left:8px">
+            <button class="menu-trigger ml-sm" data-toggle-menu>
                 <div class="trigger-icon"><span></span><span></span><span></span></div>
             </button>
         </div>
@@ -239,13 +239,13 @@
                         </div>
                         <span id="max-entries-status" class="status-badge status-open">120人</span>
                     </div>
-                    <div id="max-entries-input-area" style="margin-top:12px;">
-                        <div class="number-spinner-wrap" style="max-width:180px;">
+                    <div id="max-entries-input-area" class="mb-zero mt-md">
+                        <div class="number-spinner-wrap u-input-compact">
                             <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-10"><i class="fa-solid fa-minus"></i></button>
                             <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" />
                             <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="10"><i class="fa-solid fa-plus"></i></button>
                         </div>
-                        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-solid fa-circle-info"></i> 10人単位で増減</div>
+                        <div class="u-tiny-muted u-mt-xs"><i class="fa-solid fa-circle-info"></i> 10人単位で増減</div>
                     </div>
                 </div>
 
@@ -260,7 +260,7 @@
             </div>
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-address-book"></i> 参加者一覧</h2>
-                <div class="table-container" style="max-height:400px;">
+                <div class="table-container u-table-scroll-md">
                     <table>
                         <thead>
                             <tr>
@@ -319,7 +319,7 @@
         <!-- ==================== TAB 2: 答案管理 ==================== -->
         <div class="tab-content" id="tab-scan">
             <div class="section glass-panel">
-                <div class="file-upload-zone" id="pdf-upload-zone" data-file-trigger="pdf-file" style="margin-bottom:24px; border-style:dashed;">
+                <div class="file-upload-zone u-dashed mt-zero mb-xl" id="pdf-upload-zone" data-file-trigger="pdf-file">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <div class="file-label">PDFをアップロードして一括スキャン＆保存</div>
                     <div class="file-name" id="pdf-file-name"></div>
@@ -375,22 +375,22 @@
                     <div class="stats-legend-item"><div class="stats-legend-dot legend-pending"></div>未着手</div>
                 </div>
             </div>
-            <div class="section glass-panel" style="position:relative;z-index:2;">
+            <div class="section glass-panel u-relative-layer">
                 <h2><i class="fa-solid fa-file-csv"></i> 採点結果CSV</h2>
                 <div class="csv-status" id="csv-status"><i class="fa-solid fa-spinner fa-spin"></i> 確認中...</div>
-                <div class="config-panel" style="margin-bottom:12px;">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="config-panel mb-md">
+                    <div class="u-grid-2">
                         <div>
-                            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">名前区切り</label>
-                            <select id="csv-name-sep" class="custom-select" style="width:100%;">
+                            <label class="u-label-compact">名前区切り</label>
+                            <select id="csv-name-sep" class="custom-select u-full-width">
                                 <option value="fullspace">全角スペース</option>
                                 <option value="halfspace">半角スペース</option>
                                 <option value="none">区切りなし</option>
                             </select>
                         </div>
                         <div>
-                            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">文字数固定</label>
-                            <select id="csv-name-fixed" class="custom-select" style="width:100%;">
+                            <label class="u-label-compact">文字数固定</label>
+                            <select id="csv-name-fixed" class="custom-select u-full-width">
                                 <option value="0">なし</option>
                                 <option value="4">4文字</option>
                                 <option value="5">5文字</option>
@@ -399,7 +399,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
+                    <div class="u-tiny-muted mt-sm">
                         <i class="fa-solid fa-circle-info"></i> 文字数固定: 姓名の合計が指定文字数未満の場合、姓と名の間にスペースを挿入して揃えます。
                     </div>
                 </div>
@@ -417,12 +417,12 @@
                     </div>
                     <span>人以下をハイライト</span>
                 </div>
-                <div class="config-panel config-row" style="margin-top:8px;">
+                <div class="config-panel config-row mt-sm">
                     <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked data-action="render-analytics"><span class="toggle-slider"></span></label>
-                    <span style="font-size:13px;">エントリーネームで表示</span>
+                    <span class="u-muted-note">エントリーネームで表示</span>
                 </div>
                 <button class="btn secondary" data-action="export-analytics-csv"><i class="fa-solid fa-download"></i> 正答率分析CSV</button>
-                <div class="table-container mt-md" style="max-height:400px;">
+                <div class="table-container mt-md u-table-scroll-md">
                     <table id="analytics-table">
                         <thead>
                             <tr>
@@ -445,7 +445,7 @@
 
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-user-shield"></i> メンバー管理</h2>
-                <p class="desc-text" style="margin-bottom:12px;">採点者はプロジェクトIDと採点者コードで参加できます。管理者は参加済みメンバーの権限変更、キック、復帰ができます。</p>
+                <p class="desc-text mb-md">採点者はプロジェクトIDと採点者コードで参加できます。管理者は参加済みメンバーの権限変更、キック、復帰ができます。</p>
                 <div class="member-management-toolbar">
                     <button class="btn secondary" data-action="load-project-members"><i class="fa-solid fa-rotate"></i> 更新</button>
                 </div>
@@ -469,22 +469,22 @@
             
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-scroll"></i> 参加規約</h2>
-                <p class="desc-text" style="margin-bottom:12px;">大会の参加規約を入力します。設定するとエントリーフォームに同意チェックボックスが表示されます。（Markdown/テキスト）</p>
-                <div class="name-input-flex" style="flex-direction:column; align-items:stretch;">
-                    <textarea id="setting-terms" placeholder="規約を入力しない場合は空にしてください" style="min-height:120px;margin-bottom:12px;"></textarea>
-                    <button class="btn" style="width:100%;" data-action="update-terms"><i class="fa-solid fa-arrows-rotate"></i> 参加規約を更新</button>
+                <p class="desc-text mb-md">大会の参加規約を入力します。設定するとエントリーフォームに同意チェックボックスが表示されます。（Markdown/テキスト）</p>
+                <div class="name-input-flex u-stack-stretch">
+                    <textarea id="setting-terms" class="u-min-h-120 mb-md" placeholder="規約を入力しない場合は空にしてください"></textarea>
+                    <button class="btn u-full-width" data-action="update-terms"><i class="fa-solid fa-arrows-rotate"></i> 参加規約を更新</button>
                 </div>
             </div>
 
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-envelope"></i> 連絡先・メール設定</h2>
-                <p class="desc-text" style="margin-bottom:12px;">参加者へ自動送信される各種メールの「送信者名」と「返信先」を設定します。</p>
-                <div class="name-input-flex" style="flex-direction:column; align-items:stretch;">
-                    <div style="margin-bottom:12px;">
-                        <label style="font-size:12px;color:var(--text-muted);font-weight:600;">返信先（お問い合わせ）メールアドレス</label>
-                        <input type="email" id="setting-reply-to" class="name-input" placeholder="例: contact@example.com" style="margin-top:4px;" />
+                <p class="desc-text mb-md">参加者へ自動送信される各種メールの「送信者名」と「返信先」を設定します。</p>
+                <div class="name-input-flex u-stack-stretch">
+                    <div class="mb-md">
+                        <label class="u-label-compact">返信先（お問い合わせ）メールアドレス</label>
+                        <input type="email" id="setting-reply-to" class="name-input u-mt-xs" placeholder="例: contact@example.com" />
                     </div>
-                    <button class="btn" style="width:100%;" data-action="update-email-settings"><i class="fa-solid fa-arrows-rotate"></i> メール設定を更新</button>
+                    <button class="btn u-full-width" data-action="update-email-settings"><i class="fa-solid fa-arrows-rotate"></i> メール設定を更新</button>
                 </div>
             </div>
 

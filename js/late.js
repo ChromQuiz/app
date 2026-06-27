@@ -3,6 +3,14 @@
 const params = new URLSearchParams(location.search);
 let projectId = params.get('pid');
 
+function showEl(el) {
+    el?.classList.remove('u-hidden');
+}
+
+function hideEl(el) {
+    el?.classList.add('u-hidden');
+}
+
 function lateIcon(className) {
     const icon = document.createElement('i');
     icon.className = className;
@@ -20,9 +28,7 @@ function showLateCardMessage(message) {
     const card = document.getElementById('form-card');
     card.textContent = '';
     const p = document.createElement('p');
-    p.style.textAlign = 'center';
-    p.style.color = 'var(--danger)';
-    p.style.fontWeight = '600';
+    p.className = 'inline-danger-message';
     p.textContent = message;
     card.appendChild(p);
 }
@@ -51,7 +57,7 @@ if (!projectId) {
         const sm = document.getElementById('status-msg');
         sm.textContent = msg;
         sm.className = `page-msg ${type}`;
-        sm.style.display = 'block';
+        sm.classList.add('is-visible');
     }
 
     async function processLate() {
@@ -77,8 +83,8 @@ if (!projectId) {
                 disclosurePasswordHash: pwHash,
             });
 
-            document.getElementById('form-card').style.display = 'none';
-            document.getElementById('done-card').style.display = 'block';
+            hideEl(document.getElementById('form-card'));
+            showEl(document.getElementById('done-card'));
 
         } catch (err) {
             showStatus(err.message || 'システムエラーが発生しました。', 'error');
@@ -89,7 +95,7 @@ if (!projectId) {
 
     // Enterキーで送信
     document.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && document.getElementById('form-card').style.display !== 'none') {
+        if (e.key === 'Enter' && !document.getElementById('form-card').classList.contains('u-hidden')) {
             processLate();
         }
     });

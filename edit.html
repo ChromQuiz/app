@@ -47,8 +47,8 @@
         </div>
 
         <!-- 編集フォーム -->
-        <div class="page-card" id="edit-card" style="display:none">
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-md);border:1px solid var(--glass-border);">
+        <div class="page-card u-hidden" id="edit-card">
+            <div class="entry-number-summary">
                 <i class="fa-solid fa-hashtag"></i> 受付番号: <strong id="edit-entry-number"></strong>
             </div>
 
@@ -75,11 +75,11 @@
 
             <div id="affiliation-section">
                 <div class="form-row">
-                    <div class="form-group" style="flex:2">
+                    <div class="form-group u-flex-2">
                         <label class="required"><i class="fa-solid fa-school"></i> 所属教育機関</label>
                         <input type="text" id="e-affiliation" required placeholder="○○高">
                     </div>
-                    <div class="form-group" style="flex:1">
+                    <div class="form-group u-flex-1">
                         <label class="required"><i class="fa-solid fa-graduation-cap"></i> 学年</label>
                         <select id="e-grade" class="custom-select" required>
                             <option value="">選択</option>
@@ -99,7 +99,7 @@
                 <label class="custom-checkbox">
                     <input type="checkbox" id="e-chubu">
                     <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
-                    <div style="flex:1">
+                    <div class="u-flex-1">
                         <span>所属教育機関は<strong>中部地方</strong>（愛知・岐阜・三重・静岡・長野・山梨・新潟・富山・石川・福井）にあります</span>
                     </div>
                 </label>
@@ -125,9 +125,9 @@
         </div>
 
         <!-- 完了 -->
-        <div class="page-card" id="done-card" style="display:none;text-align:center;">
-            <i class="fa-solid fa-circle-check" style="font-size:48px;color:var(--success);margin-bottom:16px;display:block;"></i>
-            <p style="font-size:18px;font-weight:700;">エントリー内容を更新しました</p>
+        <div class="page-card u-hidden u-text-center" id="done-card">
+            <i class="fa-solid fa-circle-check u-success-icon"></i>
+            <p class="u-complete-title">エントリー内容を更新しました</p>
         </div>
 
         <div class="page-footer">Powered by CIQ</div>

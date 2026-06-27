@@ -21,9 +21,7 @@ function showCancelCardMessage(message) {
     const card = document.getElementById('form-card');
     card.textContent = '';
     const p = document.createElement('p');
-    p.style.textAlign = 'center';
-    p.style.color = 'var(--danger)';
-    p.style.fontWeight = '600';
+    p.className = 'inline-danger-message';
     p.textContent = message;
     card.appendChild(p);
 }
@@ -43,7 +41,7 @@ function showStatus(msg, type) {
     const sm = document.getElementById('status-msg');
     sm.textContent = msg;
     sm.className = `page-msg ${type}`;
-    sm.style.display = 'block';
+    sm.classList.add('is-visible');
 }
 
 async function init() {
@@ -107,14 +105,10 @@ function showCancelComplete(entryNum, promotedEntryNumber) {
     const card = document.getElementById('form-card');
     card.textContent = '';
     const wrap = document.createElement('div');
-    wrap.style.textAlign = 'center';
+    wrap.className = 'cancel-complete';
     const title = document.createElement('h2');
-    title.style.color = '#ef5350';
-    title.style.marginBottom = '16px';
     title.textContent = 'キャンセル完了';
     const detail = document.createElement('p');
-    detail.style.color = '#8e8ea0';
-    detail.style.lineHeight = '1.6';
     detail.append(
         `受付番号 ${entryNum} のエントリーキャンセルを受け付けました。`,
         document.createElement('br'),

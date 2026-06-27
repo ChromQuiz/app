@@ -8,6 +8,14 @@ let authEmailHash = '';
 let authPasswordHash = '';
 let publicKeyJwk = null;
 
+function showEl(el) {
+    el?.classList.remove('u-hidden');
+}
+
+function hideEl(el) {
+    el?.classList.add('u-hidden');
+}
+
 function editIcon(className) {
     const icon = document.createElement('i');
     icon.className = className;
@@ -25,9 +33,7 @@ function showEditCardMessage(message) {
     const card = document.getElementById('auth-card');
     card.textContent = '';
     const p = document.createElement('p');
-    p.style.textAlign = 'center';
-    p.style.color = 'var(--danger)';
-    p.style.fontWeight = '600';
+    p.className = 'inline-danger-message';
     p.textContent = message;
     card.appendChild(p);
 }
@@ -56,14 +62,14 @@ if (!projectId) {
         const sm = document.getElementById('auth-msg');
         sm.textContent = msg;
         sm.className = `page-msg ${type}`;
-        sm.style.display = 'block';
+        sm.classList.add('is-visible');
     }
 
     function showEditMsg(msg, type) {
         const sm = document.getElementById('edit-msg');
         sm.textContent = msg;
         sm.className = `page-msg ${type}`;
-        sm.style.display = 'block';
+        sm.classList.add('is-visible');
     }
 
     async function authenticate() {
@@ -104,8 +110,8 @@ if (!projectId) {
             document.getElementById('e-inquiry').value = targetData.inquiry || '';
 
             // 認証フォームを隠して編集フォームを表示
-            document.getElementById('auth-card').style.display = 'none';
-            document.getElementById('edit-card').style.display = 'block';
+            hideEl(document.getElementById('auth-card'));
+            showEl(document.getElementById('edit-card'));
 
         } catch (err) {
             showAuthMsg(err.message || 'システムエラーが発生しました。', 'error');
@@ -164,8 +170,8 @@ if (!projectId) {
                 },
             });
 
-            document.getElementById('edit-card').style.display = 'none';
-            document.getElementById('done-card').style.display = 'block';
+            hideEl(document.getElementById('edit-card'));
+            showEl(document.getElementById('done-card'));
 
         } catch (err) {
             showEditMsg('保存に失敗しました: ' + err.message, 'error');
@@ -177,7 +183,7 @@ if (!projectId) {
     // Enterキーで認証
     document.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
-            if (document.getElementById('auth-card').style.display !== 'none') {
+            if (!document.getElementById('auth-card').classList.contains('u-hidden')) {
                 authenticate();
             }
         }

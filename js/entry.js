@@ -12,6 +12,14 @@ let resendCooldown = null;
 let sessionTimer = null;
 const SESSION_TIMEOUT = 10 * 60 * 1000;
 
+function showEl(el) {
+    el?.classList.remove('u-hidden');
+}
+
+function hideEl(el) {
+    el?.classList.add('u-hidden');
+}
+
 function entryIcon(className) {
     const icon = document.createElement('i');
     icon.className = className;
@@ -38,24 +46,24 @@ async function loadPublicSettings() {
 }
 
 function showDisabled(title, detail) {
-    document.getElementById('form-card').style.display = 'none';
+    hideEl(document.getElementById('form-card'));
     document.getElementById('disabled-title').textContent = title;
     document.getElementById('disabled-detail').textContent = detail;
-    document.getElementById('disabled-card').style.display = 'block';
+    showEl(document.getElementById('disabled-card'));
 }
 
 function showVerifyMsg(msg, type) {
     const el = document.getElementById('verify-msg');
     el.textContent = msg;
     el.className = `page-msg ${type}`;
-    el.style.display = 'block';
+    el.classList.add('is-visible');
 }
 
 function showStatus(msg, type) {
     const sm = document.getElementById('status-msg');
     sm.textContent = msg;
     sm.className = `page-msg ${type}`;
-    sm.style.display = 'block';
+    sm.classList.add('is-visible');
 }
 
 function generatePW() {
@@ -66,7 +74,7 @@ function generatePW() {
 function startResendCooldown() {
     let sec = 10;
     const resendBtn = document.getElementById('resend-code-btn');
-    resendBtn.style.display = 'inline-block';
+    showEl(resendBtn);
     resendBtn.disabled = true;
     setEntryButton(resendBtn, `再送信（${sec}秒）`, 'fa-solid fa-clock');
     clearInterval(resendCooldown);
@@ -131,8 +139,8 @@ async function sendVerification() {
     verifySignature = result.signature;
     verifyExpiresAt = result.expiresAt;
     document.getElementById('f-email').disabled = true;
-    document.getElementById('code-input-area').style.display = 'block';
-    btn.style.display = 'none';
+    showEl(document.getElementById('code-input-area'));
+    hideEl(btn);
     showVerifyMsg(`${email} に6桁の認証コードを送信しました。`, 'success');
     document.getElementById('f-verify-code').focus();
     startResendCooldown();
@@ -162,23 +170,23 @@ async function verifyEmailCode() {
     emailVerified = true;
     verifiedEmail = email;
     clearInterval(resendCooldown);
-    document.getElementById('email-verify-section').style.display = 'none';
-    document.getElementById('form-body').style.display = 'block';
+    hideEl(document.getElementById('email-verify-section'));
+    showEl(document.getElementById('form-body'));
     document.getElementById('verified-email').textContent = email;
 
     sessionTimer = setTimeout(() => {
         emailVerified = false;
         verifiedEmail = '';
-        document.getElementById('form-body').style.display = 'none';
-        document.getElementById('email-verify-section').style.display = 'block';
+        hideEl(document.getElementById('form-body'));
+        showEl(document.getElementById('email-verify-section'));
         document.getElementById('f-email').disabled = false;
         document.getElementById('f-email').value = '';
         document.getElementById('f-verify-code').value = '';
-        document.getElementById('code-input-area').style.display = 'none';
-        document.getElementById('send-code-btn').style.display = '';
+        hideEl(document.getElementById('code-input-area'));
+        showEl(document.getElementById('send-code-btn'));
         document.getElementById('send-code-btn').disabled = false;
         setEntryButton(document.getElementById('send-code-btn'), '認証コードを送信', 'fa-solid fa-paper-plane');
-        document.getElementById('resend-code-btn').style.display = 'none';
+        hideEl(document.getElementById('resend-code-btn'));
         showVerifyMsg('セッションの有効期限が切れました。再度メール認証を行ってください。', 'error');
     }, SESSION_TIMEOUT);
 }
@@ -255,10 +263,10 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             senderName: pName + ' 実行委員会'
         }).catch(err => console.warn('メール送信スキップ:', err));
 
-        document.getElementById('form-card').style.display = 'none';
-        document.getElementById('result-card').style.display = 'block';
+        hideEl(document.getElementById('form-card'));
+        showEl(document.getElementById('result-card'));
         document.getElementById('r-entry-number').textContent = String(entryNumber).padStart(3, '0');
-        document.getElementById('status-msg').style.display = 'none';
+        hideEl(document.getElementById('status-msg'));
 
         if (entryStatus === 'waitlist') {
             showWaitlistMessage();
@@ -273,8 +281,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
 function showWaitlistMessage() {
     const waitMsg = document.createElement('div');
-    waitMsg.className = 'status-msg warning';
-    waitMsg.style.cssText = 'display:block;margin:12px 0;padding:12px 16px;background:var(--warning-soft);border:1px solid rgba(183,121,31,0.26);border-radius:8px;color:var(--warning);font-size:13px;';
+    waitMsg.className = 'waitlist-result-note';
     const strong = document.createElement('strong');
     strong.textContent = 'キャンセル待ち';
     waitMsg.append(entryIcon('fa-solid fa-clock'), ' 定員に達したため、', strong, 'として登録されました。');

@@ -3,6 +3,16 @@
 const params = new URLSearchParams(location.search);
 const projectId = params.get('pid');
 
+function showEl(el) {
+    el?.classList.remove('u-hidden');
+    el?.classList.add('is-visible');
+}
+
+function hideEl(el) {
+    el?.classList.add('u-hidden');
+    el?.classList.remove('is-visible');
+}
+
 function disclosureIcon(className) {
     const icon = document.createElement('i');
     icon.className = className;
@@ -25,8 +35,7 @@ function showMissingProject() {
     const title = document.createElement('p');
     title.textContent = 'プロジェクトが指定されていません。';
     const detail = document.createElement('p');
-    detail.style.marginTop = '8px';
-    detail.style.fontSize = '13px';
+    detail.className = 'disclosure-disabled-detail';
     detail.textContent = '正しいリンクからアクセスしてください。';
     card.append(title, detail);
     container.appendChild(card);
@@ -51,10 +60,10 @@ if (!projectId) {
 
             const closed = getDisclosureClosedReason(settings || {});
             if (closed) {
-                document.getElementById('login-card').style.display = 'none';
+                hideEl(document.getElementById('login-card'));
                 document.getElementById('disabled-title').textContent = closed.title;
                 document.getElementById('disabled-detail').textContent = closed.detail;
-                document.getElementById('disabled-card').style.display = 'block';
+                showEl(document.getElementById('disabled-card'));
             }
         } catch(e) {
             document.getElementById('logo-title').textContent = projectId;
@@ -104,11 +113,11 @@ if (!projectId) {
         const errEl = document.getElementById('error-msg');
         const btn = document.getElementById('submit-btn');
 
-        errEl.style.display = 'none';
+        errEl.classList.remove('is-visible');
 
         if (!email || !pw) {
             errEl.textContent = 'メールアドレスとパスワードを入力してください。';
-            errEl.style.display = 'block'; return;
+            errEl.classList.add('is-visible'); return;
         }
 
         btn.disabled = true;
@@ -132,15 +141,15 @@ if (!projectId) {
             } else {
                 errEl.textContent = 'エラーが発生しました。もう一度お試しください。';
             }
-            errEl.style.display = 'block';
+            errEl.classList.add('is-visible');
         }
         btn.disabled = false;
         setButtonLabel(btn, 'fa-solid fa-unlock', '成績を確認する');
     }
 
     function showResult(disc) {
-        document.getElementById('login-card').style.display = 'none';
-        document.getElementById('result-card').style.display = 'block';
+        hideEl(document.getElementById('login-card'));
+        showEl(document.getElementById('result-card'));
         document.getElementById('result-name').textContent = disc.displayName || '';
         document.getElementById('result-rank').textContent = disc.rank || '';
         document.getElementById('result-score').textContent = disc.score;
@@ -203,7 +212,7 @@ if (!projectId) {
             img.className = 'share-preview-img';
             preview.appendChild(img);
 
-            document.getElementById('share-area').style.display = 'block';
+            showEl(document.getElementById('share-area'));
         } catch(e) {
             console.error('共有画像の生成に失敗:', e);
         }
@@ -247,9 +256,9 @@ if (!projectId) {
     }
 
     function showLogin() {
-        document.getElementById('result-card').style.display = 'none';
-        document.getElementById('login-card').style.display = 'block';
-        document.getElementById('share-area').style.display = 'none';
+        hideEl(document.getElementById('result-card'));
+        showEl(document.getElementById('login-card'));
+        hideEl(document.getElementById('share-area'));
     }
 
     function setupDisclosureEvents() {
@@ -261,7 +270,7 @@ if (!projectId) {
 
     // Enterキーで送信
     document.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && document.getElementById('login-card').style.display !== 'none') {
+        if (e.key === 'Enter' && !document.getElementById('login-card').classList.contains('u-hidden')) {
             checkDisclosure();
         }
     });

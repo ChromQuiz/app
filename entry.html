@@ -31,14 +31,14 @@
 </head>
 
 <body class="page-wrapper">
-    <div class="page-container" style="max-width:600px">
+    <div class="page-container u-panel-narrow">
         <div class="page-logo">
             <span class="logo-icon"><i class="fa-solid fa-pen-to-square"></i></span>
             <h1 id="project-title"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</h1>
             <div class="logo-sub" id="project-subtitle">エントリーフォーム</div>
         </div>
 
-        <div class="page-card page-disabled" id="disabled-card" style="display:none">
+        <div class="page-card page-disabled u-hidden" id="disabled-card">
             <i class="fa-solid fa-door-closed"></i>
             <h2 id="disabled-title">受付は現在停止中です</h2>
             <p id="disabled-detail">管理者が受付を再開するまでお待ちください。</p>
@@ -53,10 +53,10 @@
                         <input type="email" id="f-email" required placeholder="name@example.com">
                         <div class="hint"><i class="fa-solid fa-circle-info"></i> 認証コードを送信して本人確認を行います。</div>
                     </div>
-                    <button type="button" class="page-btn" id="send-code-btn" style="margin-bottom:16px;">
+                    <button type="button" class="page-btn mb-lg" id="send-code-btn">
                         <i class="fa-solid fa-paper-plane"></i> 認証コードを送信
                     </button>
-                    <div id="code-input-area" style="display:none">
+                    <div id="code-input-area" class="u-hidden">
                         <div class="form-group">
                             <label class="required"><i class="fa-solid fa-shield-halved"></i> 認証コード（6桁）</label>
                             <input type="text" id="f-verify-code" class="verify-code-input" maxlength="6" pattern="[0-9]{6}" placeholder="000000" inputmode="numeric">
@@ -64,7 +64,7 @@
                         <button type="button" class="page-btn" id="verify-code-btn">
                             <i class="fa-solid fa-check-circle"></i> 認証する
                         </button>
-                        <button type="button" class="page-btn" id="resend-code-btn" style="display:none;margin-top:8px;background:transparent;border:1px solid var(--glass-border);font-size:13px;padding:10px 16px;">
+                        <button type="button" class="page-btn entry-resend-btn u-hidden" id="resend-code-btn">
                             <i class="fa-solid fa-rotate-right"></i> 認証コードを再送信
                         </button>
                     </div>
@@ -72,8 +72,8 @@
                 </div>
 
                 <!-- 認証完了後に表示されるフォーム本体 -->
-                <div id="form-body" style="display:none">
-                    <div style="background:var(--success-soft);border:1px solid rgba(21,128,61,0.24);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--success);">
+                <div id="form-body" class="u-hidden">
+                    <div class="entry-verified-box">
                         <i class="fa-solid fa-circle-check"></i> メール認証済: <strong id="verified-email"></strong>
                     </div>
 
@@ -103,11 +103,11 @@
 
                 <div id="affiliation-section">
                     <div class="form-row" id="school-mode-fields">
-                        <div class="form-group" style="flex:2">
+                        <div class="form-group u-flex-2">
                             <label class="required"><i class="fa-solid fa-school"></i> 所属教育機関</label>
                             <input type="text" id="f-affiliation" required placeholder="○○高">
                         </div>
-                        <div class="form-group" style="flex:1">
+                        <div class="form-group u-flex-1">
                             <label class="required"><i class="fa-solid fa-graduation-cap"></i> 学年</label>
                             <select id="f-grade" class="custom-select" required>
                                 <option value="">選択</option>
@@ -127,7 +127,7 @@
                     <label class="custom-checkbox">
                         <input type="checkbox" id="f-chubu">
                         <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
-                        <div style="flex:1">
+                        <div class="u-flex-1">
                             <span>所属教育機関は<strong>中部地方</strong>（愛知・岐阜・三重・静岡・長野・山梨・新潟・富山・石川・福井）にあります</span>
                         </div>
                     </label>
@@ -136,8 +136,8 @@
                 <div class="form-group">
                     <label class="required"><i class="fa-solid fa-id-badge"></i> エントリーネーム</label>
                     <input type="text" id="f-entry-name" required placeholder="エントリーシートでの表示名">
-                    <div id="entry-name-pref-area" style="margin-top:10px;">
-                        <div style="font-size:12px;color:var(--danger);line-height:1.4;font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> 当日は本名（姓名）での表示となります。</div>
+                    <div id="entry-name-pref-area" class="mt-sm">
+                        <div class="u-danger-note"><i class="fa-solid fa-circle-exclamation"></i> 当日は本名（姓名）での表示となります。</div>
                     </div>
                 </div>
 
@@ -151,12 +151,12 @@
                     <textarea id="f-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
                 </div>
 
-                <div class="form-group" style="margin-top: 24px;">
+                <div class="form-group mt-lg">
                     <label class="custom-checkbox">
                         <input type="checkbox" id="f-tos" required>
                         <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
-                        <div style="flex:1">
-                            <span id="tos-text">私は<a id="terms-link" href="terms.html" target="_blank" style="color:var(--primary);text-decoration:underline">参加規約</a>に同意し、入力した情報が正確であることを確認しました。</span>
+                        <div class="u-flex-1">
+                            <span id="tos-text">私は<a id="terms-link" class="terms-link" href="terms.html" target="_blank">参加規約</a>に同意し、入力した情報が正確であることを確認しました。</span>
                         </div>
                     </label>
                 </div>
@@ -167,7 +167,7 @@
             <div class="page-msg" id="status-msg"></div>
         </div>
 
-        <div class="page-card result-card" id="result-card" style="display:none">
+        <div class="page-card result-card u-hidden" id="result-card">
             <h2 class="result-title"><i class="fa-solid fa-circle-check"></i> エントリー完了！</h2>
             <p class="result-desc">エントリーを受け付けました。</p>
 
@@ -176,10 +176,10 @@
                 <div class="info-value" id="r-entry-number">---</div>
             </div>
 
-            <div style="background:var(--primary-soft);border:1px solid rgba(37, 99, 235, 0.24);border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center;">
-                <i class="fa-solid fa-envelope" style="color:var(--primary);font-size:18px;display:block;margin-bottom:6px"></i>
-                <strong style="color:var(--primary);font-size:14px">受付情報をメールで送信しました</strong>
-                <div style="color:#9ca3af;font-size:12px;margin-top:6px">パスワード・当日受付用QRコードはメールをご確認ください</div>
+            <div class="entry-mail-notice">
+                <i class="fa-solid fa-envelope"></i>
+                <strong>受付情報をメールで送信しました</strong>
+                <div>パスワード・当日受付用QRコードはメールをご確認ください</div>
             </div>
 
             <button class="btn secondary" id="new-entry-btn"><i class="fa-solid fa-rotate-right"></i> 新しいエントリーを行う</button>

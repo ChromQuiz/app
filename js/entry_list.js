@@ -3,6 +3,14 @@
 const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');
 
+    function showEl(el) {
+        el?.classList.remove('u-hidden');
+    }
+
+    function hideEl(el) {
+        el?.classList.add('u-hidden');
+    }
+
     if (!projectId) {
         const disabledMsg = document.getElementById('disabled-msg');
         disabledMsg.textContent = '';
@@ -46,8 +54,8 @@ const params = new URLSearchParams(location.search);
         }
 
         // リストを常に表示
-        document.getElementById('disabled-msg').style.display = 'none';
-        document.getElementById('content-area').style.display = 'block';
+        hideEl(document.getElementById('disabled-msg'));
+        showEl(document.getElementById('content-area'));
 
         publicEntrySubscription = CIQSupabaseAPI.subscribePublicEntries(projectId, (data) => {
             renderList(data);
@@ -117,26 +125,22 @@ const params = new URLSearchParams(location.search);
             const grade = e.grade !== '非表示' ? e.grade : '';
 
             const tr = document.createElement('tr');
-            if (isWaitlist) tr.style.opacity = '0.6';
+            if (isWaitlist) tr.classList.add('entry-row-waitlist');
             const priorityTd = document.createElement('td');
-            priorityTd.style.fontWeight = '700';
+            priorityTd.className = 'entry-priority-cell';
             priorityTd.textContent = e._priority;
 
             const timeTd = document.createElement('td');
             timeTd.className = 'c-time';
             if (isWaitlist) {
                 const waitIcon = document.createElement('i');
-                waitIcon.className = 'fa-solid fa-clock';
-                waitIcon.style.color = 'var(--warning)';
-                waitIcon.style.marginRight = '4px';
+                waitIcon.className = 'fa-solid fa-clock entry-wait-icon';
                 waitIcon.title = 'キャンセル待ち';
                 timeTd.appendChild(waitIcon);
             }
             timeTd.appendChild(document.createTextNode(`${timeStr} `));
             const numberSpan = document.createElement('span');
-            numberSpan.style.color = '#555';
-            numberSpan.style.fontSize = '11px';
-            numberSpan.style.marginLeft = '4px';
+            numberSpan.className = 'entry-number-mini';
             numberSpan.textContent = `#${padNum(e.entryNumber)}`;
             timeTd.appendChild(numberSpan);
 
@@ -150,11 +154,10 @@ const params = new URLSearchParams(location.search);
             messageTd.textContent = e.message || '';
 
             const chubuTd = document.createElement('td');
-            chubuTd.style.textAlign = 'center';
+            chubuTd.className = 'entry-center-cell';
             if (e.isChubu) {
                 const chubuMark = document.createElement('i');
-                chubuMark.className = 'fa-solid fa-check';
-                chubuMark.style.color = 'var(--success)';
+                chubuMark.className = 'fa-solid fa-check entry-chubu-mark';
                 chubuMark.title = '中部地方';
                 chubuTd.appendChild(chubuMark);
             }
@@ -168,13 +171,13 @@ const params = new URLSearchParams(location.search);
         confirmed.forEach(e => {
             if (!graceDividerInserted && hasGraceSplit && e._isAfterGrace) {
                 graceDividerInserted = true;
-                appendDivider(body, 'fa-solid fa-map-location-dot', '以降中部地方優先', 'var(--primary-soft)', 'var(--primary)');
+                appendDivider(body, 'fa-solid fa-map-location-dot', '以降中部地方優先', 'entry-list-divider-primary');
             }
             renderRow(e, false);
         });
 
         if (waitlist.length > 0) {
-            appendDivider(body, 'fa-solid fa-clock', `キャンセル待ち（${waitlist.length}名）`, 'var(--warning-soft)', 'var(--warning)');
+            appendDivider(body, 'fa-solid fa-clock', `キャンセル待ち（${waitlist.length}名）`, 'entry-list-divider-warning');
             waitlist.forEach(e => renderRow(e, true));
         }
 
@@ -185,24 +188,17 @@ const params = new URLSearchParams(location.search);
         const tr = document.createElement('tr');
         const td = document.createElement('td');
         td.colSpan = 7;
-        td.style.textAlign = 'center';
-        td.style.color = '#888';
+        td.className = 'entry-table-message';
         td.textContent = message;
         tr.appendChild(td);
         body.appendChild(tr);
     }
 
-    function appendDivider(body, iconClass, label, background, color) {
+    function appendDivider(body, iconClass, label, toneClass) {
         const divider = document.createElement('tr');
+        divider.className = `entry-list-divider ${toneClass}`;
         const td = document.createElement('td');
         td.colSpan = 7;
-        td.style.textAlign = 'center';
-        td.style.padding = '8px';
-        td.style.background = background;
-        td.style.color = color;
-        td.style.fontSize = '12px';
-        td.style.fontWeight = '600';
-        td.style.letterSpacing = '1px';
         const icon = document.createElement('i');
         icon.className = iconClass;
         td.append(icon, ` ${label}`);

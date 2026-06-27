@@ -215,6 +215,156 @@ input::placeholder, textarea::placeholder { color: var(--text-faint); }
 .result-info-box .info-value { font-size: 36px; font-weight: 800; color: var(--primary); margin-bottom: 16px; }
 .pw-display { font-size: 24px; font-family: var(--font-mono); letter-spacing: 6px; font-weight: bold; font-variant-numeric: tabular-nums; background: rgba(0,0,0,0.35); padding: 12px 20px; border-radius: var(--radius-md); color: var(--text-main); border: 1px solid rgba(255,255,255,0.05); }
 .pw-warning { color: var(--danger); font-size: 12px; font-weight: 700; margin-top: 14px; line-height: 1.5; }
+.entry-verified-box {
+  background: var(--success-soft);
+  border: 1px solid rgba(21,128,61,0.24);
+  border-radius: var(--radius-md);
+  color: var(--success);
+  font-size: 13px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+}
+.entry-resend-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  font-size: 13px;
+  margin-top: 8px;
+  padding: 10px 16px;
+}
+.terms-link {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.entry-mail-notice {
+  background: var(--primary-soft);
+  border: 1px solid rgba(37, 99, 235, 0.24);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.entry-mail-notice i {
+  color: var(--primary);
+  display: block;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.entry-mail-notice strong {
+  color: var(--primary);
+  font-size: 14px;
+}
+.entry-mail-notice div {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.waitlist-result-note {
+  background: var(--warning-soft);
+  border: 1px solid rgba(183,121,31,0.26);
+  border-radius: var(--radius-sm);
+  color: var(--warning);
+  display: block;
+  font-size: 13px;
+  margin: 12px 0;
+  padding: 12px 16px;
+}
+.inline-danger-message {
+  color: var(--danger);
+  font-weight: 600;
+  text-align: center;
+}
+.cancel-complete {
+  text-align: center;
+}
+.cancel-complete h2 {
+  color: var(--danger);
+  margin-bottom: 16px;
+}
+.cancel-complete p {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.entry-number-summary {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 20px;
+  padding: 12px;
+}
+.disclosure-back-btn {
+  display: flex;
+  margin: 20px auto 0;
+}
+.disclosure-disabled-detail {
+  font-size: 13px;
+  margin-top: 8px;
+}
+.checkin-stat-primary { color: var(--primary); }
+.checkin-stat-success { color: var(--success); }
+.checkin-stat-warning { color: var(--warning); }
+.entry-list-loading-cell {
+  color: var(--text-muted);
+  padding: 32px;
+  text-align: center;
+}
+.entry-row-waitlist { opacity: 0.6; }
+.entry-priority-cell { font-weight: 700; }
+.entry-wait-icon {
+  color: var(--warning);
+  margin-right: 4px;
+}
+.entry-number-mini {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-left: 4px;
+}
+.entry-center-cell { text-align: center; }
+.entry-chubu-mark { color: var(--success); }
+.entry-table-message {
+  color: var(--text-muted);
+  text-align: center;
+}
+.entry-list-divider td {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 8px;
+  text-align: center;
+}
+.entry-list-divider-primary td {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.entry-list-divider-warning td {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.checkin-missing-project {
+  color: var(--danger);
+  font-weight: 700;
+  padding: 40px;
+  text-align: center;
+}
+.index-help-link-wrap {
+  margin-top: 24px;
+  text-align: center;
+}
+.index-help-link {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+.admin-manual-footer {
+  margin-top: 40px;
+  padding: 20px;
+  text-align: center;
+}
+.admin-manual-footer p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
 
 /* ──────────────────────────────────────────
    judge.html — Question Assignment
@@ -355,6 +505,7 @@ body.page-conflict { padding: 0; }
 
 
 .result { display: none; }
+.result.is-visible { display: block; }
 .result-header { text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
 .result-name { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 1px; }
 .result-score-line { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin: 12px 0 20px; }
@@ -378,6 +529,7 @@ body.page-conflict { padding: 0; }
 #canvas { display: none; }
 #scanning-text { margin-top: 12px; color: var(--text-muted); font-size: 14px; text-align: center; font-weight: 600; }
 #result { margin-top: 16px; width: 100%; padding: 20px; border-radius: var(--radius-lg); text-align: center; font-size: 18px; display: none; font-weight: 600; transition: all 0.35s var(--smooth); }
+#result.is-visible { display: block; }
 #result.success { background: var(--success-soft); border: 2px solid rgba(21, 128, 61, 0.30); color: var(--success); }
 #result.error { background: var(--danger-soft); border: 2px solid rgba(220, 38, 38, 0.30); color: var(--danger); }
 #result.already { background: var(--warning-soft); border: 2px solid rgba(183, 121, 31, 0.30); color: var(--warning); }
