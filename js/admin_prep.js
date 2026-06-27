@@ -228,6 +228,7 @@
                 overlayTitle.textContent = 'サーバーへ保存中...';
                 overlayBar.style.width = '0%';
                 let current = 0; const totalBatch = scanAnswers.length;
+                const uploadFailures = [];
 
                 const UPLOAD_CONCURRENCY = 3;
 
@@ -241,7 +242,10 @@
                         }
                     } catch (e) {
                         console.error(`Entry ${a.entryNumber} upload error:`, e);
-                        showAdminToast(`受付番号 ${padNum(a.entryNumber)}: 保存失敗`, 'error');
+                        uploadFailures.push({
+                            entryNumber: a.entryNumber,
+                            message: e.message || String(e),
+                        });
                     }
                     current++;
                     overlayBar.style.width = `${(current / totalBatch) * 100}%`;
@@ -256,7 +260,15 @@
 
                 overlayText.textContent = '完了しました！';
                 setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-                showAdminToast(`${scanAnswers.length}件の答案を処理しました`, 'success');
+                if (uploadFailures.length) {
+                    const detail = uploadFailures
+                        .slice(0, 3)
+                        .map(f => `${padNum(f.entryNumber)}: ${f.message}`)
+                        .join(' / ');
+                    showAdminToast(`${uploadFailures.length}件の保存に失敗しました: ${detail}`, 'error');
+                } else {
+                    showAdminToast(`${scanAnswers.length}件の答案を保存しました`, 'success');
+                }
                 loadEntryList();
             } catch (e) {
                 console.error(e); overlay.style.display = 'none';
