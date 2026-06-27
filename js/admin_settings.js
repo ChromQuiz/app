@@ -100,6 +100,17 @@
             tbody.appendChild(tr);
         }
 
+        function setTableMessage(tbody, colspan, message, className = 'td-loading') {
+            tbody.textContent = '';
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = colspan;
+            td.className = className;
+            td.textContent = message;
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+        }
+
         async function loadProjectMembers() {
             const tbody = document.getElementById('project-members-tbody');
             if (!tbody) return;
@@ -471,18 +482,18 @@
 
         async function loadAdminEntries() {
             const tbody = document.getElementById('admin-entries-tbody');
-            tbody.innerHTML = '<tr><td colspan="7" class="td-loading">読み込み中...</td></tr>';
+            setTableMessage(tbody, 7, '読み込み中...');
 
             try {
                 const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
                 window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
                 entryNumbers = entries.map(e => e.entry_number).sort((a, b) => a - b);
                 if (!entries.length) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="td-loading">名簿データがありません。</td></tr>';
+                    setTableMessage(tbody, 7, '名簿データがありません。');
                     window.setAdminEntriesCount?.(0);
                     return;
                 }
-                tbody.innerHTML = '';
+                tbody.textContent = '';
                 window.setAdminEntriesCount?.(entries.length);
                 for (const v of entries) {
                     let pii = null;
@@ -501,30 +512,87 @@
                     const tr = document.createElement('tr');
                     if (v.status === 'canceled') tr.style.opacity = '0.5';
                     if (v.status === 'waitlist') tr.style.opacity = '0.7';
-                    const noticeIcon = v.waitlist_promotion_notice === 'pending' || v.waitlist_promotion_notice === 'sending'
-                        ? '<span class="badge" style="background:rgba(37,99,235,0.10);color:var(--primary)" title="繰り上げ通知送信待ち"><i class="fa-solid fa-envelope"></i></span>'
-                        : v.waitlist_promotion_notice === 'sent'
-                            ? '<span class="badge success" title="繰り上げ通知送信済み"><i class="fa-solid fa-envelope-circle-check"></i></span>'
-                            : v.waitlist_promotion_notice === 'failed'
-                                ? '<span class="badge danger" title="繰り上げ通知未送信"><i class="fa-solid fa-envelope-circle-xmark"></i></span>'
-                                : '';
-                    const statText = v.status === 'canceled' ? '<span class="badge danger" title="キャンセル"><i class="fa-solid fa-xmark"></i></span>'
-                        : v.status === 'waitlist' ? '<span class="badge" style="background:var(--warning-soft);color:var(--warning)" title="キャンセル待ち"><i class="fa-solid fa-clock"></i></span>'
-                        : v.status === 'late' ? '<span class="badge" style="background:rgba(168,85,247,0.2);color:#a855f7" title="遅刻"><i class="fa-solid fa-clock-rotate-left"></i></span>'
-                        : v.checked_in ? '<span class="badge success" title="受付済"><i class="fa-solid fa-check"></i></span>' : '<span class="badge muted" title="未受付"><i class="fa-regular fa-clock"></i></span>';
-                    tr.innerHTML = `
-                        <td>${padNum(v.entry_number) || '-'}</td>
-                        <td>-<br><span class="text-muted-sm">暗号化情報</span></td>
-                        <td>${escapeHtml(v.entry_name || '')}</td>
-                        <td>${escapeHtml(v.affiliation || '')}</td>
-                        <td>${escapeHtml(v.grade || '')}</td>
-                        <td><span class="text-muted-sm">メールは暗号化保存</span><br>-</td>
-                        <td>${statText}${noticeIcon}</td>
-                    `;
+                    appendAdminEntryRow(tr, v);
                     tbody.appendChild(tr);
                 }
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="7" class="td-loading-error">読み込みに失敗しました: ' + escapeHtml(e.message) + '</td></tr>';
+                setTableMessage(tbody, 7, `読み込みに失敗しました: ${e.message}`, 'td-loading-error');
+            }
+        }
+
+        function createBadge(className, iconClass, title, styles = {}) {
+            const badge = document.createElement('span');
+            badge.className = className;
+            badge.title = title;
+            Object.assign(badge.style, styles);
+            const icon = document.createElement('i');
+            icon.className = iconClass;
+            badge.appendChild(icon);
+            return badge;
+        }
+
+        function appendAdminEntryCell(row, content) {
+            const td = document.createElement('td');
+            if (content instanceof Node) {
+                td.appendChild(content);
+            } else {
+                td.textContent = content;
+            }
+            row.appendChild(td);
+            return td;
+        }
+
+        function appendAdminEntryRow(row, entry) {
+            appendAdminEntryCell(row, padNum(entry.entry_number) || '-');
+
+            const encryptedInfo = document.createDocumentFragment();
+            encryptedInfo.append('-', document.createElement('br'));
+            const encryptedNote = document.createElement('span');
+            encryptedNote.className = 'text-muted-sm';
+            encryptedNote.textContent = '暗号化情報';
+            encryptedInfo.appendChild(encryptedNote);
+            appendAdminEntryCell(row, encryptedInfo);
+
+            appendAdminEntryCell(row, entry.entry_name || '');
+            appendAdminEntryCell(row, entry.affiliation || '');
+            appendAdminEntryCell(row, entry.grade || '');
+
+            const emailInfo = document.createDocumentFragment();
+            const emailNote = document.createElement('span');
+            emailNote.className = 'text-muted-sm';
+            emailNote.textContent = 'メールは暗号化保存';
+            emailInfo.append(emailNote, document.createElement('br'), '-');
+            appendAdminEntryCell(row, emailInfo);
+
+            const statusTd = appendAdminEntryCell(row, document.createDocumentFragment());
+            if (entry.status === 'canceled') {
+                statusTd.appendChild(createBadge('badge danger', 'fa-solid fa-xmark', 'キャンセル'));
+            } else if (entry.status === 'waitlist') {
+                statusTd.appendChild(createBadge('badge', 'fa-solid fa-clock', 'キャンセル待ち', {
+                    background: 'var(--warning-soft)',
+                    color: 'var(--warning)',
+                }));
+            } else if (entry.status === 'late') {
+                statusTd.appendChild(createBadge('badge', 'fa-solid fa-clock-rotate-left', '遅刻', {
+                    background: 'rgba(168,85,247,0.2)',
+                    color: '#a855f7',
+                }));
+            } else if (entry.checked_in) {
+                statusTd.appendChild(createBadge('badge success', 'fa-solid fa-check', '受付済'));
+            } else {
+                statusTd.appendChild(createBadge('badge muted', 'fa-regular fa-clock', '未受付'));
+            }
+
+            const noticeState = entry.waitlist_promotion_notice;
+            if (noticeState === 'pending' || noticeState === 'sending') {
+                statusTd.appendChild(createBadge('badge', 'fa-solid fa-envelope', '繰り上げ通知送信待ち', {
+                    background: 'rgba(37,99,235,0.10)',
+                    color: 'var(--primary)',
+                }));
+            } else if (noticeState === 'sent') {
+                statusTd.appendChild(createBadge('badge success', 'fa-solid fa-envelope-circle-check', '繰り上げ通知送信済み'));
+            } else if (noticeState === 'failed') {
+                statusTd.appendChild(createBadge('badge danger', 'fa-solid fa-envelope-circle-xmark', '繰り上げ通知未送信'));
             }
         }
 
