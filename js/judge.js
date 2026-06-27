@@ -9,6 +9,25 @@ let requiredScorers = 3;
 let currentMemberId = '';
 let memberNameMap = {};
 
+function setRoleBadge(role) {
+    const roleEl = document.getElementById('menu-scorer-role');
+    roleEl.textContent = '';
+    const badge = document.createElement('span');
+    badge.className = role === 'admin' ? 'menu-role-badge admin' : 'menu-role-badge scorer';
+    const icon = document.createElement('i');
+    icon.className = role === 'admin' ? 'fa-solid fa-crown' : 'fa-solid fa-user-check';
+    badge.append(icon, role === 'admin' ? ' 管理者' : ' 採点者');
+    roleEl.appendChild(badge);
+}
+
+function setStatus(statusEl, className, iconClass, text) {
+    statusEl.className = `q-status ${className}`;
+    statusEl.textContent = '';
+    const icon = document.createElement('i');
+    icon.className = iconClass;
+    statusEl.append(icon, ` ${text}`);
+}
+
 async function initializeApp() {
     const sessionData = await CIQSupabaseAPI.getSession();
     if (!sessionData?.user) {
@@ -28,9 +47,7 @@ async function initializeApp() {
     currentMemberId = ownMember?.id || '';
 
     document.getElementById('menu-scorer-name').textContent = scorerName;
-    document.getElementById('menu-scorer-role').innerHTML = scorerRole === 'admin'
-        ? '<span class="menu-role-badge admin"><i class="fa-solid fa-crown"></i> 管理者</span>'
-        : '<span class="menu-role-badge scorer"><i class="fa-solid fa-user-check"></i> 採点者</span>';
+    setRoleBadge(scorerRole);
 
     if (scorerRole === 'admin') {
         document.getElementById('admin-menu-section').style.display = 'block';
@@ -43,17 +60,23 @@ async function initializeApp() {
 
 function renderQuestionCards() {
     const qGrid = document.getElementById('q-grid');
-    qGrid.innerHTML = '';
+    qGrid.textContent = '';
     for (let i = 1; i <= totalQuestions; i++) {
         const card = document.createElement('div');
         card.className = 'q-card';
         card.id = `qcard-${i}`;
-        card.innerHTML = `
-            <div class="q-num">${i}問</div>
-            <div class="q-scorers" id="qscorers-${i}"></div>
-            <div class="q-status status-open" id="qstatus-${i}">未着手</div>
-        `;
-        card.onclick = () => enterQ(i);
+        const qNum = document.createElement('div');
+        qNum.className = 'q-num';
+        qNum.textContent = `${i}問`;
+        const scorers = document.createElement('div');
+        scorers.className = 'q-scorers';
+        scorers.id = `qscorers-${i}`;
+        const status = document.createElement('div');
+        status.className = 'q-status status-open';
+        status.id = `qstatus-${i}`;
+        status.textContent = '未着手';
+        card.append(qNum, scorers, status);
+        card.addEventListener('click', () => enterQ(i));
         qGrid.appendChild(card);
     }
 }
@@ -91,23 +114,21 @@ function updateGrid(rows) {
         if (allDone) card.classList.add('done');
         else if (scorerIds.length > 0) card.classList.add('inprogress');
 
-        scorersEl.innerHTML = scorerIds.map((memberId, idx) => {
+        scorersEl.textContent = '';
+        scorerIds.forEach((memberId, idx) => {
             const done = completedIds.includes(memberId);
-            return `${done ? '✓' : '…'} ${escapeHtml(scorerLabel(memberId, idx))}`;
-        }).join('<br>');
+            if (idx > 0) scorersEl.appendChild(document.createElement('br'));
+            scorersEl.appendChild(document.createTextNode(`${done ? '✓' : '…'} ${scorerLabel(memberId, idx)}`));
+        });
 
         if (isFull && !isMine) {
-            statusEl.className = 'q-status status-locked';
-            statusEl.innerHTML = '<i class="fa-solid fa-ban"></i> 満員';
+            setStatus(statusEl, 'status-locked', 'fa-solid fa-ban', '満員');
         } else if (allDone) {
-            statusEl.className = 'q-status status-done';
-            statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> 完了';
+            setStatus(statusEl, 'status-done', 'fa-solid fa-circle-check', '完了');
         } else if (scorerIds.length > 0) {
-            statusEl.className = 'q-status status-inprogress';
-            statusEl.innerHTML = `<i class="fa-solid fa-pen"></i> 採点中 ${scorerIds.length}/${requiredScorers}`;
+            setStatus(statusEl, 'status-inprogress', 'fa-solid fa-pen', `採点中 ${scorerIds.length}/${requiredScorers}`);
         } else {
-            statusEl.className = 'q-status status-open';
-            statusEl.innerHTML = '<i class="fa-solid fa-minus"></i> 未着手';
+            setStatus(statusEl, 'status-open', 'fa-solid fa-minus', '未着手');
         }
     }
 }

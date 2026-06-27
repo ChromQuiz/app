@@ -14,6 +14,55 @@ let pendingWrites = {};
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
+function setAnswerGridMessage(message, iconClass = '') {
+    const grid = document.getElementById('answer-grid');
+    grid.textContent = '';
+    const messageEl = document.createElement('div');
+    messageEl.className = 'loading-state';
+    messageEl.style.gridColumn = '1/-1';
+    if (iconClass) {
+        const icon = document.createElement('i');
+        icon.className = iconClass;
+        messageEl.append(icon, ' ');
+    }
+    messageEl.appendChild(document.createTextNode(message));
+    grid.appendChild(messageEl);
+}
+
+function updateAnswerCardClass(card, result, isSelected) {
+    card.className = `answer-card ${result === 'correct' ? 'correct' : result === 'wrong' ? 'wrong' : result === 'hold' ? 'hold' : ''} ${isSelected ? 'selected' : ''}`;
+}
+
+function createAnswerCard(cardData, idx) {
+    const myScore = myScores[cardData.entryId];
+    const card = document.createElement('div');
+    updateAnswerCardClass(card, myScore, idx === selectedIndex);
+
+    if (cardData.cellUrl) {
+        const image = document.createElement('img');
+        image.src = cardData.cellUrl;
+        image.alt = cardData.displayName;
+        image.loading = 'eager';
+        image.decoding = 'async';
+        card.appendChild(image);
+    } else {
+        const expired = document.createElement('div');
+        expired.className = 'img-expired';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-clock';
+        expired.append(icon, ' 画像がありません');
+        card.appendChild(expired);
+    }
+
+    const entryNum = document.createElement('div');
+    entryNum.className = 'entry-num';
+    entryNum.textContent = cardData.displayName;
+    card.appendChild(entryNum);
+    card.addEventListener('click', () => selectCard(idx));
+    card.addEventListener('dblclick', () => showPreview(projectId, null, cardData.entryNumber));
+    return card;
+}
+
 async function init() {
     try {
         const joined = await CIQSupabaseAPI.joinQuestionScorer(projectId, currentQ);
@@ -29,14 +78,14 @@ async function init() {
         answerCards = cards;
 
         if (answerCards.length === 0) {
-            document.getElementById('answer-grid').innerHTML = '<div class="loading-state" style="grid-column:1/-1"><i class="fa-solid fa-inbox"></i> 答案データがありません</div>';
+            setAnswerGridMessage('答案データがありません', 'fa-solid fa-inbox');
             return;
         }
 
         await refreshVotes();
         setInterval(refreshVotes, 3000);
     } catch (e) {
-        document.getElementById('answer-grid').innerHTML = `<div class="loading-state" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(e.message)}</div>`;
+        setAnswerGridMessage(e.message || '採点データを読み込めませんでした', 'fa-solid fa-triangle-exclamation');
     }
 }
 
@@ -72,21 +121,12 @@ function renderGrid() {
         answerCards.forEach((cardData, idx) => {
             const myScore = myScores[cardData.entryId];
             const card = grid.children[idx];
-            card.className = `answer-card ${myScore === 'correct' ? 'correct' : myScore === 'wrong' ? 'wrong' : myScore === 'hold' ? 'hold' : ''} ${idx === selectedIndex ? 'selected' : ''}`;
+            updateAnswerCardClass(card, myScore, idx === selectedIndex);
         });
     } else {
-        grid.innerHTML = '';
+        grid.textContent = '';
         answerCards.forEach((cardData, idx) => {
-            const myScore = myScores[cardData.entryId];
-            const card = document.createElement('div');
-            card.className = `answer-card ${myScore === 'correct' ? 'correct' : myScore === 'wrong' ? 'wrong' : myScore === 'hold' ? 'hold' : ''} ${idx === selectedIndex ? 'selected' : ''}`;
-            const imageHtml = cardData.cellUrl
-                ? `<img src="${cardData.cellUrl}" alt="${escapeHtml(cardData.displayName)}" loading="eager" decoding="async" />`
-                : '<div class="img-expired"><i class="fa-solid fa-clock"></i> 画像がありません</div>';
-            card.innerHTML = `${imageHtml}<div class="entry-num">${escapeHtml(cardData.displayName)}</div>`;
-            card.addEventListener('click', () => selectCard(idx));
-            card.addEventListener('dblclick', () => showPreview(projectId, null, cardData.entryNumber));
-            grid.appendChild(card);
+            grid.appendChild(createAnswerCard(cardData, idx));
         });
     }
 

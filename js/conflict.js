@@ -15,13 +15,33 @@ let selectedIndex = 0;
 let cellUrlCache = {};
 let cellUrlPreloadKey = '';
 
+function setConflictGridMessage(message, options = {}) {
+    const grid = document.getElementById('conflict-grid');
+    grid.textContent = '';
+    const messageEl = document.createElement('div');
+    messageEl.className = options.className || 'loading-state';
+    messageEl.style.gridColumn = '1/-1';
+    if (options.icon) {
+        const icon = document.createElement('i');
+        icon.className = options.icon;
+        if (options.iconSize) {
+            icon.style.fontSize = options.iconSize;
+            icon.style.display = 'block';
+            icon.style.marginBottom = '16px';
+        }
+        if (options.iconColor) icon.style.color = options.iconColor;
+        messageEl.append(icon, ' ');
+    }
+    messageEl.appendChild(document.createTextNode(message));
+    grid.appendChild(messageEl);
+}
+
 async function init() {
     try {
         await refreshData();
         setInterval(refreshData, 5000);
     } catch (e) {
-        const grid = document.getElementById('conflict-grid');
-        grid.innerHTML = `<div class="loading-state" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(e.message)}</div>`;
+        setConflictGridMessage(e.message || '要確認データを読み込めませんでした', { icon: 'fa-solid fa-triangle-exclamation' });
         const counter = document.getElementById('counter');
         counter.textContent = '読み込み失敗';
         counter.className = 'counter has-conflicts';
@@ -121,15 +141,18 @@ function render() {
 
     const grid = document.getElementById('conflict-grid');
     if (currentConflicts.length === 0) {
-        grid.innerHTML = '<div class="no-conflict"><i class="fa-solid fa-circle-check" style="font-size:48px;display:block;margin-bottom:16px;color:var(--success)"></i> 要確認はありません</div>';
+        setConflictGridMessage('要確認はありません', {
+            className: 'no-conflict',
+            icon: 'fa-solid fa-circle-check',
+            iconSize: '48px',
+            iconColor: 'var(--success)',
+        });
         return;
     }
 
-    grid.innerHTML = '';
+    grid.textContent = '';
     currentConflicts.forEach((conflict, idx) => {
-        const card = document.createElement('div');
-        card.className = `conflict-card ${conflict.finalResult ? 'resolved ' + conflict.finalResult : ''} ${idx === selectedIndex ? 'selected' : ''}`;
-        card.innerHTML = cardHtml(conflict);
+        const card = createConflictCard(conflict, idx);
         card.addEventListener('click', () => selectConflictCard(idx));
         card.addEventListener('dblclick', () => showPreview(projectId, null, conflict.entryNumber));
         grid.appendChild(card);
@@ -139,27 +162,71 @@ function render() {
     scrollToSelectedConflict();
 }
 
-function cardHtml(conflict) {
+function createVoteDot(result) {
+    const dot = document.createElement('span');
+    if (result === 'correct') {
+        dot.className = 'vote-dot correct';
+        dot.textContent = '○';
+    } else if (result === 'wrong') {
+        dot.className = 'vote-dot wrong';
+        dot.textContent = '×';
+    } else if (result === 'hold') {
+        dot.className = 'vote-dot hold';
+        dot.textContent = '△';
+    }
+    return dot;
+}
+
+function createConflictCard(conflict, idx) {
     const cacheKey = `${conflict.entryNumber}:q${conflict.q}`;
     const cellUrl = cellUrlCache[cacheKey];
-    const votesHtml = conflict.votes.map(vote => {
-        if (vote.result === 'correct') return '<span class="vote-dot correct">○</span>';
-        if (vote.result === 'wrong') return '<span class="vote-dot wrong">×</span>';
-        if (vote.result === 'hold') return '<span class="vote-dot hold">△</span>';
-        return '';
-    }).join(' ');
-    const imageHtml = cellUrl
-        ? `<img src="${cellUrl}" alt="${escapeHtml(conflict.displayName)} ${conflict.q}問" loading="eager" decoding="async" />`
-        : '<div class="img-expired"><i class="fa-solid fa-clock"></i> 画像を読み込み中</div>';
     const modelAnswer = modelAnswers[conflict.q] || '';
 
-    return `
-        ${imageHtml}
-        <div class="q-tag-badge">${conflict.q}問</div>
-        <div class="entry-num">${escapeHtml(conflict.displayName)}</div>
-        ${modelAnswer ? `<div class="conflict-model-ans"><strong>${escapeHtml(modelAnswer)}</strong></div>` : ''}
-        <div class="votes-mini">${votesHtml}</div>
-    `;
+    const card = document.createElement('div');
+    card.className = `conflict-card ${conflict.finalResult ? 'resolved ' + conflict.finalResult : ''} ${idx === selectedIndex ? 'selected' : ''}`;
+    if (cellUrl) {
+        const image = document.createElement('img');
+        image.src = cellUrl;
+        image.alt = `${conflict.displayName} ${conflict.q}問`;
+        image.loading = 'eager';
+        image.decoding = 'async';
+        card.appendChild(image);
+    } else {
+        const expired = document.createElement('div');
+        expired.className = 'img-expired';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-clock';
+        expired.append(icon, ' 画像を読み込み中');
+        card.appendChild(expired);
+    }
+
+    const qTag = document.createElement('div');
+    qTag.className = 'q-tag-badge';
+    qTag.textContent = `${conflict.q}問`;
+    const entryNum = document.createElement('div');
+    entryNum.className = 'entry-num';
+    entryNum.textContent = conflict.displayName;
+    card.append(qTag, entryNum);
+
+    if (modelAnswer) {
+        const model = document.createElement('div');
+        model.className = 'conflict-model-ans';
+        const strong = document.createElement('strong');
+        strong.textContent = modelAnswer;
+        model.appendChild(strong);
+        card.appendChild(model);
+    }
+
+    const votes = document.createElement('div');
+    votes.className = 'votes-mini';
+    conflict.votes.forEach((vote, index) => {
+        const dot = createVoteDot(vote.result);
+        if (!dot.textContent) return;
+        if (index > 0 && votes.childNodes.length) votes.appendChild(document.createTextNode(' '));
+        votes.appendChild(dot);
+    });
+    card.appendChild(votes);
+    return card;
 }
 
 async function ensureConflictCellUrls(conflicts) {
