@@ -1,10 +1,35 @@
 // checkin.js - QR受付（Supabase）
 
 const projectId = session.projectId;
+
+function makeIcon(className) {
+    const icon = document.createElement('i');
+    icon.className = className;
+    return icon;
+}
+
+function setPageTitle(projectName) {
+    const title = document.getElementById('page-title');
+    if (!title) return;
+    title.textContent = '';
+    title.append(makeIcon('fa-solid fa-qrcode'), ` ${projectName} 受付`);
+}
+
 if (!projectId) {
-    document.body.innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger);font-weight:bold;">プロジェクトに入室してください。3秒後にトップページへ戻ります。</div>';
+    document.body.textContent = '';
+    const message = document.createElement('div');
+    message.style.padding = '40px';
+    message.style.textAlign = 'center';
+    message.style.color = 'var(--danger)';
+    message.style.fontWeight = 'bold';
+    message.textContent = 'プロジェクトに入室してください。3秒後にトップページへ戻ります。';
+    document.body.appendChild(message);
     setTimeout(() => location.href = 'index.html', 3000);
 } else {
+    document.getElementById('checkin-back-btn')?.addEventListener('click', () => {
+        location.href = 'judge.html';
+    });
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -27,7 +52,7 @@ if (!projectId) {
             }
             const project = await CIQSupabaseAPI.getProject(projectId);
             if (project?.name) {
-                document.getElementById('page-title').innerHTML = `<i class="fa-solid fa-qrcode"></i> ${escapeHtml(project.name)} 受付`;
+                setPageTitle(project.name);
             }
             await loadStats();
             startCamera();
@@ -78,7 +103,10 @@ if (!projectId) {
         if (hideTimer) clearTimeout(hideTimer);
         resultDiv.style.display = 'block';
         resultDiv.className = 'loading';
-        resultDiv.innerHTML = '<div>読み込み中...</div>';
+        resultDiv.textContent = '';
+        const loading = document.createElement('div');
+        loading.textContent = '読み込み中...';
+        resultDiv.appendChild(loading);
     }
 
     function entryLabel(entry) {
@@ -93,31 +121,42 @@ if (!projectId) {
             const number = `受付番号 ${padNum(entry.entryNumber)}`;
 
             if (result.result === 'canceled') {
-                showResultUI('canceled', '<i class="fa-solid fa-xmark"></i> キャンセル済み', name, number);
+                showResultUI('canceled', 'fa-solid fa-xmark', 'キャンセル済み', name, number);
             } else if (result.result === 'waitlist') {
-                showResultUI('already', '<i class="fa-solid fa-triangle-exclamation"></i> キャンセル待ち', name, number);
+                showResultUI('already', 'fa-solid fa-triangle-exclamation', 'キャンセル待ち', name, number);
             } else if (result.result === 'already') {
-                showResultUI('already', '<i class="fa-solid fa-triangle-exclamation"></i> 受付済み', name, number);
+                showResultUI('already', 'fa-solid fa-triangle-exclamation', '受付済み', name, number);
             } else {
-                showResultUI('success', '<i class="fa-solid fa-check"></i> 受付完了', name, number);
+                showResultUI('success', 'fa-solid fa-check', '受付完了', name, number);
                 await loadStats();
             }
         } catch (err) {
-            showResultUI('error', '<i class="fa-solid fa-xmark"></i> エラーが発生しました', err.message, '');
+            showResultUI('error', 'fa-solid fa-xmark', 'エラーが発生しました', err.message, '');
             lastUUID = '';
         }
         processing = false;
     }
 
-    function showResultUI(type, title, name, number) {
+    function showResultUI(type, iconClass, title, name, number) {
         if (hideTimer) clearTimeout(hideTimer);
         resultDiv.style.display = 'block';
         resultDiv.className = type;
-        resultDiv.innerHTML = `
-            <div>${title}</div>
-            ${name ? `<div class="name">${escapeHtml(name)}</div>` : ''}
-            ${number ? `<div class="number">${escapeHtml(number)}</div>` : ''}
-        `;
+        resultDiv.textContent = '';
+        const titleEl = document.createElement('div');
+        titleEl.append(makeIcon(iconClass), ` ${title}`);
+        resultDiv.appendChild(titleEl);
+        if (name) {
+            const nameEl = document.createElement('div');
+            nameEl.className = 'name';
+            nameEl.textContent = name;
+            resultDiv.appendChild(nameEl);
+        }
+        if (number) {
+            const numberEl = document.createElement('div');
+            numberEl.className = 'number';
+            numberEl.textContent = number;
+            resultDiv.appendChild(numberEl);
+        }
         scanningText.textContent = 'QRコードをカメラにかざしてください';
 
         hideTimer = setTimeout(() => {
