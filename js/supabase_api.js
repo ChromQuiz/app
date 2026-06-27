@@ -3,20 +3,43 @@
  */
 
 const CIQSupabaseAPI = {
-    isEnabled() {
+    getConfigStatus() {
         const cfg = window.CIQ_SUPABASE_CONFIG;
-        return Boolean(
-            cfg?.url &&
-            cfg?.publishableKey &&
-            !String(cfg.url).includes('YOUR_PROJECT_REF') &&
-            !String(cfg.publishableKey).includes('YOUR_SUPABASE_PUBLISHABLE_KEY') &&
-            window.CIQSupabase?.getClient
-        );
+        if (!cfg) return { ok: false, reason: 'missing-config' };
+        if (!cfg.url || String(cfg.url).includes('YOUR_PROJECT_REF')) {
+            return { ok: false, reason: 'missing-url' };
+        }
+        if (!cfg.publishableKey || String(cfg.publishableKey).includes('YOUR_SUPABASE_PUBLISHABLE_KEY')) {
+            return { ok: false, reason: 'missing-key' };
+        }
+        if (!window.supabase?.createClient) {
+            return { ok: false, reason: 'missing-sdk' };
+        }
+        if (!window.CIQSupabase?.getClient) {
+            return { ok: false, reason: 'missing-client' };
+        }
+        return { ok: true, reason: '' };
+    },
+
+    getConfigErrorMessage() {
+        const status = this.getConfigStatus();
+        if (status.ok) return '';
+        if (status.reason === 'missing-sdk') {
+            return 'Supabase SDKを読み込めませんでした。ネットワーク接続を確認して、http://localhost:8000/index.html から開き直してください。';
+        }
+        if (status.reason === 'missing-client') {
+            return 'Supabaseクライアントを読み込めませんでした。ページを再読み込みしてください。';
+        }
+        return 'Supabase設定が見つかりません。js/supabase_config.js を確認してください。';
+    },
+
+    isEnabled() {
+        return this.getConfigStatus().ok;
     },
 
     client() {
         if (!this.isEnabled()) {
-            throw new Error('Supabase is not configured.');
+            throw new Error(this.getConfigErrorMessage() || 'Supabase is not configured.');
         }
         return window.CIQSupabase.getClient();
     },

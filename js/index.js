@@ -49,6 +49,10 @@ function useSupabaseAuth() {
     return Boolean(window.CIQSupabaseAPI?.isEnabled?.());
 }
 
+function getLocalhostIndexUrl() {
+    return 'http://localhost:8000/index.html';
+}
+
 function setTab(tab) {
     currentTab = tab;
     const tabJoin = document.getElementById('tab-join');
@@ -207,6 +211,14 @@ async function joinProjectAsScorer() {
 }
 
 async function signInWithSupabaseGoogle() {
+    if (location.protocol === 'file:') {
+        location.href = getLocalhostIndexUrl();
+        return;
+    }
+    if (!useSupabaseAuth()) {
+        showError(window.CIQSupabaseAPI?.getConfigErrorMessage?.() || 'Supabase設定が見つかりません。');
+        return;
+    }
     try {
         await CIQSupabaseAPI.signInWithGoogle();
     } catch (e) {
@@ -299,7 +311,24 @@ async function createProject() {
 
 async function initSupabaseAuth() {
     if (!useSupabaseAuth()) {
-        showError('Supabase設定が見つかりません。');
+        const panel = document.getElementById('supabase-auth-panel');
+        const userEl = document.getElementById('supabase-auth-user');
+        const loginBtn = document.getElementById('supabase-login-btn');
+        if (panel) panel.hidden = false;
+        if (userEl) {
+            userEl.textContent = location.protocol === 'file:'
+                ? 'ローカルサーバーで開く必要があります'
+                : 'Supabase未接続';
+        }
+        if (loginBtn) {
+            loginBtn.hidden = false;
+            loginBtn.textContent = location.protocol === 'file:'
+                ? 'localhostで開く'
+                : '設定を確認';
+        }
+        showError(location.protocol === 'file:'
+            ? 'Googleログインは file:// では開始できません。ローカルサーバーで開いてください。'
+            : (window.CIQSupabaseAPI?.getConfigErrorMessage?.() || 'Supabase設定が見つかりません。'));
         return;
     }
     try {
