@@ -3,7 +3,6 @@
 const params = new URLSearchParams(location.search);
 const projectId = params.get('pid');
 let projectName = '';
-let globalReplyTo = null;
 
 function cancelIcon(className) {
     const icon = document.createElement('i');
@@ -52,7 +51,6 @@ async function init() {
         requireSupabasePublicApi();
         const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
         projectName = settings?.projectName || projectId;
-        globalReplyTo = settings?.replyTo || null;
         document.getElementById('cancel-title').textContent = projectName;
         document.title = projectName + ' - キャンセルフォーム';
     } catch (e) {
@@ -94,8 +92,7 @@ async function processCancel() {
             emailHash,
             familyName: '',
             firstName: '',
-            senderName: (projectName || projectId) + ' 実行委員会',
-            replyTo: globalReplyTo
+            senderName: (projectName || projectId) + ' 実行委員会'
         }).catch(e => console.warn('キャンセルメール送信スキップ:', e));
 
         showCancelComplete(entryNum, result.promotedEntry?.entryNumber);

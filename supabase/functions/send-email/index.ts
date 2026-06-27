@@ -175,7 +175,7 @@ async function enforceRateLimit(supabase: ReturnType<typeof createServiceClient>
 async function getProjectForMail(supabase: ReturnType<typeof createServiceClient>, projectId: string) {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, name, entry_open, period_start, period_end')
+    .select('id, name, entry_open, period_start, period_end, reply_to')
     .eq('id', projectId)
     .single();
   if (error || !data) throw new Error('Project not found');
@@ -304,7 +304,7 @@ Deno.serve(async (req) => {
         template: type,
         to: normalizedEmail,
         message: verificationEmail(name, code),
-        replyTo: data.replyTo ? String(data.replyTo) : null,
+        replyTo: project.reply_to ? String(project.reply_to) : null,
       });
       return jsonResponse({ success: true, signature, expiresAt, emailEventId: result.id });
     }
@@ -320,7 +320,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Missing entry verification fields' }, 400);
     }
     const supabase = createServiceClient();
-    await getProjectForMail(supabase, effectiveProjectId);
+    const project = await getProjectForMail(supabase, effectiveProjectId);
     await assertEntryRecipient(supabase, effectiveProjectId, effectiveEntryId, recipientHash, expectedEmailHash);
 
     const result = await recordAndSend({
@@ -330,7 +330,7 @@ Deno.serve(async (req) => {
       template: type,
       to: normalizedEmail,
       message: template(data),
-      replyTo: data.replyTo ? String(data.replyTo) : null,
+      replyTo: project.reply_to ? String(project.reply_to) : null,
     });
     return jsonResponse({ success: true, ...result });
   } catch (error) {

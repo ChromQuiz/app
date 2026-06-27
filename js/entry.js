@@ -2,7 +2,6 @@
 
 const params = new URLSearchParams(location.search);
 const projectId = params.get('pid');
-let globalReplyTo = null;
 let supabasePublicSettingsCache = null;
 
 let emailVerified = false;
@@ -91,7 +90,7 @@ async function resendVerification() {
     showVerifyMsg('認証コードを再送信しています...', '');
 
     const pName = document.getElementById('project-title')?.textContent || projectId;
-    const result = await CIQEmail.sendVerificationCode(email, pName, pName + ' 実行委員会', globalReplyTo);
+    const result = await CIQEmail.sendVerificationCode(email, pName, pName + ' 実行委員会');
 
     if (!result || !result.success) {
         showVerifyMsg('再送信に失敗しました。', 'error');
@@ -120,7 +119,7 @@ async function sendVerification() {
     showVerifyMsg('認証コードを送信しています...', '');
 
     const pName = document.getElementById('project-title')?.textContent || projectId;
-    const result = await CIQEmail.sendVerificationCode(email, pName, pName + ' 実行委員会', globalReplyTo);
+    const result = await CIQEmail.sendVerificationCode(email, pName, pName + ' 実行委員会');
 
     if (!result || !result.success) {
         showVerifyMsg('認証コードの送信に失敗しました。メールアドレスを確認してください。', 'error');
@@ -253,8 +252,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             firstName,
             status: entryStatus,
             editUrl,
-            senderName: pName + ' 実行委員会',
-            replyTo: globalReplyTo
+            senderName: pName + ' 実行委員会'
         }).catch(err => console.warn('メール送信スキップ:', err));
 
         document.getElementById('form-card').style.display = 'none';
@@ -304,7 +302,6 @@ async function init() {
         const pName = settings.projectName || projectId;
         document.getElementById('project-title').textContent = pName;
         document.title = pName + ' - エントリーフォーム';
-        globalReplyTo = settings.replyTo || null;
 
         const termsLink = document.getElementById('terms-link');
         if (termsLink) termsLink.href = `terms.html?pid=${projectId}`;

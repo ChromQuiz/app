@@ -106,7 +106,7 @@ const CIQSupabaseAPI = {
     async getPublicSettings(projectId) {
         const { data, error } = await this.client()
             .from('public_project_settings')
-            .select('*')
+            .select('project_id, project_name, rsa_public_key, entry_open, period_start, period_end, max_entries, disclosure_enabled, disclosure_period_start, disclosure_period_end, terms')
             .eq('project_id', projectId)
             .single();
 
@@ -124,7 +124,6 @@ const CIQSupabaseAPI = {
             disclosurePeriodStart: data.disclosure_period_start,
             disclosurePeriodEnd: data.disclosure_period_end,
             terms: data.terms,
-            replyTo: data.reply_to,
         };
     },
 

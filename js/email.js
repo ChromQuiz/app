@@ -44,30 +44,30 @@ const CIQEmail = (() => {
         return result;
     }
 
-    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, senderName, replyTo }) {
+    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, senderName }) {
         const result = await request('entry_confirmation', to, {
-            projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, senderName, replyTo,
+            projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, senderName,
             entryId: uuid,
         });
         return Boolean(result?.success);
     }
 
-    async function sendCancellation(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName, replyTo }) {
+    async function sendCancellation(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
         const result = await request('entry_cancelled', to, {
-            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName, replyTo,
+            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
         });
         return Boolean(result?.success);
     }
 
-    async function sendWaitlistPromotion(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName, replyTo }) {
+    async function sendWaitlistPromotion(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
         const result = await request('waitlist_promoted', to, {
-            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName, replyTo,
+            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
         });
         return Boolean(result?.success);
     }
 
-    async function sendVerificationCode(to, projectName, senderName, replyTo) {
-        const result = await request('send_verification', to, { projectName, senderName, replyTo });
+    async function sendVerificationCode(to, projectName, senderName) {
+        const result = await request('send_verification', to, { projectName, senderName });
         if (!result?.success) return null;
         return result;
     }

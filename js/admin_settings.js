@@ -610,8 +610,7 @@
                 emailHash: entry.email_hash,
                 familyName: pii.familyName || '',
                 firstName: pii.firstName || '',
-                senderName: (adminProjectName || projectId) + ' 実行委員会',
-                replyTo: adminReplyTo
+                senderName: (adminProjectName || projectId) + ' 実行委員会'
             });
             await CIQSupabaseAPI.updateEntryNoticeState(entry.id, ok ? 'sent' : 'failed');
             if (ok) showAdminToast(`受付番号 ${padNum(entry.entry_number)} へ繰り上げ通知を送信しました`, 'success');
