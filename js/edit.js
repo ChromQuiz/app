@@ -8,8 +8,32 @@ let authEmailHash = '';
 let authPasswordHash = '';
 let publicKeyJwk = null;
 
+function editIcon(className) {
+    const icon = document.createElement('i');
+    icon.className = className;
+    return icon;
+}
+
+function setEditButton(button, text, iconClass = '') {
+    if (!button) return;
+    button.textContent = '';
+    if (iconClass) button.append(editIcon(iconClass), ' ');
+    button.appendChild(document.createTextNode(text));
+}
+
+function showEditCardMessage(message) {
+    const card = document.getElementById('auth-card');
+    card.textContent = '';
+    const p = document.createElement('p');
+    p.style.textAlign = 'center';
+    p.style.color = 'var(--danger)';
+    p.style.fontWeight = '600';
+    p.textContent = message;
+    card.appendChild(p);
+}
+
 if (!projectId) {
-    document.getElementById('auth-card').innerHTML = '<p style="text-align:center;color:var(--danger);font-weight:600;">プロジェクトIDが不明です。正しいURLからアクセスしてください。</p>';
+    showEditCardMessage('プロジェクトIDが不明です。正しいURLからアクセスしてください。');
 }
 
     (async () => {
@@ -85,7 +109,8 @@ if (!projectId) {
 
         } catch (err) {
             showAuthMsg(err.message || 'システムエラーが発生しました。', 'error');
-            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> 認証してエントリーを編集';
+            btn.disabled = false;
+            setEditButton(btn, '認証してエントリーを編集', 'fa-solid fa-right-to-bracket');
         }
     }
 
@@ -145,7 +170,7 @@ if (!projectId) {
         } catch (err) {
             showEditMsg('保存に失敗しました: ' + err.message, 'error');
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 変更を保存する';
+            setEditButton(btn, '変更を保存する', 'fa-solid fa-floppy-disk');
         }
     }
 
@@ -157,3 +182,6 @@ if (!projectId) {
             }
         }
     });
+
+    document.getElementById('auth-btn')?.addEventListener('click', authenticate);
+    document.getElementById('save-btn')?.addEventListener('click', saveEdit);

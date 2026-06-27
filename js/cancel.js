@@ -5,8 +5,32 @@ const projectId = params.get('pid');
 let projectName = '';
 let globalReplyTo = null;
 
+function cancelIcon(className) {
+    const icon = document.createElement('i');
+    icon.className = className;
+    return icon;
+}
+
+function setCancelButton(button, text, iconClass = '') {
+    if (!button) return;
+    button.textContent = '';
+    if (iconClass) button.append(cancelIcon(iconClass), ' ');
+    button.appendChild(document.createTextNode(text));
+}
+
+function showCancelCardMessage(message) {
+    const card = document.getElementById('form-card');
+    card.textContent = '';
+    const p = document.createElement('p');
+    p.style.textAlign = 'center';
+    p.style.color = 'var(--danger)';
+    p.style.fontWeight = '600';
+    p.textContent = message;
+    card.appendChild(p);
+}
+
 if (!projectId) {
-    document.getElementById('form-card').innerHTML = '<p style="text-align:center;color:var(--danger);font-weight:600;">プロジェクトIDが不明です。正しいURLからアクセスしてください。</p>';
+    showCancelCardMessage('プロジェクトIDが不明です。正しいURLからアクセスしてください。');
     throw new Error('No Project ID');
 }
 
@@ -74,25 +98,42 @@ async function processCancel() {
             replyTo: globalReplyTo
         }).catch(e => console.warn('キャンセルメール送信スキップ:', e));
 
-        const promotedText = result.promotedEntry
-            ? `<br>キャンセル待ちの受付番号 ${String(result.promotedEntry.entryNumber).padStart(3, '0')} を繰り上げました。`
-            : '';
-
-        document.getElementById('form-card').innerHTML = `
-            <div style="text-align:center;">
-                <h2 style="color:#ef5350;margin-bottom:16px;">キャンセル完了</h2>
-                <p style="color:#8e8ea0;line-height:1.6;">
-                    受付番号 ${entryNum} のエントリーキャンセルを受け付けました。<br>
-                    確認メールを送信しました。${promotedText}<br>
-                    ご利用ありがとうございました。
-                </p>
-            </div>
-        `;
+        showCancelComplete(entryNum, result.promotedEntry?.entryNumber);
     } catch (err) {
         showStatus(err?.message || 'システムエラーが発生しました。', 'error');
         btn.disabled = false;
-        btn.textContent = 'キャンセルを確定する';
+        setCancelButton(btn, 'キャンセルを確定する', 'fa-solid fa-trash');
     }
 }
+
+function showCancelComplete(entryNum, promotedEntryNumber) {
+    const card = document.getElementById('form-card');
+    card.textContent = '';
+    const wrap = document.createElement('div');
+    wrap.style.textAlign = 'center';
+    const title = document.createElement('h2');
+    title.style.color = '#ef5350';
+    title.style.marginBottom = '16px';
+    title.textContent = 'キャンセル完了';
+    const detail = document.createElement('p');
+    detail.style.color = '#8e8ea0';
+    detail.style.lineHeight = '1.6';
+    detail.append(
+        `受付番号 ${entryNum} のエントリーキャンセルを受け付けました。`,
+        document.createElement('br'),
+        '確認メールを送信しました。'
+    );
+    if (promotedEntryNumber) {
+        detail.append(
+            document.createElement('br'),
+            `キャンセル待ちの受付番号 ${String(promotedEntryNumber).padStart(3, '0')} を繰り上げました。`
+        );
+    }
+    detail.append(document.createElement('br'), 'ご利用ありがとうございました。');
+    wrap.append(title, detail);
+    card.appendChild(wrap);
+}
+
+document.getElementById('submit-btn')?.addEventListener('click', processCancel);
 
 init();

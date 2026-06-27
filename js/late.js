@@ -3,8 +3,32 @@
 const params = new URLSearchParams(location.search);
 let projectId = params.get('pid');
 
+function lateIcon(className) {
+    const icon = document.createElement('i');
+    icon.className = className;
+    return icon;
+}
+
+function setLateButton(button, text, iconClass = '') {
+    if (!button) return;
+    button.textContent = '';
+    if (iconClass) button.append(lateIcon(iconClass), ' ');
+    button.appendChild(document.createTextNode(text));
+}
+
+function showLateCardMessage(message) {
+    const card = document.getElementById('form-card');
+    card.textContent = '';
+    const p = document.createElement('p');
+    p.style.textAlign = 'center';
+    p.style.color = 'var(--danger)';
+    p.style.fontWeight = '600';
+    p.textContent = message;
+    card.appendChild(p);
+}
+
 if (!projectId) {
-    document.getElementById('form-card').innerHTML = '<p style="text-align:center;color:var(--danger);font-weight:600;">プロジェクトIDが不明です。正しいURLからアクセスしてください。</p>';
+    showLateCardMessage('プロジェクトIDが不明です。正しいURLからアクセスしてください。');
     throw new Error('No Project ID');
 }
 
@@ -58,7 +82,8 @@ if (!projectId) {
 
         } catch (err) {
             showStatus(err.message || 'システムエラーが発生しました。', 'error');
-            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> 遅刻を届け出る';
+            btn.disabled = false;
+            setLateButton(btn, '遅刻を届け出る', 'fa-solid fa-clock-rotate-left');
         }
     }
 
@@ -68,3 +93,5 @@ if (!projectId) {
             processLate();
         }
     });
+
+    document.getElementById('submit-btn')?.addEventListener('click', processLate);
