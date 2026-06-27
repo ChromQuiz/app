@@ -10,6 +10,12 @@ function escapeHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+function createIcon(className) {
+    const icon = document.createElement('i');
+    icon.className = className;
+    return icon;
+}
+
 function logout() {
     session.clear();
     Object.keys(localStorage).forEach(k => {
@@ -37,29 +43,53 @@ async function showPreview(projectId, secretHash, entryNum) {
     const masterData = getMasterData(projectId);
     const name = masterData[entryNum]?.name || `受付番号 ${entryNum}`;
 
-    overlay.innerHTML = `
-        <div class="preview-header">
-            <h2><i class="fa-solid fa-file-image"></i> ${name} の解答用紙</h2>
-            <button class="preview-close" onclick="document.getElementById('preview-overlay').style.display='none'">✕ 閉じる</button>
-        </div>
-        <div id="preview-content" class="preview-overlay-content">
-            <div class="text-muted-loader"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div>
-        </div>`;
+    overlay.textContent = '';
+    const header = document.createElement('div');
+    header.className = 'preview-header';
+    const title = document.createElement('h2');
+    title.append(createIcon('fa-solid fa-file-image'), ` ${name} の解答用紙`);
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'preview-close';
+    closeBtn.textContent = '✕ 閉じる';
+    closeBtn.addEventListener('click', () => { overlay.style.display = 'none'; });
+    header.append(title, closeBtn);
+
+    const pc = document.createElement('div');
+    pc.id = 'preview-content';
+    pc.className = 'preview-overlay-content';
+    const loading = document.createElement('div');
+    loading.className = 'text-muted-loader';
+    loading.append(createIcon('fa-solid fa-spinner fa-spin'), ' 読み込み中...');
+    pc.appendChild(loading);
+    overlay.append(header, pc);
 
     overlay.style.display = 'block';
 
-    const pc = document.getElementById('preview-content');
     try {
         const page = await CIQSupabaseAPI.getAnswerPageByEntryNumber(projectId, entryNum);
         if (page?.storage_path) {
             const signedUrl = await CIQSupabaseAPI.getAnswerPageUrl(page.storage_path);
-            pc.innerHTML = `<img src="${signedUrl}" alt="${escapeHtml(name)}" class="preview-image">`;
+            pc.textContent = '';
+            const image = document.createElement('img');
+            image.src = signedUrl;
+            image.alt = name;
+            image.className = 'preview-image';
+            pc.appendChild(image);
         } else {
-            pc.innerHTML = '<div class="text-muted-center">ページ画像が保存されていません。管理画面から答案を再読み込みしてください。</div>';
+            setPreviewMessage(pc, 'ページ画像が保存されていません。管理画面から答案を再読み込みしてください。');
         }
     } catch (e) {
-        pc.innerHTML = `<div class="text-muted-center">ページ画像を読み込めませんでした: ${escapeHtml(e.message)}</div>`;
+        setPreviewMessage(pc, `ページ画像を読み込めませんでした: ${e.message}`);
     }
+}
+
+function setPreviewMessage(container, message) {
+    container.textContent = '';
+    const el = document.createElement('div');
+    el.className = 'text-muted-center';
+    el.textContent = message;
+    container.appendChild(el);
 }
 
 document.addEventListener('keydown', e => {
@@ -93,7 +123,11 @@ function requireAuth(opts = {}) {
         return null;
     }
     if (opts.requireAdmin && scorerRole !== 'admin') {
-        document.body.innerHTML = '<div class="auth-redirect">管理者としてプロジェクトに入室してください。3秒後にトップページへ戻ります。</div>';
+        document.body.textContent = '';
+        const message = document.createElement('div');
+        message.className = 'auth-redirect';
+        message.textContent = '管理者としてプロジェクトに入室してください。3秒後にトップページへ戻ります。';
+        document.body.appendChild(message);
         setTimeout(() => location.href = 'index.html', 3000);
         return null;
     }
@@ -166,12 +200,12 @@ const ConnectionMonitor = {
     init() {
         this._offlineBanner = document.createElement('div');
         this._offlineBanner.className = 'offline-banner';
-        this._offlineBanner.innerHTML = '<i class="fa-solid fa-wifi"></i> インターネット接続が切断されました';
+        this._offlineBanner.append(createIcon('fa-solid fa-wifi'), ' インターネット接続が切断されました');
         document.body.appendChild(this._offlineBanner);
 
         this._onlineBanner = document.createElement('div');
         this._onlineBanner.className = 'online-banner';
-        this._onlineBanner.innerHTML = '<i class="fa-solid fa-check-circle"></i> 接続が回復しました';
+        this._onlineBanner.append(createIcon('fa-solid fa-check-circle'), ' 接続が回復しました');
         document.body.appendChild(this._onlineBanner);
 
         window.addEventListener('offline', () => this._goOffline());
