@@ -136,6 +136,14 @@
         const workCanvas = document.getElementById('work-canvas');
         const workCtx = workCanvas.getContext('2d');
         let scanConfig = null, scanAnswers = [];
+        async function runLimited(items, limit, task) {
+            const results = [];
+            for (let i = 0; i < items.length; i += limit) {
+                const batch = items.slice(i, i + limit);
+                results.push(...await Promise.all(batch.map(task)));
+            }
+            return results;
+        }
 
         async function loadAnswers() {
             const fileInput = document.getElementById('pdf-file');
@@ -235,11 +243,12 @@
                 async function uploadEntry(a) {
                     try {
                         await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth);
-                        for (const [qKey, region] of Object.entries(a.cellRegions)) {
+                        const cells = Object.entries(a.cellRegions);
+                        await runLimited(cells, 4, async ([qKey, region]) => {
                             const qNum = Number(String(qKey).replace(/^q/, ''));
                             const cropped = cropCell(a.fullCanvas, region);
                             if (cropped) await CIQSupabaseAPI.uploadAnswerCell(projectId, a.entryNumber, qNum, cropped);
-                        }
+                        });
                     } catch (e) {
                         console.error(`Entry ${a.entryNumber} upload error:`, e);
                         uploadFailures.push({
