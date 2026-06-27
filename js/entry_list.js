@@ -4,7 +4,11 @@ const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');
 
     if (!projectId) {
-        document.getElementById('disabled-msg').innerHTML = '<i class="fa-solid fa-ban"></i>プロジェクトが指定されていません。正しいURLへアクセスしてください。';
+        const disabledMsg = document.getElementById('disabled-msg');
+        disabledMsg.textContent = '';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-ban';
+        disabledMsg.append(icon, 'プロジェクトが指定されていません。正しいURLへアクセスしてください。');
     }
 
     let maxEntries = 0;
@@ -89,10 +93,10 @@ const params = new URLSearchParams(location.search);
 
     function renderList(data) {
         const body = document.getElementById('list-body');
-        body.innerHTML = '';
+        body.textContent = '';
 
         if (!data) {
-            body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;">まだエントリーはありません。</td></tr>';
+            appendTableMessage(body, 'まだエントリーはありません。');
             document.getElementById('total-count').textContent = 0;
             return;
         }
@@ -111,20 +115,51 @@ const params = new URLSearchParams(location.search);
             const min = d.getMinutes().toString().padStart(2,'0');
             const timeStr = `${m}/${day} ${h}:${min}`;
             const grade = e.grade !== '非表示' ? e.grade : '';
-            const waitIcon = isWaitlist ? '<i class="fa-solid fa-clock" style="color:var(--warning);margin-right:4px;" title="キャンセル待ち"></i>' : '';
-            const chubuMark = e.isChubu ? '<i class="fa-solid fa-check" style="color:var(--success);" title="中部地方"></i>' : '';
 
             const tr = document.createElement('tr');
             if (isWaitlist) tr.style.opacity = '0.6';
-            tr.innerHTML = `
-                <td style="font-weight:700">${e._priority}</td>
-                <td class="c-time">${waitIcon}${timeStr} <span style="color:#555;font-size:11px;margin-left:4px">#${padNum(e.entryNumber)}</span></td>
-                <td>${escapeHtml(e.affiliation || '')}</td>
-                <td>${escapeHtml(grade)}</td>
-                <td>${escapeHtml(e.entryName || '')}</td>
-                <td>${escapeHtml(e.message || '')}</td>
-                <td style="text-align:center">${chubuMark}</td>
-            `;
+            const priorityTd = document.createElement('td');
+            priorityTd.style.fontWeight = '700';
+            priorityTd.textContent = e._priority;
+
+            const timeTd = document.createElement('td');
+            timeTd.className = 'c-time';
+            if (isWaitlist) {
+                const waitIcon = document.createElement('i');
+                waitIcon.className = 'fa-solid fa-clock';
+                waitIcon.style.color = 'var(--warning)';
+                waitIcon.style.marginRight = '4px';
+                waitIcon.title = 'キャンセル待ち';
+                timeTd.appendChild(waitIcon);
+            }
+            timeTd.appendChild(document.createTextNode(`${timeStr} `));
+            const numberSpan = document.createElement('span');
+            numberSpan.style.color = '#555';
+            numberSpan.style.fontSize = '11px';
+            numberSpan.style.marginLeft = '4px';
+            numberSpan.textContent = `#${padNum(e.entryNumber)}`;
+            timeTd.appendChild(numberSpan);
+
+            const affiliationTd = document.createElement('td');
+            affiliationTd.textContent = e.affiliation || '';
+            const gradeTd = document.createElement('td');
+            gradeTd.textContent = grade;
+            const nameTd = document.createElement('td');
+            nameTd.textContent = e.entryName || '';
+            const messageTd = document.createElement('td');
+            messageTd.textContent = e.message || '';
+
+            const chubuTd = document.createElement('td');
+            chubuTd.style.textAlign = 'center';
+            if (e.isChubu) {
+                const chubuMark = document.createElement('i');
+                chubuMark.className = 'fa-solid fa-check';
+                chubuMark.style.color = 'var(--success)';
+                chubuMark.title = '中部地方';
+                chubuTd.appendChild(chubuMark);
+            }
+
+            tr.append(priorityTd, timeTd, affiliationTd, gradeTd, nameTd, messageTd, chubuTd);
             body.appendChild(tr);
         };
 
@@ -133,25 +168,46 @@ const params = new URLSearchParams(location.search);
         confirmed.forEach(e => {
             if (!graceDividerInserted && hasGraceSplit && e._isAfterGrace) {
                 graceDividerInserted = true;
-                const divider = document.createElement('tr');
-                divider.innerHTML = `<td colspan="7" style="text-align:center;padding:8px;background:var(--primary-soft);color:var(--primary);font-size:12px;font-weight:600;letter-spacing:1px;">
-                    <i class="fa-solid fa-map-location-dot"></i> 以降中部地方優先
-                </td>`;
-                body.appendChild(divider);
+                appendDivider(body, 'fa-solid fa-map-location-dot', '以降中部地方優先', 'var(--primary-soft)', 'var(--primary)');
             }
             renderRow(e, false);
         });
 
         if (waitlist.length > 0) {
-            const divider = document.createElement('tr');
-            divider.innerHTML = `<td colspan="7" style="text-align:center;padding:8px;background:var(--warning-soft);color:var(--warning);font-size:12px;font-weight:600;letter-spacing:1px;">
-                <i class="fa-solid fa-clock"></i> キャンセル待ち（${waitlist.length}名）
-            </td>`;
-            body.appendChild(divider);
+            appendDivider(body, 'fa-solid fa-clock', `キャンセル待ち（${waitlist.length}名）`, 'var(--warning-soft)', 'var(--warning)');
             waitlist.forEach(e => renderRow(e, true));
         }
 
         document.getElementById('total-count').textContent = ordered.length;
+    }
+
+    function appendTableMessage(body, message) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 7;
+        td.style.textAlign = 'center';
+        td.style.color = '#888';
+        td.textContent = message;
+        tr.appendChild(td);
+        body.appendChild(tr);
+    }
+
+    function appendDivider(body, iconClass, label, background, color) {
+        const divider = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 7;
+        td.style.textAlign = 'center';
+        td.style.padding = '8px';
+        td.style.background = background;
+        td.style.color = color;
+        td.style.fontSize = '12px';
+        td.style.fontWeight = '600';
+        td.style.letterSpacing = '1px';
+        const icon = document.createElement('i');
+        icon.className = iconClass;
+        td.append(icon, ` ${label}`);
+        divider.appendChild(td);
+        body.appendChild(divider);
     }
 
     init();
