@@ -16,6 +16,10 @@ This directory contains the Supabase database, RLS, Storage, and Edge Function s
    - `migrations/202606270008_conflict_resolution.sql`
    - `migrations/202606270009_project_reset.sql`
 3. Enable Google OAuth in Supabase Auth for admin/scorer login.
+   - Site URL: `https://chromquiz.github.io/app/`
+   - Redirect URLs:
+     - `https://chromquiz.github.io/app/`
+     - `https://chromquiz.github.io/app/index.html`
 4. Set `js/supabase_config.js` locally:
 
 ```js

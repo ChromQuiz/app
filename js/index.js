@@ -49,8 +49,8 @@ function useSupabaseAuth() {
     return Boolean(window.CIQSupabaseAPI?.isEnabled?.());
 }
 
-function getLocalhostIndexUrl() {
-    return 'http://127.0.0.1:8000/index.html';
+function getPublicIndexUrl() {
+    return 'https://chromquiz.github.io/app/';
 }
 
 function setTab(tab) {
@@ -212,7 +212,7 @@ async function joinProjectAsScorer() {
 
 async function signInWithSupabaseGoogle() {
     if (location.protocol === 'file:') {
-        location.href = getLocalhostIndexUrl();
+        location.href = getPublicIndexUrl();
         return;
     }
     if (!useSupabaseAuth()) {

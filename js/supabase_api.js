@@ -25,7 +25,7 @@ const CIQSupabaseAPI = {
         const status = this.getConfigStatus();
         if (status.ok) return '';
         if (status.reason === 'missing-sdk') {
-            return 'Supabase SDKを読み込めませんでした。ネットワーク接続を確認して、http://localhost:8000/index.html から開き直してください。';
+            return 'Supabase SDKを読み込めませんでした。ネットワーク接続を確認して、https://chromquiz.github.io/app/ から開き直してください。';
         }
         if (status.reason === 'missing-client') {
             return 'Supabaseクライアントを読み込めませんでした。ページを再読み込みしてください。';
