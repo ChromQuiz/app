@@ -34,7 +34,7 @@ function showDisabled(title, detail) {
 
 function showVerifyMsg(msg, type) {
     const el = document.getElementById('verify-msg');
-    el.innerHTML = msg;
+    el.textContent = msg;
     el.className = `page-msg ${type}`;
     el.style.display = 'block';
 }
@@ -90,7 +90,7 @@ async function resendVerification() {
     verifySignature = result.signature;
     verifyExpiresAt = result.expiresAt;
     document.getElementById('f-verify-code').value = '';
-    showVerifyMsg(`<i class="fa-solid fa-envelope-circle-check"></i> ${email} に認証コードを再送信しました。`, 'success');
+    showVerifyMsg(`${email} に認証コードを再送信しました。`, 'success');
     startResendCooldown();
 }
 
@@ -121,7 +121,7 @@ async function sendVerification() {
     document.getElementById('f-email').disabled = true;
     document.getElementById('code-input-area').style.display = 'block';
     btn.style.display = 'none';
-    showVerifyMsg(`<i class="fa-solid fa-envelope-circle-check"></i> ${email} に6桁の認証コードを送信しました。`, 'success');
+    showVerifyMsg(`${email} に6桁の認証コードを送信しました。`, 'success');
     document.getElementById('f-verify-code').focus();
     startResendCooldown();
 }
@@ -167,7 +167,7 @@ async function verifyEmailCode() {
         document.getElementById('send-code-btn').disabled = false;
         document.getElementById('send-code-btn').innerHTML = '<i class="fa-solid fa-paper-plane"></i> 認証コードを送信';
         document.getElementById('resend-code-btn').style.display = 'none';
-        showVerifyMsg('<i class="fa-solid fa-clock"></i> セッションの有効期限が切れました。再度メール認証を行ってください。', 'error');
+        showVerifyMsg('セッションの有効期限が切れました。再度メール認証を行ってください。', 'error');
     }, SESSION_TIMEOUT);
 }
 

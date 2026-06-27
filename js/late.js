@@ -25,7 +25,7 @@ if (!projectId) {
 
     function showStatus(msg, type) {
         const sm = document.getElementById('status-msg');
-        sm.innerHTML = msg;
+        sm.textContent = msg;
         sm.className = `page-msg ${type}`;
         sm.style.display = 'block';
     }

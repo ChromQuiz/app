@@ -7,7 +7,7 @@
 - Entry, cancel, edit, late, disclosure pages: standardize empty, loading, disabled, and error states.
 - Judge and conflict pages: improve progress visibility, keyboard flow, and mobile action ergonomics.
 - Public links: keep labels participant-facing and avoid implementation terms.
-- Toasts and dialogs: use safe text rendering only, never raw HTML for variable messages.
+- Toasts, dialogs, and form status messages: use safe text rendering only, never raw HTML for variable messages.
 
 ## Performance
 

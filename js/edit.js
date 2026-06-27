@@ -30,14 +30,14 @@ if (!projectId) {
 
     function showAuthMsg(msg, type) {
         const sm = document.getElementById('auth-msg');
-        sm.innerHTML = msg;
+        sm.textContent = msg;
         sm.className = `page-msg ${type}`;
         sm.style.display = 'block';
     }
 
     function showEditMsg(msg, type) {
         const sm = document.getElementById('edit-msg');
-        sm.innerHTML = msg;
+        sm.textContent = msg;
         sm.className = `page-msg ${type}`;
         sm.style.display = 'block';
     }
