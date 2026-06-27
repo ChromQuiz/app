@@ -165,7 +165,7 @@
 
                 <!-- メインスイッチ -->
                 <div class="config-panel config-row">
-                    <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked onchange="toggleEntryOpen()"><span class="toggle-slider"></span></label>
+                    <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked data-action="toggle-entry-open"><span class="toggle-slider"></span></label>
                     <div class="toggle-info">
                         <div class="toggle-info-title">エントリー受付</div>
                         <div class="toggle-info-desc">OFFにすると期間に関わらず即時停止</div>
@@ -198,7 +198,7 @@
                 </div>
 
                 <div class="config-panel config-row">
-                    <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" onchange="toggleDisclosureOpen()"><span class="toggle-slider"></span></label>
+                    <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" data-action="toggle-disclosure-open"><span class="toggle-slider"></span></label>
                     <div class="toggle-info">
                         <div class="toggle-info-title">成績照会</div>
                         <div class="toggle-info-desc">OFFにすると期間に関わらず照会を停止</div>
@@ -232,7 +232,7 @@
                 <!-- 定員設定 -->
                 <div class="config-panel">
                     <div class="config-row">
-                        <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked onchange="toggleMaxEntries()"><span class="toggle-slider"></span></label>
+                        <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked data-action="toggle-max-entries"><span class="toggle-slider"></span></label>
                         <div class="toggle-info">
                             <div class="toggle-info-title">定員制限</div>
                             <div class="toggle-info-desc">ONにすると定員を超えたエントリーはキャンセル待ちになります</div>
@@ -242,7 +242,7 @@
                     <div id="max-entries-input-area" style="margin-top:12px;">
                         <div class="number-spinner-wrap" style="max-width:180px;">
                             <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-10"><i class="fa-solid fa-minus"></i></button>
-                            <input type="number" id="setting-max-entries" min="1" max="9999" value="120" onchange="saveEntryPeriod()" />
+                            <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" />
                             <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="10"><i class="fa-solid fa-plus"></i></button>
                         </div>
                         <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-solid fa-circle-info"></i> 10人単位で増減</div>
@@ -278,7 +278,7 @@
                         </tbody>
                     </table>
                 </div>
-                <button class="btn secondary mt-md" onclick="exportEntriesCSV()"><i class="fa-solid fa-download"></i> 参加者名簿CSV</button>
+                <button class="btn secondary mt-md" data-action="export-entries-csv"><i class="fa-solid fa-download"></i> 参加者名簿CSV</button>
             </div>
         </div>
 
@@ -293,7 +293,7 @@
                     <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="10"><i class="fa-solid fa-plus"></i></button>
                 </div>
                 <div class="info-hint"><i class="fa-solid fa-circle-info"></i> 10の倍数で指定 / 列数は5固定</div>
-                <button class="btn secondary mt-lg" onclick="generatePDF()"><i class="fa-solid fa-download"></i> ダウンロード</button>
+                <button class="btn secondary mt-lg" data-action="generate-pdf"><i class="fa-solid fa-download"></i> ダウンロード</button>
             </div>
 
             <div class="section glass-panel">
@@ -304,11 +304,11 @@
                             <i class="fa-solid fa-circle-info"></i> CSVファイルをアップロードして模範解答を一括登録します。
                         </p>
 
-                        <div class="file-upload-zone" onclick="document.getElementById('csv-file').click()">
+                        <div class="file-upload-zone" data-file-trigger="csv-file">
                             <i class="fa-solid fa-file-csv"></i>
                             <div class="file-label">CSVファイルを選択</div>
                             <div class="file-name" id="csv-file-name"></div>
-                            <input type="file" id="csv-file" accept=".csv" onchange="document.getElementById('csv-file-name').textContent=this.files[0]?.name||'';document.getElementById('csv-file-name').style.display=this.files[0]?'block':'none';loadCSV()" />
+                            <input type="file" id="csv-file" accept=".csv" />
                         </div>
                     </div>
                 </div>
@@ -319,11 +319,11 @@
         <!-- ==================== TAB 2: 答案管理 ==================== -->
         <div class="tab-content" id="tab-scan">
             <div class="section glass-panel">
-                <div class="file-upload-zone" id="pdf-upload-zone" onclick="document.getElementById('pdf-file').click()" style="margin-bottom:24px; border-style:dashed;">
+                <div class="file-upload-zone" id="pdf-upload-zone" data-file-trigger="pdf-file" style="margin-bottom:24px; border-style:dashed;">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <div class="file-label">PDFをアップロードして一括スキャン＆保存</div>
                     <div class="file-name" id="pdf-file-name"></div>
-                    <input type="file" id="pdf-file" accept="application/pdf" onchange="document.getElementById('pdf-file-name').textContent=this.files[0]?.name||'';loadAnswers()" />
+                    <input type="file" id="pdf-file" accept="application/pdf" />
                 </div>
 
                 <div class="flex-row-spread">
@@ -333,11 +333,11 @@
                     </div>
                     <div class="flex-row">
                         <label class="custom-checkbox" id="select-all-label" hidden>
-                            <input type="checkbox" id="select-all-cb" onchange="toggleSelectAll()" />
+                            <input type="checkbox" id="select-all-cb" data-action="toggle-select-all" />
                             <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
                             <span>全選択</span>
                         </label>
-                        <button class="btn danger" id="batch-delete-btn" onclick="batchDelete()" disabled hidden><i class="fa-solid fa-trash"></i> 選択削除</button>
+                        <button class="btn danger" id="batch-delete-btn" data-action="batch-delete" disabled hidden><i class="fa-solid fa-trash"></i> 選択削除</button>
                     </div>
                 </div>
 
@@ -403,8 +403,8 @@
                         <i class="fa-solid fa-circle-info"></i> 文字数固定: 姓名の合計が指定文字数未満の場合、姓と名の間にスペースを挿入して揃えます。
                     </div>
                 </div>
-                <button class="btn secondary" id="csv-btn" disabled onclick="exportCSV()"><i class="fa-solid fa-download"></i> 採点結果CSV出力</button>
-                <button class="btn secondary" id="graded-pdf-btn" disabled onclick="exportGradedPDF()"><i class="fa-solid fa-file-pdf"></i> 採点済みPDF出力</button>
+                <button class="btn secondary" id="csv-btn" disabled data-action="export-csv"><i class="fa-solid fa-download"></i> 採点結果CSV出力</button>
+                <button class="btn secondary" id="graded-pdf-btn" disabled data-action="export-graded-pdf"><i class="fa-solid fa-file-pdf"></i> 採点済みPDF出力</button>
             </div>
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-magnifying-glass-chart"></i> 問題アナリティクス</h2>
@@ -412,16 +412,16 @@
                     <span>正答数</span>
                     <div class="number-spinner-wrap">
                         <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="-1"><i class="fa-solid fa-minus"></i></button>
-                        <input type="number" id="analytics-threshold" value="5" min="0" max="100" onchange="renderAnalytics()" />
+                        <input type="number" id="analytics-threshold" value="5" min="0" max="100" data-action="render-analytics" />
                         <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="1"><i class="fa-solid fa-plus"></i></button>
                     </div>
                     <span>人以下をハイライト</span>
                 </div>
                 <div class="config-panel config-row" style="margin-top:8px;">
-                    <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked onchange="renderAnalytics()"><span class="toggle-slider"></span></label>
+                    <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked data-action="render-analytics"><span class="toggle-slider"></span></label>
                     <span style="font-size:13px;">エントリーネームで表示</span>
                 </div>
-                <button class="btn secondary" onclick="exportAnalyticsCSV()"><i class="fa-solid fa-download"></i> 正答率分析CSV</button>
+                <button class="btn secondary" data-action="export-analytics-csv"><i class="fa-solid fa-download"></i> 正答率分析CSV</button>
                 <div class="table-container mt-md" style="max-height:400px;">
                     <table id="analytics-table">
                         <thead>
@@ -447,7 +447,7 @@
                 <h2><i class="fa-solid fa-user-shield"></i> メンバー管理</h2>
                 <p class="desc-text" style="margin-bottom:12px;">採点者はプロジェクトIDと採点者コードで参加できます。管理者は参加済みメンバーの権限変更、キック、復帰ができます。</p>
                 <div class="member-management-toolbar">
-                    <button class="btn secondary" onclick="loadProjectMembers()"><i class="fa-solid fa-rotate"></i> 更新</button>
+                    <button class="btn secondary" data-action="load-project-members"><i class="fa-solid fa-rotate"></i> 更新</button>
                 </div>
                 <div class="table-container mt-md">
                     <table>
@@ -472,7 +472,7 @@
                 <p class="desc-text" style="margin-bottom:12px;">大会の参加規約を入力します。設定するとエントリーフォームに同意チェックボックスが表示されます。（Markdown/テキスト）</p>
                 <div class="name-input-flex" style="flex-direction:column; align-items:stretch;">
                     <textarea id="setting-terms" placeholder="規約を入力しない場合は空にしてください" style="min-height:120px;margin-bottom:12px;"></textarea>
-                    <button class="btn" style="width:100%;" onclick="updateTerms()"><i class="fa-solid fa-arrows-rotate"></i> 参加規約を更新</button>
+                    <button class="btn" style="width:100%;" data-action="update-terms"><i class="fa-solid fa-arrows-rotate"></i> 参加規約を更新</button>
                 </div>
             </div>
 
@@ -484,14 +484,14 @@
                         <label style="font-size:12px;color:var(--text-muted);font-weight:600;">返信先（お問い合わせ）メールアドレス</label>
                         <input type="email" id="setting-reply-to" class="name-input" placeholder="例: contact@example.com" style="margin-top:4px;" />
                     </div>
-                    <button class="btn" style="width:100%;" onclick="updateEmailSettings()"><i class="fa-solid fa-arrows-rotate"></i> メール設定を更新</button>
+                    <button class="btn" style="width:100%;" data-action="update-email-settings"><i class="fa-solid fa-arrows-rotate"></i> メール設定を更新</button>
                 </div>
             </div>
 
             <div class="section glass-panel danger-zone">
                 <h2 class="danger-title"><i class="fa-solid fa-triangle-exclamation"></i> 危険な操作</h2>
                 <p class="desc-text">エントリー・採点データなどプロジェクト内の全データを削除し、初期状態に戻します。プロジェクト自体は残ります。</p>
-                <button class="btn danger" onclick="resetProject()"><i class="fa-solid fa-rotate-left"></i> プロジェクトリセット</button>
+                <button class="btn danger" data-action="reset-project"><i class="fa-solid fa-rotate-left"></i> プロジェクトリセット</button>
             </div>
         </div>
 
@@ -534,7 +534,7 @@
     <canvas id="work-canvas" class="hidden-canvas"></canvas>
     <canvas id="transform-canvas" class="hidden-canvas"></canvas>
 
-    <script defer src="js/admin.js?v=13"></script>
+    <script defer src="js/admin.js?v=14"></script>
     <script defer src="js/admin_prep.js?v=11"></script>
     <script defer src="js/admin_scan.js?v=9"></script>
     <script defer src="js/admin_stats.js?v=10"></script>

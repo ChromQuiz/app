@@ -100,6 +100,51 @@
             document.querySelector('[data-dt-close]')?.addEventListener('click', closeDatePicker);
             document.querySelector('[data-dt-clear]')?.addEventListener('click', dtClear);
             document.querySelector('[data-dt-confirm]')?.addEventListener('click', dtConfirm);
+            document.querySelectorAll('[data-file-trigger]').forEach((el) => {
+                el.addEventListener('click', (event) => {
+                    if (event.target?.matches?.('input[type="file"]')) return;
+                    document.getElementById(el.dataset.fileTrigger)?.click();
+                });
+            });
+            document.getElementById('csv-file')?.addEventListener('change', (event) => {
+                const fileName = document.getElementById('csv-file-name');
+                const name = event.target.files?.[0]?.name || '';
+                if (fileName) {
+                    fileName.textContent = name;
+                    fileName.style.display = name ? 'block' : 'none';
+                }
+                loadCSV();
+            });
+            document.getElementById('pdf-file')?.addEventListener('change', (event) => {
+                const fileName = document.getElementById('pdf-file-name');
+                if (fileName) fileName.textContent = event.target.files?.[0]?.name || '';
+                loadAnswers();
+            });
+            const actions = {
+                'toggle-entry-open': toggleEntryOpen,
+                'toggle-disclosure-open': toggleDisclosureOpen,
+                'toggle-max-entries': toggleMaxEntries,
+                'save-entry-period': saveEntryPeriod,
+                'export-entries-csv': exportEntriesCSV,
+                'generate-pdf': generatePDF,
+                'toggle-select-all': toggleSelectAll,
+                'batch-delete': batchDelete,
+                'export-csv': exportCSV,
+                'export-graded-pdf': exportGradedPDF,
+                'render-analytics': renderAnalytics,
+                'export-analytics-csv': exportAnalyticsCSV,
+                'load-project-members': loadProjectMembers,
+                'update-terms': updateTerms,
+                'update-email-settings': updateEmailSettings,
+                'reset-project': resetProject,
+            };
+            document.querySelectorAll('[data-action]').forEach((el) => {
+                const eventName = el.matches('input, select, textarea') ? 'change' : 'click';
+                el.addEventListener(eventName, () => {
+                    const fn = actions[el.dataset.action];
+                    if (fn) fn();
+                });
+            });
             document.getElementById('admin-logout-btn')?.addEventListener('click', logout);
         }
 
