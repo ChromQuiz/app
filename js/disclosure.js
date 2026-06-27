@@ -46,8 +46,8 @@ if (!projectId) {
     function getDisclosureClosedReason(settings) {
         if (settings.disclosureOpen !== true) {
             return {
-                title: '成績開示は現在停止中です',
-                detail: '管理者が開示を開始するまでお待ちください。'
+                title: '成績照会は現在停止中です',
+                detail: '管理者が照会を開始するまでお待ちください。'
             };
         }
 
@@ -56,14 +56,14 @@ if (!projectId) {
         const end = parseLocalDateTime(settings.disclosurePeriodEnd);
         if (start && start > now) {
             return {
-                title: '成績開示はまだ開始されていません',
-                detail: '開示開始: ' + start.toLocaleString('ja-JP')
+                title: '成績照会はまだ開始されていません',
+                detail: '照会開始: ' + start.toLocaleString('ja-JP')
             };
         }
         if (end && end < now) {
             return {
-                title: '成績開示は終了しました',
-                detail: '開示終了: ' + end.toLocaleString('ja-JP')
+                title: '成績照会は終了しました',
+                detail: '照会終了: ' + end.toLocaleString('ja-JP')
             };
         }
         return null;
@@ -98,7 +98,7 @@ if (!projectId) {
             if (e.message?.includes('Entry not found')) {
                 errEl.textContent = 'メールアドレスまたはパスワードが正しくありません。';
             } else if (e.message?.includes('Disclosure')) {
-                errEl.textContent = '成績開示は現在利用できません。';
+                errEl.textContent = '成績照会は現在利用できません。';
             } else {
                 errEl.textContent = 'エラーが発生しました。もう一度お試しください。';
             }

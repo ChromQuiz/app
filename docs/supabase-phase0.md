@@ -338,7 +338,7 @@ CREATE TABLE final_results (
   PRIMARY KEY (project_id, entry_number, question_num)
 );
 
--- ── 成績開示 ─────────────────────────────
+-- ── 成績照会 ─────────────────────────────
 CREATE TABLE disclosures (
   project_id        TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   entry_number      INT NOT NULL,

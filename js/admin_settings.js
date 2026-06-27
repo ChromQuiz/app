@@ -202,7 +202,7 @@
             const enabled = document.getElementById('disclosure-open-toggle').checked;
             await CIQSupabaseAPI.updateProject(projectId, { disclosure_enabled: enabled });
             updateDisclosureOpenStatus();
-            showAdminToast(enabled ? '成績開示を有効にしました' : '成績開示を停止しました', 'success');
+            showAdminToast(enabled ? '成績照会を有効にしました' : '成績照会を停止しました', 'success');
         }
 
         function updateDisclosureOpenStatus() {
@@ -244,9 +244,9 @@
                 return;
             }
 
-            el.textContent = '開示中';
+            el.textContent = '照会中';
             el.className = 'status-badge status-open';
-            setPublicState('開示中', pe ? `${formatDtDisplay(pe)} まで` : '終了日時なし');
+            setPublicState('照会中', pe ? `${formatDtDisplay(pe)} まで` : '終了日時なし');
             window.updateAdminOverview?.();
         }
 
@@ -258,7 +258,7 @@
                 disclosure_period_end: end ? new Date(end).toISOString() : null
             });
             updateDisclosureOpenStatus();
-            showAdminToast('開示期間を保存しました', 'success');
+            showAdminToast('照会期間を保存しました', 'success');
         }
 
         // ============================

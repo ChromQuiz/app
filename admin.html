@@ -29,8 +29,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=15">
-    <link rel="stylesheet" href="css/pages.css?v=17">
+    <link rel="stylesheet" href="css/design_system.css?v=18">
+    <link rel="stylesheet" href="css/pages.css?v=18">
 </head>
 
 <body class="page-admin">
@@ -115,7 +115,7 @@
                     <div class="overview-meta" id="overview-entry-count">参加者 -</div>
                 </div>
                 <div class="overview-card">
-                    <div class="overview-label"><i class="fa-solid fa-chart-column"></i> 開示</div>
+                    <div class="overview-label"><i class="fa-solid fa-chart-column"></i> 照会</div>
                     <div class="overview-value" id="overview-disclosure-status">確認中</div>
                     <div class="overview-meta" id="overview-disclosure-meta">成績照会</div>
                 </div>
@@ -157,7 +157,7 @@
                         <div class="public-state-meta" id="entry-state-meta">受付フォーム</div>
                     </div>
                     <div class="public-state-card">
-                        <div class="public-state-label"><i class="fa-solid fa-chart-column"></i> 成績開示</div>
+                        <div class="public-state-label"><i class="fa-solid fa-chart-column"></i> 成績照会</div>
                         <div class="public-state-value" id="disclosure-state-summary">確認中</div>
                         <div class="public-state-meta" id="disclosure-state-meta">成績照会ページ</div>
                     </div>
@@ -200,14 +200,14 @@
                 <div class="config-panel config-row">
                     <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" onchange="toggleDisclosureOpen()"><span class="toggle-slider"></span></label>
                     <div class="toggle-info">
-                        <div class="toggle-info-title">成績開示</div>
+                        <div class="toggle-info-title">成績照会</div>
                         <div class="toggle-info-desc">OFFにすると期間に関わらず照会を停止</div>
                     </div>
                     <span id="disclosure-open-status" class="status-badge status-closed">停止中</span>
                 </div>
 
                 <div class="config-panel">
-                    <div class="period-heading"><i class="fa-solid fa-calendar-days"></i>開示期間<span class="period-hint">（任意 — 空欄＝制限なし）</span></div>
+                    <div class="period-heading"><i class="fa-solid fa-calendar-days"></i>照会期間<span class="period-hint">（任意 — 空欄＝制限なし）</span></div>
                     <div class="period-grid">
                         <div>
                             <label class="period-label"><i class="fa-solid fa-play icon-start"></i>開始</label>

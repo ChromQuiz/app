@@ -258,7 +258,7 @@
             setText('overview-entry-status', entryStatus);
             setText('overview-entry-count', `参加者 ${entryCount} 名`);
             setText('overview-disclosure-status', disclosureStatus);
-            setText('overview-disclosure-meta', '本人照会ページ');
+            setText('overview-disclosure-meta', '成績照会ページ');
             setText('overview-scoring-status', conflict !== '-' && Number(conflict) > 0 ? '要確認あり' : '進行中');
             setText('overview-scoring-count', `${done} / ${total} 問完了`);
             setText('overview-output-status', outputReady ? '出力可能' : '未確定');
