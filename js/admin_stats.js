@@ -1,5 +1,34 @@
 // admin_stats.js — 集計・分析・成績照会
         // ============================
+        function adminStatsIcon(className) {
+            const icon = document.createElement('i');
+            icon.className = className;
+            return icon;
+        }
+
+        function setCsvStatus(el, className, iconClass, text) {
+            el.textContent = '';
+            el.className = `csv-status ${className}`;
+            el.append(adminStatsIcon(iconClass), ` ${text}`);
+        }
+
+        function setAnalyticsMessage(tbody, message) {
+            tbody.textContent = '';
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 5;
+            td.className = 'td-loading';
+            td.textContent = message;
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+        }
+
+        function appendAnalyticsCell(row, text) {
+            const td = document.createElement('td');
+            td.textContent = text;
+            row.appendChild(td);
+        }
+
         async function updateStatsView() {
             try {
                 await refreshSupabaseScoringData();
@@ -49,7 +78,7 @@
             const bar = document.getElementById('stats-bar');
             const t = totalQuestions || 1;
             const pct = (n) => ((n / t) * 100).toFixed(1) + '%';
-            bar.innerHTML = '';
+            bar.textContent = '';
             const segs = [
                 { cls: 'confirmed', count: visualDoneCount, label: `${visualDoneCount}` },
                 { cls: 'conflict', count: conflictCount, label: `${conflictCount}` },
@@ -68,14 +97,12 @@
             const csvS = document.getElementById('csv-status'), csvB = document.getElementById('csv-btn');
             // CSV出力の可否は表示用の完了カウントではなく、真の全問確定（allConfirmed）で判定
             if (allConfirmed && totalQuestions > 0) { 
-                csvS.innerHTML = '<i class="fa-solid fa-circle-check"></i> 全問確定済み — CSV出力できます'; 
-                csvS.className = 'csv-status ready'; 
+                setCsvStatus(csvS, 'ready', 'fa-solid fa-circle-check', '全問確定済み — CSV出力できます');
                 csvB.disabled = false;
                 const pdfB = document.getElementById('graded-pdf-btn');
                 if (pdfB) pdfB.disabled = false;
             } else { 
-                csvS.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> 未確定の問題があります（${confirmedCount} / ${totalQuestions} 確定済み）`; 
-                csvS.className = 'csv-status notready'; 
+                setCsvStatus(csvS, 'notready', 'fa-solid fa-circle-xmark', `未確定の問題があります（${confirmedCount} / ${totalQuestions} 確定済み）`);
                 csvB.disabled = true;
                 const pdfB2 = document.getElementById('graded-pdf-btn');
                 if (pdfB2) pdfB2.disabled = true;
@@ -237,12 +264,26 @@
         let _lastAnalyticsHash = '';
         async function renderAnalytics() {
             const tbody = document.getElementById('analytics-tbody');
-            if (!entryNumbers.length) { tbody.innerHTML = '<tr><td colspan="5" class="td-loading">データがありません</td></tr>'; _lastAnalyticsHash = ''; return; }
+            if (!entryNumbers.length) {
+                setAnalyticsMessage(tbody, 'データがありません');
+                _lastAnalyticsHash = '';
+                return;
+            }
             const qs = await getAnalyticsData();
             const hash = qs.map(s => `${s.q}:${s.correctCount}`).join(',');
             if (hash === _lastAnalyticsHash) return;
             _lastAnalyticsHash = hash;
-            tbody.innerHTML = qs.map(s => `<tr class="${s.isRare ? 'row-rare' : ''}"><td >${s.q}</td><td >${s.correctCount}人</td><td >${s.rate}%</td><td >${escapeHtml(s.type)}</td><td >${escapeHtml(s.names)}</td></tr>`).join('');
+            tbody.textContent = '';
+            qs.forEach((s) => {
+                const tr = document.createElement('tr');
+                if (s.isRare) tr.className = 'row-rare';
+                appendAnalyticsCell(tr, s.q);
+                appendAnalyticsCell(tr, `${s.correctCount}人`);
+                appendAnalyticsCell(tr, `${s.rate}%`);
+                appendAnalyticsCell(tr, s.type);
+                appendAnalyticsCell(tr, s.names);
+                tbody.appendChild(tr);
+            });
         }
         async function exportAnalyticsCSV() {
             const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率(%)', '状態', '正解者一覧']; const rows = [headers];
