@@ -36,7 +36,9 @@
   --text-main: #edf2f7;
   --text-muted: #a4afbd;
   --text-faint: #6f7b8b;
-  --font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
+  --font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-numeric: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'SFMono-Regular', 'Roboto Mono', 'Courier New', monospace;
 
   /* Radii */
   --radius-sm: 8px;
@@ -65,6 +67,8 @@
 
 body {
   font-family: var(--font-family);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "kern" 1;
   background: var(--bg-primary);
   background-attachment: fixed;
   color: var(--text-main);
@@ -490,7 +494,7 @@ select {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 14px; border-radius: var(--radius-md);
   background: rgba(15,23,42,0.6); border: 1px solid var(--glass-border);
-  font-family: 'Courier New', monospace; font-size: 13px; font-weight: 600;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
   color: var(--text-muted); cursor: pointer; transition: all 0.2s;
   margin-left: auto; white-space: nowrap;
 }
@@ -1470,8 +1474,28 @@ kbd {
   min-width: 28px; height: 26px; padding: 0 8px;
   background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
   border-radius: 6px; font-size: 12px; font-weight: 700;
-  font-family: 'Inter', monospace; color: var(--text-main);
+  font-family: var(--font-mono); color: var(--text-main);
+  font-variant-numeric: tabular-nums;
   box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+}
+
+.num,
+.number-input,
+.stat-card,
+.stat-value,
+.entry-num-badge,
+.q-label,
+.dt-day,
+.dt-picker-nav span,
+.dt-picker-time select,
+.info-value,
+.rank-num,
+.score-num,
+.question-number,
+.receipt-number {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "kern" 1;
 }
 
 /* ============================================
@@ -1680,7 +1704,9 @@ kbd {
   --text-main: #18231f;
   --text-muted: #5d6a63;
   --text-faint: #8b948d;
-  --font-family: 'BIZ UDPGothic', 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+  --font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-numeric: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'SFMono-Regular', 'Roboto Mono', 'Courier New', monospace;
 
   --radius-sm: 6px;
   --radius-md: 7px;
@@ -1691,12 +1717,6 @@ kbd {
   --shadow-md: 0 10px 24px -18px rgba(39, 48, 43, 0.34);
   --shadow-lg: 0 18px 40px -28px rgba(39, 48, 43, 0.42);
   --shadow-xl: 0 24px 54px -34px rgba(39, 48, 43, 0.48);
-}
-
-@font-face {
-  font-family: 'BIZ UDPGothic';
-  src: url('../fonts/BIZUDGothic-Subset.ttf') format('truetype');
-  font-display: swap;
 }
 
 body {
