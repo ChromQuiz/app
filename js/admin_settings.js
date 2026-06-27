@@ -29,41 +29,93 @@
         // 設定更新処理
         // ============================
 
+        function setMemberTableMessage(tbody, message, className = 'td-loading') {
+            tbody.textContent = '';
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 4;
+            td.className = className;
+            td.textContent = message;
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+        }
+
+        function appendMemberActionButton(container, options) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `btn ${options.variant || 'secondary'} member-action-btn`;
+            button.disabled = Boolean(options.disabled);
+            if (options.icon) {
+                const icon = document.createElement('i');
+                icon.className = options.icon;
+                button.appendChild(icon);
+                button.appendChild(document.createTextNode(' '));
+            }
+            button.appendChild(document.createTextNode(options.label));
+            button.addEventListener('click', options.onClick);
+            container.appendChild(button);
+        }
+
+        function appendProjectMemberRow(tbody, member, currentUserId) {
+            const roleLabel = member.role === 'owner' ? '所有者' : member.role === 'admin' ? '管理者' : '採点者';
+            const statusLabel = member.status === 'removed' ? '停止中' : '有効';
+            const isSelf = member.user_id === currentUserId;
+            const canChange = member.role !== 'owner' && !isSelf;
+
+            const tr = document.createElement('tr');
+            if (member.status === 'removed') tr.className = 'member-row-removed';
+
+            [member.display_name || member.invited_email || '-', roleLabel, statusLabel].forEach((text) => {
+                const td = document.createElement('td');
+                td.textContent = text;
+                tr.appendChild(td);
+            });
+
+            const actionTd = document.createElement('td');
+            const actionGroup = document.createElement('div');
+            actionGroup.className = 'member-action-group';
+            if (member.status === 'removed') {
+                appendMemberActionButton(actionGroup, {
+                    label: '復帰',
+                    icon: 'fa-solid fa-rotate-left',
+                    disabled: isSelf,
+                    onClick: () => restoreProjectMember(member.id),
+                });
+            } else {
+                appendMemberActionButton(actionGroup, {
+                    label: member.role === 'admin' ? '採点者へ' : '管理者へ',
+                    disabled: !canChange,
+                    onClick: () => changeProjectMemberRole(member.id, member.role === 'admin' ? 'scorer' : 'admin'),
+                });
+                appendMemberActionButton(actionGroup, {
+                    label: 'キック',
+                    icon: 'fa-solid fa-user-slash',
+                    variant: 'danger',
+                    disabled: !canChange,
+                    onClick: () => removeProjectMember(member.id),
+                });
+            }
+            actionTd.appendChild(actionGroup);
+            tr.appendChild(actionTd);
+            tbody.appendChild(tr);
+        }
+
         async function loadProjectMembers() {
             const tbody = document.getElementById('project-members-tbody');
             if (!tbody) return;
-            tbody.innerHTML = '<tr><td colspan="4" class="td-loading">読み込み中...</td></tr>';
+            setMemberTableMessage(tbody, '読み込み中...');
             try {
                 const currentSession = await CIQSupabaseAPI.getSession();
                 const currentUserId = currentSession?.user?.id || '';
                 const members = await CIQSupabaseAPI.listProjectMembers(projectId);
                 if (!members.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="td-loading">メンバーがいません。</td></tr>';
+                    setMemberTableMessage(tbody, 'メンバーがいません。');
                     return;
                 }
-                tbody.innerHTML = members.map(member => {
-                    const roleLabel = member.role === 'owner' ? '所有者' : member.role === 'admin' ? '管理者' : '採点者';
-                    const statusLabel = member.status === 'removed' ? '停止中' : '有効';
-                    const isSelf = member.user_id === currentUserId;
-                    const canChange = member.role !== 'owner' && !isSelf;
-                    const disabled = canChange ? '' : 'disabled';
-                    const actionButtons = member.status === 'removed'
-                        ? `<button class="btn secondary member-action-btn" ${isSelf ? 'disabled' : ''} onclick="restoreProjectMember('${member.id}')"><i class="fa-solid fa-rotate-left"></i> 復帰</button>`
-                        : `
-                            <button class="btn secondary member-action-btn" ${disabled} onclick="changeProjectMemberRole('${member.id}', '${member.role === 'admin' ? 'scorer' : 'admin'}')">${member.role === 'admin' ? '採点者へ' : '管理者へ'}</button>
-                            <button class="btn danger member-action-btn" ${disabled} onclick="removeProjectMember('${member.id}')"><i class="fa-solid fa-user-slash"></i> キック</button>
-                        `;
-                    return `
-                        <tr class="${member.status === 'removed' ? 'member-row-removed' : ''}">
-                            <td>${escapeHtml(member.display_name || member.invited_email || '-')}</td>
-                            <td>${roleLabel}</td>
-                            <td>${statusLabel}</td>
-                            <td><div class="member-action-group">${actionButtons}</div></td>
-                        </tr>
-                    `;
-                }).join('');
+                tbody.textContent = '';
+                members.forEach(member => appendProjectMemberRow(tbody, member, currentUserId));
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="4" class="td-loading-error">読み込みに失敗しました: ${escapeHtml(e.message)}</td></tr>`;
+                setMemberTableMessage(tbody, `読み込みに失敗しました: ${e.message}`, 'td-loading-error');
             }
         }
 
