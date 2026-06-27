@@ -1,5 +1,4 @@
 // Copy to js/supabase_config.js after creating a Supabase project.
-// This file is intentionally not loaded by the current Firebase app yet.
 window.CIQ_SUPABASE_CONFIG = {
   url: 'https://YOUR_PROJECT_REF.supabase.co',
   publishableKey: 'YOUR_SUPABASE_PUBLISHABLE_KEY',

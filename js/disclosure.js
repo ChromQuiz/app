@@ -1,19 +1,21 @@
 // disclosure.js — 成績照会（メールアドレス + パスワード認証）
 
 const params = new URLSearchParams(location.search);
-    const projectId = params.get('pid');
+const projectId = params.get('pid');
 
-    if (!projectId) {
-        document.querySelector('.page-container').innerHTML = '<div class="page-card page-disabled"><i class="fa-solid fa-ban"></i><p>プロジェクトが指定されていません。</p><p style="margin-top:8px;font-size:13px">正しいリンクからアクセスしてください。</p></div>';
-    }
+if (!projectId) {
+    document.querySelector('.page-container').innerHTML = '<div class="page-card page-disabled"><i class="fa-solid fa-ban"></i><p>プロジェクトが指定されていません。</p><p style="margin-top:8px;font-size:13px">正しいリンクからアクセスしてください。</p></div>';
+}
 
     async function init() {
         if (!projectId) return;
-        await waitForAuth();
 
         // プロジェクト名を取得して表示
         try {
-            const settings = await dbGet(`projects/${projectId}/publicSettings`);
+            if (!window.CIQSupabaseAPI?.isEnabled?.()) {
+                throw new Error('Supabase設定が見つかりません。');
+            }
+            const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
             let pName = settings?.projectName || projectId;
             document.getElementById('logo-title').textContent = pName || projectId;
             document.title = (pName || projectId) + ' - 成績照会';
@@ -83,43 +85,23 @@ const params = new URLSearchParams(location.search);
         btn.disabled = true; btn.textContent = '確認中...';
 
         try {
-            // メールアドレスのハッシュで検索
             const emailHash = await AppCrypto.hashPassword(email.toLowerCase());
-            const entriesData = await dbQuery(`projects/${projectId}/entries`, 'emailHash', emailHash);
-
-            if (!entriesData || Object.keys(entriesData).length === 0) {
-                errEl.textContent = '該当するメールアドレスが見つかりません。';
-                errEl.style.display = 'block'; btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock"></i> 成績を確認する'; return;
-            }
-
-            let matched = false;
-            let entryData = null;
             const pwHash = await AppCrypto.hashPassword(pw);
-
-            for (const d of Object.values(entriesData)) {
-                if (d.disclosurePw === pwHash) {
-                    matched = true; entryData = d;
-                }
-            }
-
-            if (!matched) {
-                errEl.textContent = 'パスワードが正しくありません。';
-                errEl.style.display = 'block'; btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock"></i> 成績を確認する'; return;
-            }
-
-            const num = entryData.entryNumber;
-
-            // 開示データ取得
-            const disc = await dbGet(`projects/${projectId}/disclosure/${num}`);
-            if (!disc) {
-                errEl.textContent = '開示データがまだ生成されていません。管理者にお問い合わせください。';
-                errEl.style.display = 'block'; btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock"></i> 成績を確認する'; return;
-            }
-
+            const disc = await CIQSupabaseAPI.discloseResult({
+                projectId,
+                emailHash,
+                disclosurePasswordHash: pwHash,
+            });
             showResult(disc);
 
         } catch(e) {
-            errEl.textContent = 'エラーが発生しました。もう一度お試しください。';
+            if (e.message?.includes('Entry not found')) {
+                errEl.textContent = 'メールアドレスまたはパスワードが正しくありません。';
+            } else if (e.message?.includes('Disclosure')) {
+                errEl.textContent = '成績開示は現在利用できません。';
+            } else {
+                errEl.textContent = 'エラーが発生しました。もう一度お試しください。';
+            }
             errEl.style.display = 'block';
         }
         btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock"></i> 成績を確認する';

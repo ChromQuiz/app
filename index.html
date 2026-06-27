@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.firebasedatabase.app https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' wss://*.firebasedatabase.app https://*.firebasedatabase.app https://*.googleapis.com https://www.gstatic.com; frame-src 'self' https://*.firebasedatabase.app https://*.firebaseapp.com; img-src 'self' data: blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="description" content="CIQ - クイズ大会の解答採点を支援するウェブプラットフォーム">
@@ -12,12 +12,13 @@
     <meta property="og:type" content="website">
     <meta property="og:image" content="og-image.png">
   <title>CIQ - ログイン</title>
-  <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script defer src="js/config.js"></script>
+  <script defer src="js/config.local.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="js/supabase_config.js"></script>
+  <script defer src="js/supabase_client.js"></script>
+  <script defer src="js/supabase_api.js"></script>
   <script defer src="js/crypto.js"></script>
-  <script defer src="js/db.js"></script>
   <script defer src="js/ui.js"></script>
   <script defer src="js/custom-select.js"></script>
   <script defer src="js/shared.js"></script>
@@ -25,8 +26,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="css/design_system.css?v=15">
-  <link rel="stylesheet" href="css/pages.css?v=15">
+  <link rel="stylesheet" href="css/design_system.css?v=16">
+  <link rel="stylesheet" href="css/pages.css?v=16">
 </head>
 
 <body class="page-index">
@@ -36,38 +37,56 @@
   <div class="card">
     <div id="status-msg" class="status-msg-box"></div>
 
-    <!-- タブUI -->
+    <div id="supabase-auth-panel" class="auth-provider-panel" hidden>
+      <div class="auth-provider-main">
+        <span class="auth-provider-icon"><i class="fa-brands fa-google"></i></span>
+        <div>
+          <div class="auth-provider-label">ログイン</div>
+          <div class="auth-provider-user" id="supabase-auth-user">未ログイン</div>
+        </div>
+      </div>
+      <div class="auth-provider-actions">
+        <button type="button" class="btn secondary" id="supabase-login-btn" onclick="signInWithSupabaseGoogle()">
+          Googleでログイン
+        </button>
+        <button type="button" class="btn secondary" id="supabase-logout-btn" onclick="signOutSupabase()" hidden>
+          ログアウト
+        </button>
+      </div>
+    </div>
+
     <div class="tabs" id="tabs-container">
-      <div class="tab active" id="tab-join" onclick="setTab('join')">参加する</div>
+      <div class="tab active" id="tab-join" onclick="setTab('join')">プロジェクト</div>
       <div class="tab" id="tab-create" onclick="setTab('create')">新規作成</div>
     </div>
 
-    <!-- 参加セクション -->
     <div id="section-join">
-      <label>プロジェクトID</label>
-      <input type="text" id="join-id" placeholder="例: ciq13" />
-      
-      <label>アクセスコード / パスワード</label>
-      <div class="password-field-wrap">
-        <input type="password" id="join-password" placeholder="合言葉" />
-        <span class="password-toggle" onclick="togglePassword('join-password', 'toggle-icon-join')"><i class="fas fa-eye" id="toggle-icon-join"></i></span>
+      <div class="index-mode-note" id="project-list-note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Googleログインすると、参加中のプロジェクトが表示されます。</span>
       </div>
-      <div class="helper-text"><i class="fa-solid fa-circle-info helper-icon"></i> パスワードの種類に応じて適切な権限でログインします</div>
-      
-      <label>あなたのお名前</label>
-      <input type="text" id="join-name" placeholder="例：山田太郎" />
-      
-      <button class="btn" id="login-btn" onclick="joinProject()">部屋へ入る <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+      <div id="project-list" class="project-list">
+        <div class="project-list-empty">ログイン待ち</div>
+      </div>
+      <div class="scorer-join-panel">
+        <div class="scorer-join-title"><i class="fa-solid fa-user-check"></i> 採点者として参加</div>
+        <label>プロジェクトID</label>
+        <input type="text" id="join-project-id" placeholder="例: ciq13" />
+        <label>採点者コード</label>
+        <input type="password" id="join-scorer-code" placeholder="管理者から共有されたコード" />
+        <button class="btn secondary" id="join-scorer-btn" onclick="joinProjectAsScorer()">参加する <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+      </div>
     </div>
 
     <!-- 新規作成セクション -->
     <div id="section-create" hidden>
+      <div class="index-mode-note" id="create-auth-note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Googleログイン後に新しいプロジェクトを作成できます。</span>
+      </div>
       <label>回数（例：第13回 → 13）</label>
       <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
       <div class="helper-text"><i class="fa-solid fa-circle-info helper-icon"></i> プロジェクトIDと大会名が自動生成されます</div>
-
-      <label>あなたのお名前（最初のシステム作成者）</label>
-      <input type="text" id="create-name" placeholder="例：山田太郎" />
 
       <button class="btn" id="create-btn" onclick="createProject()">新しいプロジェクトを作成 <i class="fa-solid fa-plus"></i></button>
     </div>
@@ -84,12 +103,12 @@
           <input type="text" id="success-id" readonly />
           <button class="btn standard credential-copy-btn" onclick="copyToClipboard('success-id', this)"><i class="fa-solid fa-copy"></i></button>
         </div>
-        <label><i class="fa-solid fa-crown crown-icon"></i> 管理者用 マスターパスワード</label>
+        <label id="success-admin-pwd-label"><i class="fa-solid fa-crown crown-icon"></i> 管理者用 マスターパスワード</label>
         <div class="credential-row">
           <input type="text" id="success-admin-pwd" readonly />
           <button class="btn master credential-copy-btn" onclick="copyToClipboard('success-admin-pwd', this)"><i class="fa-solid fa-copy"></i></button>
         </div>
-        <label><i class="fa-solid fa-users"></i> 採点者用 アクセスコード</label>
+        <label><i class="fa-solid fa-users"></i> 採点者コード</label>
         <div class="credential-row">
           <input type="text" id="success-pwd" readonly />
           <button class="btn standard credential-copy-btn" onclick="copyToClipboard('success-pwd', this)"><i class="fa-solid fa-copy"></i></button>

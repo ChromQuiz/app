@@ -1,150 +1,98 @@
-// cancel.js — キャンセル処理（メールアドレス + パスワード認証）
+// cancel.js - Supabase public cancellation
 
 const params = new URLSearchParams(location.search);
-    let projectId = params.get('pid');
+const projectId = params.get('pid');
+let projectName = '';
+let globalReplyTo = null;
 
-    if (!projectId) {
-        document.getElementById('form-card').innerHTML = '<p style="text-align:center;color:var(--danger);font-weight:600;">プロジェクトIDが不明です。正しいURLからアクセスしてください。</p>';
-        throw new Error('No Project ID');
+if (!projectId) {
+    document.getElementById('form-card').innerHTML = '<p style="text-align:center;color:var(--danger);font-weight:600;">プロジェクトIDが不明です。正しいURLからアクセスしてください。</p>';
+    throw new Error('No Project ID');
+}
+
+function requireSupabasePublicApi() {
+    if (!window.CIQSupabaseAPI?.isEnabled?.()) {
+        throw new Error('Supabase設定が見つかりません。');
+    }
+}
+
+function showStatus(msg, type) {
+    const sm = document.getElementById('status-msg');
+    sm.textContent = msg;
+    sm.className = `page-msg ${type}`;
+    sm.style.display = 'block';
+}
+
+async function init() {
+    try {
+        requireSupabasePublicApi();
+        const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
+        projectName = settings?.projectName || projectId;
+        globalReplyTo = settings?.replyTo || null;
+        document.getElementById('cancel-title').textContent = projectName;
+        document.title = projectName + ' - キャンセルフォーム';
+    } catch (e) {
+        projectName = projectId;
+        document.getElementById('cancel-title').textContent = projectId;
+        showStatus(e.message || 'プロジェクト情報を読み込めませんでした。', 'error');
+    }
+}
+
+async function processCancel() {
+    const email = document.getElementById('f-email').value.trim();
+    const pw = document.getElementById('f-password').value.trim();
+
+    if (!email || !pw) {
+        showStatus('メールアドレスとパスワードを入力してください。', 'error');
+        return;
     }
 
-    // 大会名を取得して表示
-    let projectName = '';
-    let globalReplyTo = null;
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = '認証中...';
+    showStatus('データを確認しています...', '');
 
-    (async () => {
-        if (!projectId) return;
-        await waitForAuth();
-        try {
-            let settings = await dbGet(`projects/${projectId}/publicSettings`);
-            projectName = settings?.projectName || projectId;
-            globalReplyTo = settings?.replyTo || null;
-            
-            document.getElementById('cancel-title').textContent = projectName;
-            document.title = projectName + ' - キャンセルフォーム';
-        } catch(e) {
-            projectName = projectId;
-            document.getElementById('cancel-title').textContent = projectId;
-        }
-    })();
-
-    function showStatus(msg, type) {
-        const sm = document.getElementById('status-msg');
-        sm.innerHTML = msg;
-        sm.className = `page-msg ${type}`;
-        sm.style.display = 'block';
-    }
-
-    async function processCancel() {
-        const email = document.getElementById('f-email').value.trim();
-        const pw = document.getElementById('f-password').value.trim();
-
-        if (!email || !pw) {
-            showStatus('メールアドレスとパスワードを入力してください。', 'error');
-            return;
-        }
-
-        const btn = document.getElementById('submit-btn');
-        btn.disabled = true;
-        btn.textContent = '認証中...';
-        showStatus('データを確認しています...', '');
-
-        try {
-            // メールアドレスのハッシュで検索
-            const emailHash = await AppCrypto.hashPassword(email.toLowerCase());
-            const entriesData = await dbQuery(`projects/${projectId}/entries`, 'emailHash', emailHash);
-
-            if (!entriesData || Object.keys(entriesData).length === 0) {
-                showStatus('指定されたメールアドレスに一致するエントリーが見つかりません。', 'error');
-                btn.disabled = false; btn.textContent = 'キャンセルを確定する';
-                return;
-            }
-
-            let targetKey = null;
-            let targetData = null;
-            let matched = false;
-
-            const pwHash = await AppCrypto.hashPassword(pw);
-
-            for (const [key, data] of Object.entries(entriesData)) {
-                if (data.disclosurePw === pwHash) {
-                    targetKey = key;
-                    targetData = data;
-                    matched = true;
-                }
-            }
-
-            if (!matched) {
-                showStatus('パスワードが正しくありません。', 'error');
-                btn.disabled = false; btn.textContent = 'キャンセルを確定する';
-                return;
-            }
-
-            if (targetData.status === 'canceled') {
-                showStatus('このエントリーは既にキャンセルされています。', 'error');
-                btn.disabled = false; btn.textContent = 'キャンセルを確定する';
-                return;
-            }
-
-            const entryNum = targetData.entryNumber;
-
-
-
-            const shouldPromoteWaitlist = targetData.status !== 'waitlist';
-
-            // エントリーを完全削除
-            await dbRef(`projects/${projectId}/entries/${targetKey}`).remove();
-            if (shouldPromoteWaitlist) {
-                promoteNextWaitlist().catch(e => console.warn('キャンセル待ち繰り上げスキップ:', e));
-            }
-
-            // メール通知（非同期・失敗しても処理済み）
-            CIQEmail.sendCancellation(email, {
-                projectName: projectName || projectId,
-                entryNumber: String(entryNum).padStart(3, '0'),
-                familyName: '',
-                firstName: '',
-                senderName: (projectName || projectId) + ' 実行委員会',
-                replyTo: globalReplyTo
-            }).catch(e => console.warn('キャンセルメール送信スキップ:', e));
-
-            document.getElementById('form-card').innerHTML = `
-                <div style="text-align:center;">
-                    <h2 style="color:#ef5350;margin-bottom:16px;">キャンセル完了</h2>
-                    <p style="color:#8e8ea0;line-height:1.6;">
-                        受付番号 ${entryNum} のエントリーキャンセルを受け付けました。<br>
-                        確認メールを送信しました。<br>
-                        ご利用ありがとうございました。
-                    </p>
-                </div>
-            `;
-
-        } catch (err) {
-            showStatus('システムエラーが発生しました。', 'error');
-            btn.disabled = false; btn.textContent = 'キャンセルを確定する';
-        }
-    }
-
-    async function promoteNextWaitlist() {
-        const entriesData = await dbGet(`projects/${projectId}/entries`);
-        if (!entriesData) return null;
-
-        const next = Object.entries(entriesData)
-            .filter(([, data]) => data?.status === 'waitlist')
-            .sort(([, a], [, b]) => {
-                const at = typeof a.timestamp === 'number' ? a.timestamp : 0;
-                const bt = typeof b.timestamp === 'number' ? b.timestamp : 0;
-                if (at !== bt) return at - bt;
-                return (a.entryNumber || 0) - (b.entryNumber || 0);
-            })[0];
-
-        if (!next) return null;
-
-        const [entryKey, entry] = next;
-        await dbUpdate(`projects/${projectId}/entries/${entryKey}`, {
-            status: 'registered',
-            waitlistPromotedAt: SERVER_TIMESTAMP,
-            waitlistPromotionNotice: 'pending'
+    try {
+        requireSupabasePublicApi();
+        const emailHash = await AppCrypto.hashPassword(email.toLowerCase());
+        const pwHash = await AppCrypto.hashPassword(pw);
+        const result = await CIQSupabaseAPI.cancelEntry({
+            projectId,
+            emailHash,
+            disclosurePasswordHash: pwHash,
         });
-        return entry;
+
+        const entryNum = result.canceledEntry?.entryNumber;
+        CIQEmail.sendCancellation(email, {
+            projectName: projectName || projectId,
+            entryNumber: String(entryNum).padStart(3, '0'),
+            entryId: result.canceledEntry?.id,
+            emailHash,
+            familyName: '',
+            firstName: '',
+            senderName: (projectName || projectId) + ' 実行委員会',
+            replyTo: globalReplyTo
+        }).catch(e => console.warn('キャンセルメール送信スキップ:', e));
+
+        const promotedText = result.promotedEntry
+            ? `<br>キャンセル待ちの受付番号 ${String(result.promotedEntry.entryNumber).padStart(3, '0')} を繰り上げました。`
+            : '';
+
+        document.getElementById('form-card').innerHTML = `
+            <div style="text-align:center;">
+                <h2 style="color:#ef5350;margin-bottom:16px;">キャンセル完了</h2>
+                <p style="color:#8e8ea0;line-height:1.6;">
+                    受付番号 ${entryNum} のエントリーキャンセルを受け付けました。<br>
+                    確認メールを送信しました。${promotedText}<br>
+                    ご利用ありがとうございました。
+                </p>
+            </div>
+        `;
+    } catch (err) {
+        showStatus(err?.message || 'システムエラーが発生しました。', 'error');
+        btn.disabled = false;
+        btn.textContent = 'キャンセルを確定する';
     }
+}
+
+init();

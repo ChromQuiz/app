@@ -14,10 +14,11 @@
             const event = new Event('change', { bubbles: true });
             input.dispatchEvent(event);
 
-            // 問題数変更時はFirebaseにも同期
+            // 問題数変更時はSupabaseにも同期
             if (id === 'question-count') {
                 try {
-                    await dbSet(`projects/${projectId}/protected/${secretHash}/config/questionCount`, val);
+                    await CIQSupabaseAPI.updateProject(projectId, { question_count: val });
+                    totalQuestions = val;
                     showAdminToast(`問題数を ${val} 問に変更しました`, 'success');
                 } catch(e) { console.error('問題数の同期失敗:', e); }
             }
@@ -28,15 +29,86 @@
         // 設定更新処理
         // ============================
 
+        async function loadProjectMembers() {
+            const tbody = document.getElementById('project-members-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="4" class="td-loading">読み込み中...</td></tr>';
+            try {
+                const currentSession = await CIQSupabaseAPI.getSession();
+                const currentUserId = currentSession?.user?.id || '';
+                const members = await CIQSupabaseAPI.listProjectMembers(projectId);
+                if (!members.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="td-loading">メンバーがいません。</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = members.map(member => {
+                    const roleLabel = member.role === 'owner' ? '所有者' : member.role === 'admin' ? '管理者' : '採点者';
+                    const statusLabel = member.status === 'removed' ? '停止中' : '有効';
+                    const isSelf = member.user_id === currentUserId;
+                    const canChange = member.role !== 'owner' && !isSelf;
+                    const disabled = canChange ? '' : 'disabled';
+                    const actionButtons = member.status === 'removed'
+                        ? `<button class="btn secondary member-action-btn" ${isSelf ? 'disabled' : ''} onclick="restoreProjectMember('${member.id}')"><i class="fa-solid fa-rotate-left"></i> 復帰</button>`
+                        : `
+                            <button class="btn secondary member-action-btn" ${disabled} onclick="changeProjectMemberRole('${member.id}', '${member.role === 'admin' ? 'scorer' : 'admin'}')">${member.role === 'admin' ? '採点者へ' : '管理者へ'}</button>
+                            <button class="btn danger member-action-btn" ${disabled} onclick="removeProjectMember('${member.id}')"><i class="fa-solid fa-user-slash"></i> キック</button>
+                        `;
+                    return `
+                        <tr class="${member.status === 'removed' ? 'member-row-removed' : ''}">
+                            <td>${escapeHtml(member.display_name || member.invited_email || '-')}</td>
+                            <td>${roleLabel}</td>
+                            <td>${statusLabel}</td>
+                            <td><div class="member-action-group">${actionButtons}</div></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="4" class="td-loading-error">読み込みに失敗しました: ${escapeHtml(e.message)}</td></tr>`;
+            }
+        }
+
+        async function changeProjectMemberRole(memberId, role) {
+            try {
+                await CIQSupabaseAPI.updateProjectMemberRole(memberId, role);
+                showAdminToast('権限を更新しました', 'success');
+                await loadProjectMembers();
+            } catch (e) {
+                showAdminToast(e.message || '権限更新に失敗しました', 'error');
+            }
+        }
+
+        async function removeProjectMember(memberId) {
+            const ok = await showConfirm('このメンバーをキックします。同じ採点者コードでは再参加できなくなります。', 'キックする');
+            if (!ok) return;
+            try {
+                await CIQSupabaseAPI.removeProjectMember(memberId);
+                showAdminToast('メンバーを停止しました', 'success');
+                await loadProjectMembers();
+            } catch (e) {
+                showAdminToast(e.message || 'キックに失敗しました', 'error');
+            }
+        }
+
+        async function restoreProjectMember(memberId) {
+            try {
+                await CIQSupabaseAPI.restoreProjectMember(memberId);
+                showAdminToast('メンバーを復帰しました', 'success');
+                await loadProjectMembers();
+            } catch (e) {
+                showAdminToast(e.message || '復帰に失敗しました', 'error');
+            }
+        }
+
         async function updateTerms() {
             const termsText = document.getElementById('setting-terms').value.trim();
-            await dbSet(`projects/${projectId}/publicSettings/terms`, termsText || null);
+            await CIQSupabaseAPI.updateProject(projectId, { terms: termsText || null });
             showAdminToast('参加規約を更新しました', 'success');
         }
 
         window.updateEmailSettings = async function() {
             const replyTo = document.getElementById('setting-reply-to').value.trim();
-            await dbUpdate(`projects/${projectId}/publicSettings`, { replyTo });
+            await CIQSupabaseAPI.updateProject(projectId, { reply_to: replyTo || null });
+            adminReplyTo = replyTo || null;
             showAdminToast('メール設定を更新しました', 'success');
         };
 
@@ -57,28 +129,12 @@
         }
 
 
-        async function purgeOldImages() {
-            // 24時間以上前の answers の画像データを削除（RTDB内のBase64）
-            const answersSnap = await dbGet(`projects/${projectId}/protected/${secretHash}/answers`);
-            if (!answersSnap) return;
-            const now = Date.now();
-            const ONE_DAY = 24 * 60 * 60 * 1000;
-            for (const [key, data] of Object.entries(answersSnap)) {
-                if (data.uploadedAt && (now - data.uploadedAt > ONE_DAY)) {
-                    // RTDB の画像データを null にする（メタデータは残す）
-                    const cleanUpdate = { pageImage: null, cells: null };
-                    await dbUpdate(`projects/${projectId}/protected/${secretHash}/answers/${key}`, cleanUpdate);
-                }
-            }
-        }
-
         // ============================
         // 参加者管理・受付管理
         // ============================
         async function toggleEntryOpen() {
             const enabled = document.getElementById('entry-open-toggle').checked;
-            await dbSet(`projects/${projectId}/protected/${secretHash}/entryConfig/entryOpen`, enabled);
-            await dbSet(`projects/${projectId}/publicSettings/entryOpen`, enabled);
+            await CIQSupabaseAPI.updateProject(projectId, { entry_open: enabled });
             updateEntryOpenStatus();
             showAdminToast(enabled ? 'エントリー受付設定を更新しました' : 'エントリー受付を停止しました', 'success');
         }
@@ -130,8 +186,11 @@
             const end = document.getElementById('entry-period-end').value || null;
             const hasLimit = document.getElementById('max-entries-toggle').checked;
             const maxEntries = hasLimit ? (parseInt(document.getElementById('setting-max-entries').value) || 100) : 0;
-            await dbUpdate(`projects/${projectId}/protected/${secretHash}/entryConfig`, { periodStart: start, periodEnd: end, maxEntries });
-            await dbUpdate(`projects/${projectId}/publicSettings`, { periodStart: start, periodEnd: end, maxEntries });
+            await CIQSupabaseAPI.updateProject(projectId, {
+                period_start: start ? new Date(start).toISOString() : null,
+                period_end: end ? new Date(end).toISOString() : null,
+                max_entries: maxEntries
+            });
             // トグルONなら人数バッジも更新
             if (hasLimit) {
                 document.getElementById('max-entries-status').textContent = maxEntries + '人';
@@ -141,11 +200,9 @@
 
         async function toggleDisclosureOpen() {
             const enabled = document.getElementById('disclosure-open-toggle').checked;
-            await dbUpdate(`projects/${projectId}/protected/${secretHash}/entryConfig`, { disclosureEnabled: enabled });
-            await dbUpdate(`projects/${projectId}/publicSettings`, { disclosureOpen: enabled });
+            await CIQSupabaseAPI.updateProject(projectId, { disclosure_enabled: enabled });
             updateDisclosureOpenStatus();
             showAdminToast(enabled ? '成績開示を有効にしました' : '成績開示を停止しました', 'success');
-            if (enabled) await generateDisclosure();
         }
 
         function updateDisclosureOpenStatus() {
@@ -196,13 +253,9 @@
         async function saveDisclosurePeriod() {
             const start = document.getElementById('disclosure-period-start').value || null;
             const end = document.getElementById('disclosure-period-end').value || null;
-            await dbUpdate(`projects/${projectId}/protected/${secretHash}/entryConfig`, {
-                disclosurePeriodStart: start,
-                disclosurePeriodEnd: end
-            });
-            await dbUpdate(`projects/${projectId}/publicSettings`, {
-                disclosurePeriodStart: start,
-                disclosurePeriodEnd: end
+            await CIQSupabaseAPI.updateProject(projectId, {
+                disclosure_period_start: start ? new Date(start).toISOString() : null,
+                disclosure_period_end: end ? new Date(end).toISOString() : null
             });
             updateDisclosureOpenStatus();
             showAdminToast('開示期間を保存しました', 'success');
@@ -369,56 +422,53 @@
             tbody.innerHTML = '<tr><td colspan="7" class="td-loading">読み込み中...</td></tr>';
 
             try {
-                const entriesData = await dbGet(`projects/${projectId}/entries`);
-                window._entriesRaw = entriesData; // アナリティクスのエントリーネーム表示用
-                if (!entriesData) {
+                const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
+                window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
+                entryNumbers = entries.map(e => e.entry_number).sort((a, b) => a - b);
+                if (!entries.length) {
                     tbody.innerHTML = '<tr><td colspan="7" class="td-loading">名簿データがありません。</td></tr>';
                     window.setAdminEntriesCount?.(0);
                     return;
                 }
-
                 tbody.innerHTML = '';
-                // entryNumber順にソート
-                const children = Object.entries(entriesData).sort(([, a], [, b]) => (a.entryNumber || 0) - (b.entryNumber || 0));
-                window.setAdminEntriesCount?.(children.length);
-                
-                for (const [entryKey, v] of children) {
-                    let pii = v;
-                    if (v.encryptedPII) {
+                window.setAdminEntriesCount?.(entries.length);
+                for (const v of entries) {
+                    let pii = null;
+                    if (v.encrypted_pii && session.get('privateKeyJwk')) {
                         try {
                             const privJwk = JSON.parse(session.get('privateKeyJwk'));
-                            const jsonStr = await AppCrypto.decryptRSA(v.encryptedPII, privJwk);
-                            pii = JSON.parse(jsonStr);
-                        } catch(e) { console.error("Decryption failed", e); }
+                            pii = JSON.parse(await AppCrypto.decryptRSA(v.encrypted_pii, privJwk));
+                        } catch (e) {
+                            console.warn('PII復号をスキップ:', e);
+                        }
                     }
-                    if (v.waitlistPromotionNotice === 'pending') {
-                        sendWaitlistPromotionNotice(entryKey, v, pii).catch(e => console.warn('繰り上げ通知スキップ:', e));
+                    if (v.waitlist_promotion_notice === 'pending') {
+                        sendWaitlistPromotionNotice(v, pii).catch(e => console.warn('繰り上げ通知スキップ:', e));
                     }
-                    
+
                     const tr = document.createElement('tr');
                     if (v.status === 'canceled') tr.style.opacity = '0.5';
                     if (v.status === 'waitlist') tr.style.opacity = '0.7';
-                    const noticeIcon = v.waitlistPromotionNotice === 'pending' || v.waitlistPromotionNotice === 'sending'
+                    const noticeIcon = v.waitlist_promotion_notice === 'pending' || v.waitlist_promotion_notice === 'sending'
                         ? '<span class="badge" style="background:rgba(37,99,235,0.10);color:var(--primary)" title="繰り上げ通知送信待ち"><i class="fa-solid fa-envelope"></i></span>'
-                        : v.waitlistPromotionNotice === 'sent'
+                        : v.waitlist_promotion_notice === 'sent'
                             ? '<span class="badge success" title="繰り上げ通知送信済み"><i class="fa-solid fa-envelope-circle-check"></i></span>'
-                            : v.waitlistPromotionNotice === 'error' || v.waitlistPromotionNotice === 'missing_email'
+                            : v.waitlist_promotion_notice === 'failed'
                                 ? '<span class="badge danger" title="繰り上げ通知未送信"><i class="fa-solid fa-envelope-circle-xmark"></i></span>'
                                 : '';
                     const statText = v.status === 'canceled' ? '<span class="badge danger" title="キャンセル"><i class="fa-solid fa-xmark"></i></span>'
                         : v.status === 'waitlist' ? '<span class="badge" style="background:var(--warning-soft);color:var(--warning)" title="キャンセル待ち"><i class="fa-solid fa-clock"></i></span>'
                         : v.status === 'late' ? '<span class="badge" style="background:rgba(168,85,247,0.2);color:#a855f7" title="遅刻"><i class="fa-solid fa-clock-rotate-left"></i></span>'
-                        : v.checkedIn ? '<span class="badge success" title="受付済"><i class="fa-solid fa-check"></i></span>' : '<span class="badge muted" title="未受付"><i class="fa-regular fa-clock"></i></span>';
-
+                        : v.checked_in ? '<span class="badge success" title="受付済"><i class="fa-solid fa-check"></i></span>' : '<span class="badge muted" title="未受付"><i class="fa-regular fa-clock"></i></span>';
                     tr.innerHTML = `
-                    <td >${padNum(v.entryNumber) || '-'}</td>
-                    <td >${escapeHtml(pii.familyName || '-')} ${escapeHtml(pii.firstName || '-')}<br><span class="text-muted-sm">${escapeHtml(pii.familyNameKana || '')} ${escapeHtml(pii.firstNameKana || '')}</span></td>
-                    <td >${escapeHtml(pii.entryName || '')}</td>
-                    <td >${escapeHtml(pii.affiliation || '')}</td>
-                    <td >${escapeHtml(pii.grade || '')}</td>
-                    <td ><span class="text-muted-sm">${escapeHtml(pii.email || '')}</span><br>${escapeHtml(pii.inquiry || '-')}</td>
-                    <td >${statText}${noticeIcon}</td>
-                `;
+                        <td>${padNum(v.entry_number) || '-'}</td>
+                        <td>-<br><span class="text-muted-sm">暗号化情報</span></td>
+                        <td>${escapeHtml(v.entry_name || '')}</td>
+                        <td>${escapeHtml(v.affiliation || '')}</td>
+                        <td>${escapeHtml(v.grade || '')}</td>
+                        <td><span class="text-muted-sm">メールは暗号化保存</span><br>-</td>
+                        <td>${statText}${noticeIcon}</td>
+                    `;
                     tbody.appendChild(tr);
                 }
             } catch (e) {
@@ -426,38 +476,29 @@
             }
         }
 
-        async function sendWaitlistPromotionNotice(entryKey, entry, pii) {
+        async function sendWaitlistPromotionNotice(entry, pii) {
+            if (!entry?.id) return;
+            await CIQSupabaseAPI.updateEntryNoticeState(entry.id, 'sending');
             if (!pii?.email) {
-                await dbUpdate(`projects/${projectId}/entries/${entryKey}`, {
-                    waitlistPromotionNotice: 'missing_email'
-                });
+                await CIQSupabaseAPI.updateEntryNoticeState(entry.id, 'failed');
                 return;
-            }
-            await dbUpdate(`projects/${projectId}/entries/${entryKey}`, {
-                waitlistPromotionNotice: 'sending'
-            });
-            if (!adminProjectName) {
-                const publicSettings = await dbGet(`projects/${projectId}/publicSettings`) || {};
-                adminProjectName = publicSettings.projectName || projectId;
-                adminReplyTo = publicSettings.replyTo || null;
             }
             const ok = await CIQEmail.sendWaitlistPromotion(pii.email, {
                 projectName: adminProjectName || projectId,
-                entryNumber: String(entry.entryNumber).padStart(3, '0'),
+                entryNumber: String(entry.entry_number).padStart(3, '0'),
+                entryId: entry.id,
+                emailHash: entry.email_hash,
                 familyName: pii.familyName || '',
                 firstName: pii.firstName || '',
                 senderName: (adminProjectName || projectId) + ' 実行委員会',
                 replyTo: adminReplyTo
             });
-            await dbUpdate(`projects/${projectId}/entries/${entryKey}`, {
-                waitlistPromotionNotice: ok ? 'sent' : 'error',
-                waitlistPromotionNotifiedAt: ok ? SERVER_TIMESTAMP : null
-            });
-            if (ok) showAdminToast(`受付番号 ${padNum(entry.entryNumber)} へ繰り上げ通知を送信しました`, 'success');
+            await CIQSupabaseAPI.updateEntryNoticeState(entry.id, ok ? 'sent' : 'failed');
+            if (ok) showAdminToast(`受付番号 ${padNum(entry.entry_number)} へ繰り上げ通知を送信しました`, 'success');
         }
 
         async function exportEntriesCSV() {
-            const entriesData = await dbGet(`projects/${projectId}/entries`);
+            const entriesData = window._entriesRaw || Object.fromEntries((await CIQSupabaseAPI.listEntriesForAdmin(projectId)).map(e => [e.id, normalizeSupabaseEntry(e)]));
             if (!entriesData) return;
             const rows = [['受付番号', '姓', '名', 'セイ', 'メイ', 'メールアドレス', '所属機関', '学年', 'エントリー名', '意気込み', '連絡事項', '状態', 'UUID']];
             
@@ -477,7 +518,7 @@
                 rows.push([
                     v.entryNumber, pii.familyName || '', pii.firstName || '', pii.familyNameKana || '', pii.firstNameKana || '',
                     pii.email || '', pii.affiliation || '', pii.grade || '', pii.entryName || '', `"${(pii.message || '').replace(/"/g, '""')}"`,
-                    `"${(pii.inquiry || '').replace(/"/g, '""')}"`, stat, v.uuid
+                    `"${(pii.inquiry || '').replace(/"/g, '""')}"`, stat, v.uuid || v.id || ''
                 ]);
             }
             const csv = rows.map(r => r.join(',')).join('\n');
@@ -485,91 +526,6 @@
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
             a.download = 'entries.csv'; a.click();
         }
-
-        async function toggleDisclosure() {
-            const enabled = document.getElementById('disclosure-toggle').checked;
-            await dbSet(`projects/${projectId}/protected/${secretHash}/entryConfig/disclosureEnabled`, enabled);
-            document.getElementById('disclosure-url').style.display = enabled ? 'block' : 'none';
-            if (enabled) {
-                await generateDisclosure();
-            }
-        }
-
-        async function generateDisclosure() {
-            try {
-                // PII復号して氏名を取得
-                const entriesData = await dbGet(`projects/${projectId}/entries`);
-                const nameMap = {};
-                if (entriesData) {
-                    const privJwk = JSON.parse(session.get('privateKeyJwk'));
-                    for (const v of Object.values(entriesData)) {
-                        if (!v.entryNumber) continue;
-                        let displayName = `No.${String(v.entryNumber).padStart(3,'0')}`;
-                        if (v.encryptedPII) {
-                            try {
-                                const pii = JSON.parse(await AppCrypto.decryptRSA(v.encryptedPII, privJwk));
-                                displayName = `${pii.familyName} ${pii.firstName}`;
-                            } catch(e) {}
-                        }
-                        nameMap[v.entryNumber] = displayName;
-                    }
-                }
-
-                // スコアと連答を計算
-                const ranked = entryNumbers.map(en => {
-                    const answers = [];
-                    for (let q = 1; q <= totalQuestions; q++) {
-                        const fd = scoresData[`__final__q${q}`] || {};
-                        answers.push(fd[en] === 'correct' ? 1 : 0);
-                    }
-                    const score = answers.reduce((a, b) => a + b, 0);
-                    // 連答: 前から順に区切る（0連答も記録）
-                    const streaks = []; let cur = 0;
-                    answers.forEach(a => { if (a === 1) { cur++; } else { streaks.push(cur); cur = 0; } });
-                    streaks.push(cur);
-                    return { en, score, streaks };
-                });
-
-                // ソート: 点数降順 → 第1連答 → 第2連答 → ...
-                ranked.sort((a, b) => {
-                    if (b.score !== a.score) return b.score - a.score;
-                    const maxLen = Math.max(a.streaks.length, b.streaks.length);
-                    for (let i = 0; i < maxLen; i++) {
-                        const sa = a.streaks[i] || 0;
-                        const sb = b.streaks[i] || 0;
-                        if (sa !== sb) return sb - sa;
-                    }
-                    return 0;
-                });
-
-                // 順位付与（同点同順位）
-                const ordinal = n => { const s = ['th','st','nd','rd']; const v = n % 100; return n + (s[(v-20)%10] || s[v] || s[0]); };
-                const totalEntries = ranked.length;
-                const disclosureData = {};
-                let currentRank = 1;
-                ranked.forEach((r, idx) => {
-                    if (idx > 0) {
-                        const prev = ranked[idx - 1];
-                        const same = prev.score === r.score && JSON.stringify(prev.streaks) === JSON.stringify(r.streaks);
-                        if (!same) currentRank = idx + 1;
-                    }
-                    disclosureData[r.en] = {
-                        displayName: nameMap[r.en] || `No.${String(r.en).padStart(3,'0')}`,
-                        score: r.score,
-                        rank: ordinal(currentRank),
-                        totalEntries,
-                        totalQuestions,
-                        streaks: r.streaks
-                    };
-                });
-
-                await dbUpdate(`projects/${projectId}/disclosure`, disclosureData);
-            } catch (e) {
-                console.error('開示連携エラー:', e);
-            }
-        }
-
-
 
         async function resetProject() {
             if (!(await showConfirm(
@@ -588,24 +544,7 @@
             try {
                 showAdminToast('プロジェクトをリセットしています...', 'info', 10000);
 
-                const removePath = async (p) => {
-                    try { await dbRef(p).remove(); } catch(e) { console.warn(`削除スキップ: ${p}`, e.message); }
-                };
-                const protectedBase = `projects/${projectId}/protected/${secretHash}`;
-                const adminBase = `projects/${projectId}/protected/${adminHash}`;
-                await Promise.all([
-                    removePath(`${protectedBase}/scores`),
-                    removePath(`${protectedBase}/answers`),
-                    removePath(`${protectedBase}/answers_text`),
-                    removePath(`${protectedBase}/answerCells`),
-                    removePath(`${protectedBase}/answerImages`),
-                    removePath(`${adminBase}/finalResults`),
-                    removePath(`projects/${projectId}/entries`),
-                    removePath(`projects/${projectId}/disclosure`),
-                ]);
-                // 受付番号カウンターをリセット
-                await dbSet(`projects/${projectId}/publicSettings/lastEntryNumber`, 0);
-
+                await CIQSupabaseAPI.resetProjectData(projectId);
                 showAdminToast('プロジェクトをリセットしました。ページを再読み込みします。', 'success', 3000);
                 setTimeout(() => { location.reload(); }, 2000);
             } catch (e) {

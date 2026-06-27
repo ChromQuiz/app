@@ -5,65 +5,57 @@
             const el = document.getElementById('entry-list');
             el.innerHTML = '<div class="text-muted-loader">読み込み中...</div>';
             try {
-                const data = await dbShallow(`projects/${projectId}/protected/${secretHash}/answers`);
-                entryListData = data ? Object.keys(data).map(Number).sort((a, b) => a - b) : [];
+                const pages = await CIQSupabaseAPI.listAnswerPages(projectId);
+                entryListData = pages.map(page => Number(page.entries?.entry_number)).filter(Boolean).sort((a, b) => a - b);
+                entryNumbers = [...entryListData];
+                document.getElementById('entry-count-badge').textContent = `${entryListData.length}件`;
+                if (entryListData.length === 0) {
+                    el.innerHTML = '<div class="text-muted-center"><i class="fa-solid fa-box-open icon-empty"></i>保存済み答案はありません</div>';
+                    document.getElementById('select-all-label').hidden = true;
+                    document.getElementById('batch-delete-btn').hidden = true;
+                    return;
+                }
+                document.getElementById('select-all-label').hidden = false;
+                document.getElementById('batch-delete-btn').hidden = false;
+                el.innerHTML = '';
+                const grid = document.createElement('div');
+                grid.className = 'entry-list-grid';
+                pages.forEach(page => {
+                    const entry = page.entries || {};
+                    const num = Number(entry.entry_number);
+                    const displayName = entry.entry_name || `No.${padNum(num)}`;
+                    const subText = entry.affiliation || '';
+                    const card = document.createElement('div');
+                    card.className = 'entry-card';
+                    card.innerHTML = `
+                        <label class="custom-checkbox scan-cb-wrap">
+                            <input type="checkbox" class="entry-cb" data-num="${num}" />
+                            <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
+                        </label>
+                        <div class="entry-info">
+                            <div class="entry-name">${escapeHtml(displayName)}</div>
+                            ${subText ? `<div class="entry-sub">${escapeHtml(subText)}</div>` : ''}
+                        </div>
+                        <span class="entry-num-badge">#${padNum(num)}</span>
+                    `;
+                    const cb = card.querySelector('.entry-cb');
+                    cb.addEventListener('change', () => {
+                        card.classList.toggle('selected', cb.checked);
+                        updateBatchBtn();
+                    });
+                    card.addEventListener('dblclick', (e) => {
+                        if (e.target.closest('.scan-cb')) return;
+                        showEntryPreview(num);
+                    });
+                    grid.appendChild(card);
+                });
+                el.appendChild(grid);
+                document.getElementById('batch-delete-btn').disabled = true;
+                document.getElementById('select-all-cb').checked = false;
             } catch (e) {
-                console.error('答案リスト読み込みエラー:', e);
-                entryListData = [];
+                console.error('Supabase答案リスト読み込みエラー:', e);
+                el.innerHTML = `<div class="text-muted-center">答案リストを読み込めませんでした: ${escapeHtml(e.message)}</div>`;
             }
-            entryNumbers = [...entryListData]; // 全体のentryNumbersも更新
-            let masterData = getMasterData(projectId);
-
-            // カウントバッジ更新
-            document.getElementById('entry-count-badge').textContent = `${entryListData.length}件`;
-
-            if (entryListData.length === 0) {
-                el.innerHTML = '<div class="text-muted-center"><i class="fa-solid fa-box-open icon-empty"></i>保存済み答案はありません</div>';
-                document.getElementById('select-all-label').hidden = true;
-                document.getElementById('batch-delete-btn').hidden = true;
-                return;
-            }
-
-            // コントロール表示
-            document.getElementById('select-all-label').hidden = false;
-            document.getElementById('batch-delete-btn').hidden = false;
-
-            el.innerHTML = '';
-            const grid = document.createElement('div');
-            grid.className = 'entry-list-grid';
-            entryListData.forEach(num => {
-                const md = masterData[num] || {};
-                const displayName = md.name || `No.${padNum(num)}`;
-                const subText = md.affiliation || '';
-                const card = document.createElement('div');
-                card.className = 'entry-card';
-                card.innerHTML = `
-                    <label class="custom-checkbox scan-cb-wrap">
-                        <input type="checkbox" class="entry-cb" data-num="${num}" />
-                        <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
-                    </label>
-                    <div class="entry-info">
-                        <div class="entry-name">${displayName}</div>
-                        ${subText ? `<div class="entry-sub">${subText}</div>` : ''}
-                    </div>
-                    <span class="entry-num-badge">#${padNum(num)}</span>
-                `;
-                // チェック時のカードハイライト
-                        const cb = card.querySelector('.entry-cb');
-                cb.addEventListener('change', () => {
-                    card.classList.toggle('selected', cb.checked);
-                    updateBatchBtn();
-                });
-                // ダブルクリックでページプレビュー
-                card.addEventListener('dblclick', (e) => {
-                    if (e.target.closest('.scan-cb')) return; // チェックボックスは除外
-                    showEntryPreview(num);
-                });
-                grid.appendChild(card);
-            });
-            el.appendChild(grid);
-            document.getElementById('batch-delete-btn').disabled = true;
-            document.getElementById('select-all-cb').checked = false;
         }
 
         function updateBatchBtn() {
@@ -81,21 +73,14 @@
         async function deleteEntry(num, e) {
             e?.stopPropagation();
             if (!(await showConfirm(`受付番号 ${num} の答案を削除しますか？`))) return;
-            await dbRemove(`projects/${projectId}/protected/${secretHash}/answers/${num}`);
-            await dbRemove(`projects/${projectId}/protected/${secretHash}/scores/${num}`);
+            await CIQSupabaseAPI.deleteAnswerPage(projectId, num);
             loadEntryList();
         }
         async function batchDelete() {
             const checked = [...document.querySelectorAll('.entry-cb:checked')].map(cb => cb.dataset.num);
             if (!checked.length) return;
             if (!(await showConfirm(`${checked.length}件の答案を一括削除しますか？`))) return;
-            // 全エントリーを並列削除
-            await Promise.all(checked.map(async num => {
-                await Promise.all([
-                    dbRemove(`projects/${projectId}/protected/${secretHash}/answers/${num}`),
-                    dbRemove(`projects/${projectId}/protected/${secretHash}/scores/${num}`)
-                ]);
-            }));
+            await Promise.all(checked.map(num => CIQSupabaseAPI.deleteAnswerPage(projectId, Number(num))));
             loadEntryList();
         }
 
@@ -112,9 +97,10 @@
             overlay.innerHTML = `<div class="preview-overlay-header"><h2 class="preview-overlay-title"><i class="fa-solid fa-file-image"></i> ${escapeHtml(name)} の解答用紙</h2><button class="btn secondary" onclick="document.getElementById('admin-preview-overlay').style.display='none'">✕ 閉じる</button></div><div id="admin-preview-content" class="preview-overlay-content"><div class="text-muted-loader"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div></div>`;
             overlay.style.display = 'block';
             const pc = document.getElementById('admin-preview-content');
-            const imageUrl = await dbGet(`projects/${projectId}/protected/${secretHash}/answerImages/${num}`);
-            if (imageUrl) {
-                pc.innerHTML = `<img src="${imageUrl}" alt="${name}" class="preview-image">`;
+            const page = await CIQSupabaseAPI.getAnswerPageByEntryNumber(projectId, num);
+            if (page?.storage_path) {
+                const signedUrl = await CIQSupabaseAPI.getAnswerPageUrl(page.storage_path);
+                pc.innerHTML = `<img src="${signedUrl}" alt="${escapeHtml(name)}" class="preview-image">`;
             } else {
                 pc.innerHTML = '<div class="text-muted-center">ページ画像が保存されていません。答案を再読み込みしてください。</div>';
             }
@@ -229,10 +215,8 @@
             reader.readAsText(file, 'UTF-8');
         }
         async function saveModelAnswers() {
-            const data = {};
-            modelAnswers.forEach((ans, idx) => { if (ans) data[idx + 1] = ans; });
             try {
-                await dbSet(`projects/${projectId}/protected/${secretHash}/answers_text`, data);
+                await CIQSupabaseAPI.saveModelAnswers(projectId, modelAnswers);
             } catch(e) {
                 showAdminToast('保存に失敗: ' + e.message);
             }

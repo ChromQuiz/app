@@ -1,111 +1,80 @@
-// email.js — CIQ メール送信モジュール
-// AWS API Gateway + Lambda (SES) 経由でメール通知を送信する。
-//
-// 使い方:
-//   await CIQEmail.sendEntryConfirmation(email, { projectName, entryNumber, ... });
-//
-// 設定:
-//   CIQEmail.configure({ endpoint, apiKey }) を初期化時に呼ぶ。
-//   endpoint / apiKey は config.js または環境に応じて注入する。
+// email.js - CIQ Supabase Edge Function mail client.
 
 const CIQEmail = (() => {
-    let _endpoint = '';   // API Gateway のURL (例: https://xxxxx.execute-api.ap-northeast-1.amazonaws.com/send-email)
-    let _apiKey = '';     // Lambda 側の API_SECRET_KEY と一致させる
+    let _endpoint = '';
+    let _publishableKey = '';
 
-    function configure({ endpoint, apiKey }) {
-        _endpoint = endpoint;
-        _apiKey = apiKey;
+    function defaultProjectId() {
+        return new URLSearchParams(location.search).get('pid') || session.get('projectId') || null;
     }
 
-    async function _send(type, to, data) {
-        if (!_endpoint) {
-            console.warn('[CIQEmail] endpoint未設定 — メール送信をスキップ');
-            return false;
+    function configure(config = {}) {
+        const supabaseConfig = window.CIQ_SUPABASE_CONFIG || {};
+        const baseUrl = (config.endpoint || supabaseConfig.url || '').replace(/\/$/, '');
+        _endpoint = baseUrl.includes('/functions/v1/send-email')
+            ? baseUrl
+            : baseUrl ? `${baseUrl}/functions/v1/send-email` : '';
+        _publishableKey = config.publishableKey || config.apiKey || supabaseConfig.publishableKey || '';
+    }
+
+    function ensureConfigured() {
+        if (!_endpoint || !_publishableKey) configure();
+        return Boolean(_endpoint && _publishableKey);
+    }
+
+    async function request(type, to, data = {}) {
+        if (!ensureConfigured()) {
+            console.warn('[CIQEmail] Supabaseメール設定が見つかりません。');
+            return null;
         }
-        try {
-            const res = await fetch(_endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': _apiKey,
-                },
-                body: JSON.stringify({ type, to, data }),
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                console.error('[CIQEmail] 送信失敗:', err);
-                return false;
-            }
-            return true;
-        } catch (e) {
-            console.error('[CIQEmail] ネットワークエラー:', e);
-            return false;
+        const projectId = data.projectId || defaultProjectId();
+        const res = await fetch(_endpoint, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+                apikey: _publishableKey,
+            },
+            body: JSON.stringify({ type, to, projectId, data }),
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            console.error('[CIQEmail] 送信失敗:', result);
+            return null;
         }
+        return result;
     }
 
-    // エントリー完了メール
-    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, familyName, firstName, status, editUrl, senderName, replyTo }) {
-        return _send('entry_confirmation', to, {
-            projectName, entryNumber, password, uuid, familyName, firstName, status, editUrl, senderName, replyTo
+    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, senderName, replyTo }) {
+        const result = await request('entry_confirmation', to, {
+            projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, senderName, replyTo,
+            entryId: uuid,
         });
+        return Boolean(result?.success);
     }
 
-    // キャンセル完了メール
-    async function sendCancellation(to, { projectName, entryNumber, familyName, firstName, senderName, replyTo }) {
-        return _send('entry_cancelled', to, {
-            projectName, entryNumber, familyName, firstName, senderName, replyTo
+    async function sendCancellation(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName, replyTo }) {
+        const result = await request('entry_cancelled', to, {
+            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName, replyTo,
         });
+        return Boolean(result?.success);
     }
 
-    // キャンセル待ち繰り上げ通知
-    async function sendWaitlistPromotion(to, { projectName, entryNumber, familyName, firstName, senderName, replyTo }) {
-        return _send('waitlist_promoted', to, {
-            projectName, entryNumber, familyName, firstName, senderName, replyTo
+    async function sendWaitlistPromotion(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName, replyTo }) {
+        const result = await request('waitlist_promoted', to, {
+            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName, replyTo,
         });
+        return Boolean(result?.success);
     }
 
-    // メール認証コード送信
     async function sendVerificationCode(to, projectName, senderName, replyTo) {
-        if (!_endpoint) {
-            console.warn('[CIQEmail] endpoint未設定 — 認証コード送信をスキップ');
-            return null;
-        }
-        try {
-            const res = await fetch(_endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': _apiKey,
-                },
-                body: JSON.stringify({ type: 'send_verification', to, data: { projectName, senderName, replyTo } }),
-            });
-            if (!res.ok) return null;
-            return await res.json(); // { success, signature, expiresAt }
-        } catch (e) {
-            console.error('[CIQEmail] 認証コード送信エラー:', e);
-            return null;
-        }
+        const result = await request('send_verification', to, { projectName, senderName, replyTo });
+        if (!result?.success) return null;
+        return result;
     }
 
-    // メール認証コード検証
     async function verifyCode(email, code, signature, expiresAt) {
-        if (!_endpoint) return false;
-        try {
-            const res = await fetch(_endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': _apiKey,
-                },
-                body: JSON.stringify({ type: 'verify_code', to: email, data: { code, signature, expiresAt } }),
-            });
-            if (!res.ok) return false;
-            const result = await res.json();
-            return result.verified === true;
-        } catch (e) {
-            console.error('[CIQEmail] 認証コード検証エラー:', e);
-            return false;
-        }
+        const result = await request('verify_code', email, { code, signature, expiresAt });
+        return result?.verified === true;
     }
 
     return { configure, sendEntryConfirmation, sendCancellation, sendWaitlistPromotion, sendVerificationCode, verifyCode };

@@ -9,6 +9,7 @@
             overlayTitle.textContent = '採点済みPDFを生成中...';
 
             try {
+                await refreshSupabaseScoringData();
                 // 1) 採点結果を全問取得
                 const finalResults = {}; // finalResults[qNum][entryNum] = 'correct' | undefined
                 for (let q = 1; q <= totalQuestions; q++) {
@@ -40,13 +41,8 @@
                 const pdfW = 210, pdfH = 297;
                 let isFirstPage = true;
 
-                // レイアウト設定をロード（mm座標 → 画像座標に直接変換）
-                const scanConfig = await dbGet(`projects/${projectId}/protected/${secretHash}/config`);
-                const cfgRegions = scanConfig?.answerRegions;
-                if (!cfgRegions) { throw new Error('レイアウト設定が見つかりません'); }
-                // A4: 210mm x 297mm
-                const A4W = 210, A4H = 297;
-
+                const pages = await CIQSupabaseAPI.listAnswerPages(projectId);
+                const supabasePagesByEntry = Object.fromEntries(pages.map(page => [Number(page.entries?.entry_number || 0), page]));
                 const total = sortedEntries.length;
                 for (let idx = 0; idx < total; idx++) {
                     const en = sortedEntries[idx];
@@ -54,12 +50,17 @@
                     overlayBar.style.width = `${((idx + 1) / total) * 100}%`;
 
                     // ページ画像取得
-                    const imageUrl = await dbGet(`projects/${projectId}/protected/${secretHash}/answerImages/${en}`);
+                    let imageUrl = '';
+                    const page = supabasePagesByEntry[en];
+                    if (page?.storage_path) imageUrl = await CIQSupabaseAPI.getAnswerPageUrl(page.storage_path);
+                    const pageRegions = page?.cells?.regions || null;
                     if (!imageUrl) continue;
+                    if (!pageRegions) continue;
 
                     // 画像をCanvasにロード
                     const img = await new Promise((resolve, reject) => {
                         const i = new Image();
+                        i.crossOrigin = 'anonymous';
                         i.onload = () => resolve(i);
                         i.onerror = reject;
                         i.src = imageUrl;
@@ -71,19 +72,17 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0);
 
-                    // mm → pixel 変換（A4ページ基準で直接マッピング）
-                    const pxPerMmX = img.width / A4W;
-                    const pxPerMmY = img.height / A4H;
+                    // Keep A4 constants above for PDF page sizing; stored regions are already pixel coordinates.
 
                     // ○/× マーク描画（半透明）
                     const result = entryResults[en];
                     for (let q = 1; q <= totalQuestions; q++) {
-                        const mmRegion = cfgRegions[q - 1];
-                        if (!mmRegion) continue;
-                        const rx = mmRegion.x * pxPerMmX;
-                        const ry = mmRegion.y * pxPerMmY;
-                        const rw = mmRegion.w * pxPerMmX;
-                        const rh = mmRegion.h * pxPerMmY;
+                        const region = pageRegions[`q${q}`];
+                        if (!region) continue;
+                        const rx = region.x;
+                        const ry = region.y;
+                        const rw = region.w;
+                        const rh = region.h;
                         const cx = rx + rw / 2;
                         const cy = ry + rh / 2;
                         const radius = Math.min(rw, rh) * 0.3;
@@ -122,9 +121,9 @@
                     ctx.globalAlpha = 0.9;
 
                     // 最後の問題セルの下
-                    const lastMm = cfgRegions[totalQuestions - 1];
-                    const scoreY = lastMm
-                        ? (lastMm.y + lastMm.h) * pxPerMmY + fontSize * 1.5
+                    const lastRegion = pageRegions[`q${totalQuestions}`];
+                    const scoreY = lastRegion
+                        ? lastRegion.y + lastRegion.h + fontSize * 1.5
                         : canvas.height * 0.88;
 
                     const scoreText = `Score: ${result.score}  |  Streak 1: ${result.topStreaks[0] || 0}  |  Streak 2: ${result.topStreaks[1] || 0}`;

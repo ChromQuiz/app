@@ -49,11 +49,16 @@ async function showPreview(projectId, secretHash, entryNum) {
     overlay.style.display = 'block';
 
     const pc = document.getElementById('preview-content');
-    const imageUrl = await dbGet(`projects/${projectId}/protected/${secretHash}/answerImages/${entryNum}`);
-    if (imageUrl) {
-        pc.innerHTML = `<img src="${imageUrl}" alt="${name}" class="preview-image">`;
-    } else {
-        pc.innerHTML = '<div class="text-muted-center">ページ画像が保存されていません。管理画面から答案を再読み込みしてください。</div>';
+    try {
+        const page = await CIQSupabaseAPI.getAnswerPageByEntryNumber(projectId, entryNum);
+        if (page?.storage_path) {
+            const signedUrl = await CIQSupabaseAPI.getAnswerPageUrl(page.storage_path);
+            pc.innerHTML = `<img src="${signedUrl}" alt="${escapeHtml(name)}" class="preview-image">`;
+        } else {
+            pc.innerHTML = '<div class="text-muted-center">ページ画像が保存されていません。管理画面から答案を再読み込みしてください。</div>';
+        }
+    } catch (e) {
+        pc.innerHTML = `<div class="text-muted-center">ページ画像を読み込めませんでした: ${escapeHtml(e.message)}</div>`;
     }
 }
 
@@ -81,6 +86,7 @@ function requireAuth(opts = {}) {
     const secretHash = session.get('secretHash');
     const scorerName = session.scorerName;
     const scorerRole = session.scorerRole;
+    const supabaseMode = session.get('supabaseMode') === 'true';
 
     if (!projectId || !scorerName) {
         location.href = 'index.html';
@@ -91,8 +97,8 @@ function requireAuth(opts = {}) {
         setTimeout(() => location.href = 'index.html', 3000);
         return null;
     }
-    watchProjectDeletion(projectId);
-    return { projectId, secretHash, scorerName, scorerRole };
+    if (!supabaseMode && typeof watchProjectDeletion === 'function') watchProjectDeletion(projectId);
+    return { projectId, secretHash, scorerName, scorerRole, supabaseMode };
 }
 
 function showToast(msg, type = 'info', duration = 3000) {

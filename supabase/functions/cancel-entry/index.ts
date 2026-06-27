@@ -1,5 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { createServiceClient } from '../_shared/supabase.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -12,23 +12,28 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Missing required fields' }, 400);
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
+    const supabase = createServiceClient();
 
     const { data, error } = await supabase
-      .from('entries')
-      .update({ status: 'canceled' })
-      .eq('project_id', projectId)
-      .eq('email_hash', emailHash)
-      .eq('disclosure_password_hash', disclosurePasswordHash)
-      .neq('status', 'canceled')
-      .select('id, entry_number, status')
+      .rpc('cancel_entry_atomic', {
+        p_project_id: projectId,
+        p_email_hash: emailHash,
+        p_disclosure_password_hash: disclosurePasswordHash,
+      })
       .single();
 
-    if (error || !data) return jsonResponse({ error: 'Entry not found' }, 404);
-    return jsonResponse({ ok: true, entry: data });
+    if (error || !data) return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
+    return jsonResponse({
+      ok: true,
+      canceledEntry: {
+        id: data.canceled_entry_id,
+        entryNumber: data.canceled_entry_number,
+      },
+      promotedEntry: data.promoted_entry_id ? {
+        id: data.promoted_entry_id,
+        entryNumber: data.promoted_entry_number,
+      } : null,
+    });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
   }

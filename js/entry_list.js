@@ -1,8 +1,7 @@
-// entry_list.js — エントリーリスト（Firebase SDK版）
+// entry_list.js - Supabase public entry list
 
 const params = new URLSearchParams(location.search);
     const projectId = params.get('pid');
-    const secretHash = params.get('secret');
 
     if (!projectId) {
         document.getElementById('disabled-msg').innerHTML = '<i class="fa-solid fa-ban"></i>プロジェクトが指定されていません。正しいURLへアクセスしてください。';
@@ -11,14 +10,22 @@ const params = new URLSearchParams(location.search);
     let maxEntries = 0;
     let entryOpenTime = 0;
     const GRACE_PERIOD_MS = 30 * 60 * 1000; // 30分
+    let publicEntrySubscription = null;
+
+    async function loadPublicSettings() {
+        if (!window.CIQSupabaseAPI?.isEnabled?.()) {
+            throw new Error('Supabase設定が見つかりません。');
+        }
+        return CIQSupabaseAPI.getPublicSettings(projectId);
+    }
 
     async function init() {
         if (!projectId) return;
-        await waitForAuth();
 
-        // プロジェクト名を取得して表示
+        let pubSettings = {};
         try {
-            let pName = await dbGet(`projects/${projectId}/publicSettings/projectName`);
+            pubSettings = await loadPublicSettings() || {};
+            let pName = pubSettings.projectName || projectId;
             if (!pName) pName = projectId;
             document.getElementById('page-title').textContent = pName || projectId;
             document.title = (pName || projectId) + ' - エントリーリスト';
@@ -27,10 +34,9 @@ const params = new URLSearchParams(location.search);
         }
 
         // 定員取得
-        const pubSettings = await dbGet(`projects/${projectId}/publicSettings`) || {};
         maxEntries = pubSettings.maxEntries || 0;
 
-        // エントリー開始時刻取得（publicSettingsから）
+        // エントリー開始時刻取得
         if (pubSettings.periodStart) {
             entryOpenTime = new Date(pubSettings.periodStart).getTime();
         }
@@ -39,10 +45,10 @@ const params = new URLSearchParams(location.search);
         document.getElementById('disabled-msg').style.display = 'none';
         document.getElementById('content-area').style.display = 'block';
 
-        // リアルタイムリスナーで自動更新
-        new Poller(`projects/${projectId}/entries`, (data) => {
+        publicEntrySubscription = CIQSupabaseAPI.subscribePublicEntries(projectId, (data) => {
             renderList(data);
-        }).start();
+        });
+        window.addEventListener('beforeunload', () => publicEntrySubscription?.stop?.());
     }
 
     /**

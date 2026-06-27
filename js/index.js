@@ -1,260 +1,321 @@
-// index.js — ログイン / プロジェクト作成（Firebase SDK版）
+// index.js - Supabase Auth / project creation
 
 function getOrdinalSuffix(n) {
-	const mod100 = n % 100;
-	if (mod100 >= 11 && mod100 <= 13) return 'th';
-	switch (n % 10) {
-		case 1: return 'st';
-		case 2: return 'nd';
-		case 3: return 'rd';
-		default: return 'th';
-	}
+    const mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 13) return 'th';
+    switch (n % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
+    }
 }
 
 function generateStrongPassword() {
-	const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	const lower = 'abcdefghijklmnopqrstuvwxyz';
-	const num = '0123456789';
-	const all = upper + lower + num;
-	const required = [
-		AppCrypto.randomString(1, upper),
-		AppCrypto.randomString(1, lower),
-		AppCrypto.randomString(1, num)
-	];
-	const chars = (required.join('') + AppCrypto.randomString(11, all)).split('');
-	const bytes = AppCrypto.randomBytes(chars.length);
-	for (let i = chars.length - 1; i > 0; i--) {
-		const j = bytes[i] % (i + 1);
-		[chars[i], chars[j]] = [chars[j], chars[i]];
-	}
-	return chars.join('');
+    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lower = 'abcdefghijklmnopqrstuvwxyz';
+    const num = '0123456789';
+    const all = upper + lower + num;
+    const required = [
+        AppCrypto.randomString(1, upper),
+        AppCrypto.randomString(1, lower),
+        AppCrypto.randomString(1, num)
+    ];
+    const chars = (required.join('') + AppCrypto.randomString(11, all)).split('');
+    const bytes = AppCrypto.randomBytes(chars.length);
+    for (let i = chars.length - 1; i > 0; i--) {
+        const j = bytes[i] % (i + 1);
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    return chars.join('');
 }
 
-
-
 let currentTab = 'join';
+let supabaseSession = null;
 
-function setTab(tab) {
-	currentTab = tab;
-	const tabJoin = document.getElementById('tab-join');
-	const tabCreate = document.getElementById('tab-create');
-	if (tabJoin) tabJoin.className = tab === 'join' ? 'tab active' : 'tab';
-	if (tabCreate) tabCreate.className = tab === 'create' ? 'tab active' : 'tab';
-
-	document.getElementById('section-join').hidden = tab !== 'join';
-	document.getElementById('section-create').hidden = tab !== 'create';
+function getGoogleDisplayName() {
+    const user = supabaseSession?.user;
+    return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'Google User';
 }
 
 function showError(msg) {
-	const el = document.getElementById('status-msg');
-	el.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + msg;
-	el.style.display = 'block';
-	setTimeout(() => el.style.display = 'none', 5000);
+    const el = document.getElementById('status-msg');
+    el.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHtml(msg);
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 5000);
 }
 
-function togglePassword(id, iconId) {
-	const input = document.getElementById(id);
-	const icon = document.getElementById(iconId);
-	if (input.type === "password") {
-		input.type = "text";
-		if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
-	} else {
-		input.type = "password";
-		if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
-	}
+function useSupabaseAuth() {
+    return Boolean(window.CIQSupabaseAPI?.isEnabled?.());
+}
+
+function setTab(tab) {
+    currentTab = tab;
+    const tabJoin = document.getElementById('tab-join');
+    const tabCreate = document.getElementById('tab-create');
+    if (tabJoin) tabJoin.className = tab === 'join' ? 'tab active' : 'tab';
+    if (tabCreate) tabCreate.className = tab === 'create' ? 'tab active' : 'tab';
+    document.getElementById('section-join').hidden = tab !== 'join';
+    document.getElementById('section-create').hidden = tab !== 'create';
+    renderCreateAuthState();
+}
+
+function renderSupabaseAuth(sessionData) {
+    const panel = document.getElementById('supabase-auth-panel');
+    if (!panel || !useSupabaseAuth()) return;
+    panel.hidden = false;
+
+    const userEl = document.getElementById('supabase-auth-user');
+    const loginBtn = document.getElementById('supabase-login-btn');
+    const logoutBtn = document.getElementById('supabase-logout-btn');
+    const email = sessionData?.user?.email || '';
+    const displayName = sessionData?.user ? getGoogleDisplayName() : '';
+
+    if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '未ログイン';
+    if (loginBtn) loginBtn.hidden = Boolean(email);
+    if (logoutBtn) logoutBtn.hidden = !email;
+    renderCreateAuthState();
+    renderProjectList();
+}
+
+function renderCreateAuthState() {
+    if (!useSupabaseAuth()) return;
+    const note = document.getElementById('create-auth-note');
+    const createBtn = document.getElementById('create-btn');
+    const email = supabaseSession?.user?.email || '';
+
+    if (note) {
+        note.classList.toggle('ready', Boolean(email));
+        note.innerHTML = email
+            ? '<i class="fa-solid fa-circle-check"></i><span>Googleログイン済みです。新しいプロジェクトを作成できます。</span>'
+            : '<i class="fa-solid fa-circle-info"></i><span>新規作成にはGoogleログインが必要です。</span>';
+    }
+    if (createBtn) {
+        createBtn.disabled = !email;
+        createBtn.innerHTML = email
+            ? '新しいプロジェクトを作成 <i class="fa-solid fa-plus"></i>'
+            : 'Googleログイン後に作成できます';
+    }
+}
+
+function renderProjectListEmpty(message) {
+    const list = document.getElementById('project-list');
+    if (!list) return;
+    list.innerHTML = `<div class="project-list-empty">${escapeHtml(message)}</div>`;
+}
+
+function getRoleLabel(role) {
+    if (role === 'owner') return '所有者';
+    if (role === 'admin') return '管理者';
+    if (role === 'scorer') return '採点者';
+    return role || '';
+}
+
+async function renderProjectList() {
+    const note = document.getElementById('project-list-note');
+    const list = document.getElementById('project-list');
+    if (!list || !useSupabaseAuth()) return;
+
+    if (!supabaseSession?.user) {
+        if (note) {
+            note.classList.remove('ready');
+            note.innerHTML = '<i class="fa-solid fa-circle-info"></i><span>Googleログインすると、参加中のプロジェクトが表示されます。</span>';
+        }
+        renderProjectListEmpty('ログイン待ち');
+        return;
+    }
+
+    list.innerHTML = '<div class="project-list-empty"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div>';
+    try {
+        const projects = await CIQSupabaseAPI.listMyProjects();
+        if (note) {
+            note.classList.toggle('ready', projects.length > 0);
+            note.innerHTML = projects.length > 0
+                ? '<i class="fa-solid fa-circle-check"></i><span>参加中のプロジェクトを選択して開きます。</span>'
+                : '<i class="fa-solid fa-circle-info"></i><span>新規作成するか、採点者コードでプロジェクトに参加してください。</span>';
+        }
+        if (projects.length === 0) {
+            renderProjectListEmpty('プロジェクトはまだありません');
+            return;
+        }
+        list.innerHTML = projects.map((project) => `
+            <button type="button" class="project-list-item" data-project-id="${escapeHtml(project.id)}" data-project-name="${escapeHtml(project.name)}" data-role="${escapeHtml(project.role)}" data-display-name="${escapeHtml(project.displayName)}">
+                <span>
+                    <strong>${escapeHtml(project.name)}</strong>
+                    <small>${escapeHtml(project.id)} / ${escapeHtml(getRoleLabel(project.role))}</small>
+                </span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        `).join('');
+        list.querySelectorAll('.project-list-item').forEach((button) => {
+            button.addEventListener('click', () => {
+                openSupabaseProject(
+                    button.dataset.projectId,
+                    button.dataset.projectName,
+                    button.dataset.role,
+                    button.dataset.displayName
+                );
+            });
+        });
+    } catch (e) {
+        renderProjectListEmpty('プロジェクトを読み込めませんでした');
+        console.error(e);
+    }
+}
+
+function openSupabaseProject(projectId, projectName, role, displayName) {
+    session.set('projectId', projectId);
+    session.set('projectName', projectName);
+    session.set('scorer_name', displayName || supabaseSession?.user?.email || '');
+    session.set('scorer_role', role === 'scorer' ? 'scorer' : 'admin');
+    session.set('supabaseMode', 'true');
+    location.href = 'admin.html';
+}
+
+async function joinProjectAsScorer() {
+    const btn = document.getElementById('join-scorer-btn');
+    const projectId = document.getElementById('join-project-id').value.trim().toLowerCase();
+    const accessCode = document.getElementById('join-scorer-code').value.trim();
+
+    if (!supabaseSession?.user) {
+        showError('先にGoogleでログインしてください。');
+        return;
+    }
+    if (!projectId || !accessCode) {
+        showError('プロジェクトIDと採点者コードを入力してください。');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 確認中...';
+    try {
+        const codeHash = await AppCrypto.hashPassword(accessCode);
+        const joined = await CIQSupabaseAPI.joinProjectWithScorerCode(projectId, codeHash);
+        const projects = await CIQSupabaseAPI.listMyProjects();
+        const project = projects.find(p => p.id === projectId);
+        openSupabaseProject(
+            projectId,
+            project?.name || projectId,
+            joined.role,
+            joined.display_name || getGoogleDisplayName()
+        );
+    } catch (e) {
+        showError(e.message);
+        btn.disabled = false;
+        btn.innerHTML = '参加する <i class="fa-solid fa-arrow-right-to-bracket"></i>';
+    }
+}
+
+async function signInWithSupabaseGoogle() {
+    try {
+        await CIQSupabaseAPI.signInWithGoogle();
+    } catch (e) {
+        showError('Googleログインを開始できませんでした: ' + e.message);
+    }
+}
+
+async function signOutSupabase() {
+    try {
+        await CIQSupabaseAPI.signOut();
+        session.clear();
+    } catch (e) {
+        showError('ログアウトに失敗しました: ' + e.message);
+    }
 }
 
 async function copyToClipboard(id, btn) {
-	const input = document.getElementById(id);
-	try {
-		await navigator.clipboard.writeText(input.value);
-		const orig = btn.innerHTML;
-		btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-		setTimeout(() => btn.innerHTML = orig, 1500);
-	} catch (err) {
-		showError('コピーに失敗しました');
-	}
-}
-
-async function joinProject() {
-	await waitForAuth();
-	const pid = document.getElementById('join-id').value.trim();
-	const pwd = document.getElementById('join-password').value;
-	const name = document.getElementById('join-name').value.trim();
-	const btn = document.getElementById('login-btn');
-
-	if (!pid || !pwd || !name) {
-		showError('全ての項目を入力してください');
-		return;
-	}
-
-	btn.disabled = true;
-	btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 認証中...';
-
-	try {
-		// まず公開設定が存在するか確認する
-		const pubSettings = await dbGet(`projects/${pid}/publicSettings`);
-		if (!pubSettings) {
-			throw new Error('指定されたプロジェクトIDが見つかりません');
-		}
-
-		// 新バージョンのログイン判定 (入力されたパスワードのハッシュで探る)
-		const hash = await AppCrypto.hashPassword(pwd);
-
-		const configData = await dbGet(`projects/${pid}/protected/${hash}/settings`);
-		if (configData) {
-			if (configData.role === 'scorer') {
-				// 同名チェック: 既に採点中の同名採点者がいるか
-				const scoresData = await dbGet(`projects/${pid}/protected/${hash}/scores`);
-				if (scoresData) {
-					const usedNames = new Set();
-					for (const key in scoresData) {
-						if (key.startsWith('__scorers__')) {
-							const scorers = scoresData[key];
-							if (scorers) Object.keys(scorers).forEach(n => usedNames.add(n));
-						}
-					}
-					if (usedNames.has(name)) {
-						const isSame = await showConfirm(
-							`「${name}」は既にこのプロジェクトで採点に参加しています。\n\n同一人物ですか？\n（別人の場合は「いいえ」を選んで名前を変更してください）`,
-							'はい、同一人物です'
-						);
-						if (!isSame) {
-							btn.disabled = false;
-							btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> ログイン';
-							return;
-						}
-					}
-				}
-				// Scorer login
-				session.set('projectId', pid);
-				session.set('scorer_name', name);
-				session.set('scorer_role', 'scorer');
-				session.set('secretHash', hash);
-				dbSet(`projects/${pid}/publicSettings/lastAccess`, SERVER_TIMESTAMP).catch(() => {});
-				location.href = 'judge.html';
-				return;
-			} else {
-				// Admin login
-				session.set('projectId', pid);
-				session.set('scorer_name', name);
-				session.set('scorer_role', 'admin');
-				session.set('secretHash', configData.scorerHash);
-				session.set('adminHash', hash);
-				
-				try {
-					const privJwkStr = await AppCrypto.decryptAES(configData.encryptedPrivateKey, pwd);
-					session.set('privateKeyJwk', privJwkStr);
-				} catch (e) {
-					console.error("Failed to decrypt private key");
-				}
-				dbSet(`projects/${pid}/publicSettings/lastAccess`, SERVER_TIMESTAMP).catch(() => {});
-				location.href = 'admin.html';
-				return;
-			}
-		}
-
-		throw new Error('アクセスコード または パスワードが間違っています');
-
-	} catch (e) {
-		showError(e.message);
-		btn.disabled = false;
-		btn.innerHTML = '部屋へ入る <i class="fa-solid fa-arrow-right-to-bracket"></i>';
-	}
+    const input = document.getElementById(id);
+    try {
+        await navigator.clipboard.writeText(input.value);
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+        setTimeout(() => btn.innerHTML = orig, 1500);
+    } catch (err) {
+        showError('コピーに失敗しました');
+    }
 }
 
 async function createProject() {
-	await waitForAuth();
-	const edition = parseInt(document.getElementById('create-edition').value);
-	const name = document.getElementById('create-name').value.trim();
-	const adminPwd = generateStrongPassword();
-	const scorerPwd = generateStrongPassword();
-	const btn = document.getElementById('create-btn');
+    const edition = parseInt(document.getElementById('create-edition').value, 10);
+    const recoveryPassword = generateStrongPassword();
+    const scorerCode = generateStrongPassword();
+    const btn = document.getElementById('create-btn');
 
-	if (!edition || edition < 1 || !name) {
-		showError('回数とお名前を入力してください');
-		return;
-	}
+    if (!supabaseSession?.user) {
+        showError('先にGoogleでログインしてください。');
+        return;
+    }
+    if (!edition || edition < 1) {
+        showError('回数を入力してください。');
+        return;
+    }
 
-	const pid = `ciq${edition}`;
-	const pName = `CIQ the ${edition}${getOrdinalSuffix(edition)}`;
+    const pid = `ciq${edition}`;
+    const pName = `CIQ the ${edition}${getOrdinalSuffix(edition)}`;
 
-	btn.disabled = true;
-	btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 作成中...';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 作成中...';
 
-	try {
-		// 既存プロジェクトの重複チェック
-		const existing = await dbGet(`projects/${pid}/publicSettings`);
-		if (existing) {
-			throw new Error(`プロジェクト "${pid}" は既に存在します。別の回数を指定してください。`);
-		}
+    try {
+        const { publicKeyJwk, privateKeyJwk } = await AppCrypto.generateRSAKeyPair();
+        const encryptedPriv = await AppCrypto.encryptAES(JSON.stringify(privateKeyJwk), recoveryPassword);
+        const scorerAccessCodeHash = await AppCrypto.hashPassword(scorerCode);
+        const ownerDisplayName = getGoogleDisplayName();
 
-		// ハッシュ計算
-		const adminHash = await AppCrypto.hashPassword(adminPwd);
-		const scorerHash = await AppCrypto.hashPassword(scorerPwd);
+        await CIQSupabaseAPI.createProjectWithOwner({
+            projectId: pid,
+            name: pName,
+            publicKey: publicKeyJwk,
+            encryptedPrivateKey: encryptedPriv,
+            ownerDisplayName,
+            scorerAccessCodeHash,
+        });
 
-		// RSAキーペアの生成 (PIIのE2E暗号化用)
-		const { publicKeyJwk, privateKeyJwk } = await AppCrypto.generateRSAKeyPair();
+        session.set('projectId', pid);
+        session.set('projectName', pName);
+        session.set('scorer_name', ownerDisplayName);
+        session.set('scorer_role', 'admin');
+        session.set('supabaseMode', 'true');
+        session.set('privateKeyJwk', JSON.stringify(privateKeyJwk));
 
-		// 秘密鍵を管理者パスワードでAES暗号化
-		const encryptedPriv = await AppCrypto.encryptAES(JSON.stringify(privateKeyJwk), adminPwd);
+        const tabsContainer = document.getElementById('tabs-container');
+        if (tabsContainer) tabsContainer.hidden = true;
+        document.getElementById('section-create').hidden = true;
+        document.getElementById('section-join').hidden = true;
+        document.getElementById('section-success').hidden = false;
+        document.getElementById('success-id').value = pid;
+        document.getElementById('success-admin-pwd').value = recoveryPassword;
+        document.getElementById('success-pwd').value = scorerCode;
+        const adminPwdLabel = document.getElementById('success-admin-pwd-label');
+        if (adminPwdLabel) adminPwdLabel.innerHTML = '<i class="fa-solid fa-key crown-icon"></i> 秘密鍵復旧パスワード';
 
-		// DB保存 (multi-path update)
-		const updates = {};
-		updates[`publicSettings`] = {
-			projectName: pName,
-			publicKey: publicKeyJwk,
-			createdAt: SERVER_TIMESTAMP,
-			lastAccess: SERVER_TIMESTAMP
-		};
-		updates[`protected/${scorerHash}/settings`] = {
-			role: 'scorer',
-			createdAt: SERVER_TIMESTAMP
-		};
-		updates[`protected/${adminHash}/settings`] = {
-			adminCreator: name,
-			scorerHash: scorerHash,
-			encryptedPrivateKey: encryptedPriv
-		};
-
-		await dbUpdate(`projects/${pid}`, updates);
-
-		// セッションセットアップ
-		session.set('projectId', pid);
-		session.set('scorer_name', name);
-		session.set('scorer_role', 'admin');
-		session.set('secretHash', scorerHash);
-		session.set('adminHash', adminHash);
-		session.set('privateKeyJwk', JSON.stringify(privateKeyJwk));
-
-		// UIDisplay
-		const tabsContainer = document.getElementById('tabs-container');
-		if (tabsContainer) tabsContainer.hidden = true;
-		document.getElementById('section-create').hidden = true;
-		document.getElementById('section-success').hidden = false;
-		document.getElementById('success-id').value = pid;
-		document.getElementById('success-admin-pwd').value = adminPwd;
-		document.getElementById('success-pwd').value = scorerPwd;
-
-	} catch (e) {
-		showError('作成に失敗しました: ' + e.message);
-		btn.disabled = false;
-		btn.innerHTML = '新しいプロジェクトを作成 <i class="fa-solid fa-plus"></i>';
-	}
+        await renderProjectList();
+    } catch (e) {
+        showError('作成に失敗しました: ' + e.message);
+        btn.disabled = false;
+        renderCreateAuthState();
+    }
 }
 
-// エンターキー対応
-let composing = false;
-document.addEventListener('compositionstart', () => { composing = true; });
-document.addEventListener('compositionend', () => {
-	setTimeout(() => { composing = false; }, 500);
-});
+async function initSupabaseAuth() {
+    if (!useSupabaseAuth()) {
+        showError('Supabase設定が見つかりません。');
+        return;
+    }
+    try {
+        supabaseSession = await CIQSupabaseAPI.getSession();
+        renderSupabaseAuth(supabaseSession);
+        CIQSupabaseAPI.onAuthStateChange((sessionData) => {
+            supabaseSession = sessionData;
+            renderSupabaseAuth(sessionData);
+        });
+    } catch (e) {
+        showError('ログイン状態を確認できませんでした: ' + e.message);
+    }
+}
+
 document.addEventListener('keyup', (e) => {
-	if (e.key === 'Enter' && !composing) {
-		if (currentTab === 'join') {
-			joinProject();
-		} else if (currentTab === 'create') {
-			createProject();
-		}
-	}
+    if (e.key === 'Enter' && currentTab === 'create') createProject();
 });
+
+document.addEventListener('DOMContentLoaded', initSupabaseAuth);

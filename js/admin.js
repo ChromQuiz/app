@@ -11,6 +11,7 @@
         const auth = requireAuth({ requireAdmin: true });
         if (!auth) throw new Error('auth');
         const { projectId, secretHash } = auth;
+        const isSupabaseMode = auth.supabaseMode === true;
         const adminHash = session.get('adminHash');
 
         document.getElementById('project-id-display').innerHTML = `<i class="fa-solid fa-copy"></i> ${projectId}`;
@@ -29,6 +30,70 @@
             });
         }
 
+        function setupPublicLinks() {
+            const baseUrl = new URL('.', window.location.href).href;
+            const links = {
+                'entry-link': 'entry_list.html',
+                'edit-link': 'edit.html',
+                'registration-link': 'entry.html',
+                'cancel-link': 'cancel.html',
+                'late-link': 'late.html',
+                'disclosure-link': 'disclosure.html',
+            };
+
+            Object.entries(links).forEach(([id, page]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const url = `${baseUrl}${page}?pid=${encodeURIComponent(projectId)}`;
+                el.href = url;
+                el.textContent = url;
+            });
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+
+        window.copyUrl = function(linkId, btn) {
+            const url = document.getElementById(linkId)?.href;
+            if (!url) return;
+            const original = btn.innerHTML;
+            function onSuccess() {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                btn.style.background = 'var(--success)';
+                btn.style.color = '#ffffff';
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 1500);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
+                    fallbackCopy(url);
+                    onSuccess();
+                });
+            } else {
+                fallbackCopy(url);
+                onSuccess();
+            }
+        };
+
+        function registerAdminShortcuts() {
+            KeyboardShortcuts.register('1', '参加者タブ', () => switchTab('tab-entries'));
+            KeyboardShortcuts.register('2', '採点準備タブ', () => switchTab('tab-prep'));
+            KeyboardShortcuts.register('3', '答案管理タブ', () => switchTab('tab-scan'));
+            KeyboardShortcuts.register('4', '集計タブ', () => switchTab('tab-stats'));
+            KeyboardShortcuts.register('5', '設定タブ', () => switchTab('tab-settings'));
+        }
+
 
 
         let totalQuestions = 100;
@@ -38,6 +103,142 @@
         let adminEntriesCount = 0;
         let adminProjectName = '';
         let adminReplyTo = null;
+        let requiredScorers = 3;
+
+        function toLocalInputValue(isoValue) {
+            if (!isoValue) return '';
+            const d = new Date(isoValue);
+            if (Number.isNaN(d.getTime())) return '';
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function normalizeSupabaseEntry(row) {
+            return {
+                ...row,
+                entryNumber: row.entry_number,
+                encryptedPII: row.encrypted_pii,
+                emailHash: row.email_hash,
+                entryName: row.entry_name,
+                isChubu: row.is_chubu,
+                checkedIn: row.checked_in,
+                waitlistPromotedAt: row.waitlist_promoted_at,
+                waitlistPromotionNotice: row.waitlist_promotion_notice,
+            };
+        }
+
+        async function refreshSupabaseScoringData() {
+            if (!isSupabaseMode) return;
+            const [votes, finals, scorers] = await Promise.all([
+                CIQSupabaseAPI.listScoreVotes(projectId),
+                CIQSupabaseAPI.listFinalResults(projectId),
+                CIQSupabaseAPI.listQuestionScorers(projectId),
+            ]);
+            const entries = Object.values(window._entriesRaw || {});
+            const entryNumberById = Object.fromEntries(entries.map(entry => [entry.id, entry.entryNumber || entry.entry_number]));
+            const nextScores = {};
+
+            for (const scorer of scorers) {
+                if (!scorer.completed_at) continue;
+                const key = `__completed__q${scorer.question_number}`;
+                if (!nextScores[key]) nextScores[key] = {};
+                nextScores[key][scorer.scorer_member_id] = true;
+            }
+
+            for (const vote of votes) {
+                const entryNumber = entryNumberById[vote.entry_id];
+                if (!entryNumber) continue;
+                if (!nextScores[entryNumber]) nextScores[entryNumber] = {};
+                const qKey = `q${vote.question_number}`;
+                if (!nextScores[entryNumber][qKey]) nextScores[entryNumber][qKey] = {};
+                nextScores[entryNumber][qKey][vote.scorer_member_id] = vote.result;
+            }
+
+            for (const finalResult of finals) {
+                const entryNumber = entryNumberById[finalResult.entry_id];
+                if (!entryNumber) continue;
+                const key = `__final__q${finalResult.question_number}`;
+                if (!nextScores[key]) nextScores[key] = {};
+                nextScores[key][entryNumber] = finalResult.result;
+            }
+
+            scoresData = nextScores;
+        }
+
+        async function initSupabaseAdmin() {
+            const project = await CIQSupabaseAPI.getProject(projectId);
+            totalQuestions = project.question_count || 100;
+            requiredScorers = project.required_scorers || 3;
+            adminProjectName = project.name || projectId;
+            adminReplyTo = project.reply_to || null;
+
+            document.getElementById('question-count').value = totalQuestions;
+            document.getElementById('stat-total').textContent = totalQuestions;
+
+            document.getElementById('entry-open-toggle').checked = project.entry_open === true;
+            if (project.period_start) {
+                const val = toLocalInputValue(project.period_start);
+                document.getElementById('entry-period-start').value = val;
+                document.getElementById('dt-start-display').textContent = formatDtDisplay(val);
+            }
+            if (project.period_end) {
+                const val = toLocalInputValue(project.period_end);
+                document.getElementById('entry-period-end').value = val;
+                document.getElementById('dt-end-display').textContent = formatDtDisplay(val);
+            }
+            if (project.max_entries && project.max_entries > 0) {
+                document.getElementById('max-entries-toggle').checked = true;
+                document.getElementById('max-entries-status').textContent = `${project.max_entries}人`;
+                document.getElementById('max-entries-status').className = 'status-badge status-open';
+                document.getElementById('max-entries-input-area').style.display = 'block';
+                document.getElementById('setting-max-entries').value = project.max_entries;
+            } else {
+                document.getElementById('max-entries-toggle').checked = false;
+                document.getElementById('max-entries-status').textContent = '制限なし';
+                document.getElementById('max-entries-status').className = 'status-badge status-closed';
+                document.getElementById('max-entries-input-area').style.display = 'none';
+            }
+            updateEntryOpenStatus();
+
+            document.getElementById('setting-terms').value = project.terms || '';
+            document.getElementById('setting-reply-to').value = project.reply_to || '';
+            const disclosureToggle = document.getElementById('disclosure-open-toggle');
+            if (disclosureToggle) disclosureToggle.checked = project.disclosure_enabled === true;
+            if (project.disclosure_period_start) {
+                const val = toLocalInputValue(project.disclosure_period_start);
+                document.getElementById('disclosure-period-start').value = val;
+                document.getElementById('dt-disclosure-start-display').textContent = formatDtDisplay(val);
+            }
+            if (project.disclosure_period_end) {
+                const val = toLocalInputValue(project.disclosure_period_end);
+                document.getElementById('disclosure-period-end').value = val;
+                document.getElementById('dt-disclosure-end-display').textContent = formatDtDisplay(val);
+            }
+            if (typeof updateDisclosureOpenStatus === 'function') updateDisclosureOpenStatus();
+
+            try {
+                const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
+                entryNumbers = entries.map(e => e.entry_number).sort((a, b) => a - b);
+                window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
+                window.setAdminEntriesCount?.(entries.length);
+            } catch (e) {
+                console.warn('参加者一覧の初期取得をスキップ:', e);
+            }
+
+            modelAnswers = new Array(totalQuestions).fill('');
+            try {
+                const rows = await CIQSupabaseAPI.listModelAnswers(projectId);
+                rows.forEach(row => {
+                    const idx = Number(row.question_number) - 1;
+                    if (idx >= 0 && idx < modelAnswers.length) modelAnswers[idx] = row.answer || '';
+                });
+            } catch (e) {
+                console.warn('模範解答の読み込みをスキップ:', e);
+            }
+            renderModelGrid();
+            await refreshSupabaseScoringData();
+            updateAdminOverview();
+        }
 
         function updateAdminOverview() {
             const entryStatus = document.getElementById('entry-open-status')?.textContent?.trim() || '確認中';
@@ -91,6 +292,9 @@
                     case 'tab-scan':
                         loadEntryList();
                         break;
+                    case 'tab-settings':
+                        if (isSupabaseMode && typeof loadProjectMembers === 'function') loadProjectMembers();
+                        break;
                 }
             }
             // 集計タブは毎回更新
@@ -99,175 +303,19 @@
         }
 
         async function init() {
-            await waitForAuth();
-            // ハッシュによるタブ指定
+            setupPublicLinks();
+            registerAdminShortcuts();
+
+            if (!isSupabaseMode) throw new Error('Supabase設定が必要です。');
+
+            await initSupabaseAdmin();
             const hash = location.hash.replace('#', '');
             if (hash && document.getElementById(hash)) {
                 switchTab(hash);
             } else {
-                // デフォルトタブ (参加者) を遅延ロード
                 tabLoaded['tab-entries'] = true;
-                loadAdminEntries();
+                if (typeof loadAdminEntries === 'function') loadAdminEntries();
             }
-
-            // プロジェクトアクセス日時更新とデータクリーンアップ（非同期、awaitなし）
-            dbSet(`projects/${projectId}/publicSettings/lastAccess`, SERVER_TIMESTAMP).catch(() => {});
-            purgeOldImages();
-
-
-            // キーボードショートカット登録（管理画面固有）
-            KeyboardShortcuts.register('1', '参加者タブ', () => switchTab('tab-entries'));
-            KeyboardShortcuts.register('2', '採点準備タブ', () => switchTab('tab-prep'));
-            KeyboardShortcuts.register('3', '答案管理タブ', () => switchTab('tab-scan'));
-            KeyboardShortcuts.register('4', '集計タブ', () => switchTab('tab-stats'));
-            KeyboardShortcuts.register('5', '設定タブ', () => switchTab('tab-settings'));
-
-            // リンクURL設定
-            const lOrigins = window.location.origin + window.location.pathname.replace('admin.html', '');
-            document.getElementById('entry-link').href = `${lOrigins}entry_list.html?pid=${projectId}`;
-            document.getElementById('entry-link').textContent = `${lOrigins}entry_list.html?pid=${projectId}`;
-            document.getElementById('edit-link').href = `${lOrigins}edit.html?pid=${projectId}`;
-            document.getElementById('edit-link').textContent = `${lOrigins}edit.html?pid=${projectId}`;
-            document.getElementById('registration-link').href = `${lOrigins}entry.html?pid=${projectId}`;
-            document.getElementById('registration-link').textContent = `${lOrigins}entry.html?pid=${projectId}`;
-            document.getElementById('cancel-link').href = `${lOrigins}cancel.html?pid=${projectId}`;
-            document.getElementById('cancel-link').textContent = `${lOrigins}cancel.html?pid=${projectId}`;
-            document.getElementById('late-link').href = `${lOrigins}late.html?pid=${projectId}`;
-            document.getElementById('late-link').textContent = `${lOrigins}late.html?pid=${projectId}`;
-            document.getElementById('disclosure-link').href = `${lOrigins}disclosure.html?pid=${projectId}`;
-            document.getElementById('disclosure-link').textContent = `${lOrigins}disclosure.html?pid=${projectId}`;
-
-            window.copyUrl = function(linkId, btn) {
-                const url = document.getElementById(linkId).href;
-                const original = btn.innerHTML;
-                function onSuccess() {
-                    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                    btn.style.background = 'var(--success)';
-                    btn.style.color = '#ffffff';
-                    setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; btn.style.color = ''; }, 1500);
-                }
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
-                        fallbackCopy(url); onSuccess();
-                    });
-                } else {
-                    fallbackCopy(url); onSuccess();
-                }
-            };
-            function fallbackCopy(text) {
-                const ta = document.createElement('textarea');
-                ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-                document.body.appendChild(ta); ta.select();
-                document.execCommand('copy'); document.body.removeChild(ta);
-            }
-
-            // 設定データ読み込み
-            const cfg = await dbGet(`projects/${projectId}/protected/${secretHash}/config`);
-            if (cfg) {
-                totalQuestions = cfg.questionCount || 100;
-                document.getElementById('question-count').value = totalQuestions;
-            } else {
-                await dbSet(`projects/${projectId}/protected/${secretHash}/config`, { questionCount: 100 });
-            }
-
-            const ec = await dbGet(`projects/${projectId}/protected/${secretHash}/entryConfig`);
-            if (ec) {
-                const isOpen = ec.entryOpen === true;
-                document.getElementById('entry-open-toggle').checked = isOpen;
-                if (ec.periodStart) {
-                    document.getElementById('entry-period-start').value = ec.periodStart;
-                    document.getElementById('dt-start-display').textContent = formatDtDisplay(ec.periodStart);
-                }
-                if (ec.periodEnd) {
-                    document.getElementById('entry-period-end').value = ec.periodEnd;
-                    document.getElementById('dt-end-display').textContent = formatDtDisplay(ec.periodEnd);
-                }
-                if (ec.maxEntries && ec.maxEntries > 0) {
-                    document.getElementById('max-entries-toggle').checked = true;
-                    document.getElementById('max-entries-status').textContent = `${ec.maxEntries}人`;
-                    document.getElementById('max-entries-status').className = 'status-badge status-open';
-                    document.getElementById('max-entries-input-area').style.display = 'block';
-                    document.getElementById('setting-max-entries').value = ec.maxEntries;
-                }
-            }
-            updateEntryOpenStatus();
-
-            // publicSettings の読み込み（規約等）
-            const publicSettings = await dbGet(`projects/${projectId}/publicSettings`) || {};
-            adminProjectName = publicSettings.projectName || projectId;
-            adminReplyTo = publicSettings.replyTo || null;
-
-            if (publicSettings.terms) {
-                document.getElementById('setting-terms').value = publicSettings.terms;
-            }
-            if (publicSettings.replyTo) {
-                document.getElementById('setting-reply-to').value = publicSettings.replyTo;
-            }
-            const disclosureOpen = publicSettings.disclosureOpen === true || ec?.disclosureEnabled === true;
-            const disclosureToggle = document.getElementById('disclosure-open-toggle');
-            if (disclosureToggle) disclosureToggle.checked = disclosureOpen;
-            if (publicSettings.disclosurePeriodStart) {
-                document.getElementById('disclosure-period-start').value = publicSettings.disclosurePeriodStart;
-                document.getElementById('dt-disclosure-start-display').textContent = formatDtDisplay(publicSettings.disclosurePeriodStart);
-            }
-            if (publicSettings.disclosurePeriodEnd) {
-                document.getElementById('disclosure-period-end').value = publicSettings.disclosurePeriodEnd;
-                document.getElementById('dt-disclosure-end-display').textContent = formatDtDisplay(publicSettings.disclosurePeriodEnd);
-            }
-            if (typeof updateDisclosureOpenStatus === 'function') updateDisclosureOpenStatus();
-
-            document.getElementById('stat-total').textContent = totalQuestions;
-            updateAdminOverview();
-
-            // 必要採点者数を3人に固定（DB書き込み）
-            await dbSet(`projects/${projectId}/protected/${secretHash}/requiredScorers`, 3);
-
-            // エントリ番号取得
-            try {
-                const data = await dbShallow(`projects/${projectId}/protected/${secretHash}/answers`);
-                if (data) entryNumbers = Object.keys(data).map(Number).sort((a, b) => a - b);
-            } catch (e) {
-                console.error('エントリ番号取得エラー:', e);
-            }
-
-            // リアルタイムリスナーでスコア取得（scorerHash + adminHashマージ）
-            let _scorerScores = {};
-            let _adminFinals = {};
-            const _mergeScores = () => {
-                scoresData = { ..._scorerScores };
-                // adminHash側のfinalResultsを __final__qN 形式でマージ
-                for (const [key, val] of Object.entries(_adminFinals)) {
-                    scoresData[`__final__${key}`] = val;
-                }
-                // scorerHash側の __auto_final__ もフォールバックとしてマージ
-                for (const key of Object.keys(_scorerScores)) {
-                    if (key.startsWith('__auto_final__')) {
-                        const finalKey = key.replace('__auto_final__', '__final__');
-                        if (!scoresData[finalKey]) scoresData[finalKey] = _scorerScores[key];
-                    }
-                }
-                updateStatsView();
-            };
-            const scorePoller = new Poller(
-                `projects/${projectId}/protected/${secretHash}/scores`,
-                (data) => { _scorerScores = data || {}; _mergeScores(); },
-                5000
-            );
-            scorePoller.start();
-            const finalPoller = new Poller(
-                `projects/${projectId}/protected/${adminHash}/finalResults`,
-                (data) => { _adminFinals = data || {}; _mergeScores(); },
-                5000
-            );
-            finalPoller.start();
-
-            // 模範解答はオンデマンド → prep/模範解答タブで初回ロード
-            const modelData = await dbGet(`projects/${projectId}/protected/${secretHash}/answers_text`);
-            modelAnswers = new Array(totalQuestions).fill('');
-            if (modelData) {
-                Object.keys(modelData).forEach(q => { modelAnswers[q - 1] = modelData[q]; });
-            }
-            renderModelGrid();
         }
 
         // init() は admin_settings.js（最後に読み込まれるスクリプト）の末尾で呼び出し

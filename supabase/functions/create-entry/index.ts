@@ -1,5 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { createServiceClient } from '../_shared/supabase.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -13,10 +13,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Missing required fields' }, 400);
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
+    const supabase = createServiceClient();
 
     const { data: entry, error: insertError } = await supabase
       .rpc('create_entry_atomic', {
@@ -32,7 +29,22 @@ Deno.serve(async (req) => {
         p_is_chubu: Boolean(publicProfile?.isChubu),
       })
       .single();
-    if (insertError) throw insertError;
+    if (insertError) {
+      const message = insertError.message || '';
+      if (insertError.code === '23505' || message.includes('entries_active_email_unique')) {
+        return jsonResponse({ error: 'このメールアドレスは既にエントリー済みです。' }, 409);
+      }
+      if (message.includes('Entry is closed')) {
+        return jsonResponse({ error: '受付は現在停止中です。' }, 403);
+      }
+      if (message.includes('Entry period has not started')) {
+        return jsonResponse({ error: 'エントリー受付はまだ開始されていません。' }, 403);
+      }
+      if (message.includes('Entry period has ended')) {
+        return jsonResponse({ error: 'エントリー受付は終了しました。' }, 403);
+      }
+      throw insertError;
+    }
 
     return jsonResponse({ ok: true, entry });
   } catch (error) {

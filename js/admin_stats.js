@@ -1,10 +1,15 @@
 // admin_stats.js — 集計・分析・成績照会
         // ============================
-        function updateStatsView() {
+        async function updateStatsView() {
+            try {
+                await refreshSupabaseScoringData();
+            } catch (e) {
+                showAdminToast('集計データの読み込みに失敗しました: ' + e.message);
+            }
             let confirmedCount = 0, doneCount = 0, conflictCount = 0, inprogressCount = 0, untouchedCount = 0, allConfirmed = true;
             for (let q = 1; q <= totalQuestions; q++) {
                 const cs = Object.keys(scoresData[`__completed__q${q}`] || {}); 
-                const reqS = 3;
+                const reqS = requiredScorers || 3;
                 const allDone = cs.length >= reqS; 
                 let hasConflict = false, allResolved = true;
                 
@@ -77,7 +82,6 @@
             }
             window.updateAdminOverview?.();
             renderAnalytics();
-            generateDisclosure();
         }
 
 
@@ -107,7 +111,7 @@
             const sepType = document.getElementById('csv-name-sep')?.value || 'fullspace';
             const fixedLen = parseInt(document.getElementById('csv-name-fixed')?.value) || 0;
 
-            const entriesData = await dbGet(`projects/${projectId}/entries`);
+            const entriesData = window._entriesRaw || {};
             let masterData = {};
             if (entriesData) {
                 const privJwkStr = session.get('privateKeyJwk');

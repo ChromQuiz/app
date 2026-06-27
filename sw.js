@@ -40,8 +40,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Firebase WebSocket はキャッシュしない
-    if (url.hostname.includes('firebasedatabase') ||
+    // Auth/API traffic must always use live network data.
+    if (url.hostname.includes('supabase.co') ||
         url.hostname.includes('googleapis') ||
         url.hostname.includes('google.com')) {
         return;

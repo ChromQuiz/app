@@ -1,5 +1,3 @@
-// ローカル/本番用の秘密設定（gitignore 対象）
-// このファイルを js/config.local.js としてコピーして apiKey を設定してください。
-window.__CIQ_LOCAL_CONFIG = {
-  apiKey: 'your-api-secret-key-here',
-};
+// ローカル専用の上書き設定（gitignore 対象）
+// 現在、ブラウザに秘密情報は置きません。必要になった場合だけこのファイルで公開設定を上書きします。
+window.__CIQ_LOCAL_CONFIG = {};

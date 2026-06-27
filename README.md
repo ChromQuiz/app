@@ -6,15 +6,12 @@
 ## 🏗 アーキテクチャ
 
 ```
-Browser (静的HTML/JS)  ──── Firebase Realtime Database
-                          ├── projects/{pid}/publicSettings
-                          ├── projects/{pid}/entries
-                          └── projects/{pid}/protected/{hash}/...
-                                ├── config
-                                ├── answers (答案画像)
-                                ├── answers_text (模範解答)
-                                ├── scores (採点データ)
-                                └── disclosure (成績開示)
+Browser (静的HTML/JS)  ──── Supabase
+                          ├── Auth: 管理者・採点者のGoogleログイン
+                          ├── Postgres + RLS: projects / entries / scores
+                          ├── Storage: answer-pages / answer-cells
+                          ├── Realtime: エントリーリスト・採点状況
+                          └── Edge Functions: 参加者公開フロー / SESメール送信
 ```
 
 ## 📁 ファイル構成
@@ -34,7 +31,9 @@ app/
 ├── css/
 │   └── design_system.css   # 全ページ共通デザインシステム
 ├── js/
-│   ├── config.js       # Firebase設定 + セッション管理
+│   ├── config.js       # セッション管理・メール設定
+│   ├── supabase_client.js # Supabaseクライアント初期化
+│   ├── supabase_api.js # Supabase APIアダプタ
 │   ├── shared.js       # 共通ユーティリティ (認証, Toast, Menu)
 │   ├── crypto.js       # RSA暗号化 (個人情報保護)
 │   ├── index.js        # ログイン処理
@@ -52,7 +51,7 @@ app/
 ├── fonts/
 │   └── BIZUDGothic-Subset.ttf  # PDF日本語フォント（サブセット済み）
 ├── aruco_markers/      # 回答用紙用マーカー画像 (4枚)
-└── database.rules.json # Firebase セキュリティルール
+└── supabase/           # DB migrations / Edge Functions
 ```
 
 ## 🚀 ローカル起動
@@ -64,14 +63,15 @@ python3 -m http.server 8080
 
 http://localhost:8080/index.html にアクセス。
 
-> **注意**: Firebaseへの接続が必要です。オフラインでは動作しません。
+> **注意**: Supabaseへの接続が必要です。オフラインでは動作しません。
 
-## 🔧 Firebase セットアップ
+## 🔧 Supabase セットアップ
 
-1. [Firebase Console](https://console.firebase.google.com/) でプロジェクトを作成
-2. Realtime Database を有効化（リージョン: `asia-southeast1` 推奨）
-3. `js/config.js` の `firebaseConfig` を自分のプロジェクトの値に更新
-4. `database.rules.json` の内容を Firebase Console のルールに貼り付け
+1. Supabaseプロジェクトを作成
+2. `supabase/migrations/` を順番に適用
+3. Supabase AuthでGoogleログインを有効化
+4. `js/supabase_config.js` にProject URLとpublishable keyを設定
+5. メールを使う場合はEdge Function SecretsにSES設定を追加
 
 ## 📋 運用フロー
 

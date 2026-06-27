@@ -1,0 +1,102 @@
+import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { createServiceClient } from '../_shared/supabase.ts';
+
+type PublicProfile = {
+  entryName?: string;
+  affiliation?: string;
+  grade?: string;
+  message?: string;
+  inquiry?: string;
+  isChubu?: boolean;
+};
+
+Deno.serve(async (req) => {
+  const options = handleOptions(req);
+  if (options) return options;
+  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
+
+  try {
+    const {
+      projectId,
+      emailHash,
+      disclosurePasswordHash,
+      encryptedPii,
+      publicProfile,
+    }: {
+      projectId?: string;
+      emailHash?: string;
+      disclosurePasswordHash?: string;
+      encryptedPii?: string;
+      publicProfile?: PublicProfile;
+    } = await req.json();
+
+    if (!projectId || !emailHash || !disclosurePasswordHash) {
+      return jsonResponse({ error: 'Missing required fields' }, 400);
+    }
+
+    const supabase = createServiceClient();
+    const { data: entry, error: entryError } = await supabase
+      .from('entries')
+      .select('id, entry_number, entry_name, affiliation, grade, message, inquiry, is_chubu, status')
+      .eq('project_id', projectId)
+      .eq('email_hash', emailHash)
+      .eq('disclosure_password_hash', disclosurePasswordHash)
+      .single();
+
+    if (entryError || !entry) {
+      return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
+    }
+    if (entry.status === 'canceled') {
+      return jsonResponse({ error: 'このエントリーはキャンセルされています。' }, 409);
+    }
+
+    if (!encryptedPii) {
+      return jsonResponse({
+        ok: true,
+        entry: {
+          id: entry.id,
+          entryNumber: entry.entry_number,
+          entryName: entry.entry_name,
+          affiliation: entry.affiliation,
+          grade: entry.grade,
+          message: entry.message,
+          inquiry: entry.inquiry,
+          isChubu: entry.is_chubu,
+          status: entry.status,
+        },
+      });
+    }
+
+    const profile = publicProfile || {};
+    const { data: updated, error: updateError } = await supabase
+      .from('entries')
+      .update({
+        encrypted_pii: encryptedPii,
+        entry_name: profile.entryName || null,
+        affiliation: profile.affiliation || null,
+        grade: profile.grade || null,
+        message: profile.message || null,
+        inquiry: profile.inquiry || null,
+        is_chubu: Boolean(profile.isChubu),
+      })
+      .eq('id', entry.id)
+      .neq('status', 'canceled')
+      .select('id, entry_number, status')
+      .single();
+
+    if (updateError || !updated) {
+      return jsonResponse({ error: 'エントリーを更新できませんでした。' }, 500);
+    }
+
+    return jsonResponse({
+      ok: true,
+      entry: {
+        id: updated.id,
+        entryNumber: updated.entry_number,
+        status: updated.status,
+      },
+    });
+  } catch (error) {
+    return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
+  }
+});

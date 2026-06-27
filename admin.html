@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.firebasedatabase.app https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://apis.google.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' wss://*.firebasedatabase.app https://*.firebasedatabase.app https://*.googleapis.com https://www.gstatic.com https://unpkg.com https://apis.google.com; frame-src 'self' https://*.firebasedatabase.app https://apis.google.com https://*.firebaseapp.com; img-src 'self' data: blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://unpkg.com https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob: https://*.supabase.co;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="description" content="CIQ - クイズ大会の解答採点を支援するウェブプラットフォーム">
@@ -11,13 +11,13 @@
     <meta property="og:type" content="website">
     <meta property="og:image" content="og-image.png">
     <title>CIQ - 管理画面</title>
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-
     <script defer src="js/config.js"></script>
+    <script defer src="js/config.local.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="js/supabase_config.js"></script>
+    <script defer src="js/supabase_client.js"></script>
+    <script defer src="js/supabase_api.js"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/db.js"></script>
     <script defer src="js/ui.js"></script>
     <script defer src="js/custom-select.js"></script>
     <script defer src="js/shared.js"></script>
@@ -442,6 +442,29 @@
         <!-- ==================== TAB 5: 設定 ==================== -->
         <div class="tab-content" id="tab-settings">
 
+
+            <div class="section glass-panel">
+                <h2><i class="fa-solid fa-user-shield"></i> メンバー管理</h2>
+                <p class="desc-text" style="margin-bottom:12px;">採点者はプロジェクトIDと採点者コードで参加できます。管理者は参加済みメンバーの権限変更、キック、復帰ができます。</p>
+                <div class="member-management-toolbar">
+                    <button class="btn secondary" onclick="loadProjectMembers()"><i class="fa-solid fa-rotate"></i> 更新</button>
+                </div>
+                <div class="table-container mt-md">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>名前</th>
+                                <th>権限</th>
+                                <th>状態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="project-members-tbody">
+                            <tr><td colspan="4" class="td-loading">読み込み中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
             
             <div class="section glass-panel">

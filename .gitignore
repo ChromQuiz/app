@@ -4,3 +4,4 @@ node_modules/
 .env
 js/config.local.js
 js/supabase_config.js
+supabase/.temp/

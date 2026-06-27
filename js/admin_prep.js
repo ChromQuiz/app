@@ -47,8 +47,7 @@
             const qCount = parseInt(document.getElementById('question-count').value);
             if (!qCount || qCount < 10 || qCount % 10 !== 0) { showAdminToast("問題数は10の倍数で指定してください"); return; }
             try {
-                const config = await buildLayoutConfig(qCount);
-                await dbSet(`projects/${projectId}/protected/${secretHash}/config`, config);
+                await CIQSupabaseAPI.updateProject(projectId, { question_count: qCount });
                 totalQuestions = qCount;
                 showAdminToast("問題数とレイアウトを保存しました！", "success");
             } catch (err) {
@@ -100,8 +99,7 @@
                     chars.forEach((c, i) => doc.text(c, x, startY + i * spacing, { align: 'center', baseline: 'middle' }));
                 }
                 const markerBottom = pageHeight - margin; // 292mm
-                // フルオープンモードチェック
-                const isFullOpen = await dbGet(`projects/${projectId}/publicSettings/fullOpen`);
+                const isFullOpen = false;
                 const gradeLabel = isFullOpen ? "都道府県" : "学年";
 
                 const boxX = 15, boxY = gridMarginTop + maxGridHeight + 2, boxW = 180, boxH = markerBottom - boxY;
@@ -144,13 +142,12 @@
             const file = fileInput.files[0];
             if (!file) return;
 
-            scanConfig = await dbGet(`projects/${projectId}/protected/${secretHash}/config`);
+            scanConfig = await buildLayoutConfig(totalQuestions);
             if (!scanConfig) { showAdminToast('座標設定が見つかりません。先に回答用紙を発行してください。'); return; }
             // レイアウト座標が未生成の場合は自動生成して保存
             if (!scanConfig.tombo || !scanConfig.markCells || !scanConfig.answerRegions) {
                 const qCount = scanConfig.questionCount || totalQuestions;
                 scanConfig = await buildLayoutConfig(qCount);
-                await dbSet(`projects/${projectId}/protected/${secretHash}/config`, scanConfig);
             }
 
             const overlay = document.getElementById('save-overlay');
@@ -232,34 +229,16 @@
                 overlayBar.style.width = '0%';
                 let current = 0; const totalBatch = scanAnswers.length;
 
-                // Base64画像をRTDBに直接保存（並列バッチ）
-                const UPLOAD_CONCURRENCY = 15;
+                const UPLOAD_CONCURRENCY = 3;
 
                 async function uploadEntry(a) {
                     try {
-                        // 1) メタデータ保存（cellRegionsはフォールバック用に残す）
-                        const metaPromise = dbSet(`projects/${projectId}/protected/${secretHash}/answers/${a.entryNumber}`, {
-                            entryNumber: a.entryNumber,
-                            page: a.page,
-                            uploadedAt: SERVER_TIMESTAMP,
-                            cellRegions: a.cellRegions,
-                            pageWidth: a.pageWidth
-                        });
-
-                        // 2) 全ページ画像（プレビュー用）
-                        const imgPromise = dbSet(`projects/${projectId}/protected/${secretHash}/answerImages/${a.entryNumber}`, a.pageImage);
-
-                        // 3) 問題ごとのクロップ画像を保存（採点画面高速化）
-                        const cellUpdates = {};
+                        await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth);
                         for (const [qKey, region] of Object.entries(a.cellRegions)) {
+                            const qNum = Number(String(qKey).replace(/^q/, ''));
                             const cropped = cropCell(a.fullCanvas, region);
-                            if (cropped) cellUpdates[`${qKey}/${a.entryNumber}`] = cropped;
+                            if (cropped) await CIQSupabaseAPI.uploadAnswerCell(projectId, a.entryNumber, qNum, cropped);
                         }
-                        const cellPromise = Object.keys(cellUpdates).length > 0
-                            ? dbUpdate(`projects/${projectId}/protected/${secretHash}/answerCells`, cellUpdates)
-                            : Promise.resolve();
-
-                        await Promise.all([metaPromise, imgPromise, cellPromise]);
                     } catch (e) {
                         console.error(`Entry ${a.entryNumber} upload error:`, e);
                         showAdminToast(`受付番号 ${padNum(a.entryNumber)}: 保存失敗`, 'error');
