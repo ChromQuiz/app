@@ -537,6 +537,25 @@ const CIQSupabaseAPI = {
         return data.signedUrl;
     },
 
+    async getAnswerCellUrls(projectId, requests, expiresIn = 3600) {
+        const normalized = (requests || [])
+            .map((request) => ({
+                key: request.key,
+                path: `${projectId}/${request.entryNumber}/q${request.questionNumber}.webp`,
+            }))
+            .filter(request => request.key && request.path);
+        if (!normalized.length) return {};
+
+        const { data, error } = await this.client()
+            .storage
+            .from('answer-cells')
+            .createSignedUrls(normalized.map(request => request.path), expiresIn);
+        if (error) throw error;
+
+        const byPath = new Map((data || []).map(item => [item.path, item.signedUrl || '']));
+        return Object.fromEntries(normalized.map(request => [request.key, byPath.get(request.path) || '']));
+    },
+
     async deleteAnswerPage(projectId, entryNumber) {
         const page = await this.getAnswerPageByEntryNumber(projectId, entryNumber);
         if (!page) return;
@@ -555,22 +574,27 @@ const CIQSupabaseAPI = {
 
     async getQuestionAnswerCards(projectId, questionNumber) {
         const pages = await this.listAnswerPages(projectId);
+        const urlMap = await this.getAnswerCellUrls(
+            projectId,
+            pages.map((page) => {
+                const entryNumber = Number(page.entries?.entry_number);
+                return {
+                    key: String(page.entry_id),
+                    entryNumber,
+                    questionNumber,
+                };
+            })
+        ).catch(() => ({}));
         const cards = await Promise.all(pages.map(async (page) => {
             const entry = page.entries || {};
             const entryNumber = Number(entry.entry_number);
-            let cellUrl = null;
-            try {
-                cellUrl = await this.getAnswerCellUrl(projectId, entryNumber, questionNumber);
-            } catch (_) {
-                cellUrl = null;
-            }
             return {
                 entryId: page.entry_id,
                 entryNumber,
                 displayName: entry.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
                 affiliation: entry.affiliation || '',
                 grade: entry.grade || '',
-                cellUrl,
+                cellUrl: urlMap[String(page.entry_id)] || null,
             };
         }));
         return cards.filter(card => card.entryId && card.entryNumber).sort((a, b) => a.entryNumber - b.entryNumber);

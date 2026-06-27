@@ -13,6 +13,7 @@ let questionScorers = [];
 let currentConflicts = [];
 let selectedIndex = 0;
 let cellUrlCache = {};
+let cellUrlPreloadKey = '';
 
 async function init() {
     try {
@@ -132,8 +133,8 @@ function render() {
         card.addEventListener('click', () => selectConflictCard(idx));
         card.addEventListener('dblclick', () => showPreview(projectId, null, conflict.entryNumber));
         grid.appendChild(card);
-        ensureCellUrl(conflict);
     });
+    ensureConflictCellUrls(currentConflicts);
 
     scrollToSelectedConflict();
 }
@@ -161,15 +162,27 @@ function cardHtml(conflict) {
     `;
 }
 
-async function ensureCellUrl(conflict) {
-    const cacheKey = `${conflict.entryNumber}:q${conflict.q}`;
-    if (cellUrlCache[cacheKey] !== undefined) return;
-    cellUrlCache[cacheKey] = null;
+async function ensureConflictCellUrls(conflicts) {
+    const missing = conflicts
+        .map(conflict => ({
+            key: `${conflict.entryNumber}:q${conflict.q}`,
+            entryNumber: conflict.entryNumber,
+            questionNumber: conflict.q,
+        }))
+        .filter(request => cellUrlCache[request.key] === undefined);
+    if (!missing.length) return;
+
+    const preloadKey = missing.map(request => request.key).sort().join('|');
+    if (preloadKey === cellUrlPreloadKey) return;
+    cellUrlPreloadKey = preloadKey;
+    for (const request of missing) cellUrlCache[request.key] = null;
+
     try {
-        cellUrlCache[cacheKey] = await CIQSupabaseAPI.getAnswerCellUrl(projectId, conflict.entryNumber, conflict.q);
+        Object.assign(cellUrlCache, await CIQSupabaseAPI.getAnswerCellUrls(projectId, missing));
     } catch (_) {
-        cellUrlCache[cacheKey] = '';
+        for (const request of missing) cellUrlCache[request.key] = '';
     }
+    cellUrlPreloadKey = '';
     render();
 }
 
