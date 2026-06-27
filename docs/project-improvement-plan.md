@@ -9,6 +9,10 @@
 - Batched answer cell signed URL creation for question and conflict views.
 - Hardened participant-facing form status messages to render variable text with `textContent`.
 - Hardened project member controls, public entry list rendering, answer management rendering, and scoring flow rendering by moving variable UI content away from raw HTML strings.
+- Removed remaining browser-side `innerHTML` rendering and inline script execution surfaces.
+- Tightened page CSP by removing `script-src 'unsafe-inline'`.
+- Restricted sensitive `entries` columns so encrypted PII, email hashes, and disclosure password hashes are only available through admin-only RPC access.
+- Removed organizer `reply_to` addresses from anonymous public settings; mail functions now read Reply-To server-side.
 
 ## UI/UX
 
@@ -32,13 +36,16 @@
 ## Security
 
 - Keep participant PII encrypted at rest and never expose raw PII to public pages.
+- Prevent scorer/member clients from directly selecting sensitive participant columns.
+- Keep organizer email settings out of anonymous public settings.
 - Keep answer image buckets private and readable only by active project members.
 - Restrict answer upload, replacement, deletion, and project reset to owner/admin.
 - Keep scoring writes limited to active project members with scorer/admin roles.
 - Ensure public Edge Functions validate project state, entry identity, and recipient hashes.
 - Remove or avoid broad browser-side secrets; publishable keys only in client files.
+- Keep CSP moving toward no inline script execution; `script-src 'unsafe-inline'` is removed, `style-src 'unsafe-inline'` remains for a later CSS-class cleanup pass.
 - Add regression checks for unauthenticated access to private tables and storage.
-- Continue removing inline event handlers and variable `innerHTML` from remaining public/auth/admin surfaces.
+- Add regression checks for column-level restrictions on sensitive participant fields.
 
 ## Refactoring
 
@@ -46,6 +53,7 @@
 - Split `admin.js` into bootstrap, overview, tab routing, and shared project-state loading.
 - Consolidate repeated Supabase error mapping into one helper.
 - Move repeated HTML string rendering toward DOM builders or small render helpers.
+- Replace inline style mutations with CSS utility/state classes so `style-src 'unsafe-inline'` can be removed later.
 - Centralize cache-busting/version strategy for JS and CSS assets.
 - Add focused tests for ranking, upload validation, access-control helper behavior, and renderer escaping.
 - Extract reusable DOM helpers for icon+text messages, table empty/error rows, and status badges.
