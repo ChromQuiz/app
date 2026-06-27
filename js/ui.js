@@ -112,7 +112,11 @@ function showToast(msg, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
-    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${msg}</span>`;
+    const icon = document.createElement('i');
+    icon.className = `fa-solid ${icons[type] || icons.info}`;
+    const text = document.createElement('span');
+    text.textContent = String(msg || '');
+    toast.append(icon, text);
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => {
@@ -127,22 +131,30 @@ function showConfirm(message, confirmText = '削除する') {
         const overlay = document.createElement('div');
         overlay.className = 'confirm-overlay';
 
-        overlay.innerHTML = `
-            <div class="confirm-dialog glass-panel">
-                <i class="fa-solid fa-triangle-exclamation confirm-icon"></i>
-                <div class="confirm-message">${message}</div>
-                <div class="confirm-actions">
-                    <button class="btn secondary confirm-cancel">キャンセル</button>
-                    <button class="btn danger confirm-ok">${confirmText}</button>
-                </div>
-            </div>
-        `;
+        const dialog = document.createElement('div');
+        dialog.className = 'confirm-dialog glass-panel';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-triangle-exclamation confirm-icon';
+        const messageEl = document.createElement('div');
+        messageEl.className = 'confirm-message';
+        messageEl.textContent = String(message || '');
+        const actions = document.createElement('div');
+        actions.className = 'confirm-actions';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn secondary confirm-cancel';
+        cancelBtn.textContent = 'キャンセル';
+        const okBtn = document.createElement('button');
+        okBtn.className = 'btn danger confirm-ok';
+        okBtn.textContent = String(confirmText || '削除する');
+        actions.append(cancelBtn, okBtn);
+        dialog.append(icon, messageEl, actions);
+        overlay.appendChild(dialog);
 
-        overlay.querySelector('.confirm-cancel').onclick = () => { overlay.remove(); resolve(false); };
-        overlay.querySelector('.confirm-ok').onclick = () => { overlay.remove(); resolve(true); };
+        cancelBtn.onclick = () => { overlay.remove(); resolve(false); };
+        okBtn.onclick = () => { overlay.remove(); resolve(true); };
         overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
         document.body.appendChild(overlay);
-        overlay.querySelector('.confirm-ok').focus();
+        okBtn.focus();
     });
 }
 

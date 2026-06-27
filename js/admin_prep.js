@@ -237,11 +237,19 @@
                 overlayBar.style.width = '0%';
                 let current = 0; const totalBatch = scanAnswers.length;
                 const uploadFailures = [];
+                const seenEntryNumbers = new Set();
 
                 const UPLOAD_CONCURRENCY = 3;
 
                 async function uploadEntry(a) {
                     try {
+                        if (!Number.isInteger(a.entryNumber) || a.entryNumber <= 0) {
+                            throw new Error(`ページ${a.page}: 受付番号を読み取れませんでした`);
+                        }
+                        if (seenEntryNumbers.has(a.entryNumber)) {
+                            throw new Error(`ページ${a.page}: 受付番号 ${padNum(a.entryNumber)} が重複しています`);
+                        }
+                        seenEntryNumbers.add(a.entryNumber);
                         await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth);
                         const cells = Object.entries(a.cellRegions);
                         await runLimited(cells, 4, async ([qKey, region]) => {
@@ -253,8 +261,14 @@
                         console.error(`Entry ${a.entryNumber} upload error:`, e);
                         uploadFailures.push({
                             entryNumber: a.entryNumber,
+                            page: a.page,
                             message: e.message || String(e),
                         });
+                    }
+                    if (a.fullCanvas) {
+                        a.fullCanvas.width = 0;
+                        a.fullCanvas.height = 0;
+                        a.fullCanvas = null;
                     }
                     current++;
                     overlayBar.style.width = `${(current / totalBatch) * 100}%`;
@@ -272,7 +286,7 @@
                 if (uploadFailures.length) {
                     const detail = uploadFailures
                         .slice(0, 3)
-                        .map(f => `${padNum(f.entryNumber)}: ${f.message}`)
+                        .map(f => `p${f.page}: ${f.message}`)
                         .join(' / ');
                     showAdminToast(`${uploadFailures.length}件の保存に失敗しました: ${detail}`, 'error');
                 } else {
