@@ -3,8 +3,37 @@
 const params = new URLSearchParams(location.search);
 const projectId = params.get('pid');
 
+function disclosureIcon(className) {
+    const icon = document.createElement('i');
+    icon.className = className;
+    return icon;
+}
+
+function setButtonLabel(button, iconClass, text) {
+    if (!button) return;
+    button.textContent = '';
+    button.append(disclosureIcon(iconClass), ` ${text}`);
+}
+
+function showMissingProject() {
+    const container = document.querySelector('.page-container');
+    if (!container) return;
+    container.textContent = '';
+    const card = document.createElement('div');
+    card.className = 'page-card page-disabled';
+    card.appendChild(disclosureIcon('fa-solid fa-ban'));
+    const title = document.createElement('p');
+    title.textContent = 'プロジェクトが指定されていません。';
+    const detail = document.createElement('p');
+    detail.style.marginTop = '8px';
+    detail.style.fontSize = '13px';
+    detail.textContent = '正しいリンクからアクセスしてください。';
+    card.append(title, detail);
+    container.appendChild(card);
+}
+
 if (!projectId) {
-    document.querySelector('.page-container').innerHTML = '<div class="page-card page-disabled"><i class="fa-solid fa-ban"></i><p>プロジェクトが指定されていません。</p><p style="margin-top:8px;font-size:13px">正しいリンクからアクセスしてください。</p></div>';
+    showMissingProject();
 }
 
     async function init() {
@@ -82,7 +111,8 @@ if (!projectId) {
             errEl.style.display = 'block'; return;
         }
 
-        btn.disabled = true; btn.textContent = '確認中...';
+        btn.disabled = true;
+        btn.textContent = '確認中...';
 
         try {
             const emailHash = await AppCrypto.hashPassword(email.toLowerCase());
@@ -104,7 +134,8 @@ if (!projectId) {
             }
             errEl.style.display = 'block';
         }
-        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-unlock"></i> 成績を確認する';
+        btn.disabled = false;
+        setButtonLabel(btn, 'fa-solid fa-unlock', '成績を確認する');
     }
 
     function showResult(disc) {
@@ -116,14 +147,27 @@ if (!projectId) {
 
         // 連答表示
         const streaksEl = document.getElementById('result-streaks');
+        streaksEl.textContent = '';
         if (disc.streaks && disc.streaks.length > 0) {
             const show = disc.streaks.slice(0, 2);
-            const streakItems = show.map((s, i) => 
-                `<span class="streak-item"><span class="streak-label">${ordinal(i + 1)}</span><span class="streak-val">${s}</span></span>`
-            ).join('');
-            streaksEl.innerHTML = `<div class="streak-title">Streak</div><div class="streak-list">${streakItems}</div>`;
-        } else {
-            streaksEl.innerHTML = '';
+            const title = document.createElement('div');
+            title.className = 'streak-title';
+            title.textContent = 'Streak';
+            const list = document.createElement('div');
+            list.className = 'streak-list';
+            show.forEach((s, i) => {
+                const item = document.createElement('span');
+                item.className = 'streak-item';
+                const label = document.createElement('span');
+                label.className = 'streak-label';
+                label.textContent = ordinal(i + 1);
+                const value = document.createElement('span');
+                value.className = 'streak-val';
+                value.textContent = s;
+                item.append(label, value);
+                list.appendChild(item);
+            });
+            streaksEl.append(title, list);
         }
 
         // 共有画像を生成
@@ -152,7 +196,12 @@ if (!projectId) {
             // プレビュー表示
             const preview = document.getElementById('share-preview');
             const url = URL.createObjectURL(shareBlob);
-            preview.innerHTML = `<img src="${url}" alt="共有カード" class="share-preview-img">`;
+            preview.textContent = '';
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = '共有カード';
+            img.className = 'share-preview-img';
+            preview.appendChild(img);
 
             document.getElementById('share-area').style.display = 'block';
         } catch(e) {
@@ -203,6 +252,13 @@ if (!projectId) {
         document.getElementById('share-area').style.display = 'none';
     }
 
+    function setupDisclosureEvents() {
+        document.getElementById('submit-btn')?.addEventListener('click', checkDisclosure);
+        document.getElementById('share-main-btn')?.addEventListener('click', shareResult);
+        document.getElementById('share-download-btn')?.addEventListener('click', downloadShareImage);
+        document.getElementById('disclosure-back-btn')?.addEventListener('click', showLogin);
+    }
+
     // Enterキーで送信
     document.addEventListener('keydown', e => {
         if (e.key === 'Enter' && document.getElementById('login-card').style.display !== 'none') {
@@ -210,4 +266,5 @@ if (!projectId) {
         }
     });
 
+    setupDisclosureEvents();
     init();

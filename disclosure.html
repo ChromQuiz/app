@@ -45,7 +45,7 @@
                 <label><i class="fa-solid fa-key"></i> パスワード</label>
                 <input type="text" class="page-input" id="pw-input" maxlength="6" placeholder="------" autocomplete="off">
             </div>
-            <button class="page-btn" id="submit-btn" onclick="checkDisclosure()"><i class="fa-solid fa-unlock"></i> 成績を確認する</button>
+            <button class="page-btn" id="submit-btn"><i class="fa-solid fa-unlock"></i> 成績を確認する</button>
             <div class="page-msg error" id="error-msg"></div>
         </div>
 
@@ -67,18 +67,18 @@
             <div id="share-area" style="display:none">
                 <div id="share-preview"></div>
                 <div class="share-buttons">
-                    <button class="share-btn share-main" onclick="shareResult()" title="シェア"><i class="fa-solid fa-share-from-square"></i></button>
-                    <button class="share-btn share-download" onclick="downloadShareImage()" title="画像を保存"><i class="fa-solid fa-download"></i></button>
+                    <button class="share-btn share-main" id="share-main-btn" title="シェア"><i class="fa-solid fa-share-from-square"></i></button>
+                    <button class="share-btn share-download" id="share-download-btn" title="画像を保存"><i class="fa-solid fa-download"></i></button>
                 </div>
             </div>
 
-            <button class="back-nav-btn" onclick="showLogin()" style="margin:20px auto 0;display:flex"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
+            <button class="back-nav-btn" id="disclosure-back-btn" style="margin:20px auto 0;display:flex"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
         </div>
 
         <div class="page-footer">Powered by CIQ</div>
     </div>
 
     <script defer src="js/share_card.js"></script>
-    <script defer src="js/disclosure.js?v=3"></script>
+    <script defer src="js/disclosure.js?v=4"></script>
 </body>
 </html>
