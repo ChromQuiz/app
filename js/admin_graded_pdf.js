@@ -1,11 +1,20 @@
 // admin_graded_pdf.js — 採点済みPDF出力
+        function setGradedPdfProgressClass(el, percent) {
+            if (!el) return;
+            const rounded = Math.max(0, Math.min(100, Math.round(percent / 5) * 5));
+            Array.from(el.classList).forEach(cls => {
+                if (cls.startsWith('progress-p-')) el.classList.remove(cls);
+            });
+            el.classList.add(`progress-p-${rounded}`);
+        }
+
         async function exportGradedPDF() {
             const overlay = document.getElementById('save-overlay');
             const overlayBar = document.getElementById('save-overlay-bar');
             const overlayText = document.getElementById('save-overlay-text');
             const overlayTitle = overlay.querySelector('h2');
-            overlay.style.display = 'flex';
-            overlayBar.style.width = '0%';
+            overlay.classList.add('is-visible-flex');
+            setGradedPdfProgressClass(overlayBar, 0);
             overlayTitle.textContent = '採点済みPDFを生成中...';
 
             try {
@@ -47,7 +56,7 @@
                 for (let idx = 0; idx < total; idx++) {
                     const en = sortedEntries[idx];
                     overlayText.textContent = `${idx + 1} / ${total} 人処理中`;
-                    overlayBar.style.width = `${((idx + 1) / total) * 100}%`;
+                    setGradedPdfProgressClass(overlayBar, ((idx + 1) / total) * 100);
 
                     // ページ画像取得
                     let imageUrl = '';
@@ -156,12 +165,12 @@
                 overlayText.textContent = 'PDFを保存中...';
                 doc.save('graded_results.pdf');
                 overlayText.textContent = '完了しました！';
-                setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+                setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);
                 showAdminToast(`${total}人分の採点済みPDFを出力しました`, 'success');
 
             } catch (e) {
                 console.error('PDF生成エラー:', e);
-                overlay.style.display = 'none';
+                overlay.classList.remove('is-visible-flex');
                 showAdminToast('PDF生成エラー: ' + e.message);
             }
         }

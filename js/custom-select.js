@@ -13,7 +13,7 @@ class CustomSelect {
     constructor(selectEl) {
         this.select = selectEl;
         this.select.dataset.csInit = '1';
-        this.select.style.display = 'none';
+        this.select.hidden = true;
         this.options = Array.from(this.select.options);
         this.searchable = this.options.length > 10;
 
@@ -74,7 +74,7 @@ class CustomSelect {
         this.noMatch = document.createElement('div');
         this.noMatch.className = 'cd-no-match';
         this.noMatch.textContent = '一致する項目がありません';
-        this.noMatch.style.display = 'none';
+        this.noMatch.hidden = true;
         this.menu.appendChild(this.noMatch);
 
         this.wrapper.appendChild(this.trigger);
@@ -159,7 +159,7 @@ class CustomSelect {
             o.classList.toggle('hidden', !match);
             if (match) visible++;
         });
-        this.noMatch.style.display = visible === 0 ? 'block' : 'none';
+        this.noMatch.hidden = visible !== 0;
     }
 
     _focusOption(index) {

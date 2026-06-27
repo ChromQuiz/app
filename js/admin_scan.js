@@ -141,14 +141,14 @@
             closeButton.type = 'button';
             closeButton.className = 'btn secondary';
             closeButton.textContent = '✕ 閉じる';
-            closeButton.addEventListener('click', () => { overlay.style.display = 'none'; });
+            closeButton.addEventListener('click', () => { overlay.classList.remove('show'); });
             header.append(title, closeButton);
             const content = document.createElement('div');
             content.id = 'admin-preview-content';
             content.className = 'preview-overlay-content';
             setScanMessage(content, '読み込み中...', { className: 'text-muted-loader', icon: 'fa-solid fa-spinner fa-spin' });
             overlay.append(header, content);
-            overlay.style.display = 'block';
+            overlay.classList.add('show');
             const pc = document.getElementById('admin-preview-content');
             const page = await CIQSupabaseAPI.getAnswerPageByEntryNumber(projectId, num);
             if (page?.storage_path) {
@@ -163,7 +163,7 @@
                 setScanMessage(pc, 'ページ画像が保存されていません。答案を再読み込みしてください。');
             }
         }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.getElementById('admin-preview-overlay'); if (o) o.style.display = 'none'; }});
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.getElementById('admin-preview-overlay'); if (o) o.classList.remove('show'); }});
 
         // ============================
         // TAB 3: 模範解答
@@ -173,7 +173,6 @@
             const grid = document.getElementById('model-answer-grid'); grid.textContent = '';
             modelAnswers.forEach((ans, i) => {
                 const item = document.createElement('div'); item.className = 'model-cell';
-                item.style.cursor = 'grab';
                 item.draggable = true;
                 item.dataset.idx = i;
                 const label = document.createElement('div');
@@ -194,7 +193,7 @@
                 });
                 item.addEventListener('dragend', async () => { 
                     item.classList.remove('dragging');
-                    item.style.borderColor = '';
+                    item.classList.remove('drag-over');
                     
                     // Rebuild array from current DOM order to persist changes
                     const newAnswers = [];

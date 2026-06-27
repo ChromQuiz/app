@@ -11,6 +11,15 @@
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        function setProgressClass(el, percent) {
+            if (!el) return;
+            const rounded = Math.max(0, Math.min(100, Math.round(percent / 5) * 5));
+            Array.from(el.classList).forEach(cls => {
+                if (cls.startsWith('progress-p-')) el.classList.remove(cls);
+            });
+            el.classList.add(`progress-p-${rounded}`);
+        }
+
         async function buildLayoutConfig(qCount) {
             const qCols = 5;
             const pageWidth = 210, pageHeight = 297;
@@ -162,8 +171,8 @@
             const overlayBar = document.getElementById('save-overlay-bar');
             const overlayText = document.getElementById('save-overlay-text');
             const overlayTitle = overlay.querySelector('h2');
-            overlay.style.display = 'flex';
-            overlayBar.style.width = '0%';
+            overlay.classList.add('is-visible-flex');
+            setProgressClass(overlayBar, 0);
             overlayTitle.textContent = '答案を読み込み中...';
 
             try {
@@ -173,7 +182,7 @@
 
                 for (let i = 1; i <= total; i++) {
                     overlayText.textContent = `${i} / ${total} ページ読込中`;
-                    overlayBar.style.width = `${(i / total) * 100}%`;
+                    setProgressClass(overlayBar, (i / total) * 100);
 
                     const page = await pdfDoc.getPage(i);
                     const viewport = page.getViewport({ scale: scanConfig.scale || 1.8 });
@@ -234,7 +243,7 @@
                 }
 
                 overlayTitle.textContent = 'サーバーへ保存中...';
-                overlayBar.style.width = '0%';
+                setProgressClass(overlayBar, 0);
                 let current = 0; const totalBatch = scanAnswers.length;
                 const uploadFailures = [];
                 const seenEntryNumbers = new Set();
@@ -271,7 +280,7 @@
                         a.fullCanvas = null;
                     }
                     current++;
-                    overlayBar.style.width = `${(current / totalBatch) * 100}%`;
+                    setProgressClass(overlayBar, (current / totalBatch) * 100);
                     overlayText.textContent = `${current} / ${totalBatch} 件保存`;
                 }
 
@@ -282,7 +291,7 @@
                 }
 
                 overlayText.textContent = '完了しました！';
-                setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+                setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);
                 if (uploadFailures.length) {
                     const detail = uploadFailures
                         .slice(0, 3)
@@ -294,7 +303,7 @@
                 }
                 loadEntryList();
             } catch (e) {
-                console.error(e); overlay.style.display = 'none';
+                console.error(e); overlay.classList.remove('is-visible-flex');
                 showAdminToast('処理エラー: ' + e.message);
             } finally { fileInput.value = ''; }
         }

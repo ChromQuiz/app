@@ -52,7 +52,7 @@ async function showPreview(projectId, secretHash, entryNum) {
     closeBtn.type = 'button';
     closeBtn.className = 'preview-close';
     closeBtn.textContent = '✕ 閉じる';
-    closeBtn.addEventListener('click', () => { overlay.style.display = 'none'; });
+    closeBtn.addEventListener('click', () => { overlay.classList.remove('show'); });
     header.append(title, closeBtn);
 
     const pc = document.createElement('div');
@@ -64,7 +64,7 @@ async function showPreview(projectId, secretHash, entryNum) {
     pc.appendChild(loading);
     overlay.append(header, pc);
 
-    overlay.style.display = 'block';
+    overlay.classList.add('show');
 
     try {
         const page = await CIQSupabaseAPI.getAnswerPageByEntryNumber(projectId, entryNum);
@@ -95,7 +95,7 @@ function setPreviewMessage(container, message) {
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         const o = document.getElementById('preview-overlay');
-        if (o) o.style.display = 'none';
+        if (o) o.classList.remove('show');
         const panel = document.getElementById('menu-panel');
         if (panel && panel.classList.contains('open')) toggleMenu();
     }
@@ -108,7 +108,7 @@ function toggleMenu() {
     const isOpen = panel.classList.contains('open');
     panel.classList.toggle('open', !isOpen);
     backdrop.classList.toggle('active', !isOpen);
-    document.body.style.overflow = isOpen ? '' : 'hidden';
+    document.body.classList.toggle('body-scroll-locked', !isOpen);
 }
 
 function requireAuth(opts = {}) {

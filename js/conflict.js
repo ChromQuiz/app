@@ -20,16 +20,13 @@ function setConflictGridMessage(message, options = {}) {
     grid.textContent = '';
     const messageEl = document.createElement('div');
     messageEl.className = options.className || 'loading-state';
-    messageEl.style.gridColumn = '1/-1';
     if (options.icon) {
         const icon = document.createElement('i');
         icon.className = options.icon;
         if (options.iconSize) {
-            icon.style.fontSize = options.iconSize;
-            icon.style.display = 'block';
-            icon.style.marginBottom = '16px';
+            icon.classList.add('message-icon-large');
         }
-        if (options.iconColor) icon.style.color = options.iconColor;
+        if (options.iconColor === 'var(--success)') icon.classList.add('message-icon-success');
         messageEl.append(icon, ' ');
     }
     messageEl.appendChild(document.createTextNode(message));

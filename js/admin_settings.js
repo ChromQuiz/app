@@ -182,11 +182,11 @@
             if (isOn) {
                 badge.textContent = document.getElementById('setting-max-entries').value + '人';
                 badge.className = 'status-badge status-open';
-                inputArea.style.display = 'block';
+                inputArea.classList.remove('u-hidden');
             } else {
                 badge.textContent = '制限なし';
                 badge.className = 'status-badge status-closed';
-                inputArea.style.display = 'none';
+                inputArea.classList.add('u-hidden');
             }
             saveEntryPeriod();
         }
@@ -381,12 +381,7 @@
 
             renderDtDays();
 
-            // Position
-            const trigger = document.getElementById(getDtTriggerId(dtScope, dtTarget));
-            const rect = trigger.getBoundingClientRect();
             const picker = document.getElementById('dt-picker');
-            picker.style.top = (rect.bottom + 8) + 'px';
-            picker.style.left = Math.min(rect.left, window.innerWidth - 320) + 'px';
             picker.hidden = false;
             document.getElementById('dt-picker-overlay').hidden = false;
         }
@@ -510,8 +505,8 @@
                     }
 
                     const tr = document.createElement('tr');
-                    if (v.status === 'canceled') tr.style.opacity = '0.5';
-                    if (v.status === 'waitlist') tr.style.opacity = '0.7';
+                    if (v.status === 'canceled') tr.classList.add('member-row-canceled');
+                    if (v.status === 'waitlist') tr.classList.add('member-row-waitlist');
                     appendAdminEntryRow(tr, v);
                     tbody.appendChild(tr);
                 }

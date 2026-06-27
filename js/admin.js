@@ -38,10 +38,10 @@
             const el = document.getElementById('project-id-display');
             navigator.clipboard.writeText(projectId).then(() => {
                 el.querySelector('i').className = 'fa-solid fa-check';
-                el.querySelector('i').style.color = 'var(--success)';
+                el.classList.add('copy-badge-success');
                 setTimeout(() => {
                     el.querySelector('i').className = 'fa-solid fa-copy';
-                    el.querySelector('i').style.color = '';
+                    el.classList.remove('copy-badge-success');
                 }, 1500);
             });
         }
@@ -111,7 +111,7 @@
                 const name = event.target.files?.[0]?.name || '';
                 if (fileName) {
                     fileName.textContent = name;
-                    fileName.style.display = name ? 'block' : 'none';
+                    fileName.classList.toggle('has-file', Boolean(name));
                 }
                 loadCSV();
             });
@@ -171,8 +171,7 @@
         function fallbackCopy(text) {
             const ta = document.createElement('textarea');
             ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
+            ta.className = 'offscreen-copy-buffer';
             document.body.appendChild(ta);
             ta.select();
             document.execCommand('copy');
@@ -185,13 +184,11 @@
             const originalNodes = [...btn.childNodes].map(node => node.cloneNode(true));
             function onSuccess() {
                 setIconOnlyButton(btn, 'fa-solid fa-check');
-                btn.style.background = 'var(--success)';
-                btn.style.color = '#ffffff';
+                btn.classList.add('copy-success');
                 setTimeout(() => {
                     btn.textContent = '';
                     btn.append(...originalNodes.map(node => node.cloneNode(true)));
-                    btn.style.background = '';
-                    btn.style.color = '';
+                    btn.classList.remove('copy-success');
                 }, 1500);
             }
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -309,13 +306,13 @@
                 document.getElementById('max-entries-toggle').checked = true;
                 document.getElementById('max-entries-status').textContent = `${project.max_entries}人`;
                 document.getElementById('max-entries-status').className = 'status-badge status-open';
-                document.getElementById('max-entries-input-area').style.display = 'block';
+                document.getElementById('max-entries-input-area').classList.remove('u-hidden');
                 document.getElementById('setting-max-entries').value = project.max_entries;
             } else {
                 document.getElementById('max-entries-toggle').checked = false;
                 document.getElementById('max-entries-status').textContent = '制限なし';
                 document.getElementById('max-entries-status').className = 'status-badge status-closed';
-                document.getElementById('max-entries-input-area').style.display = 'none';
+                document.getElementById('max-entries-input-area').classList.add('u-hidden');
             }
             updateEntryOpenStatus();
 

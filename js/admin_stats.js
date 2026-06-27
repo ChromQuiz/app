@@ -12,6 +12,11 @@
             el.append(adminStatsIcon(iconClass), ` ${text}`);
         }
 
+        function addProgressWidthClass(el, percent) {
+            const rounded = Math.max(5, Math.min(100, Math.round(percent / 5) * 5));
+            el.classList.add(`progress-p-${rounded}`);
+        }
+
         function setAnalyticsMessage(tbody, message) {
             tbody.textContent = '';
             const tr = document.createElement('tr');
@@ -77,7 +82,6 @@
             // Progress bar
             const bar = document.getElementById('stats-bar');
             const t = totalQuestions || 1;
-            const pct = (n) => ((n / t) * 100).toFixed(1) + '%';
             bar.textContent = '';
             const segs = [
                 { cls: 'confirmed', count: visualDoneCount, label: `${visualDoneCount}` },
@@ -89,7 +93,7 @@
                 if (s.count === 0) return;
                 const seg = document.createElement('div');
                 seg.className = `stats-bar-seg ${s.cls}`;
-                seg.style.width = pct(s.count);
+                addProgressWidthClass(seg, (s.count / t) * 100);
                 if (s.count / t >= 0.08) seg.textContent = s.label;
                 bar.appendChild(seg);
             });

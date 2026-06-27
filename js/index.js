@@ -72,8 +72,8 @@ function setButtonContent(button, text, iconClass = '', iconAfter = true) {
 function showError(msg) {
     const el = document.getElementById('status-msg');
     setIconText(el, 'fa-solid fa-triangle-exclamation', msg);
-    el.style.display = 'block';
-    setTimeout(() => el.style.display = 'none', 5000);
+    el.classList.add('is-visible');
+    setTimeout(() => el.classList.remove('is-visible'), 5000);
 }
 
 function useSupabaseAuth() {

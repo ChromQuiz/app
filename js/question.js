@@ -19,7 +19,6 @@ function setAnswerGridMessage(message, iconClass = '') {
     grid.textContent = '';
     const messageEl = document.createElement('div');
     messageEl.className = 'loading-state';
-    messageEl.style.gridColumn = '1/-1';
     if (iconClass) {
         const icon = document.createElement('i');
         icon.className = iconClass;
@@ -177,8 +176,8 @@ function scoreSelected(status) {
     const cards = document.querySelectorAll('.answer-card');
     const card = cards[selectedIndex];
     if (card) {
-        card.style.transform = 'scale(1.05)';
-        setTimeout(() => card.style.transform = 'scale(1)', 150);
+        card.classList.add('score-pop');
+        setTimeout(() => card.classList.remove('score-pop'), 150);
     }
     mark(cardData.entryId, status);
     advanceSelection();
