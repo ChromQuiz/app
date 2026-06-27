@@ -872,6 +872,16 @@ textarea:focus {
   color: var(--primary);
 }
 
+.stat-num {
+  font-family: var(--font-numeric);
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "kern" 1;
+}
+
 .result-rank {
   background: none;
   color: var(--accent);
@@ -3105,6 +3115,19 @@ table tbody tr:hover,
   top: 0;
   z-index: 2;
 }
+
+.page-admin #tab-stats .stat-num {
+  font-family: var(--font-numeric);
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "kern" 1;
+}
+
+.page-admin #tab-stats .stat-num.stat-done { color: var(--success); }
+.page-admin #tab-stats .stat-num.stat-conflict { color: var(--danger); }
 
 @media (max-width: 920px) {
   .admin-overview {
