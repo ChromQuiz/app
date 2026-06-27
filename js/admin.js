@@ -117,7 +117,11 @@
             });
             document.getElementById('pdf-file')?.addEventListener('change', (event) => {
                 const fileName = document.getElementById('pdf-file-name');
-                if (fileName) fileName.textContent = event.target.files?.[0]?.name || '';
+                const name = event.target.files?.[0]?.name || '';
+                if (fileName) {
+                    fileName.textContent = name;
+                    fileName.classList.toggle('has-file', Boolean(name));
+                }
                 loadAnswers();
             });
             const actions = {

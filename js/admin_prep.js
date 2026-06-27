@@ -154,10 +154,35 @@
             return results;
         }
 
+        function clearPdfFileSelection(fileInput) {
+            if (fileInput) fileInput.value = '';
+            const fileName = document.getElementById('pdf-file-name');
+            if (fileName) {
+                fileName.textContent = '';
+                fileName.classList.remove('has-file');
+            }
+        }
+
+        function releaseScanAnswerCanvases() {
+            scanAnswers.forEach(answer => {
+                if (!answer.fullCanvas) return;
+                answer.fullCanvas.width = 0;
+                answer.fullCanvas.height = 0;
+                answer.fullCanvas = null;
+            });
+        }
+
         async function loadAnswers() {
             const fileInput = document.getElementById('pdf-file');
             const file = fileInput.files[0];
             if (!file) return;
+
+            const pdfValidation = await CIQUploadValidation.validatePdfFile(file);
+            if (!pdfValidation.ok) {
+                showAdminToast(pdfValidation.message, 'error');
+                clearPdfFileSelection(fileInput);
+                return;
+            }
 
             scanConfig = await buildLayoutConfig(totalQuestions);
             if (!scanConfig) { showAdminToast('座標設定が見つかりません。先に回答用紙を発行してください。'); return; }
@@ -179,6 +204,8 @@
                 const arrayBuffer = await file.arrayBuffer();
                 let pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 const total = pdfDoc.numPages; scanAnswers = [];
+                const pageValidation = CIQUploadValidation.validatePdfPageCount(total);
+                if (!pageValidation.ok) throw new Error(pageValidation.message);
 
                 for (let i = 1; i <= total; i++) {
                     overlayText.textContent = `${i} / ${total} ページ読込中`;
@@ -305,7 +332,10 @@
             } catch (e) {
                 console.error(e); overlay.classList.remove('is-visible-flex');
                 showAdminToast('処理エラー: ' + e.message);
-            } finally { fileInput.value = ''; }
+            } finally {
+                releaseScanAnswerCanvases();
+                clearPdfFileSelection(fileInput);
+            }
         }
 
         function detectTombo(refTombo) {
