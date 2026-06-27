@@ -170,7 +170,7 @@ function scrollToSelected() {
     }
 }
 
-window.scoreSelected = function(status) {
+function scoreSelected(status) {
     if (answerCards.length === 0) return;
     const cardData = answerCards[selectedIndex];
     if (!cardData) return;
@@ -182,7 +182,14 @@ window.scoreSelected = function(status) {
     }
     mark(cardData.entryId, status);
     advanceSelection();
-};
+}
+
+document.getElementById('question-back-btn')?.addEventListener('click', () => {
+    location.href = 'judge.html';
+});
+document.getElementById('score-correct-btn')?.addEventListener('click', () => scoreSelected('correct'));
+document.getElementById('score-wrong-btn')?.addEventListener('click', () => scoreSelected('wrong'));
+document.getElementById('score-hold-btn')?.addEventListener('click', () => scoreSelected('hold'));
 
 document.addEventListener('keydown', (e) => {
     if (answerCards.length === 0) return;

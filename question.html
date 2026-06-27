@@ -33,7 +33,7 @@
 <body>
     <div class="fixed-header">
         <div class="header-left">
-            <button class="back-nav-btn" onclick="location.href='judge.html'"><i class="fa-solid fa-chevron-left"></i> 一覧へ</button>
+            <button class="back-nav-btn" id="question-back-btn"><i class="fa-solid fa-chevron-left"></i> 一覧へ</button>
         </div>
         <div class="header-center">
             <div class="q-badge" id="q-badge">- 問</div>
@@ -49,14 +49,14 @@
     </div>
 
     <div class="mobile-action-bar" id="mobile-action-bar">
-        <button class="btn score-correct" onclick="scoreSelected('correct')"><i class="fa-solid fa-check"></i><span>正解</span></button>
-        <button class="btn score-wrong" onclick="scoreSelected('wrong')"><i class="fa-solid fa-xmark"></i><span>不正解</span></button>
-        <button class="btn score-hold" onclick="scoreSelected('hold')"><i class="fa-solid fa-triangle-exclamation"></i><span>保留</span></button>
+        <button class="btn score-correct" id="score-correct-btn"><i class="fa-solid fa-check"></i><span>正解</span></button>
+        <button class="btn score-wrong" id="score-wrong-btn"><i class="fa-solid fa-xmark"></i><span>不正解</span></button>
+        <button class="btn score-hold" id="score-hold-btn"><i class="fa-solid fa-triangle-exclamation"></i><span>保留</span></button>
     </div>
 
 
 
-    <script defer src="js/question.js?v=11"></script>
+    <script defer src="js/question.js?v=12"></script>
 </body>
 
 </html>

@@ -314,4 +314,8 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+document.getElementById('conflict-back-btn')?.addEventListener('click', () => {
+    location.href = 'judge.html';
+});
+
 init();
