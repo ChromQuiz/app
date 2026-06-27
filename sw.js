@@ -1,15 +1,11 @@
 /**
  * CIQ Service Worker
- * 静的アセットのキャッシュとオフラインフォールバックを提供。
- * REST API通信はキャッシュしない（常にライブデータを使用）。
+ * 最小限のオフラインフォールバックだけを提供。
+ * HTML/CSS/JS/Auth/API は常にライブデータを使用する。
  */
 
-const CACHE_NAME = 'ciq-v8';
+const CACHE_NAME = 'ciq-v9';
 const STATIC_ASSETS = [
-    'css/design_system.css',
-    'js/config.js',
-    'js/crypto.js',
-    'js/shared.js',
     'favicon.png',
     '404.html',
 ];
@@ -36,14 +32,23 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// フェッチ戦略: Network First (with cache fallback for static assets)
+// フェッチ戦略: 実行コードは常時ライブ、非実行アセットだけNetwork First
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Auth/API traffic must always use live network data.
-    if (url.hostname.includes('supabase.co') ||
+    if (event.request.method !== 'GET') return;
+
+    // App shell and executable assets must never be served stale.
+    if (
+        event.request.mode === 'navigate' ||
+        url.pathname.endsWith('.html') ||
+        url.pathname.endsWith('.js') ||
+        url.pathname.endsWith('.css') ||
+        url.hostname.includes('supabase.co') ||
         url.hostname.includes('googleapis') ||
-        url.hostname.includes('google.com')) {
+        url.hostname.includes('google.com')
+    ) {
+        event.respondWith(fetch(event.request));
         return;
     }
 
@@ -55,7 +60,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // ローカルアセット: Network first, cache fallback
+    // 画像など非実行アセットだけ: Network first, cache fallback
     event.respondWith(
         fetch(event.request)
             .then((response) => {
@@ -69,13 +74,7 @@ self.addEventListener('fetch', (event) => {
                 return response;
             })
             .catch(() => {
-                return caches.match(event.request).then((cached) => {
-                    // HTMLリクエストでキャッシュがなければ404ページを返す
-                    if (!cached && event.request.headers.get('Accept')?.includes('text/html')) {
-                        return caches.match('404.html');
-                    }
-                    return cached;
-                });
+                return caches.match(event.request);
             })
     );
 });
