@@ -36,16 +36,16 @@
             <h1 id="project-title"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</h1>
         </div>
         <div class="header-right">
-            <button class="menu-trigger" onclick="toggleMenu()">
+            <button class="menu-trigger" data-toggle-menu>
                 <div class="trigger-icon"><span></span><span></span><span></span></div>
             </button>
         </div>
     </div>
 
     <!-- Slide Panel Menu -->
-    <div class="menu-backdrop" id="menu-backdrop" onclick="toggleMenu()"></div>
+    <div class="menu-backdrop" id="menu-backdrop" data-toggle-menu></div>
     <div class="menu-panel" id="menu-panel">
-        <button class="menu-panel-close" onclick="toggleMenu()"><i class="fa-solid fa-xmark"></i></button>
+        <button class="menu-panel-close" data-toggle-menu><i class="fa-solid fa-xmark"></i></button>
 
         <div class="menu-profile">
             <div class="menu-avatar"><i class="fa-solid fa-user"></i></div>
@@ -56,10 +56,10 @@
         <div id="admin-menu-section" style="display:none">
             <div class="menu-section">
                 <div class="menu-section-label">管理</div>
-                <button class="menu-item" onclick="location.href='admin.html'">
+                <button class="menu-item" data-nav-target="admin.html">
                     <i class="fa-solid fa-gauge"></i> 管理画面
                 </button>
-                <button class="menu-item warn" onclick="location.href='conflict.html'">
+                <button class="menu-item warn" data-nav-target="conflict.html">
                     <i class="fa-solid fa-triangle-exclamation"></i> 要確認
                 </button>
             </div>
@@ -68,29 +68,29 @@
 
         <div class="menu-section">
             <div class="menu-section-label">ツール</div>
-            <button class="menu-item" onclick="location.href='checkin.html'">
+            <button class="menu-item" data-nav-target="checkin.html">
                 <i class="fa-solid fa-qrcode"></i> 当日受付
             </button>
-            <button class="menu-item" onclick="window.open('entry.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="entry.html">
                 <i class="fa-solid fa-pen-to-square"></i> エントリーフォーム
             </button>
-            <button class="menu-item" onclick="window.open('entry_list.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="entry_list.html">
                 <i class="fa-solid fa-list"></i> エントリーリスト
             </button>
-            <button class="menu-item" onclick="window.open('cancel.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="cancel.html">
                 <i class="fa-solid fa-user-xmark"></i> キャンセルフォーム
             </button>
-            <button class="menu-item" onclick="window.open('disclosure.html?pid='+projectId,'_blank')">
+            <button class="menu-item" data-open-page="disclosure.html">
                 <i class="fa-solid fa-chart-column"></i> 成績照会
             </button>
         </div>
 
         <div class="menu-footer">
-            <button class="menu-item" onclick="window.open('help.html','_blank')">
+            <button class="menu-item" data-open-static="help.html">
                 <i class="fa-solid fa-circle-question"></i> ヘルプ
             </button>
 
-            <button class="menu-item danger" onclick="logout()">
+            <button class="menu-item danger" id="judge-logout-btn">
                 <i class="fa-solid fa-right-from-bracket"></i> ログアウト
             </button>
         </div>
@@ -100,7 +100,7 @@
 
     <div class="q-grid" id="q-grid"></div>
 
-    <script defer src="js/judge.js?v=1"></script>
+    <script defer src="js/judge.js?v=2"></script>
 </body>
 
 </html>

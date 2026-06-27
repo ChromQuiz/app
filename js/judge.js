@@ -28,6 +28,26 @@ function setStatus(statusEl, className, iconClass, text) {
     statusEl.append(icon, ` ${text}`);
 }
 
+function setupJudgeEvents() {
+    document.querySelectorAll('[data-toggle-menu]').forEach((el) => {
+        el.addEventListener('click', toggleMenu);
+    });
+    document.querySelectorAll('[data-nav-target]').forEach((el) => {
+        el.addEventListener('click', () => {
+            location.href = el.dataset.navTarget;
+        });
+    });
+    document.querySelectorAll('[data-open-page]').forEach((el) => {
+        el.addEventListener('click', () => {
+            window.open(`${el.dataset.openPage}?pid=${encodeURIComponent(projectId)}`, '_blank');
+        });
+    });
+    document.querySelectorAll('[data-open-static]').forEach((el) => {
+        el.addEventListener('click', () => window.open(el.dataset.openStatic, '_blank'));
+    });
+    document.getElementById('judge-logout-btn')?.addEventListener('click', logout);
+}
+
 async function initializeApp() {
     const sessionData = await CIQSupabaseAPI.getSession();
     if (!sessionData?.user) {
@@ -140,6 +160,7 @@ function enterQ(q) {
     location.href = 'question.html';
 }
 
+setupJudgeEvents();
 initializeApp().catch(error => {
     console.error(error);
     showToast(error.message || '問題一覧を読み込めませんでした', 'error');
