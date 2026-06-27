@@ -363,10 +363,7 @@ const CIQSupabaseAPI = {
 
     async listEntriesForAdmin(projectId) {
         const { data, error } = await this.client()
-            .from('entries')
-            .select('id, entry_number, encrypted_pii, email_hash, entry_name, affiliation, grade, message, is_chubu, status, checked_in, created_at, waitlist_promoted_at, waitlist_promotion_notice')
-            .eq('project_id', projectId)
-            .order('entry_number', { ascending: true });
+            .rpc('list_entries_for_admin', { p_project_id: projectId });
         if (error) throw error;
         return data || [];
     },
