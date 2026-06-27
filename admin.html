@@ -179,7 +179,7 @@
                     <div class="period-grid">
                         <div>
                             <label class="period-label"><i class="fa-solid fa-play icon-start"></i>開始</label>
-                            <div class="dt-trigger" id="dt-start-trigger" onclick="openDatePicker('start')">
+                            <div class="dt-trigger" id="dt-start-trigger" data-dt-target="start">
                                 <i class="fa-regular fa-calendar"></i>
                                 <span id="dt-start-display">未設定</span>
                             </div>
@@ -188,7 +188,7 @@
                         <div class="period-arrow">→</div>
                         <div>
                             <label class="period-label"><i class="fa-solid fa-stop icon-end"></i>終了</label>
-                            <div class="dt-trigger" id="dt-end-trigger" onclick="openDatePicker('end')">
+                            <div class="dt-trigger" id="dt-end-trigger" data-dt-target="end">
                                 <i class="fa-regular fa-calendar"></i>
                                 <span id="dt-end-display">未設定</span>
                             </div>
@@ -211,7 +211,7 @@
                     <div class="period-grid">
                         <div>
                             <label class="period-label"><i class="fa-solid fa-play icon-start"></i>開始</label>
-                            <div class="dt-trigger" id="dt-disclosure-start-trigger" onclick="openDatePicker('disclosure', 'start')">
+                            <div class="dt-trigger" id="dt-disclosure-start-trigger" data-dt-scope="disclosure" data-dt-target="start">
                                 <i class="fa-regular fa-calendar"></i>
                                 <span id="dt-disclosure-start-display">未設定</span>
                             </div>
@@ -220,7 +220,7 @@
                         <div class="period-arrow">→</div>
                         <div>
                             <label class="period-label"><i class="fa-solid fa-stop icon-end"></i>終了</label>
-                            <div class="dt-trigger" id="dt-disclosure-end-trigger" onclick="openDatePicker('disclosure', 'end')">
+                            <div class="dt-trigger" id="dt-disclosure-end-trigger" data-dt-scope="disclosure" data-dt-target="end">
                                 <i class="fa-regular fa-calendar"></i>
                                 <span id="dt-disclosure-end-display">未設定</span>
                             </div>
@@ -241,9 +241,9 @@
                     </div>
                     <div id="max-entries-input-area" style="margin-top:12px;">
                         <div class="number-spinner-wrap" style="max-width:180px;">
-                            <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('setting-max-entries', -10)"><i class="fa-solid fa-minus"></i></button>
+                            <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-10"><i class="fa-solid fa-minus"></i></button>
                             <input type="number" id="setting-max-entries" min="1" max="9999" value="120" onchange="saveEntryPeriod()" />
-                            <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('setting-max-entries', 10)"><i class="fa-solid fa-plus"></i></button>
+                            <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="10"><i class="fa-solid fa-plus"></i></button>
                         </div>
                         <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-solid fa-circle-info"></i> 10人単位で増減</div>
                     </div>
@@ -288,9 +288,9 @@
                 <h2><i class="fa-solid fa-file-pdf"></i> 回答用紙の生成</h2>
                 <label><i class="fa-solid fa-list-ol"></i> 問題数</label>
                 <div class="number-spinner-wrap mt-sm">
-                    <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('question-count', -10)"><i class="fa-solid fa-minus"></i></button>
+                    <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="-10"><i class="fa-solid fa-minus"></i></button>
                     <input type="number" id="question-count" value="100" min="10" max="200" step="10" />
-                    <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('question-count', 10)"><i class="fa-solid fa-plus"></i></button>
+                    <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="10"><i class="fa-solid fa-plus"></i></button>
                 </div>
                 <div class="info-hint"><i class="fa-solid fa-circle-info"></i> 10の倍数で指定 / 列数は5固定</div>
                 <button class="btn secondary mt-lg" onclick="generatePDF()"><i class="fa-solid fa-download"></i> ダウンロード</button>
@@ -411,9 +411,9 @@
                 <div class="analytics-threshold-row">
                     <span>正答数</span>
                     <div class="number-spinner-wrap">
-                        <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('analytics-threshold', -1)"><i class="fa-solid fa-minus"></i></button>
+                        <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="-1"><i class="fa-solid fa-minus"></i></button>
                         <input type="number" id="analytics-threshold" value="5" min="0" max="100" onchange="renderAnalytics()" />
-                        <button type="button" class="number-spinner-btn" onclick="adjustNumberInput('analytics-threshold', 1)"><i class="fa-solid fa-plus"></i></button>
+                        <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="1"><i class="fa-solid fa-plus"></i></button>
                     </div>
                     <span>人以下をハイライト</span>
                 </div>
@@ -509,12 +509,12 @@
     </div>
 
     <!-- カレンダーポップアップ -->
-    <div id="dt-picker-overlay" class="dt-overlay" onclick="closeDatePicker()"></div>
+    <div id="dt-picker-overlay" class="dt-overlay" data-dt-close></div>
     <div id="dt-picker" class="dt-picker" hidden>
         <div class="dt-picker-nav">
-            <button type="button" onclick="dtNavMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+            <button type="button" data-dt-nav="-1"><i class="fa-solid fa-chevron-left"></i></button>
             <span id="dt-picker-month"></span>
-            <button type="button" onclick="dtNavMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            <button type="button" data-dt-nav="1"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
         <div class="dt-picker-weekdays">
             <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
@@ -527,14 +527,14 @@
             <select id="dt-picker-min"></select>
         </div>
         <div class="dt-picker-actions">
-            <button type="button" class="dt-clear" onclick="dtClear()"><i class="fa-solid fa-xmark"></i> クリア</button>
-            <button type="button" class="dt-ok" onclick="dtConfirm()"><i class="fa-solid fa-check"></i> 決定</button>
+            <button type="button" class="dt-clear" data-dt-clear><i class="fa-solid fa-xmark"></i> クリア</button>
+            <button type="button" class="dt-ok" data-dt-confirm><i class="fa-solid fa-check"></i> 決定</button>
         </div>
     </div>
     <canvas id="work-canvas" class="hidden-canvas"></canvas>
     <canvas id="transform-canvas" class="hidden-canvas"></canvas>
 
-    <script defer src="js/admin.js?v=12"></script>
+    <script defer src="js/admin.js?v=13"></script>
     <script defer src="js/admin_prep.js?v=11"></script>
     <script defer src="js/admin_scan.js?v=9"></script>
     <script defer src="js/admin_stats.js?v=10"></script>

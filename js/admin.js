@@ -80,6 +80,26 @@
             document.querySelectorAll('[data-tab-target]').forEach((el) => {
                 el.addEventListener('click', () => switchTab(el.dataset.tabTarget));
             });
+            document.querySelectorAll('[data-dt-target]').forEach((el) => {
+                el.addEventListener('click', () => {
+                    if (el.dataset.dtScope) {
+                        openDatePicker(el.dataset.dtScope, el.dataset.dtTarget);
+                    } else {
+                        openDatePicker(el.dataset.dtTarget);
+                    }
+                });
+            });
+            document.querySelectorAll('[data-adjust-input]').forEach((el) => {
+                el.addEventListener('click', () => {
+                    adjustNumberInput(el.dataset.adjustInput, Number(el.dataset.adjustDelta || 0));
+                });
+            });
+            document.querySelectorAll('[data-dt-nav]').forEach((el) => {
+                el.addEventListener('click', () => dtNavMonth(Number(el.dataset.dtNav || 0)));
+            });
+            document.querySelector('[data-dt-close]')?.addEventListener('click', closeDatePicker);
+            document.querySelector('[data-dt-clear]')?.addEventListener('click', dtClear);
+            document.querySelector('[data-dt-confirm]')?.addEventListener('click', dtConfirm);
             document.getElementById('admin-logout-btn')?.addEventListener('click', logout);
         }
 
