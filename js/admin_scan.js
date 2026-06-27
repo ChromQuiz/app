@@ -1,16 +1,29 @@
 // admin_scan.js — 答案一覧管理 + 模範解答グリッド
         // 答案一覧
         let entryListData = [];
+        function setScanMessage(container, message, options = {}) {
+            container.textContent = '';
+            const wrapper = document.createElement('div');
+            wrapper.className = options.className || 'text-muted-center';
+            if (options.icon) {
+                const icon = document.createElement('i');
+                icon.className = options.icon;
+                wrapper.appendChild(icon);
+            }
+            wrapper.appendChild(document.createTextNode(message));
+            container.appendChild(wrapper);
+        }
+
         async function loadEntryList() {
             const el = document.getElementById('entry-list');
-            el.innerHTML = '<div class="text-muted-loader">読み込み中...</div>';
+            setScanMessage(el, '読み込み中...', { className: 'text-muted-loader' });
             try {
                 const pages = await CIQSupabaseAPI.listAnswerPages(projectId);
                 entryListData = pages.map(page => Number(page.entries?.entry_number)).filter(Boolean).sort((a, b) => a - b);
                 entryNumbers = [...entryListData];
                 document.getElementById('entry-count-badge').textContent = `${entryListData.length}件`;
                 if (entryListData.length === 0) {
-                    el.innerHTML = '<div class="text-muted-center"><i class="fa-solid fa-box-open icon-empty"></i>保存済み答案はありません</div>';
+                    setScanMessage(el, '保存済み答案はありません', { icon: 'fa-solid fa-box-open icon-empty' });
                     document.getElementById('select-all-label').hidden = true;
                     document.getElementById('batch-delete-btn').hidden = true;
                     return;
@@ -27,24 +40,40 @@
                     const subText = entry.affiliation || '';
                     const card = document.createElement('div');
                     card.className = 'entry-card';
-                    card.innerHTML = `
-                        <label class="custom-checkbox scan-cb-wrap">
-                            <input type="checkbox" class="entry-cb" data-num="${num}" />
-                            <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
-                        </label>
-                        <div class="entry-info">
-                            <div class="entry-name">${escapeHtml(displayName)}</div>
-                            ${subText ? `<div class="entry-sub">${escapeHtml(subText)}</div>` : ''}
-                        </div>
-                        <span class="entry-num-badge">#${padNum(num)}</span>
-                    `;
-                    const cb = card.querySelector('.entry-cb');
+                    const checkboxLabel = document.createElement('label');
+                    checkboxLabel.className = 'custom-checkbox scan-cb-wrap';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className = 'entry-cb';
+                    cb.dataset.num = String(num);
+                    const mark = document.createElement('span');
+                    mark.className = 'checkbox-mark';
+                    mark.innerHTML = '<svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg>';
+                    checkboxLabel.append(cb, mark);
+
+                    const entryInfo = document.createElement('div');
+                    entryInfo.className = 'entry-info';
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'entry-name';
+                    nameEl.textContent = displayName;
+                    entryInfo.appendChild(nameEl);
+                    if (subText) {
+                        const subEl = document.createElement('div');
+                        subEl.className = 'entry-sub';
+                        subEl.textContent = subText;
+                        entryInfo.appendChild(subEl);
+                    }
+
+                    const badge = document.createElement('span');
+                    badge.className = 'entry-num-badge';
+                    badge.textContent = `#${padNum(num)}`;
+                    card.append(checkboxLabel, entryInfo, badge);
                     cb.addEventListener('change', () => {
                         card.classList.toggle('selected', cb.checked);
                         updateBatchBtn();
                     });
                     card.addEventListener('dblclick', (e) => {
-                        if (e.target.closest('.scan-cb')) return;
+                        if (e.target.closest('.scan-cb-wrap')) return;
                         showEntryPreview(num);
                     });
                     grid.appendChild(card);
@@ -54,7 +83,7 @@
                 document.getElementById('select-all-cb').checked = false;
             } catch (e) {
                 console.error('Supabase答案リスト読み込みエラー:', e);
-                el.innerHTML = `<div class="text-muted-center">答案リストを読み込めませんでした: ${escapeHtml(e.message)}</div>`;
+                setScanMessage(el, `答案リストを読み込めませんでした: ${e.message}`);
             }
         }
 
@@ -94,15 +123,38 @@
             }
             const masterData = getMasterData(projectId);
             const name = masterData[num]?.name || `No.${padNum(num)}`;
-            overlay.innerHTML = `<div class="preview-overlay-header"><h2 class="preview-overlay-title"><i class="fa-solid fa-file-image"></i> ${escapeHtml(name)} の解答用紙</h2><button class="btn secondary" onclick="document.getElementById('admin-preview-overlay').style.display='none'">✕ 閉じる</button></div><div id="admin-preview-content" class="preview-overlay-content"><div class="text-muted-loader"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div></div>`;
+            overlay.textContent = '';
+            const header = document.createElement('div');
+            header.className = 'preview-overlay-header';
+            const title = document.createElement('h2');
+            title.className = 'preview-overlay-title';
+            const titleIcon = document.createElement('i');
+            titleIcon.className = 'fa-solid fa-file-image';
+            title.append(titleIcon, ` ${name} の解答用紙`);
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'btn secondary';
+            closeButton.textContent = '✕ 閉じる';
+            closeButton.addEventListener('click', () => { overlay.style.display = 'none'; });
+            header.append(title, closeButton);
+            const content = document.createElement('div');
+            content.id = 'admin-preview-content';
+            content.className = 'preview-overlay-content';
+            setScanMessage(content, '読み込み中...', { className: 'text-muted-loader', icon: 'fa-solid fa-spinner fa-spin' });
+            overlay.append(header, content);
             overlay.style.display = 'block';
             const pc = document.getElementById('admin-preview-content');
             const page = await CIQSupabaseAPI.getAnswerPageByEntryNumber(projectId, num);
             if (page?.storage_path) {
                 const signedUrl = await CIQSupabaseAPI.getAnswerPageUrl(page.storage_path);
-                pc.innerHTML = `<img src="${signedUrl}" alt="${escapeHtml(name)}" class="preview-image">`;
+                pc.textContent = '';
+                const image = document.createElement('img');
+                image.src = signedUrl;
+                image.alt = name;
+                image.className = 'preview-image';
+                pc.appendChild(image);
             } else {
-                pc.innerHTML = '<div class="text-muted-center">ページ画像が保存されていません。答案を再読み込みしてください。</div>';
+                setScanMessage(pc, 'ページ画像が保存されていません。答案を再読み込みしてください。');
             }
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.getElementById('admin-preview-overlay'); if (o) o.style.display = 'none'; }});
@@ -118,7 +170,15 @@
                 item.style.cursor = 'grab';
                 item.draggable = true;
                 item.dataset.idx = i;
-                item.innerHTML = `<div class="q-label"><i class="fa-solid fa-hashtag"></i>${i + 1}</div><div class="q-answer${ans ? '' : ' model-answer-empty'}">${ans || '—'}</div>`;
+                const label = document.createElement('div');
+                label.className = 'q-label';
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-hashtag';
+                label.append(icon, String(i + 1));
+                const answer = document.createElement('div');
+                answer.className = `q-answer${ans ? '' : ' model-answer-empty'}`;
+                answer.textContent = ans || '—';
+                item.append(label, answer);
 
                 // ドラッグ開始
                 item.addEventListener('dragstart', e => {
@@ -176,21 +236,38 @@
                     if (item.querySelector('input')) return;
                     const ansDiv = item.querySelector('.q-answer');
                     const current = modelAnswers[i] || '';
-                    ansDiv.innerHTML = `<input type="text" value="${current}" class="inline-edit-input" />`;
-                    const input = ansDiv.querySelector('input');
+                    ansDiv.textContent = '';
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = current;
+                    input.className = 'inline-edit-input';
+                    ansDiv.appendChild(input);
                     item.draggable = false; // 編集中はドラッグ無効
                     input.focus();
                     input.select();
+                    let canceled = false;
                     const save = async () => {
+                        if (canceled) return;
                         const newVal = input.value.trim();
                         modelAnswers[i] = newVal;
-                        ansDiv.style = newVal ? '' : 'color:var(--text-muted);font-style:italic';
+                        ansDiv.classList.toggle('model-answer-empty', !newVal);
                         ansDiv.textContent = newVal || '—';
                         item.draggable = true;
                         await saveModelAnswers();
                     };
                     input.addEventListener('blur', save);
-                    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } if (e.key === 'Escape') { ansDiv.textContent = current || '—'; item.draggable = true; } });
+                    input.addEventListener('keydown', e => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            input.blur();
+                        }
+                        if (e.key === 'Escape') {
+                            canceled = true;
+                            ansDiv.classList.toggle('model-answer-empty', !current);
+                            ansDiv.textContent = current || '—';
+                            item.draggable = true;
+                        }
+                    });
                 });
                 grid.appendChild(item);
             });
