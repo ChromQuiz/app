@@ -552,8 +552,14 @@ const CIQSupabaseAPI = {
             .createSignedUrls(normalized.map(request => request.path), expiresIn);
         if (error) throw error;
 
-        const byPath = new Map((data || []).map(item => [item.path, item.signedUrl || '']));
-        return Object.fromEntries(normalized.map(request => [request.key, byPath.get(request.path) || '']));
+        const signedUrls = {};
+        (data || []).forEach((item, index) => {
+            const request = normalized[index];
+            if (!request) return;
+            signedUrls[request.key] = item?.signedUrl || item?.signed_url || '';
+        });
+
+        return signedUrls;
     },
 
     async deleteAnswerPage(projectId, entryNumber) {
