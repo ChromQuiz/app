@@ -53,7 +53,7 @@
                         <input type="email" id="f-email" required placeholder="name@example.com">
                         <div class="hint"><i class="fa-solid fa-circle-info"></i> 認証コードを送信して本人確認を行います。</div>
                     </div>
-                    <button type="button" class="page-btn" id="send-code-btn" onclick="sendVerification()" style="margin-bottom:16px;">
+                    <button type="button" class="page-btn" id="send-code-btn" style="margin-bottom:16px;">
                         <i class="fa-solid fa-paper-plane"></i> 認証コードを送信
                     </button>
                     <div id="code-input-area" style="display:none">
@@ -61,10 +61,10 @@
                             <label class="required"><i class="fa-solid fa-shield-halved"></i> 認証コード（6桁）</label>
                             <input type="text" id="f-verify-code" class="verify-code-input" maxlength="6" pattern="[0-9]{6}" placeholder="000000" inputmode="numeric">
                         </div>
-                        <button type="button" class="page-btn" id="verify-code-btn" onclick="verifyEmailCode()">
+                        <button type="button" class="page-btn" id="verify-code-btn">
                             <i class="fa-solid fa-check-circle"></i> 認証する
                         </button>
-                        <button type="button" class="page-btn" id="resend-code-btn" onclick="resendVerification()" style="display:none;margin-top:8px;background:transparent;border:1px solid var(--glass-border);font-size:13px;padding:10px 16px;">
+                        <button type="button" class="page-btn" id="resend-code-btn" style="display:none;margin-top:8px;background:transparent;border:1px solid var(--glass-border);font-size:13px;padding:10px 16px;">
                             <i class="fa-solid fa-rotate-right"></i> 認証コードを再送信
                         </button>
                     </div>
@@ -182,14 +182,14 @@
                 <div style="color:#9ca3af;font-size:12px;margin-top:6px">パスワード・当日受付用QRコードはメールをご確認ください</div>
             </div>
 
-            <button class="btn secondary" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> 新しいエントリーを行う</button>
+            <button class="btn secondary" id="new-entry-btn"><i class="fa-solid fa-rotate-right"></i> 新しいエントリーを行う</button>
         </div>
 
         <div class="page-footer">Powered by CIQ</div>
     </div>
 
     <script defer src="js/email.js"></script>
-    <script defer src="js/entry.js?v=1"></script>
+    <script defer src="js/entry.js?v=2"></script>
 </body>
 
 </html>
