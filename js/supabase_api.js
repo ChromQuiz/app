@@ -288,7 +288,7 @@ const CIQSupabaseAPI = {
                 id,
                 name,
                 updated_at,
-                project_members!inner(role, display_name, status)
+                project_members!project_members_project_id_fkey!inner(role, display_name, status)
             `)
             .eq('project_members.status', 'active')
             .order('updated_at', { ascending: false });
