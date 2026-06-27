@@ -38,9 +38,40 @@ function getGoogleDisplayName() {
     return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'Google User';
 }
 
+function icon(className) {
+    const el = document.createElement('i');
+    el.className = className;
+    return el;
+}
+
+function setIconText(el, iconClass, text) {
+    if (!el) return;
+    el.textContent = '';
+    if (iconClass) el.append(icon(iconClass), ' ');
+    if (text) el.appendChild(document.createTextNode(text));
+}
+
+function setNote(el, iconClass, text, ready = false) {
+    if (!el) return;
+    el.classList.toggle('ready', ready);
+    el.textContent = '';
+    el.appendChild(icon(iconClass));
+    const span = document.createElement('span');
+    span.textContent = text;
+    el.appendChild(span);
+}
+
+function setButtonContent(button, text, iconClass = '', iconAfter = true) {
+    if (!button) return;
+    button.textContent = '';
+    if (iconClass && !iconAfter) button.append(icon(iconClass), ' ');
+    button.appendChild(document.createTextNode(text));
+    if (iconClass && iconAfter) button.append(' ', icon(iconClass));
+}
+
 function showError(msg) {
     const el = document.getElementById('status-msg');
-    el.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHtml(msg);
+    setIconText(el, 'fa-solid fa-triangle-exclamation', msg);
     el.style.display = 'block';
     setTimeout(() => el.style.display = 'none', 5000);
 }
@@ -89,23 +120,27 @@ function renderCreateAuthState() {
     const email = supabaseSession?.user?.email || '';
 
     if (note) {
-        note.classList.toggle('ready', Boolean(email));
-        note.innerHTML = email
-            ? '<i class="fa-solid fa-circle-check"></i><span>Googleログイン済みです。新しいプロジェクトを作成できます。</span>'
-            : '<i class="fa-solid fa-circle-info"></i><span>新規作成にはGoogleログインが必要です。</span>';
+        setNote(
+            note,
+            email ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-info',
+            email ? 'Googleログイン済みです。新しいプロジェクトを作成できます。' : '新規作成にはGoogleログインが必要です。',
+            Boolean(email)
+        );
     }
     if (createBtn) {
         createBtn.disabled = !email;
-        createBtn.innerHTML = email
-            ? '新しいプロジェクトを作成 <i class="fa-solid fa-plus"></i>'
-            : 'Googleログイン後に作成できます';
+        setButtonContent(createBtn, email ? '新しいプロジェクトを作成' : 'Googleログイン後に作成できます', email ? 'fa-solid fa-plus' : '');
     }
 }
 
 function renderProjectListEmpty(message) {
     const list = document.getElementById('project-list');
     if (!list) return;
-    list.innerHTML = `<div class="project-list-empty">${escapeHtml(message)}</div>`;
+    list.textContent = '';
+    const empty = document.createElement('div');
+    empty.className = 'project-list-empty';
+    empty.textContent = message;
+    list.appendChild(empty);
 }
 
 function getRoleLabel(role) {
@@ -121,45 +156,53 @@ async function renderProjectList() {
     if (!list || !useSupabaseAuth()) return;
 
     if (!supabaseSession?.user) {
-        if (note) {
-            note.classList.remove('ready');
-            note.innerHTML = '<i class="fa-solid fa-circle-info"></i><span>Googleログインすると、参加中のプロジェクトが表示されます。</span>';
-        }
+        setNote(note, 'fa-solid fa-circle-info', 'Googleログインすると、参加中のプロジェクトが表示されます。', false);
         renderProjectListEmpty('ログイン待ち');
         return;
     }
 
-    list.innerHTML = '<div class="project-list-empty"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</div>';
+    list.textContent = '';
+    const loading = document.createElement('div');
+    loading.className = 'project-list-empty';
+    loading.append(icon('fa-solid fa-spinner fa-spin'), ' 読み込み中...');
+    list.appendChild(loading);
     try {
         const projects = await CIQSupabaseAPI.listMyProjects();
         if (note) {
-            note.classList.toggle('ready', projects.length > 0);
-            note.innerHTML = projects.length > 0
-                ? '<i class="fa-solid fa-circle-check"></i><span>参加中のプロジェクトを選択して開きます。</span>'
-                : '<i class="fa-solid fa-circle-info"></i><span>新規作成するか、採点者コードでプロジェクトに参加してください。</span>';
+            setNote(
+                note,
+                projects.length > 0 ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-info',
+                projects.length > 0
+                    ? '参加中のプロジェクトを選択して開きます。'
+                    : '新規作成するか、採点者コードでプロジェクトに参加してください。',
+                projects.length > 0
+            );
         }
         if (projects.length === 0) {
             renderProjectListEmpty('プロジェクトはまだありません');
             return;
         }
-        list.innerHTML = projects.map((project) => `
-            <button type="button" class="project-list-item" data-project-id="${escapeHtml(project.id)}" data-project-name="${escapeHtml(project.name)}" data-role="${escapeHtml(project.role)}" data-display-name="${escapeHtml(project.displayName)}">
-                <span>
-                    <strong>${escapeHtml(project.name)}</strong>
-                    <small>${escapeHtml(project.id)} / ${escapeHtml(getRoleLabel(project.role))}</small>
-                </span>
-                <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        `).join('');
-        list.querySelectorAll('.project-list-item').forEach((button) => {
+        list.textContent = '';
+        projects.forEach((project) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'project-list-item';
+            const textWrap = document.createElement('span');
+            const name = document.createElement('strong');
+            name.textContent = project.name;
+            const meta = document.createElement('small');
+            meta.textContent = `${project.id} / ${getRoleLabel(project.role)}`;
+            textWrap.append(name, meta);
+            button.append(textWrap, icon('fa-solid fa-arrow-right'));
             button.addEventListener('click', () => {
                 openSupabaseProject(
-                    button.dataset.projectId,
-                    button.dataset.projectName,
-                    button.dataset.role,
-                    button.dataset.displayName
+                    project.id,
+                    project.name,
+                    project.role,
+                    project.displayName
                 );
             });
+            list.appendChild(button);
         });
     } catch (e) {
         renderProjectListEmpty('プロジェクトを読み込めませんでした');
@@ -191,7 +234,7 @@ async function joinProjectAsScorer() {
     }
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 確認中...';
+    setButtonContent(btn, '確認中...', 'fa-solid fa-circle-notch fa-spin', false);
     try {
         const codeHash = await AppCrypto.hashPassword(accessCode);
         const joined = await CIQSupabaseAPI.joinProjectWithScorerCode(projectId, codeHash);
@@ -206,7 +249,7 @@ async function joinProjectAsScorer() {
     } catch (e) {
         showError(e.message);
         btn.disabled = false;
-        btn.innerHTML = '参加する <i class="fa-solid fa-arrow-right-to-bracket"></i>';
+        setButtonContent(btn, '参加する', 'fa-solid fa-arrow-right-to-bracket');
     }
 }
 
@@ -239,9 +282,8 @@ async function copyToClipboard(id, btn) {
     const input = document.getElementById(id);
     try {
         await navigator.clipboard.writeText(input.value);
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-        setTimeout(() => btn.innerHTML = orig, 1500);
+        setButtonContent(btn, '', 'fa-solid fa-check', false);
+        setTimeout(() => setButtonContent(btn, '', 'fa-solid fa-copy', false), 1500);
     } catch (err) {
         showError('コピーに失敗しました');
     }
@@ -266,7 +308,7 @@ async function createProject() {
     const pName = `CIQ the ${edition}${getOrdinalSuffix(edition)}`;
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 作成中...';
+    setButtonContent(btn, '作成中...', 'fa-solid fa-circle-notch fa-spin', false);
 
     try {
         const { publicKeyJwk, privateKeyJwk } = await AppCrypto.generateRSAKeyPair();
@@ -299,7 +341,11 @@ async function createProject() {
         document.getElementById('success-admin-pwd').value = recoveryPassword;
         document.getElementById('success-pwd').value = scorerCode;
         const adminPwdLabel = document.getElementById('success-admin-pwd-label');
-        if (adminPwdLabel) adminPwdLabel.innerHTML = '<i class="fa-solid fa-key crown-icon"></i> 秘密鍵復旧パスワード';
+        if (adminPwdLabel) {
+            adminPwdLabel.textContent = '';
+            const keyIcon = icon('fa-solid fa-key crown-icon');
+            adminPwdLabel.append(keyIcon, ' 秘密鍵復旧パスワード');
+        }
 
         await renderProjectList();
     } catch (e) {
@@ -307,6 +353,21 @@ async function createProject() {
         btn.disabled = false;
         renderCreateAuthState();
     }
+}
+
+function setupIndexEvents() {
+    document.getElementById('supabase-login-btn')?.addEventListener('click', signInWithSupabaseGoogle);
+    document.getElementById('supabase-logout-btn')?.addEventListener('click', signOutSupabase);
+    document.getElementById('tab-join')?.addEventListener('click', () => setTab('join'));
+    document.getElementById('tab-create')?.addEventListener('click', () => setTab('create'));
+    document.getElementById('join-scorer-btn')?.addEventListener('click', joinProjectAsScorer);
+    document.getElementById('create-btn')?.addEventListener('click', createProject);
+    document.querySelectorAll('[data-copy-target]').forEach((button) => {
+        button.addEventListener('click', () => copyToClipboard(button.dataset.copyTarget, button));
+    });
+    document.getElementById('admin-proceed-btn')?.addEventListener('click', () => {
+        location.href = 'admin.html';
+    });
 }
 
 async function initSupabaseAuth() {
@@ -347,4 +408,7 @@ document.addEventListener('keyup', (e) => {
     if (e.key === 'Enter' && currentTab === 'create') createProject();
 });
 
-document.addEventListener('DOMContentLoaded', initSupabaseAuth);
+document.addEventListener('DOMContentLoaded', () => {
+    setupIndexEvents();
+    initSupabaseAuth();
+});
