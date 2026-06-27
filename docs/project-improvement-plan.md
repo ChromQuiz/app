@@ -1,5 +1,15 @@
 # CIQ Improvement Plan
 
+## Done
+
+- Fixed answer upload storage grants for Supabase Storage Data API access.
+- Restricted answer page and answer cell writes to owner/admin members.
+- Added bounded answer cell upload concurrency and clearer upload failure reporting.
+- Stopped the Service Worker from serving stale HTML, CSS, JS, auth, and API traffic.
+- Batched answer cell signed URL creation for question and conflict views.
+- Hardened participant-facing form status messages to render variable text with `textContent`.
+- Hardened project member controls, public entry list rendering, answer management rendering, and scoring flow rendering by moving variable UI content away from raw HTML strings.
+
 ## UI/UX
 
 - Admin dashboard: reorganize tabs by event phase: before event, event day, scoring, publication, maintenance.
@@ -14,9 +24,10 @@
 - Avoid stale Service Worker responses for HTML, CSS, JS, auth, and API traffic.
 - Keep answer upload concurrency bounded and visible.
 - Release large canvases after answer upload and scan processing.
-- Reduce repeated full answer-page scans on judge/question/conflict views.
+- Reduce repeated full answer-page scans on admin/judge/question/conflict views.
 - Add pagination or incremental rendering for large entry lists.
 - Cache signed image URLs per short session where safe, then expire.
+- Avoid unnecessary full-card rerenders while scoring votes are refreshing.
 
 ## Security
 
@@ -27,6 +38,7 @@
 - Ensure public Edge Functions validate project state, entry identity, and recipient hashes.
 - Remove or avoid broad browser-side secrets; publishable keys only in client files.
 - Add regression checks for unauthenticated access to private tables and storage.
+- Continue removing inline event handlers and variable `innerHTML` from remaining public/auth/admin surfaces.
 
 ## Refactoring
 
@@ -36,3 +48,4 @@
 - Move repeated HTML string rendering toward DOM builders or small render helpers.
 - Centralize cache-busting/version strategy for JS and CSS assets.
 - Add focused tests for ranking, upload validation, access-control helper behavior, and renderer escaping.
+- Extract reusable DOM helpers for icon+text messages, table empty/error rows, and status badges.
