@@ -271,6 +271,17 @@
 
                 overlayTitle.textContent = 'サーバーへ保存中...';
                 setProgressClass(overlayBar, 0);
+                overlayText.textContent = '参加者一覧と受付番号を確認中';
+                const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
+                entryNumbers = entries.map(entry => entry.entry_number).sort((a, b) => a - b);
+                window._entriesRaw = Object.fromEntries(entries.map(entry => [entry.id, normalizeSupabaseEntry(entry)]));
+                window.setAdminEntriesCount?.(entries.length);
+                const entryNumberValidation = CIQUploadValidation.validateDetectedEntryNumbers(
+                    scanAnswers.map(answer => answer.entryNumber),
+                    entryNumbers
+                );
+                if (!entryNumberValidation.ok) throw new Error(entryNumberValidation.message);
+
                 let current = 0; const totalBatch = scanAnswers.length;
                 const uploadFailures = [];
                 const seenEntryNumbers = new Set();

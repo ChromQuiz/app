@@ -49,4 +49,17 @@ describe('upload validation', () => {
     expect(validation.validatePdfPageCount(301, { maxPages: 300 }).ok).toBe(false);
     expect(validation.validatePdfPageCount(300, { maxPages: 300 }).ok).toBe(true);
   });
+
+  it('rejects detected answer numbers that do not exist in the project', () => {
+    const result = validation.validateDetectedEntryNumbers([1, 2, 3], [101, 102, 103]);
+    expect(result.ok).toBe(false);
+    expect(result.message).toContain('参加者一覧にありません');
+    expect(result.message).toContain('001');
+    expect(result.message).toContain('101〜103');
+  });
+
+  it('accepts detected answer numbers that exist in the project', () => {
+    const result = validation.validateDetectedEntryNumbers([101, 102, 103], [101, 102, 103, 104]);
+    expect(result.ok).toBe(true);
+  });
 });
