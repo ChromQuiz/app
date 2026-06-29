@@ -507,7 +507,7 @@
                     const tr = document.createElement('tr');
                     if (v.status === 'canceled') tr.classList.add('member-row-canceled');
                     if (v.status === 'waitlist') tr.classList.add('member-row-waitlist');
-                    appendAdminEntryRow(tr, v);
+                    appendAdminEntryRow(tr, v, pii);
                     tbody.appendChild(tr);
                 }
             } catch (e) {
@@ -537,26 +537,34 @@
             return td;
         }
 
-        function appendAdminEntryRow(row, entry) {
+        function appendStackedText(container, primary, secondary, emptyText = '-') {
+            container.appendChild(document.createTextNode(primary || emptyText));
+            if (!secondary) return;
+            container.appendChild(document.createElement('br'));
+            const sub = document.createElement('span');
+            sub.className = 'text-muted-sm';
+            sub.textContent = secondary;
+            container.appendChild(sub);
+        }
+
+        function appendAdminEntryRow(row, entry, pii = null) {
             appendAdminEntryCell(row, padNum(entry.entry_number) || '-');
 
-            const encryptedInfo = document.createDocumentFragment();
-            encryptedInfo.append('-', document.createElement('br'));
-            const encryptedNote = document.createElement('span');
-            encryptedNote.className = 'text-muted-sm';
-            encryptedNote.textContent = '暗号化情報';
-            encryptedInfo.appendChild(encryptedNote);
-            appendAdminEntryCell(row, encryptedInfo);
+            const nameInfo = document.createDocumentFragment();
+            const fullName = [pii?.familyName, pii?.firstName].filter(Boolean).join(' ');
+            const fullKana = [pii?.familyNameKana, pii?.firstNameKana].filter(Boolean).join(' ');
+            const encryptedStatus = entry.encrypted_pii
+                ? (session.get('privateKeyJwk') ? '復号不可' : '復号鍵なし')
+                : '';
+            appendStackedText(nameInfo, fullName, fullKana || encryptedStatus);
+            appendAdminEntryCell(row, nameInfo);
 
-            appendAdminEntryCell(row, entry.entry_name || '');
-            appendAdminEntryCell(row, entry.affiliation || '');
-            appendAdminEntryCell(row, entry.grade || '');
+            appendAdminEntryCell(row, pii?.entryName || entry.entry_name || '');
+            appendAdminEntryCell(row, pii?.affiliation || entry.affiliation || '');
+            appendAdminEntryCell(row, pii?.grade || entry.grade || '');
 
             const emailInfo = document.createDocumentFragment();
-            const emailNote = document.createElement('span');
-            emailNote.className = 'text-muted-sm';
-            emailNote.textContent = 'メールは暗号化保存';
-            emailInfo.append(emailNote, document.createElement('br'), '-');
+            appendStackedText(emailInfo, pii?.email || '', pii?.email ? '' : encryptedStatus);
             appendAdminEntryCell(row, emailInfo);
 
             const statusTd = appendAdminEntryCell(row, document.createDocumentFragment());
