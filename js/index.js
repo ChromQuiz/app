@@ -325,6 +325,9 @@ async function createProject() {
             scorerAccessCodeHash,
         });
 
+        CIQSupabaseAPI.storeProjectPrivateKey(pid, privateKeyJwk)
+            .catch(error => console.warn('プロジェクト鍵の自動保管に失敗:', error));
+
         session.set('projectId', pid);
         session.set('projectName', pName);
         session.set('scorer_name', ownerDisplayName);

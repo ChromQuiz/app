@@ -278,6 +278,25 @@ const CIQSupabaseAPI = {
         return data;
     },
 
+    async storeProjectPrivateKey(projectId, privateKeyJwk) {
+        const data = await this.invokeAuthedFunction('project-key', {
+            action: 'store',
+            projectId,
+            privateKeyJwk,
+        });
+        if (!data?.ok) throw new Error(data?.error || 'Project key store failed');
+        return data;
+    },
+
+    async fetchProjectPrivateKey(projectId) {
+        const data = await this.invokeAuthedFunction('project-key', {
+            action: 'fetch',
+            projectId,
+        });
+        if (!data?.ok || !data.privateKeyJwk) throw new Error(data?.error || 'Project key fetch failed');
+        return data.privateKeyJwk;
+    },
+
     async createProjectWithOwner(payload) {
         const { data, error } = await this.client()
             .rpc('create_project_with_owner', {

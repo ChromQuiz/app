@@ -293,6 +293,8 @@
             adminProjectName = project.name || projectId;
             adminReplyTo = project.reply_to || null;
 
+            await ensureProjectPrivateKeyAvailable();
+
             document.getElementById('question-count').value = totalQuestions;
             document.getElementById('stat-total').textContent = totalQuestions;
 
@@ -437,6 +439,26 @@
             } else {
                 tabLoaded['tab-entries'] = true;
                 if (typeof loadAdminEntries === 'function') loadAdminEntries();
+            }
+        }
+
+        async function ensureProjectPrivateKeyAvailable() {
+            if (!isSupabaseMode) return;
+            const existing = session.get('privateKeyJwk');
+            if (existing) {
+                try {
+                    await CIQSupabaseAPI.storeProjectPrivateKey(projectId, JSON.parse(existing));
+                } catch (e) {
+                    console.warn('プロジェクト鍵の自動保管をスキップ:', e);
+                }
+                return;
+            }
+
+            try {
+                const privateKeyJwk = await CIQSupabaseAPI.fetchProjectPrivateKey(projectId);
+                session.set('privateKeyJwk', JSON.stringify(privateKeyJwk));
+            } catch (e) {
+                console.warn('プロジェクト鍵の自動取得をスキップ:', e);
             }
         }
 
