@@ -106,7 +106,7 @@ function renderSupabaseAuth(sessionData) {
     const email = sessionData?.user?.email || '';
     const displayName = sessionData?.user ? getGoogleDisplayName() : '';
 
-    if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '未ログイン';
+    if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '未接続';
     if (loginBtn) loginBtn.hidden = Boolean(email);
     if (logoutBtn) logoutBtn.hidden = !email;
     renderCreateAuthState();
@@ -123,13 +123,13 @@ function renderCreateAuthState() {
         setNote(
             note,
             email ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-info',
-            email ? 'Googleログイン済みです。新しいプロジェクトを作成できます。' : '新規作成にはGoogleログインが必要です。',
+            email ? 'Googleアカウントでサインイン済みです。新しいプロジェクトを作成できます。' : '新規作成にはGoogleアカウントでのサインインが必要です。',
             Boolean(email)
         );
     }
     if (createBtn) {
         createBtn.disabled = !email;
-        setButtonContent(createBtn, email ? '新しいプロジェクトを作成' : 'Googleログイン後に作成できます', email ? 'fa-solid fa-plus' : '');
+        setButtonContent(createBtn, email ? '新しいプロジェクトを作成' : 'Googleサインイン後に作成できます', email ? 'fa-solid fa-plus' : '');
     }
 }
 
@@ -156,8 +156,8 @@ async function renderProjectList() {
     if (!list || !useSupabaseAuth()) return;
 
     if (!supabaseSession?.user) {
-        setNote(note, 'fa-solid fa-circle-info', 'Googleログインすると、参加中のプロジェクトが表示されます。', false);
-        renderProjectListEmpty('ログイン待ち');
+        setNote(note, 'fa-solid fa-circle-info', 'Googleアカウントでサインインすると、参加中のプロジェクトが表示されます。', false);
+        renderProjectListEmpty('Googleサインイン待ち');
         return;
     }
 
@@ -225,7 +225,7 @@ async function joinProjectAsScorer() {
     const accessCode = document.getElementById('join-scorer-code').value.trim();
 
     if (!supabaseSession?.user) {
-        showError('先にGoogleでログインしてください。');
+        showError('先にGoogleアカウントでサインインしてください。');
         return;
     }
     if (!projectId || !accessCode) {
@@ -249,7 +249,7 @@ async function joinProjectAsScorer() {
     } catch (e) {
         showError(e.message);
         btn.disabled = false;
-        setButtonContent(btn, '参加する', 'fa-solid fa-arrow-right-to-bracket');
+        setButtonContent(btn, 'プロジェクトに参加', 'fa-solid fa-arrow-right-to-bracket');
     }
 }
 
@@ -265,7 +265,7 @@ async function signInWithSupabaseGoogle() {
     try {
         await CIQSupabaseAPI.signInWithGoogle();
     } catch (e) {
-        showError('Googleログインを開始できませんでした: ' + e.message);
+        showError('Googleサインインを開始できませんでした: ' + e.message);
     }
 }
 
@@ -274,7 +274,7 @@ async function signOutSupabase() {
         await CIQSupabaseAPI.signOut();
         session.clear();
     } catch (e) {
-        showError('ログアウトに失敗しました: ' + e.message);
+        showError('Googleサインアウトに失敗しました: ' + e.message);
     }
 }
 
@@ -296,7 +296,7 @@ async function createProject() {
     const btn = document.getElementById('create-btn');
 
     if (!supabaseSession?.user) {
-        showError('先にGoogleでログインしてください。');
+        showError('先にGoogleアカウントでサインインしてください。');
         return;
     }
     if (!edition || edition < 1) {
@@ -383,12 +383,13 @@ async function initSupabaseAuth() {
         }
         if (loginBtn) {
             loginBtn.hidden = false;
-            loginBtn.textContent = location.protocol === 'file:'
-                ? 'localhostで開く'
-                : '設定を確認';
+            setButtonContent(
+                loginBtn,
+                location.protocol === 'file:' ? 'localhostで開く' : '設定を確認'
+            );
         }
         showError(location.protocol === 'file:'
-            ? 'Googleログインは file:// では開始できません。ローカルサーバーで開いてください。'
+            ? 'Googleサインインは file:// では開始できません。ローカルサーバーで開いてください。'
             : (window.CIQSupabaseAPI?.getConfigErrorMessage?.() || 'Supabase設定が見つかりません。'));
         return;
     }
@@ -400,7 +401,7 @@ async function initSupabaseAuth() {
             renderSupabaseAuth(sessionData);
         });
     } catch (e) {
-        showError('ログイン状態を確認できませんでした: ' + e.message);
+        showError('Googleサインイン状態を確認できませんでした: ' + e.message);
     }
 }
 

@@ -11,7 +11,7 @@
     <meta property="og:description" content="クイズ大会の解答採点を支援するウェブプラットフォーム">
     <meta property="og:type" content="website">
     <meta property="og:image" content="og-image.png">
-  <title>CIQ - ログイン</title>
+  <title>CIQ - サインイン</title>
   <script defer src="js/config.js"></script>
   <script defer src="js/config.local.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/design_system.css?v=20">
-  <link rel="stylesheet" href="css/pages.css?v=19">
+  <link rel="stylesheet" href="css/pages.css?v=21">
 </head>
 
 <body class="page-index">
@@ -39,18 +39,25 @@
 
     <div id="supabase-auth-panel" class="auth-provider-panel" hidden>
       <div class="auth-provider-main">
-        <span class="auth-provider-icon"><i class="fa-brands fa-google"></i></span>
+        <span class="auth-provider-icon google-account-icon">
+          <svg class="google-logo" aria-hidden="true" viewBox="0 0 20 20" focusable="false">
+            <path fill="#4285F4" d="M19.6 10.2273C19.6 9.5182 19.5364 8.8364 19.4182 8.1818H10V12.05H15.3818C15.15 13.3 14.4455 14.3591 13.3864 15.0682V17.5773H16.6182C18.5091 15.8364 19.6 13.2727 19.6 10.2273z"></path>
+            <path fill="#34A853" d="M10 20C12.7 20 14.9636 19.1045 16.6181 17.5773L13.3863 15.0682C12.4909 15.6682 11.3454 16.0227 10 16.0227C7.3954 16.0227 5.1909 14.2636 4.4045 11.9H1.0636V14.4909C2.7091 17.7591 6.0909 20 10 20z"></path>
+            <path fill="#FBBC04" d="M4.4045 11.9C4.2045 11.3 4.0909 10.6591 4.0909 10C4.0909 9.3409 4.2045 8.7 4.4045 8.1V5.5091H1.0636C.3864 6.8591 0 8.3864 0 10C0 11.6136.3864 13.1409 1.0636 14.4909L4.4045 11.9z"></path>
+            <path fill="#E94235" d="M10 3.9773C11.4681 3.9773 12.7863 4.4818 13.8227 5.4727L16.6909 2.6045C14.9591.9909 12.6954 0 10 0C6.0909 0 2.7091 2.2409 1.0636 5.5091L4.4045 8.1C5.1909 5.7364 7.3954 3.9773 10 3.9773z"></path>
+          </svg>
+        </span>
         <div>
-          <div class="auth-provider-label">ログイン</div>
-          <div class="auth-provider-user" id="supabase-auth-user">未ログイン</div>
+          <div class="auth-provider-label">Googleアカウント</div>
+          <div class="auth-provider-user" id="supabase-auth-user">未接続</div>
         </div>
       </div>
       <div class="auth-provider-actions">
-        <button type="button" class="btn secondary" id="supabase-login-btn">
-          Googleでログイン
+        <button type="button" class="google-signin-btn" id="supabase-login-btn">
+          <img class="google-signin-img" src="assets/vendor/google/web_light_rd_ctn.svg" alt="Continue with Google">
         </button>
         <button type="button" class="btn secondary" id="supabase-logout-btn" hidden>
-          ログアウト
+          Googleからサインアウト
         </button>
       </div>
     </div>
@@ -63,10 +70,10 @@
     <div id="section-join">
       <div class="index-mode-note" id="project-list-note">
         <i class="fa-solid fa-circle-info"></i>
-        <span>Googleログインすると、参加中のプロジェクトが表示されます。</span>
+        <span>Googleアカウントでサインインすると、参加中のプロジェクトが表示されます。</span>
       </div>
       <div id="project-list" class="project-list">
-        <div class="project-list-empty">ログイン待ち</div>
+        <div class="project-list-empty">Googleサインイン待ち</div>
       </div>
       <div class="scorer-join-panel">
         <div class="scorer-join-title"><i class="fa-solid fa-user-check"></i> 採点者として参加</div>
@@ -74,7 +81,7 @@
         <input type="text" id="join-project-id" placeholder="例: ciq13" />
         <label>採点者コード</label>
         <input type="password" id="join-scorer-code" placeholder="管理者から共有されたコード" />
-        <button class="btn secondary" id="join-scorer-btn">参加する <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+        <button class="btn secondary" id="join-scorer-btn">プロジェクトに参加 <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
       </div>
     </div>
 
@@ -82,7 +89,7 @@
     <div id="section-create" hidden>
       <div class="index-mode-note" id="create-auth-note">
         <i class="fa-solid fa-circle-info"></i>
-        <span>Googleログイン後に新しいプロジェクトを作成できます。</span>
+        <span>Googleアカウントでサインイン後に新しいプロジェクトを作成できます。</span>
       </div>
       <label>回数（例：第13回 → 13）</label>
       <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
@@ -124,6 +131,6 @@
       <i class="fa-solid fa-circle-question"></i> ヘルプ
     </a>
   </div>
-  <script defer src="js/index.js?v=1"></script>
+  <script defer src="js/index.js?v=2"></script>
 </body>
 </html>
