@@ -14,9 +14,8 @@ async function requireProjectMember(supabase: ReturnType<typeof createServiceCli
     .select('id, role, status')
     .eq('project_id', projectId)
     .eq('user_id', userData.user.id)
-    .eq('status', 'active')
     .single();
-  if (memberError || !member) throw new Error('Forbidden');
+  if (memberError || !member || member.status === 'removed') throw new Error('Forbidden');
   return member;
 }
 
@@ -108,6 +107,11 @@ Deno.serve(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const status = message === 'Forbidden' ? 403 : message === 'Authentication required' ? 401 : 500;
-    return jsonResponse({ error: message }, status);
+    const publicMessage = message === 'Forbidden'
+      ? 'このプロジェクトの当日受付を操作する権限がありません。Googleアカウントとプロジェクトを確認してください。'
+      : message === 'Authentication required'
+        ? 'Googleログインが必要です。'
+        : message;
+    return jsonResponse({ error: publicMessage }, status);
   }
 });
