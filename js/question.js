@@ -37,6 +37,8 @@ function createAnswerCard(cardData, idx) {
     const myScore = myScores[cardData.entryId];
     const card = document.createElement('div');
     updateAnswerCardClass(card, myScore, idx === selectedIndex);
+    card.setAttribute('aria-label', `${cardData.displayName} の答案`);
+    card.setAttribute('aria-selected', idx === selectedIndex ? 'true' : 'false');
 
     if (cardData.cellUrl || (cardData.storagePath && cardData.cellRegion)) {
         const image = document.createElement('img');
@@ -201,7 +203,11 @@ function selectCard(idx) {
     if (idx < 0 || idx >= answerCards.length) return;
     selectedIndex = idx;
     const cards = document.querySelectorAll('.answer-card');
-    cards.forEach((card, i) => card.classList.toggle('selected', i === selectedIndex));
+    cards.forEach((card, i) => {
+        const selected = i === selectedIndex;
+        card.classList.toggle('selected', selected);
+        card.setAttribute('aria-selected', selected ? 'true' : 'false');
+    });
     scrollToSelected();
 }
 
