@@ -44,12 +44,15 @@ if (auth) {
             if (!sessionData?.user) {
                 throw new Error('Googleログインが必要です。');
             }
-            const project = await CIQSupabaseAPI.getProject(projectId);
+            startCamera();
+
+            const project = await CIQSupabaseAPI.getProject(projectId).catch(() => null);
             if (project?.name) {
                 setPageTitle(project.name);
             }
-            await loadStats();
-            startCamera();
+            await loadStats().catch((e) => {
+                console.warn('Check-in stats failed:', e);
+            });
         } catch (e) {
             setScanMessage(e.message || '受付画面を開始できませんでした。');
         }
@@ -64,15 +67,58 @@ if (auth) {
     }
 
     function startCamera() {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        if (!window.isSecureContext) {
+            setScanMessage('カメラはHTTPSまたはlocalhostでのみ使用できます。公開URLから開いてください。');
+            return;
+        }
+        if (!navigator.mediaDevices?.getUserMedia) {
+            setScanMessage('このブラウザではカメラを使用できません。');
+            return;
+        }
+
+        setScanMessage('カメラを起動しています...');
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
             .then(stream => {
                 video.srcObject = stream;
-                video.play();
+                video.muted = true;
+                video.playsInline = true;
+                return video.play();
+            })
+            .then(() => {
+                scanningText.textContent = '';
+                scanningText.append(makeIcon('fa-solid fa-camera'), ' QRコードをカメラにかざしてください');
                 requestAnimationFrame(scanFrame);
             })
             .catch(err => {
-                setScanMessage('カメラの起動に失敗しました: ' + err.message);
+                if (err.name === 'OverconstrainedError') {
+                    retryAnyCamera();
+                    return;
+                }
+                setScanMessage(cameraErrorMessage(err));
             });
+    }
+
+    function retryAnyCamera() {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(stream => {
+                video.srcObject = stream;
+                video.muted = true;
+                video.playsInline = true;
+                return video.play();
+            })
+            .then(() => {
+                scanningText.textContent = '';
+                scanningText.append(makeIcon('fa-solid fa-camera'), ' QRコードをカメラにかざしてください');
+                requestAnimationFrame(scanFrame);
+            })
+            .catch(err => setScanMessage(cameraErrorMessage(err)));
+    }
+
+    function cameraErrorMessage(err) {
+        if (err?.name === 'NotAllowedError') return 'カメラの使用が許可されていません。ブラウザのサイト設定でカメラを許可してください。';
+        if (err?.name === 'NotFoundError') return '利用できるカメラが見つかりません。';
+        if (err?.name === 'NotReadableError') return 'カメラを開始できません。他のアプリが使用している可能性があります。';
+        return `カメラの起動に失敗しました: ${err?.message || err}`;
     }
 
     function setScanMessage(message) {
