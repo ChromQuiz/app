@@ -161,6 +161,7 @@
                 'cancel-link': 'cancel.html',
                 'late-link': 'late.html',
                 'disclosure-link': 'disclosure.html',
+                'terms-link': 'terms.html',
             };
 
             Object.entries(links).forEach(([id, page]) => {

@@ -2179,6 +2179,27 @@ body.page-admin {
   background: #fbfcfe;
 }
 
+.page-admin .public-config-group {
+  display: grid;
+  gap: 12px;
+}
+
+.page-admin .public-config-group > .config-row {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(23, 32, 42, 0.10);
+}
+
+.page-admin .public-config-subpanel {
+  padding: 12px;
+  border: 1px solid rgba(23, 32, 42, 0.11);
+  border-radius: 7px;
+  background: #ffffff;
+}
+
+.page-admin .public-config-subpanel .config-row {
+  margin: 0;
+}
+
 .page-admin .section h2,
 .page-admin .toggle-info-title,
 .page-admin .period-heading,

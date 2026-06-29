@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
     <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=21">
+    <link rel="stylesheet" href="css/pages.css?v=22">
 </head>
 
 <body class="page-admin">
@@ -90,6 +90,9 @@
             </button>
             <button class="menu-item" data-open-page="disclosure.html">
                 <i class="fa-solid fa-chart-column"></i> 成績照会
+            </button>
+            <button class="menu-item" data-open-page="terms.html">
+                <i class="fa-solid fa-file-shield"></i> 参加規約
             </button>
         </div>
         <div class="menu-footer">
@@ -163,89 +166,87 @@
                     </div>
                 </div>
 
-                <!-- メインスイッチ -->
-                <div class="config-panel config-row">
-                    <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked data-action="toggle-entry-open"><span class="toggle-slider"></span></label>
-                    <div class="toggle-info">
-                        <div class="toggle-info-title">エントリー</div>
-                        <div class="toggle-info-desc">OFFにすると期間に関わらず即時停止</div>
-                    </div>
-                    <span id="entry-open-status" class="status-badge status-open">エントリー中</span>
-                </div>
-
-                <!-- 期間設定 -->
-                <div class="config-panel">
-                    <div class="period-heading"><i class="fa-solid fa-calendar-days"></i>エントリー期間<span class="period-hint">（任意 — 空欄＝制限なし）</span></div>
-                    <div class="period-grid">
-                        <div>
-                            <label class="period-label"><i class="fa-solid fa-play icon-start"></i>開始</label>
-                            <div class="dt-trigger" id="dt-start-trigger" data-dt-target="start">
-                                <i class="fa-regular fa-calendar"></i>
-                                <span id="dt-start-display">未設定</span>
-                            </div>
-                            <input type="hidden" id="entry-period-start" />
-                        </div>
-                        <div class="period-arrow">→</div>
-                        <div>
-                            <label class="period-label"><i class="fa-solid fa-stop icon-end"></i>終了</label>
-                            <div class="dt-trigger" id="dt-end-trigger" data-dt-target="end">
-                                <i class="fa-regular fa-calendar"></i>
-                                <span id="dt-end-display">未設定</span>
-                            </div>
-                            <input type="hidden" id="entry-period-end" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="config-panel config-row">
-                    <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" data-action="toggle-disclosure-open"><span class="toggle-slider"></span></label>
-                    <div class="toggle-info">
-                        <div class="toggle-info-title">成績照会</div>
-                        <div class="toggle-info-desc">OFFにすると期間に関わらず照会を停止</div>
-                    </div>
-                    <span id="disclosure-open-status" class="status-badge status-closed">停止中</span>
-                </div>
-
-                <div class="config-panel">
-                    <div class="period-heading"><i class="fa-solid fa-calendar-days"></i>照会期間<span class="period-hint">（任意 — 空欄＝制限なし）</span></div>
-                    <div class="period-grid">
-                        <div>
-                            <label class="period-label"><i class="fa-solid fa-play icon-start"></i>開始</label>
-                            <div class="dt-trigger" id="dt-disclosure-start-trigger" data-dt-scope="disclosure" data-dt-target="start">
-                                <i class="fa-regular fa-calendar"></i>
-                                <span id="dt-disclosure-start-display">未設定</span>
-                            </div>
-                            <input type="hidden" id="disclosure-period-start" />
-                        </div>
-                        <div class="period-arrow">→</div>
-                        <div>
-                            <label class="period-label"><i class="fa-solid fa-stop icon-end"></i>終了</label>
-                            <div class="dt-trigger" id="dt-disclosure-end-trigger" data-dt-scope="disclosure" data-dt-target="end">
-                                <i class="fa-regular fa-calendar"></i>
-                                <span id="dt-disclosure-end-display">未設定</span>
-                            </div>
-                            <input type="hidden" id="disclosure-period-end" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 定員設定 -->
-                <div class="config-panel">
+                <div class="config-panel public-config-group">
                     <div class="config-row">
-                        <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked data-action="toggle-max-entries"><span class="toggle-slider"></span></label>
+                        <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked data-action="toggle-entry-open"><span class="toggle-slider"></span></label>
                         <div class="toggle-info">
-                            <div class="toggle-info-title">定員制限</div>
-                            <div class="toggle-info-desc">ONにすると定員を超えたエントリーはキャンセル待ちになります</div>
+                            <div class="toggle-info-title">エントリー</div>
+                            <div class="toggle-info-desc">OFFにすると期間に関わらず即時停止</div>
                         </div>
-                        <span id="max-entries-status" class="status-badge status-open">120人</span>
+                        <span id="entry-open-status" class="status-badge status-open">エントリー中</span>
                     </div>
-                    <div id="max-entries-input-area" class="mb-zero mt-md">
-                        <div class="number-spinner-wrap u-input-compact">
-                            <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-10"><i class="fa-solid fa-minus"></i></button>
-                            <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" />
-                            <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="10"><i class="fa-solid fa-plus"></i></button>
+                    <div class="public-config-subpanel">
+                        <div class="period-heading"><i class="fa-solid fa-calendar-days"></i>エントリー期間<span class="period-hint">（任意 — 空欄＝制限なし）</span></div>
+                        <div class="period-grid">
+                            <div>
+                                <label class="period-label"><i class="fa-solid fa-play icon-start"></i>開始</label>
+                                <div class="dt-trigger" id="dt-start-trigger" data-dt-target="start">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <span id="dt-start-display">未設定</span>
+                                </div>
+                                <input type="hidden" id="entry-period-start" />
+                            </div>
+                            <div class="period-arrow">→</div>
+                            <div>
+                                <label class="period-label"><i class="fa-solid fa-stop icon-end"></i>終了</label>
+                                <div class="dt-trigger" id="dt-end-trigger" data-dt-target="end">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <span id="dt-end-display">未設定</span>
+                                </div>
+                                <input type="hidden" id="entry-period-end" />
+                            </div>
                         </div>
-                        <div class="u-tiny-muted u-mt-xs"><i class="fa-solid fa-circle-info"></i> 10人単位で増減</div>
+                    </div>
+                    <div class="public-config-subpanel">
+                        <div class="config-row">
+                            <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked data-action="toggle-max-entries"><span class="toggle-slider"></span></label>
+                            <div class="toggle-info">
+                                <div class="toggle-info-title">定員制限</div>
+                                <div class="toggle-info-desc">ONにすると定員を超えたエントリーはキャンセル待ちになります</div>
+                            </div>
+                            <span id="max-entries-status" class="status-badge status-open">120人</span>
+                        </div>
+                        <div id="max-entries-input-area" class="mb-zero mt-md">
+                            <div class="number-spinner-wrap u-input-compact">
+                                <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-10"><i class="fa-solid fa-minus"></i></button>
+                                <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" />
+                                <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="10"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                            <div class="u-tiny-muted u-mt-xs"><i class="fa-solid fa-circle-info"></i> 10人単位で増減</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-panel public-config-group">
+                    <div class="config-row">
+                        <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" data-action="toggle-disclosure-open"><span class="toggle-slider"></span></label>
+                        <div class="toggle-info">
+                            <div class="toggle-info-title">成績照会</div>
+                            <div class="toggle-info-desc">OFFにすると期間に関わらず照会を停止</div>
+                        </div>
+                        <span id="disclosure-open-status" class="status-badge status-closed">停止中</span>
+                    </div>
+                    <div class="public-config-subpanel">
+                        <div class="period-heading"><i class="fa-solid fa-calendar-days"></i>照会期間<span class="period-hint">（任意 — 空欄＝制限なし）</span></div>
+                        <div class="period-grid">
+                            <div>
+                                <label class="period-label"><i class="fa-solid fa-play icon-start"></i>開始</label>
+                                <div class="dt-trigger" id="dt-disclosure-start-trigger" data-dt-scope="disclosure" data-dt-target="start">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <span id="dt-disclosure-start-display">未設定</span>
+                                </div>
+                                <input type="hidden" id="disclosure-period-start" />
+                            </div>
+                            <div class="period-arrow">→</div>
+                            <div>
+                                <label class="period-label"><i class="fa-solid fa-stop icon-end"></i>終了</label>
+                                <div class="dt-trigger" id="dt-disclosure-end-trigger" data-dt-scope="disclosure" data-dt-target="end">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <span id="dt-disclosure-end-display">未設定</span>
+                                </div>
+                                <input type="hidden" id="disclosure-period-end" />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -256,6 +257,7 @@
                     <div class="link-row"><span class="link-label"><i class="fa-solid fa-user-xmark"></i> キャンセル</span><a id="cancel-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="cancel-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="cancel-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
                     <div class="link-row"><span class="link-label"><i class="fa-solid fa-clock-rotate-left"></i> 遅刻</span><a id="late-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="late-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="late-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
                     <div class="link-row"><span class="link-label"><i class="fa-solid fa-chart-column"></i> 成績照会</span><a id="disclosure-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="disclosure-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="disclosure-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
+                    <div class="link-row"><span class="link-label"><i class="fa-solid fa-file-shield"></i> 参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="terms-link" title="開く"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button class="btn secondary link-btn-sm" data-copy-link="terms-link" title="コピー"><i class="fa-solid fa-copy"></i></button></div>
                 </div>
             </div>
             <div class="section glass-panel">
@@ -534,7 +536,7 @@
     <canvas id="work-canvas" class="hidden-canvas"></canvas>
     <canvas id="transform-canvas" class="hidden-canvas"></canvas>
 
-    <script defer src="js/admin.js?v=14"></script>
+    <script defer src="js/admin.js?v=15"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
     <script defer src="js/admin_prep.js?v=13"></script>
     <script defer src="js/admin_scan.js?v=9"></script>
