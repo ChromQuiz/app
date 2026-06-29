@@ -51,16 +51,6 @@ function setIconText(el, iconClass, text) {
     if (text) el.appendChild(document.createTextNode(text));
 }
 
-function setNote(el, iconClass, text, ready = false) {
-    if (!el) return;
-    el.classList.toggle('ready', ready);
-    el.textContent = '';
-    el.appendChild(icon(iconClass));
-    const span = document.createElement('span');
-    span.textContent = text;
-    el.appendChild(span);
-}
-
 function setButtonContent(button, text, iconClass = '', iconAfter = true) {
     if (!button) return;
     button.textContent = '';
@@ -106,7 +96,7 @@ function renderSupabaseAuth(sessionData) {
     const email = sessionData?.user?.email || '';
     const displayName = sessionData?.user ? getGoogleDisplayName() : '';
 
-    if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '未接続';
+    if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '';
     if (loginBtn) loginBtn.hidden = Boolean(email);
     if (logoutBtn) logoutBtn.hidden = !email;
     renderCreateAuthState();
@@ -115,32 +105,19 @@ function renderSupabaseAuth(sessionData) {
 
 function renderCreateAuthState() {
     if (!useSupabaseAuth()) return;
-    const note = document.getElementById('create-auth-note');
     const createBtn = document.getElementById('create-btn');
     const email = supabaseSession?.user?.email || '';
 
-    if (note) {
-        setNote(
-            note,
-            email ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-info',
-            email ? '作成できます。' : 'Googleサインインが必要です。',
-            Boolean(email)
-        );
-    }
     if (createBtn) {
         createBtn.disabled = !email;
-        setButtonContent(createBtn, email ? '作成' : 'サインイン後に作成', email ? 'fa-solid fa-plus' : '');
+        setButtonContent(createBtn, '作成', email ? 'fa-solid fa-plus' : '');
     }
 }
 
-function renderProjectListEmpty(message) {
+function clearProjectList() {
     const list = document.getElementById('project-list');
     if (!list) return;
     list.textContent = '';
-    const empty = document.createElement('div');
-    empty.className = 'project-list-empty';
-    empty.textContent = message;
-    list.appendChild(empty);
 }
 
 function getRoleLabel(role) {
@@ -151,13 +128,11 @@ function getRoleLabel(role) {
 }
 
 async function renderProjectList() {
-    const note = document.getElementById('project-list-note');
     const list = document.getElementById('project-list');
     if (!list || !useSupabaseAuth()) return;
 
     if (!supabaseSession?.user) {
-        setNote(note, 'fa-solid fa-circle-info', 'サインインすると表示します。', false);
-        renderProjectListEmpty('Googleサインイン待ち');
+        clearProjectList();
         return;
     }
 
@@ -168,18 +143,8 @@ async function renderProjectList() {
     list.appendChild(loading);
     try {
         const projects = await CIQSupabaseAPI.listMyProjects();
-        if (note) {
-            setNote(
-                note,
-                projects.length > 0 ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-info',
-                projects.length > 0
-                    ? '選択して開きます。'
-                    : '新規作成または採点者コードで参加。',
-                projects.length > 0
-            );
-        }
         if (projects.length === 0) {
-            renderProjectListEmpty('プロジェクトはまだありません');
+            clearProjectList();
             return;
         }
         list.textContent = '';
@@ -205,7 +170,8 @@ async function renderProjectList() {
             list.appendChild(button);
         });
     } catch (e) {
-        renderProjectListEmpty('プロジェクトを読み込めませんでした');
+        clearProjectList();
+        showError('プロジェクトを読み込めませんでした。');
         console.error(e);
     }
 }

@@ -37,10 +37,7 @@
 
     <div id="supabase-auth-panel" class="auth-provider-panel" hidden>
       <div class="auth-provider-main">
-        <div>
-          <div class="auth-provider-label">Google</div>
-          <div class="auth-provider-user" id="supabase-auth-user">未接続</div>
-        </div>
+        <div class="auth-provider-user" id="supabase-auth-user"></div>
       </div>
       <div class="auth-provider-actions">
         <button type="button" class="google-signin-btn" id="supabase-login-btn">
@@ -58,12 +55,7 @@
     </div>
 
     <div id="section-join">
-      <div class="index-mode-note" id="project-list-note">
-        <i class="fa-solid fa-circle-info"></i>
-        <span>サインインすると参加中のプロジェクトを表示します。</span>
-      </div>
       <div id="project-list" class="project-list">
-        <div class="project-list-empty">Googleサインイン待ち</div>
       </div>
       <div class="scorer-join-panel">
         <div class="scorer-join-title"><i class="fa-solid fa-user-check"></i> 採点者参加</div>
@@ -77,13 +69,8 @@
 
     <!-- 新規作成セクション -->
     <div id="section-create" hidden>
-      <div class="index-mode-note" id="create-auth-note">
-        <i class="fa-solid fa-circle-info"></i>
-        <span>サインイン後に作成できます。</span>
-      </div>
       <label>回数（例：第13回 → 13）</label>
       <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
-      <div class="helper-text"><i class="fa-solid fa-circle-info helper-icon"></i> IDと大会名は自動生成</div>
 
       <button class="btn" id="create-btn">作成 <i class="fa-solid fa-plus"></i></button>
     </div>
@@ -121,6 +108,6 @@
       <i class="fa-solid fa-circle-question"></i> ヘルプ
     </a>
   </div>
-  <script defer src="js/index.js?v=4"></script>
+  <script defer src="js/index.js?v=5"></script>
 </body>
 </html>
