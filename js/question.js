@@ -37,12 +37,31 @@ function createAnswerCard(cardData, idx) {
     const card = document.createElement('div');
     updateAnswerCardClass(card, myScore, idx === selectedIndex);
 
-    if (cardData.cellUrl) {
+    if (cardData.cellUrl || (cardData.pageUrl && cardData.cellRegion)) {
         const image = document.createElement('img');
-        image.src = cardData.cellUrl;
         image.alt = cardData.displayName;
-        image.loading = 'eager';
+        image.loading = idx < 16 ? 'eager' : 'lazy';
         image.decoding = 'async';
+        if (idx < 16) image.fetchPriority = 'high';
+        if (cardData.cellUrl) {
+            image.src = cardData.cellUrl;
+        } else {
+            image.classList.add('is-loading');
+            CIQSupabaseAPI.cropImageRegion(cardData.pageUrl, cardData.cellRegion, cardData.pageWidth)
+                .then((dataUrl) => {
+                    image.src = dataUrl;
+                    image.classList.remove('is-loading');
+                })
+                .catch(() => {
+                    image.remove();
+                    const expired = document.createElement('div');
+                    expired.className = 'img-expired';
+                    const icon = document.createElement('i');
+                    icon.className = 'fa-solid fa-clock';
+                    expired.append(icon, ' 画像がありません');
+                    card.prepend(expired);
+                });
+        }
         card.appendChild(image);
     } else {
         const expired = document.createElement('div');

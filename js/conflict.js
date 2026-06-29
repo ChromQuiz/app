@@ -82,6 +82,9 @@ function getEntryMeta(page) {
         displayName: entry.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
         affiliation: entry.affiliation || '',
         grade: entry.grade || '',
+        storagePath: page.storage_path || '',
+        cellRegions: page.cells?.regions || {},
+        pageWidth: Number(page.cells?.pageWidth || 0) || null,
     };
 }
 
@@ -232,6 +235,9 @@ async function ensureConflictCellUrls(conflicts) {
             key: `${conflict.entryNumber}:q${conflict.q}`,
             entryNumber: conflict.entryNumber,
             questionNumber: conflict.q,
+            storagePath: conflict.storagePath,
+            cellRegion: conflict.cellRegions?.[`q${conflict.q}`] || null,
+            pageWidth: conflict.pageWidth,
         }))
         .filter(request => cellUrlCache[request.key] === undefined);
     if (!missing.length) return;
@@ -242,7 +248,18 @@ async function ensureConflictCellUrls(conflicts) {
     for (const request of missing) cellUrlCache[request.key] = null;
 
     try {
-        Object.assign(cellUrlCache, await CIQSupabaseAPI.getAnswerCellUrls(projectId, missing));
+        const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, missing).catch(() => ({}));
+        Object.assign(cellUrlCache, cellUrls);
+        const fallbackRequests = missing.filter(request => !cellUrlCache[request.key] && request.storagePath && request.cellRegion);
+        const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, fallbackRequests.map(request => ({
+            key: request.key,
+            storagePath: request.storagePath,
+        }))).catch(() => ({}));
+        await Promise.all(fallbackRequests.map(async (request) => {
+            const pageUrl = pageUrls[request.key];
+            if (!pageUrl) return;
+            cellUrlCache[request.key] = await CIQSupabaseAPI.cropImageRegion(pageUrl, request.cellRegion, request.pageWidth);
+        }));
     } catch (_) {
         for (const request of missing) cellUrlCache[request.key] = '';
     }

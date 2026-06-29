@@ -296,11 +296,7 @@
                     } else {
                         pageDataUrl = workCanvas.toDataURL('image/webp', 0.25);
                     }
-                    // セルクロップ用にcanvasの内容を保持
-                    const fullCanvas = document.createElement('canvas');
-                    fullCanvas.width = workCanvas.width; fullCanvas.height = workCanvas.height;
-                    fullCanvas.getContext('2d').drawImage(workCanvas, 0, 0);
-                    scanAnswers.push({ page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageDataUrl, pageWidth: workCanvas.width, fullCanvas });
+                    scanAnswers.push({ page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageDataUrl, pageWidth: workCanvas.width });
                 }
 
                 logUploadDebug('loadAnswers:scanComplete', {
@@ -360,12 +356,6 @@
                             hasKnownEntry: Boolean(knownEntry?.id),
                         });
                         await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth, knownEntry);
-                        const cells = Object.entries(a.cellRegions);
-                        await runLimited(cells, 4, async ([qKey, region]) => {
-                            const qNum = Number(String(qKey).replace(/^q/, ''));
-                            const cropped = cropCell(a.fullCanvas, region);
-                            if (cropped) await CIQSupabaseAPI.uploadAnswerCell(projectId, a.entryNumber, qNum, cropped);
-                        });
                     } catch (e) {
                         console.error(`Entry ${a.entryNumber} upload error:`, e);
                         logUploadDebug('uploadEntry:pageFailed', {

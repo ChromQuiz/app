@@ -614,6 +614,46 @@ const CIQSupabaseAPI = {
         return data.signedUrl;
     },
 
+    async getAnswerPageUrls(projectId, requests, expiresIn = 3600) {
+        const normalized = (requests || [])
+            .map((request) => ({
+                key: request.key,
+                path: request.storagePath,
+            }))
+            .filter(request => request.key && request.path);
+        if (!normalized.length) return {};
+
+        const signedUrls = {};
+        const missing = [];
+        const ttlMs = Math.min(this._signedUrlCacheMs, Math.max(0, expiresIn * 1000 - 60000));
+        for (const request of normalized) {
+            const cacheKey = `${projectId}:answer-page-url:${request.path}`;
+            const cachedUrl = this.getCachedValue(cacheKey);
+            if (cachedUrl) {
+                signedUrls[request.key] = cachedUrl;
+            } else {
+                missing.push({ ...request, cacheKey });
+            }
+        }
+        if (!missing.length) return signedUrls;
+
+        const { data, error } = await this.client()
+            .storage
+            .from('answer-pages')
+            .createSignedUrls(missing.map(request => request.path), expiresIn);
+        if (error) throw error;
+
+        (data || []).forEach((item, index) => {
+            const request = missing[index];
+            if (!request) return;
+            const signedUrl = item?.signedUrl || item?.signed_url || '';
+            signedUrls[request.key] = signedUrl;
+            if (signedUrl && ttlMs > 0) this.setCachedValue(request.cacheKey, signedUrl, ttlMs);
+        });
+
+        return signedUrls;
+    },
+
     async getAnswerCellUrl(projectId, entryNumber, questionNumber, expiresIn = 3600) {
         const path = `${projectId}/${entryNumber}/q${questionNumber}.webp`;
         const { data, error } = await this.client()
@@ -694,9 +734,19 @@ const CIQSupabaseAPI = {
                 };
             })
         ).catch(() => ({}));
+        const pageUrlMap = await this.getAnswerPageUrls(
+            projectId,
+            pages
+                .filter(page => !urlMap[String(page.entry_id)])
+                .map(page => ({
+                    key: String(page.entry_id),
+                    storagePath: page.storage_path,
+                }))
+        ).catch(() => ({}));
         const cards = await Promise.all(pages.map(async (page) => {
             const entry = page.entries || {};
             const entryNumber = Number(entry.entry_number);
+            const cellRegion = page.cells?.regions?.[`q${questionNumber}`] || null;
             return {
                 entryId: page.entry_id,
                 entryNumber,
@@ -704,9 +754,44 @@ const CIQSupabaseAPI = {
                 affiliation: entry.affiliation || '',
                 grade: entry.grade || '',
                 cellUrl: urlMap[String(page.entry_id)] || null,
+                pageUrl: pageUrlMap[String(page.entry_id)] || null,
+                pageWidth: Number(page.cells?.pageWidth || 0) || null,
+                cellRegion,
             };
         }));
         return cards.filter(card => card.entryId && card.entryNumber).sort((a, b) => a.entryNumber - b.entryNumber);
+    },
+
+    cropImageRegion(imageUrl, region, sourceWidth, quality = 0.72) {
+        return new Promise((resolve, reject) => {
+            if (!imageUrl || !region) {
+                reject(new Error('Missing image region'));
+                return;
+            }
+            const image = new Image();
+            image.crossOrigin = 'anonymous';
+            image.decoding = 'async';
+            image.onload = () => {
+                try {
+                    const scale = sourceWidth ? image.naturalWidth / sourceWidth : 1;
+                    const x = Math.max(0, Math.round(Number(region.x || 0) * scale));
+                    const y = Math.max(0, Math.round(Number(region.y || 0) * scale));
+                    const w = Math.max(1, Math.round(Number(region.w || 1) * scale));
+                    const h = Math.max(1, Math.round(Number(region.h || 1) * scale));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.min(w, Math.max(1, image.naturalWidth - x));
+                    canvas.height = Math.min(h, Math.max(1, image.naturalHeight - y));
+                    canvas.getContext('2d').drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/webp', quality));
+                    canvas.width = 0;
+                    canvas.height = 0;
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            image.onerror = () => reject(new Error('Image load failed'));
+            image.src = imageUrl;
+        });
     },
 
     async getModelAnswer(projectId, questionNumber) {
