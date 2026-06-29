@@ -2772,35 +2772,18 @@ table tbody tr:hover,
   position: relative;
   border-color: var(--primary) !important;
   box-shadow:
-    0 0 0 4px #ffffff,
-    0 0 0 8px rgba(37, 99, 235, 0.82),
-    0 18px 32px -24px rgba(37, 99, 235, 0.80);
-  transform: translateY(-2px) scale(1.04);
+    0 0 0 3px #ffffff,
+    0 0 0 6px rgba(37, 99, 235, 0.82),
+    0 14px 28px -24px rgba(37, 99, 235, 0.72);
   z-index: 20;
 }
 
 .answer-card.selected::before {
-  content: "";
-  position: absolute;
-  top: 7px;
-  left: 7px;
-  width: 13px;
-  height: 13px;
-  border-radius: 999px;
-  background: var(--primary);
-  border: 3px solid #ffffff;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
-  z-index: 2;
+  content: none;
 }
 
 .answer-card.selected .entry-num {
-  align-self: center;
-  max-width: 100%;
-  margin-top: 7px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: var(--primary);
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 .vote-dot.correct,
@@ -3630,7 +3613,6 @@ table tbody tr:hover,
   }
 
   .answer-card.selected {
-    transform: translateY(-1px) scale(1.02);
     box-shadow:
       0 0 0 3px #ffffff,
       0 0 0 6px rgba(37, 99, 235, 0.82),
