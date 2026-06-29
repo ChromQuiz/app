@@ -20,6 +20,11 @@ function pdfBlob(content, options = {}) {
 describe('upload validation', () => {
   const validation = loadUploadValidation();
 
+  it('allows large competition PDFs by default', () => {
+    expect(validation.PDF_MAX_BYTES).toBeGreaterThanOrEqual(512 * 1024 * 1024);
+    expect(validation.PDF_MAX_PAGES).toBeGreaterThanOrEqual(300);
+  });
+
   it('accepts a normal PDF signature', async () => {
     const result = await validation.validatePdfFile(pdfBlob('%PDF-1.7\nbody'));
     expect(result.ok).toBe(true);

@@ -1,5 +1,5 @@
 (function attachUploadValidation(root) {
-    const PDF_MAX_BYTES = 120 * 1024 * 1024;
+    const PDF_MAX_BYTES = 512 * 1024 * 1024;
     const PDF_MAX_PAGES = 300;
     const PDF_MAGIC = '%PDF-';
 
