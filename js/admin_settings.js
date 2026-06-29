@@ -111,6 +111,16 @@
             tbody.appendChild(tr);
         }
 
+        function getCachedAdminEntries() {
+            const cached = Object.values(window._entriesRaw || {});
+            if (!cached.length) return null;
+            return cached.sort((a, b) => Number(a.entry_number || a.entryNumber || 0) - Number(b.entry_number || b.entryNumber || 0));
+        }
+
+        function yieldToBrowser() {
+            return new Promise(resolve => setTimeout(resolve, 0));
+        }
+
         async function loadProjectMembers() {
             const tbody = document.getElementById('project-members-tbody');
             if (!tbody) return;
@@ -480,9 +490,9 @@
             setTableMessage(tbody, 7, '読み込み中...');
 
             try {
-                const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
+                const entries = getCachedAdminEntries() || await CIQSupabaseAPI.listEntriesForAdmin(projectId);
                 window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
-                entryNumbers = entries.map(e => e.entry_number).sort((a, b) => a - b);
+                entryNumbers = entries.map(e => e.entry_number || e.entryNumber).sort((a, b) => a - b);
                 if (!entries.length) {
                     setTableMessage(tbody, 7, '名簿データがありません。');
                     window.setAdminEntriesCount?.(0);
@@ -490,11 +500,20 @@
                 }
                 tbody.textContent = '';
                 window.setAdminEntriesCount?.(entries.length);
+                const privateKeyText = session.get('privateKeyJwk');
+                let privJwk = null;
+                if (privateKeyText) {
+                    try {
+                        privJwk = JSON.parse(privateKeyText);
+                    } catch (e) {
+                        console.warn('復号鍵の読み込みをスキップ:', e);
+                    }
+                }
+                const fragment = document.createDocumentFragment();
                 for (const v of entries) {
                     let pii = null;
-                    if (v.encrypted_pii && session.get('privateKeyJwk')) {
+                    if (v.encrypted_pii && privJwk) {
                         try {
-                            const privJwk = JSON.parse(session.get('privateKeyJwk'));
                             pii = JSON.parse(await AppCrypto.decryptRSA(v.encrypted_pii, privJwk));
                         } catch (e) {
                             console.warn('PII復号をスキップ:', e);
@@ -508,8 +527,13 @@
                     if (v.status === 'canceled') tr.classList.add('member-row-canceled');
                     if (v.status === 'waitlist') tr.classList.add('member-row-waitlist');
                     appendAdminEntryRow(tr, v, pii);
-                    tbody.appendChild(tr);
+                    fragment.appendChild(tr);
+                    if (fragment.childNodes.length >= 20) {
+                        tbody.appendChild(fragment);
+                        await yieldToBrowser();
+                    }
                 }
+                tbody.appendChild(fragment);
             } catch (e) {
                 setTableMessage(tbody, 7, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
             }
