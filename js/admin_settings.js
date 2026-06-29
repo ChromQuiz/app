@@ -510,23 +510,13 @@
                     }
                 }
                 const fragment = document.createDocumentFragment();
+                const rowsToHydrate = [];
                 for (const v of entries) {
-                    let pii = null;
-                    if (v.encrypted_pii && privJwk) {
-                        try {
-                            pii = JSON.parse(await AppCrypto.decryptRSA(v.encrypted_pii, privJwk));
-                        } catch (e) {
-                            console.warn('PII復号をスキップ:', e);
-                        }
-                    }
-                    if (v.waitlist_promotion_notice === 'pending') {
-                        sendWaitlistPromotionNotice(v, pii).catch(e => console.warn('繰り上げ通知スキップ:', e));
-                    }
-
                     const tr = document.createElement('tr');
                     if (v.status === 'canceled') tr.classList.add('member-row-canceled');
                     if (v.status === 'waitlist') tr.classList.add('member-row-waitlist');
-                    appendAdminEntryRow(tr, v, pii);
+                    appendAdminEntryRow(tr, v, null);
+                    if (v.encrypted_pii) rowsToHydrate.push({ row: tr, entry: v });
                     fragment.appendChild(tr);
                     if (fragment.childNodes.length >= 20) {
                         tbody.appendChild(fragment);
@@ -534,6 +524,7 @@
                     }
                 }
                 tbody.appendChild(fragment);
+                hydrateAdminEntryPII(rowsToHydrate, privJwk);
             } catch (e) {
                 setTableMessage(tbody, 7, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
             }
@@ -620,6 +611,24 @@
                 statusTd.appendChild(createBadge('badge success', 'fa-solid fa-envelope-circle-check', '繰り上げ通知送信済み'));
             } else if (noticeState === 'failed') {
                 statusTd.appendChild(createBadge('badge danger', 'fa-solid fa-envelope-circle-xmark', '繰り上げ通知未送信'));
+            }
+        }
+
+        async function hydrateAdminEntryPII(rows, privJwk) {
+            if (!privJwk || !rows.length) return;
+            for (const { row, entry } of rows) {
+                if (!entry.encrypted_pii) continue;
+                try {
+                    const pii = JSON.parse(await AppCrypto.decryptRSA(entry.encrypted_pii, privJwk));
+                    row.textContent = '';
+                    appendAdminEntryRow(row, entry, pii);
+                    if (entry.waitlist_promotion_notice === 'pending') {
+                        sendWaitlistPromotionNotice(entry, pii).catch(e => console.warn('繰り上げ通知スキップ:', e));
+                    }
+                } catch (e) {
+                    console.warn('PII復号をスキップ:', e);
+                }
+                await yieldToBrowser();
             }
         }
 
