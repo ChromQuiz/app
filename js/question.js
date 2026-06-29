@@ -11,6 +11,7 @@ let myScores = {};
 let selectedIndex = 0;
 let isCompleted = false;
 let pendingWrites = {};
+let fallbackImageObserver = null;
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
@@ -37,7 +38,7 @@ function createAnswerCard(cardData, idx) {
     const card = document.createElement('div');
     updateAnswerCardClass(card, myScore, idx === selectedIndex);
 
-    if (cardData.cellUrl || (cardData.pageUrl && cardData.cellRegion)) {
+    if (cardData.cellUrl || (cardData.storagePath && cardData.cellRegion)) {
         const image = document.createElement('img');
         image.alt = cardData.displayName;
         image.loading = idx < 16 ? 'eager' : 'lazy';
@@ -47,22 +48,10 @@ function createAnswerCard(cardData, idx) {
             image.src = cardData.cellUrl;
         } else {
             image.classList.add('is-loading');
-            CIQSupabaseAPI.cropImageRegion(cardData.pageUrl, cardData.cellRegion, cardData.pageWidth)
-                .then((dataUrl) => {
-                    image.src = dataUrl;
-                    image.classList.remove('is-loading');
-                })
-                .catch(() => {
-                    image.remove();
-                    const expired = document.createElement('div');
-                    expired.className = 'img-expired';
-                    const icon = document.createElement('i');
-                    icon.className = 'fa-solid fa-clock';
-                    expired.append(icon, ' 画像がありません');
-                    card.prepend(expired);
-                });
+            image.dataset.fallbackPending = 'true';
         }
         card.appendChild(image);
+        if (!cardData.cellUrl) observeFallbackImage(card, image, cardData);
     } else {
         const expired = document.createElement('div');
         expired.className = 'img-expired';
@@ -79,6 +68,50 @@ function createAnswerCard(cardData, idx) {
     card.addEventListener('click', () => selectCard(idx));
     card.addEventListener('dblclick', () => showPreview(projectId, null, cardData.entryNumber));
     return card;
+}
+
+function observeFallbackImage(card, image, cardData) {
+    if (!fallbackImageObserver && 'IntersectionObserver' in window) {
+        fallbackImageObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                fallbackImageObserver.unobserve(entry.target);
+                const target = entry.target;
+                loadFallbackImage(target._ciqImage, target._ciqCardData, target);
+            });
+        }, { rootMargin: '600px 0px' });
+    }
+    card._ciqImage = image;
+    card._ciqCardData = cardData;
+    if (fallbackImageObserver) {
+        fallbackImageObserver.observe(card);
+    } else {
+        loadFallbackImage(image, cardData, card);
+    }
+}
+
+async function loadFallbackImage(image, cardData, card) {
+    if (!image || image.dataset.fallbackPending !== 'true') return;
+    image.dataset.fallbackPending = 'loading';
+    try {
+        const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, [{
+            key: String(cardData.entryId),
+            storagePath: cardData.storagePath,
+        }]);
+        const pageUrl = pageUrls[String(cardData.entryId)];
+        if (!pageUrl) throw new Error('Missing page URL');
+        image.src = await CIQSupabaseAPI.cropImageRegion(pageUrl, cardData.cellRegion, cardData.pageWidth);
+        image.classList.remove('is-loading');
+        delete image.dataset.fallbackPending;
+    } catch (_) {
+        image.remove();
+        const expired = document.createElement('div');
+        expired.className = 'img-expired';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-clock';
+        expired.append(icon, ' 画像がありません');
+        card.prepend(expired);
+    }
 }
 
 async function init() {

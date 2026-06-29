@@ -1,6 +1,7 @@
 // checkin.js - QR受付（Supabase）
 
-const projectId = session.projectId;
+const auth = requireAuth();
+const { projectId } = auth || {};
 
 function makeIcon(className) {
     const icon = document.createElement('i');
@@ -15,14 +16,7 @@ function setPageTitle(projectName) {
     title.append(makeIcon('fa-solid fa-qrcode'), ` ${projectName} 受付`);
 }
 
-if (!projectId) {
-    document.body.textContent = '';
-    const message = document.createElement('div');
-    message.className = 'checkin-missing-project';
-    message.textContent = 'プロジェクトに入室してください。3秒後にトップページへ戻ります。';
-    document.body.appendChild(message);
-    setTimeout(() => location.href = 'index.html', 3000);
-} else {
+if (auth) {
     document.getElementById('checkin-back-btn')?.addEventListener('click', () => {
         location.href = 'judge.html';
     });
@@ -40,6 +34,9 @@ if (!projectId) {
 
     async function init() {
         try {
+            if (typeof jsQR !== 'function') {
+                throw new Error('QR読み取りライブラリを読み込めませんでした。ページを再読み込みしてください。');
+            }
             if (!window.CIQSupabaseAPI?.isEnabled?.()) {
                 throw new Error('Supabase設定が見つかりません。');
             }
@@ -54,7 +51,7 @@ if (!projectId) {
             await loadStats();
             startCamera();
         } catch (e) {
-            scanningText.textContent = e.message || '受付画面を開始できませんでした。';
+            setScanMessage(e.message || '受付画面を開始できませんでした。');
         }
     }
 
@@ -74,8 +71,13 @@ if (!projectId) {
                 requestAnimationFrame(scanFrame);
             })
             .catch(err => {
-                scanningText.textContent = 'カメラの起動に失敗しました: ' + err.message;
+                setScanMessage('カメラの起動に失敗しました: ' + err.message);
             });
+    }
+
+    function setScanMessage(message) {
+        scanningText.textContent = '';
+        scanningText.append(makeIcon('fa-solid fa-triangle-exclamation'), ` ${message}`);
     }
 
     function scanFrame() {
@@ -98,8 +100,7 @@ if (!projectId) {
 
     function showLoading() {
         if (hideTimer) clearTimeout(hideTimer);
-        resultDiv.classList.add('is-visible');
-        resultDiv.className = 'loading';
+        resultDiv.className = 'is-visible loading';
         resultDiv.textContent = '';
         const loading = document.createElement('div');
         loading.textContent = '読み込み中...';
@@ -136,8 +137,7 @@ if (!projectId) {
 
     function showResultUI(type, iconClass, title, name, number) {
         if (hideTimer) clearTimeout(hideTimer);
-        resultDiv.classList.add('is-visible');
-        resultDiv.className = type;
+        resultDiv.className = `is-visible ${type}`;
         resultDiv.textContent = '';
         const titleEl = document.createElement('div');
         titleEl.append(makeIcon(iconClass), ` ${title}`);

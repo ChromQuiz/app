@@ -17,7 +17,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="js/supabase_config.js"></script>
   <script defer src="js/supabase_client.js"></script>
-  <script defer src="js/supabase_api.js?v=5"></script>
+  <script defer src="js/supabase_api.js?v=6"></script>
   <script defer src="js/crypto.js"></script>
   <script defer src="js/ui.js?v=2"></script>
   <script defer src="js/custom-select.js"></script>
@@ -32,15 +32,13 @@
 
 <body class="page-index">
   <h1>CIQ</h1>
-  <p class="subtitle">解答採点プラットフォーム</p>
-
   <div class="card">
     <div id="status-msg" class="status-msg-box"></div>
 
     <div id="supabase-auth-panel" class="auth-provider-panel" hidden>
       <div class="auth-provider-main">
         <div>
-          <div class="auth-provider-label">Googleアカウント</div>
+          <div class="auth-provider-label">Google</div>
           <div class="auth-provider-user" id="supabase-auth-user">未接続</div>
         </div>
       </div>
@@ -62,18 +60,18 @@
     <div id="section-join">
       <div class="index-mode-note" id="project-list-note">
         <i class="fa-solid fa-circle-info"></i>
-        <span>Googleアカウントでサインインすると、参加中のプロジェクトが表示されます。</span>
+        <span>サインインすると参加中のプロジェクトを表示します。</span>
       </div>
       <div id="project-list" class="project-list">
         <div class="project-list-empty">Googleサインイン待ち</div>
       </div>
       <div class="scorer-join-panel">
-        <div class="scorer-join-title"><i class="fa-solid fa-user-check"></i> 採点者として参加</div>
+        <div class="scorer-join-title"><i class="fa-solid fa-user-check"></i> 採点者参加</div>
         <label>プロジェクトID</label>
         <input type="text" id="join-project-id" placeholder="例: ciq13" />
         <label>採点者コード</label>
         <input type="password" id="join-scorer-code" placeholder="管理者から共有されたコード" />
-        <button class="btn secondary" id="join-scorer-btn">プロジェクトに参加 <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+        <button class="btn secondary" id="join-scorer-btn">参加 <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
       </div>
     </div>
 
@@ -81,20 +79,20 @@
     <div id="section-create" hidden>
       <div class="index-mode-note" id="create-auth-note">
         <i class="fa-solid fa-circle-info"></i>
-        <span>Googleアカウントでサインイン後に新しいプロジェクトを作成できます。</span>
+        <span>サインイン後に作成できます。</span>
       </div>
       <label>回数（例：第13回 → 13）</label>
       <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
-      <div class="helper-text"><i class="fa-solid fa-circle-info helper-icon"></i> プロジェクトIDと大会名が自動生成されます</div>
+      <div class="helper-text"><i class="fa-solid fa-circle-info helper-icon"></i> IDと大会名は自動生成</div>
 
-      <button class="btn" id="create-btn">新しいプロジェクトを作成 <i class="fa-solid fa-plus"></i></button>
+      <button class="btn" id="create-btn">作成 <i class="fa-solid fa-plus"></i></button>
     </div>
 
     <!-- 作成完了セクション -->
     <div id="section-success" class="u-text-center" hidden>
       <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
       <h3 class="success-title">作成完了！</h3>
-      <p class="success-desc">以下の情報を安全な場所に保存してください。</p>
+      <p class="success-desc">以下を安全に保管してください。</p>
       
       <div class="credential-panel" data-stagger>
         <label><i class="fa-solid fa-fingerprint"></i> プロジェクトID</label>
@@ -113,7 +111,7 @@
           <button class="btn standard credential-copy-btn" data-copy-target="success-pwd"><i class="fa-solid fa-copy"></i></button>
         </div>
       </div>
-      <button class="btn" id="admin-proceed-btn">管理画面へ進む <i class="fa-solid fa-gear"></i></button>
+      <button class="btn" id="admin-proceed-btn">管理画面へ <i class="fa-solid fa-gear"></i></button>
     </div>
 
 
@@ -123,6 +121,6 @@
       <i class="fa-solid fa-circle-question"></i> ヘルプ
     </a>
   </div>
-  <script defer src="js/index.js?v=3"></script>
+  <script defer src="js/index.js?v=4"></script>
 </body>
 </html>

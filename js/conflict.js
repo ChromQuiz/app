@@ -188,8 +188,9 @@ function createConflictCard(conflict, idx) {
         const image = document.createElement('img');
         image.src = cellUrl;
         image.alt = `${conflict.displayName} ${conflict.q}問`;
-        image.loading = 'eager';
+        image.loading = idx < 12 ? 'eager' : 'lazy';
         image.decoding = 'async';
+        if (idx < 12) image.fetchPriority = 'high';
         card.appendChild(image);
     } else {
         const expired = document.createElement('div');

@@ -123,13 +123,13 @@ function renderCreateAuthState() {
         setNote(
             note,
             email ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-info',
-            email ? 'Googleアカウントでサインイン済みです。新しいプロジェクトを作成できます。' : '新規作成にはGoogleアカウントでのサインインが必要です。',
+            email ? '作成できます。' : 'Googleサインインが必要です。',
             Boolean(email)
         );
     }
     if (createBtn) {
         createBtn.disabled = !email;
-        setButtonContent(createBtn, email ? '新しいプロジェクトを作成' : 'Googleサインイン後に作成できます', email ? 'fa-solid fa-plus' : '');
+        setButtonContent(createBtn, email ? '作成' : 'サインイン後に作成', email ? 'fa-solid fa-plus' : '');
     }
 }
 
@@ -156,7 +156,7 @@ async function renderProjectList() {
     if (!list || !useSupabaseAuth()) return;
 
     if (!supabaseSession?.user) {
-        setNote(note, 'fa-solid fa-circle-info', 'Googleアカウントでサインインすると、参加中のプロジェクトが表示されます。', false);
+        setNote(note, 'fa-solid fa-circle-info', 'サインインすると表示します。', false);
         renderProjectListEmpty('Googleサインイン待ち');
         return;
     }
@@ -173,8 +173,8 @@ async function renderProjectList() {
                 note,
                 projects.length > 0 ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-info',
                 projects.length > 0
-                    ? '参加中のプロジェクトを選択して開きます。'
-                    : '新規作成するか、採点者コードでプロジェクトに参加してください。',
+                    ? '選択して開きます。'
+                    : '新規作成または採点者コードで参加。',
                 projects.length > 0
             );
         }

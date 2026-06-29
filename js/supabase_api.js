@@ -530,7 +530,7 @@ const CIQSupabaseAPI = {
         return data;
     },
 
-    async uploadAnswerCell(projectId, entryNumber, questionNumber, cellDataUrl) {
+    async uploadAnswerCell(projectId, entryNumber, questionNumber, cellDataUrl, invalidateCache = true) {
         const path = `${projectId}/${entryNumber}/q${questionNumber}.webp`;
         const blob = this.dataUrlToBlob(cellDataUrl);
         const { error } = await this.client()
@@ -541,7 +541,7 @@ const CIQSupabaseAPI = {
                 upsert: true,
             });
         if (error) throw error;
-        this.invalidateProjectAnswerCache(projectId);
+        if (invalidateCache) this.invalidateProjectAnswerCache(projectId);
         return path;
     },
 
@@ -734,15 +734,6 @@ const CIQSupabaseAPI = {
                 };
             })
         ).catch(() => ({}));
-        const pageUrlMap = await this.getAnswerPageUrls(
-            projectId,
-            pages
-                .filter(page => !urlMap[String(page.entry_id)])
-                .map(page => ({
-                    key: String(page.entry_id),
-                    storagePath: page.storage_path,
-                }))
-        ).catch(() => ({}));
         const cards = await Promise.all(pages.map(async (page) => {
             const entry = page.entries || {};
             const entryNumber = Number(entry.entry_number);
@@ -754,7 +745,7 @@ const CIQSupabaseAPI = {
                 affiliation: entry.affiliation || '',
                 grade: entry.grade || '',
                 cellUrl: urlMap[String(page.entry_id)] || null,
-                pageUrl: pageUrlMap[String(page.entry_id)] || null,
+                storagePath: page.storage_path || null,
                 pageWidth: Number(page.cells?.pageWidth || 0) || null,
                 cellRegion,
             };
