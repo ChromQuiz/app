@@ -294,7 +294,7 @@
             adminProjectName = project.name || projectId;
             adminReplyTo = project.reply_to || null;
 
-            await ensureProjectPrivateKeyAvailable();
+            window._adminPrivateKeyReadyPromise = ensureProjectPrivateKeyAvailable();
 
             document.getElementById('question-count').value = totalQuestions;
             document.getElementById('stat-total').textContent = totalQuestions;
@@ -339,15 +339,6 @@
                 document.getElementById('dt-disclosure-end-display').textContent = formatDtDisplay(val);
             }
             if (typeof updateDisclosureOpenStatus === 'function') updateDisclosureOpenStatus();
-
-            try {
-                const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
-                entryNumbers = entries.map(e => e.entry_number).sort((a, b) => a - b);
-                window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
-                window.setAdminEntriesCount?.(entries.length);
-            } catch (e) {
-                console.warn('参加者一覧の初期取得をスキップ:', e);
-            }
 
             modelAnswers = new Array(totalQuestions).fill('');
             updateAdminOverview();

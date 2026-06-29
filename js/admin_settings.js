@@ -524,7 +524,17 @@
                     }
                 }
                 tbody.appendChild(fragment);
-                hydrateAdminEntryPII(rowsToHydrate, privJwk);
+                if (privJwk) {
+                    hydrateAdminEntryPII(rowsToHydrate, privJwk);
+                } else if (window._adminPrivateKeyReadyPromise) {
+                    window._adminPrivateKeyReadyPromise.then(() => {
+                        const readyKeyText = session.get('privateKeyJwk');
+                        if (!readyKeyText) return null;
+                        return JSON.parse(readyKeyText);
+                    }).then((readyKey) => {
+                        hydrateAdminEntryPII(rowsToHydrate, readyKey);
+                    }).catch(e => console.warn('復号鍵の後追い読み込みをスキップ:', e));
+                }
             } catch (e) {
                 setTableMessage(tbody, 7, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
             }
