@@ -495,11 +495,16 @@
 
         async function ensureProjectPrivateKeyAvailable() {
             if (!isSupabaseMode) return;
+            if (session.get('projectKeyFunctionUnavailable') === 'true') return;
             const existing = session.get('privateKeyJwk');
             if (existing) {
                 try {
                     await CIQSupabaseAPI.storeProjectPrivateKey(projectId, JSON.parse(existing));
                 } catch (e) {
+                    if (e.status === 404) {
+                        session.set('projectKeyFunctionUnavailable', 'true');
+                        return;
+                    }
                     console.warn('プロジェクト鍵の自動保管をスキップ:', e);
                 }
                 return;
@@ -509,6 +514,10 @@
                 const privateKeyJwk = await CIQSupabaseAPI.fetchProjectPrivateKey(projectId);
                 session.set('privateKeyJwk', JSON.stringify(privateKeyJwk));
             } catch (e) {
+                if (e.status === 404) {
+                    session.set('projectKeyFunctionUnavailable', 'true');
+                    return;
+                }
                 console.warn('プロジェクト鍵の自動取得をスキップ:', e);
             }
         }
