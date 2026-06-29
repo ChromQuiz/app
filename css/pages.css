@@ -2845,32 +2845,8 @@ table tbody tr:hover,
 }
 
 .auth-provider-actions {
-  justify-content: stretch;
-  width: 100%;
-}
-
-.auth-provider-icon {
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--glass-border);
-  border-radius: 50%;
-  background: #ffffff;
-  color: var(--primary);
-  flex: 0 0 auto;
-}
-
-.google-account-icon {
-  border-color: #dadce0;
-  color: #202124;
-}
-
-.google-logo {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
+  width: 100%;
 }
 
 .google-signin-btn {
