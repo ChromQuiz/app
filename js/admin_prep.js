@@ -11,6 +11,27 @@
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-06-29-answer-upload-v2';
+        console.info('[CIQ upload debug] admin_prep loaded', { version: ANSWER_UPLOAD_DEBUG_VERSION });
+
+        function summarizeNumbers(numbers) {
+            const clean = (numbers || [])
+                .map(number => Number(number))
+                .filter(number => Number.isFinite(number))
+                .sort((a, b) => a - b);
+            return {
+                count: clean.length,
+                min: clean.length ? clean[0] : null,
+                max: clean.length ? clean[clean.length - 1] : null,
+                first: clean.slice(0, 10),
+                last: clean.slice(-10),
+            };
+        }
+
+        function logUploadDebug(label, details = {}) {
+            console.info('[CIQ upload debug]', label, details);
+        }
+
         function setProgressClass(el, percent) {
             if (!el) return;
             const rounded = Math.max(0, Math.min(100, Math.round(percent / 5) * 5));
@@ -177,8 +198,20 @@
             const file = fileInput.files[0];
             if (!file) return;
 
+            logUploadDebug('loadAnswers:start', {
+                projectId,
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+            });
+
             const pdfValidation = await CIQUploadValidation.validatePdfFile(file);
             if (!pdfValidation.ok) {
+                logUploadDebug('loadAnswers:pdfValidationFailed', {
+                    message: pdfValidation.message,
+                    fileSize: file.size,
+                    fileType: file.type,
+                });
                 showAdminToast(pdfValidation.message, 'error');
                 clearPdfFileSelection(fileInput);
                 return;
@@ -204,6 +237,7 @@
                 const arrayBuffer = await file.arrayBuffer();
                 let pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 const total = pdfDoc.numPages; scanAnswers = [];
+                logUploadDebug('loadAnswers:pdfLoaded', { totalPages: total });
                 const pageValidation = CIQUploadValidation.validatePdfPageCount(total);
                 if (!pageValidation.ok) throw new Error(pageValidation.message);
 
@@ -269,24 +303,46 @@
                     scanAnswers.push({ page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageDataUrl, pageWidth: workCanvas.width, fullCanvas });
                 }
 
+                logUploadDebug('loadAnswers:scanComplete', {
+                    scannedPages: scanAnswers.length,
+                    detectedEntryNumbers: summarizeNumbers(scanAnswers.map(answer => answer.entryNumber)),
+                    tomboErrorPages: scanAnswers.filter(answer => answer.tomboError).map(answer => answer.page),
+                });
+
                 overlayTitle.textContent = 'サーバーへ保存中...';
                 setProgressClass(overlayBar, 0);
                 overlayText.textContent = '参加者一覧と受付番号を確認中';
                 const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
-                entryNumbers = entries.map(entry => entry.entry_number).sort((a, b) => a - b);
+                const entryByNumber = new Map(entries.map(entry => [Number(entry.entry_number), entry]));
+                entryNumbers = entries.map(entry => Number(entry.entry_number)).sort((a, b) => a - b);
+                logUploadDebug('loadAnswers:entriesLoaded', {
+                    projectId,
+                    entries: summarizeNumbers(entryNumbers),
+                });
                 window._entriesRaw = Object.fromEntries(entries.map(entry => [entry.id, normalizeSupabaseEntry(entry)]));
                 window.setAdminEntriesCount?.(entries.length);
                 const entryNumberValidation = CIQUploadValidation.validateDetectedEntryNumbers(
                     scanAnswers.map(answer => answer.entryNumber),
                     entryNumbers
                 );
-                if (!entryNumberValidation.ok) throw new Error(entryNumberValidation.message);
+                if (!entryNumberValidation.ok) {
+                    logUploadDebug('loadAnswers:entryNumberValidationFailed', {
+                        message: entryNumberValidation.message,
+                        detectedEntryNumbers: summarizeNumbers(scanAnswers.map(answer => answer.entryNumber)),
+                        knownEntryNumbers: summarizeNumbers(entryNumbers),
+                    });
+                    throw new Error(entryNumberValidation.message);
+                }
+                logUploadDebug('loadAnswers:entryNumberValidationPassed', {
+                    detectedEntryNumbers: summarizeNumbers(scanAnswers.map(answer => answer.entryNumber)),
+                });
 
                 let current = 0; const totalBatch = scanAnswers.length;
                 const uploadFailures = [];
                 const seenEntryNumbers = new Set();
 
                 const UPLOAD_CONCURRENCY = 3;
+                logUploadDebug('loadAnswers:uploadStart', { totalBatch, concurrency: UPLOAD_CONCURRENCY });
 
                 async function uploadEntry(a) {
                     try {
@@ -297,7 +353,13 @@
                             throw new Error(`ページ${a.page}: 受付番号 ${padNum(a.entryNumber)} が重複しています`);
                         }
                         seenEntryNumbers.add(a.entryNumber);
-                        await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth);
+                        const knownEntry = entryByNumber.get(Number(a.entryNumber));
+                        logUploadDebug('uploadEntry:pageStart', {
+                            page: a.page,
+                            entryNumber: a.entryNumber,
+                            hasKnownEntry: Boolean(knownEntry?.id),
+                        });
+                        await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth, knownEntry);
                         const cells = Object.entries(a.cellRegions);
                         await runLimited(cells, 4, async ([qKey, region]) => {
                             const qNum = Number(String(qKey).replace(/^q/, ''));
@@ -306,6 +368,12 @@
                         });
                     } catch (e) {
                         console.error(`Entry ${a.entryNumber} upload error:`, e);
+                        logUploadDebug('uploadEntry:pageFailed', {
+                            page: a.page,
+                            entryNumber: a.entryNumber,
+                            code: e.code || null,
+                            message: e.message || String(e),
+                        });
                         uploadFailures.push({
                             entryNumber: a.entryNumber,
                             page: a.page,

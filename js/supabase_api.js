@@ -453,8 +453,14 @@ const CIQSupabaseAPI = {
         return new Blob([bytes], { type: mime });
     },
 
-    async uploadAnswerPage(projectId, entryNumber, pageDataUrl, cells, pageWidth) {
-        const entry = await this.findEntryByNumber(projectId, entryNumber);
+    async uploadAnswerPage(projectId, entryNumber, pageDataUrl, cells, pageWidth, knownEntry = null) {
+        const entry = knownEntry?.id ? knownEntry : await this.findEntryByNumber(projectId, entryNumber);
+        console.info('[CIQ upload debug] uploadAnswerPage:entryLookup', {
+            projectId,
+            entryNumber,
+            usedKnownEntry: Boolean(knownEntry?.id),
+            foundEntry: Boolean(entry?.id),
+        });
         if (!entry) throw new Error(`受付番号 ${entryNumber} の参加者が見つかりません。`);
 
         const pagePath = `${projectId}/${entryNumber}/page.webp`;
@@ -509,7 +515,16 @@ const CIQSupabaseAPI = {
             .eq('entry_number', entryNumber)
             .single();
         if (error) {
-            if (error.code === 'PGRST116') return null;
+            if (error.code === 'PGRST116') {
+                console.warn('[CIQ upload debug] findEntryByNumber:notFound', { projectId, entryNumber });
+                return null;
+            }
+            console.warn('[CIQ upload debug] findEntryByNumber:error', {
+                projectId,
+                entryNumber,
+                code: error.code || null,
+                message: error.message || String(error),
+            });
             throw error;
         }
         return data;
