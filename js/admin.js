@@ -225,6 +225,7 @@
         let adminProjectName = '';
         let adminReplyTo = null;
         let requiredScorers = 3;
+        let modelAnswersLoaded = false;
 
         function toLocalInputValue(isoValue) {
             if (!isoValue) return '';
@@ -349,6 +350,13 @@
             }
 
             modelAnswers = new Array(totalQuestions).fill('');
+            updateAdminOverview();
+        }
+
+        async function loadModelAnswersOnce() {
+            if (modelAnswersLoaded) return;
+            modelAnswersLoaded = true;
+            modelAnswers = new Array(totalQuestions).fill('');
             try {
                 const rows = await CIQSupabaseAPI.listModelAnswers(projectId);
                 rows.forEach(row => {
@@ -359,8 +367,6 @@
                 console.warn('模範解答の読み込みをスキップ:', e);
             }
             renderModelGrid();
-            await refreshSupabaseScoringData();
-            updateAdminOverview();
         }
 
         function updateAdminOverview() {
@@ -411,6 +417,9 @@
                 switch (tabId) {
                     case 'tab-entries':
                         loadAdminEntries();
+                        break;
+                    case 'tab-prep':
+                        loadModelAnswersOnce();
                         break;
                     case 'tab-scan':
                         loadEntryList();
