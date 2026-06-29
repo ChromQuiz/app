@@ -3373,6 +3373,14 @@ table tbody tr:hover,
   border-radius: var(--radius-md);
 }
 
+.page-admin .admin-entries-table {
+  max-height: none;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}
+
 .page-admin table {
   font-size: 13px;
 }
@@ -3871,5 +3879,12 @@ table tbody tr:hover,
 
   .page-admin .model-cell {
     touch-action: manipulation;
+  }
+
+  .page-admin .admin-entries-table {
+    max-height: min(56vh, 520px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-x pan-y;
   }
 }
