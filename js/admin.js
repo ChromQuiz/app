@@ -26,6 +26,56 @@
             btn.appendChild(adminIcon(iconClass));
         }
 
+        const adminScriptLoads = {};
+        function loadAdminScriptOnce(src) {
+            if (adminScriptLoads[src]) return adminScriptLoads[src];
+            adminScriptLoads[src] = new Promise((resolve, reject) => {
+                const existing = document.querySelector(`script[src="${src}"]`);
+                if (existing) {
+                    existing.addEventListener('load', resolve, { once: true });
+                    existing.addEventListener('error', reject, { once: true });
+                    if (existing.dataset.loaded === 'true') resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = src;
+                script.defer = true;
+                script.onload = () => {
+                    script.dataset.loaded = 'true';
+                    resolve();
+                };
+                script.onerror = () => reject(new Error(`${src} を読み込めませんでした`));
+                document.head.appendChild(script);
+            });
+            return adminScriptLoads[src];
+        }
+
+        async function ensureJsPdfLoaded() {
+            if (!window.jspdf) await loadAdminScriptOnce('https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js');
+        }
+
+        async function ensureAdminPrepLoaded() {
+            if (!window.pdfjsLib) await loadAdminScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+            await ensureJsPdfLoaded();
+            if (!window.CV) await loadAdminScriptOnce('js/cv.js');
+            if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
+            if (typeof window.generatePDF !== 'function' || typeof window.loadAnswers !== 'function') {
+                await loadAdminScriptOnce('js/admin_prep.js?v=15');
+            }
+        }
+
+        async function runAdminPrepAction(actionName) {
+            await ensureAdminPrepLoaded();
+            const fn = window[actionName];
+            if (typeof fn !== 'function') throw new Error(`${actionName} が読み込まれていません`);
+            return fn();
+        }
+
+        async function runGradedPdfExport() {
+            await ensureJsPdfLoaded();
+            return exportGradedPDF();
+        }
+
         const projectIdDisplay = document.getElementById('project-id-display');
         if (projectIdDisplay) {
             projectIdDisplay.textContent = '';
@@ -122,7 +172,7 @@
                     fileName.textContent = name;
                     fileName.classList.toggle('has-file', Boolean(name));
                 }
-                loadAnswers();
+                runAdminPrepAction('loadAnswers').catch(e => showAdminToast(e.message || '答案読み込みを開始できませんでした'));
             });
             const actions = {
                 'toggle-entry-open': toggleEntryOpen,
@@ -130,11 +180,11 @@
                 'toggle-max-entries': toggleMaxEntries,
                 'save-entry-period': saveEntryPeriod,
                 'export-entries-csv': exportEntriesCSV,
-                'generate-pdf': generatePDF,
+                'generate-pdf': () => runAdminPrepAction('generatePDF'),
                 'toggle-select-all': toggleSelectAll,
                 'batch-delete': batchDelete,
                 'export-csv': exportCSV,
-                'export-graded-pdf': exportGradedPDF,
+                'export-graded-pdf': runGradedPdfExport,
                 'render-analytics': renderAnalytics,
                 'export-analytics-csv': exportAnalyticsCSV,
                 'load-project-members': loadProjectMembers,
@@ -146,7 +196,8 @@
                 const eventName = el.matches('input, select, textarea') ? 'change' : 'click';
                 el.addEventListener(eventName, () => {
                     const fn = actions[el.dataset.action];
-                    if (fn) fn();
+                    if (!fn) return;
+                    Promise.resolve(fn()).catch(e => showAdminToast(e.message || '操作に失敗しました'));
                 });
             });
             document.getElementById('admin-logout-btn')?.addEventListener('click', logout);
