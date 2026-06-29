@@ -3373,6 +3373,13 @@ table tbody tr:hover,
   border-radius: var(--radius-md);
 }
 
+.page-admin #tab-entries .table-container {
+  max-height: 400px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .page-admin table {
   font-size: 13px;
 }

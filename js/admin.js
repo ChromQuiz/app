@@ -106,6 +106,9 @@
         }
 
         function setupAdminEventHandlers() {
+            document.body.classList.remove('body-scroll-locked');
+            document.getElementById('menu-backdrop')?.classList.remove('active');
+            document.getElementById('menu-panel')?.classList.remove('open');
             document.getElementById('project-id-display')?.addEventListener('click', copyProjectId);
             document.querySelectorAll('[data-toggle-menu]').forEach((el) => {
                 el.addEventListener('click', toggleMenu);
