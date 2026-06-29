@@ -82,6 +82,10 @@
                         if (e.target.closest('.scan-cb-wrap')) return;
                         showEntryPreview(num);
                     });
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('.scan-cb-wrap')) return;
+                        showEntryPreview(num);
+                    });
                     grid.appendChild(card);
                 });
                 el.appendChild(grid);
@@ -169,6 +173,14 @@
         // TAB 3: 模範解答
         // ============================
         let dragSrcIdx = null;
+        async function moveModelAnswer(index, direction) {
+            const nextIndex = index + direction;
+            if (nextIndex < 0 || nextIndex >= modelAnswers.length) return;
+            [modelAnswers[index], modelAnswers[nextIndex]] = [modelAnswers[nextIndex], modelAnswers[index]];
+            renderModelGrid();
+            await saveModelAnswers();
+            showAdminToast('並び替えを保存しました', 'success');
+        }
         function renderModelGrid() {
             const grid = document.getElementById('model-answer-grid'); grid.textContent = '';
             modelAnswers.forEach((ans, i) => {
@@ -183,7 +195,34 @@
                 const answer = document.createElement('div');
                 answer.className = `q-answer${ans ? '' : ' model-answer-empty'}`;
                 answer.textContent = ans || '—';
-                item.append(label, answer);
+                const moveControls = document.createElement('div');
+                moveControls.className = 'model-move-controls';
+                const prevBtn = document.createElement('button');
+                prevBtn.type = 'button';
+                prevBtn.className = 'model-move-btn';
+                prevBtn.title = '前へ移動';
+                prevBtn.disabled = i === 0;
+                const prevIcon = document.createElement('i');
+                prevIcon.className = 'fa-solid fa-chevron-left';
+                prevBtn.appendChild(prevIcon);
+                const nextBtn = document.createElement('button');
+                nextBtn.type = 'button';
+                nextBtn.className = 'model-move-btn';
+                nextBtn.title = '後ろへ移動';
+                nextBtn.disabled = i === modelAnswers.length - 1;
+                const nextIcon = document.createElement('i');
+                nextIcon.className = 'fa-solid fa-chevron-right';
+                nextBtn.appendChild(nextIcon);
+                prevBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    moveModelAnswer(i, -1);
+                });
+                nextBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    moveModelAnswer(i, 1);
+                });
+                moveControls.append(prevBtn, nextBtn);
+                item.append(label, answer, moveControls);
 
                 // ドラッグ開始
                 item.addEventListener('dragstart', e => {
