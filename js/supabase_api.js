@@ -5,7 +5,9 @@
 const CIQSupabaseAPI = {
     _cache: new Map(),
     _imageCache: new Map(),
+    _imageBitmapCache: new Map(),
     _imageCacheLimit: 80,
+    _imageBitmapCacheLimit: 50,
     _answerPagesCacheMs: 15000,
     _signedUrlCacheMs: 5 * 60 * 1000,
 
@@ -774,6 +776,32 @@ const CIQSupabaseAPI = {
         return promise;
     },
 
+    loadCachedImageBitmap(imageUrl) {
+        if (!window.createImageBitmap || !window.fetch) return null;
+        const cached = this._imageBitmapCache.get(imageUrl);
+        if (cached) return cached;
+
+        const promise = fetch(imageUrl, { credentials: 'omit' })
+            .then((response) => {
+                if (!response.ok) throw new Error('Image fetch failed');
+                return response.blob();
+            })
+            .then(blob => createImageBitmap(blob))
+            .catch((error) => {
+                this._imageBitmapCache.delete(imageUrl);
+                throw error;
+            });
+
+        this._imageBitmapCache.set(imageUrl, promise);
+        while (this._imageBitmapCache.size > this._imageBitmapCacheLimit) {
+            const oldestKey = this._imageBitmapCache.keys().next().value;
+            const oldest = this._imageBitmapCache.get(oldestKey);
+            this._imageBitmapCache.delete(oldestKey);
+            Promise.resolve(oldest).then(bitmap => bitmap?.close?.()).catch(() => {});
+        }
+        return promise;
+    },
+
     canvasToObjectUrl(canvas, type = 'image/webp', quality = 0.64) {
         return new Promise((resolve, reject) => {
             canvas.toBlob((blob) => {
@@ -790,15 +818,22 @@ const CIQSupabaseAPI = {
         return new Promise(async (resolve, reject) => {
             try {
                 if (!imageUrl || !region) throw new Error('Missing image region');
-                const image = await this.loadCachedImage(imageUrl);
-                const scale = sourceWidth ? image.naturalWidth / sourceWidth : 1;
+                let image = null;
+                try {
+                    image = await (this.loadCachedImageBitmap(imageUrl) || Promise.reject(new Error('ImageBitmap unavailable')));
+                } catch (_) {
+                    image = await this.loadCachedImage(imageUrl);
+                }
+                const imageWidth = image.naturalWidth || image.width;
+                const imageHeight = image.naturalHeight || image.height;
+                const scale = sourceWidth ? imageWidth / sourceWidth : 1;
                 const x = Math.max(0, Math.round(Number(region.x || 0) * scale));
                 const y = Math.max(0, Math.round(Number(region.y || 0) * scale));
                 const w = Math.max(1, Math.round(Number(region.w || 1) * scale));
                 const h = Math.max(1, Math.round(Number(region.h || 1) * scale));
                 const canvas = document.createElement('canvas');
-                canvas.width = Math.min(w, Math.max(1, image.naturalWidth - x));
-                canvas.height = Math.min(h, Math.max(1, image.naturalHeight - y));
+                canvas.width = Math.min(w, Math.max(1, imageWidth - x));
+                canvas.height = Math.min(h, Math.max(1, imageHeight - y));
                 canvas.getContext('2d').drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                 const objectUrl = await this.canvasToObjectUrl(canvas, 'image/webp', quality);
                 resolve(objectUrl);
