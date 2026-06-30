@@ -229,6 +229,19 @@
             });
         }
 
+        async function waitForUploadSlot(inFlight, limit) {
+            while (inFlight.length >= limit) {
+                await Promise.race(inFlight);
+            }
+        }
+
+        async function rollbackUploadedAnswers(uploadedEntryNumbers) {
+            if (!uploadedEntryNumbers.size) return;
+            await Promise.allSettled(Array.from(uploadedEntryNumbers).map(entryNumber =>
+                CIQSupabaseAPI.deleteAnswerPage(projectId, entryNumber)
+            ));
+        }
+
         async function loadAnswers() {
             const fileInput = document.getElementById('pdf-file');
             const file = fileInput.files[0];
@@ -268,6 +281,8 @@
             overlay.classList.add('is-visible-flex');
             setProgressClass(overlayBar, 0);
             overlayTitle.textContent = '答案を読み込み中...';
+            let uploadedEntryNumbers = new Set();
+            let inFlightUploads = [];
 
             try {
                 const perfStats = createPerfStats();
@@ -280,8 +295,68 @@
                 const pageValidation = CIQUploadValidation.validatePdfPageCount(total);
                 if (!pageValidation.ok) throw new Error(pageValidation.message);
 
+                overlayText.textContent = '参加者一覧と受付番号を確認中';
+                const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
+                const entryByNumber = new Map(entries.map(entry => [Number(entry.entry_number), entry]));
+                entryNumbers = entries.map(entry => Number(entry.entry_number)).sort((a, b) => a - b);
+                if (!entryNumbers.length) throw new Error('参加者一覧が空です。先にエントリーを登録してから答案を読み込んでください。');
+                logUploadDebug('loadAnswers:entriesLoaded', {
+                    projectId,
+                    entries: summarizeNumbers(entryNumbers),
+                });
+                window._entriesRaw = Object.fromEntries(entries.map(entry => [entry.id, normalizeSupabaseEntry(entry)]));
+                window.setAdminEntriesCount?.(entries.length);
+
+                const seenEntryNumbers = new Set();
+                const uploadFailures = [];
+                const UPLOAD_CONCURRENCY = 6;
+                let uploadedCount = 0;
+
+                logUploadDebug('loadAnswers:uploadPipelineStart', { totalPages: total, concurrency: UPLOAD_CONCURRENCY });
+
+                async function enqueueUpload(answer) {
+                    await waitForUploadSlot(inFlightUploads, UPLOAD_CONCURRENCY);
+                    const promise = (async () => {
+                        try {
+                            const knownEntry = entryByNumber.get(Number(answer.entryNumber));
+                            logUploadDebug('uploadEntry:pageStart', {
+                                page: answer.page,
+                                entryNumber: answer.entryNumber,
+                                hasKnownEntry: Boolean(knownEntry?.id),
+                            });
+                            const uploadStartedAt = performance.now();
+                            await CIQSupabaseAPI.uploadAnswerPage(projectId, answer.entryNumber, answer.pageImage, answer.cellRegions, answer.pageWidth, knownEntry);
+                            addMs(perfStats, 'uploadMs', uploadStartedAt);
+                            uploadedEntryNumbers.add(answer.entryNumber);
+                        } catch (e) {
+                            console.error(`Entry ${answer.entryNumber} upload error:`, e);
+                            logUploadDebug('uploadEntry:pageFailed', {
+                                page: answer.page,
+                                entryNumber: answer.entryNumber,
+                                code: e.code || null,
+                                message: e.message || String(e),
+                            });
+                            uploadFailures.push({
+                                entryNumber: answer.entryNumber,
+                                page: answer.page,
+                                message: e.message || String(e),
+                            });
+                        } finally {
+                            answer.pageImage = null;
+                            uploadedCount++;
+                            setProgressClass(overlayBar, (uploadedCount / total) * 100);
+                            overlayText.textContent = `${uploadedCount} / ${total} 件保存`;
+                        }
+                    })();
+                    inFlightUploads.push(promise);
+                    promise.finally(() => {
+                        const index = inFlightUploads.indexOf(promise);
+                        if (index >= 0) inFlightUploads.splice(index, 1);
+                    });
+                }
+
                 for (let i = 1; i <= total; i++) {
-                    overlayText.textContent = `${i} / ${total} ページ読込中`;
+                    overlayText.textContent = `${i} / ${total} ページ読込・保存中`;
                     setProgressClass(overlayBar, (i / total) * 100);
 
                     const page = await pdfDoc.getPage(i);
@@ -321,6 +396,16 @@
 
                     const transform = calcPerspectiveTransform(scanConfig.tombo.map(r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })), detectedResult.points);
                     const entryNumber = readEntryNumber(scanConfig.markCells.map(cell => transformRegion(cell, transform)));
+                    if (!Number.isInteger(entryNumber) || entryNumber <= 0) {
+                        throw new Error(`ページ${i}: 受付番号を読み取れませんでした`);
+                    }
+                    if (seenEntryNumbers.has(entryNumber)) {
+                        throw new Error(`ページ${i}: 受付番号 ${padNum(entryNumber)} が重複しています`);
+                    }
+                    seenEntryNumbers.add(entryNumber);
+                    if (!entryByNumber.has(Number(entryNumber))) {
+                        throw new Error(`ページ${i}: 受付番号 ${padNum(entryNumber)} の参加者が見つかりません。`);
+                    }
                     // セルのクロップ座標を計算（画像は保存しない — 採点画面でオンデマンドクロップ）
                     const cellRegions = {};
                     for (let q = 0; q < (scanConfig.questionCount || 100); q++) {
@@ -345,7 +430,9 @@
                     addMs(perfStats, 'imageEncodeMs', stepStartedAt);
                     perfStats.pages++;
                     perfStats.bytes += pageBlob?.size || 0;
-                    scanAnswers.push({ page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageBlob, pageWidth: workCanvas.width });
+                    const answer = { page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageBlob, pageWidth: workCanvas.width };
+                    scanAnswers.push({ page: i, entryNumber, tomboError: detectedResult.error });
+                    await enqueueUpload(answer);
                 }
 
                 logUploadDebug('loadAnswers:scanComplete', {
@@ -355,17 +442,7 @@
                 });
 
                 overlayTitle.textContent = 'サーバーへ保存中...';
-                setProgressClass(overlayBar, 0);
-                overlayText.textContent = '参加者一覧と受付番号を確認中';
-                const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
-                const entryByNumber = new Map(entries.map(entry => [Number(entry.entry_number), entry]));
-                entryNumbers = entries.map(entry => Number(entry.entry_number)).sort((a, b) => a - b);
-                logUploadDebug('loadAnswers:entriesLoaded', {
-                    projectId,
-                    entries: summarizeNumbers(entryNumbers),
-                });
-                window._entriesRaw = Object.fromEntries(entries.map(entry => [entry.id, normalizeSupabaseEntry(entry)]));
-                window.setAdminEntriesCount?.(entries.length);
+                overlayText.textContent = '保存完了を確認中';
                 const entryNumberValidation = CIQUploadValidation.validateDetectedEntryNumbers(
                     scanAnswers.map(answer => answer.entryNumber),
                     entryNumbers
@@ -382,61 +459,7 @@
                     detectedEntryNumbers: summarizeNumbers(scanAnswers.map(answer => answer.entryNumber)),
                 });
 
-                let current = 0; const totalBatch = scanAnswers.length;
-                const uploadFailures = [];
-                const seenEntryNumbers = new Set();
-
-                const UPLOAD_CONCURRENCY = 6;
-                logUploadDebug('loadAnswers:uploadStart', { totalBatch, concurrency: UPLOAD_CONCURRENCY });
-
-                async function uploadEntry(a) {
-                    try {
-                        if (!Number.isInteger(a.entryNumber) || a.entryNumber <= 0) {
-                            throw new Error(`ページ${a.page}: 受付番号を読み取れませんでした`);
-                        }
-                        if (seenEntryNumbers.has(a.entryNumber)) {
-                            throw new Error(`ページ${a.page}: 受付番号 ${padNum(a.entryNumber)} が重複しています`);
-                        }
-                        seenEntryNumbers.add(a.entryNumber);
-                        const knownEntry = entryByNumber.get(Number(a.entryNumber));
-                        logUploadDebug('uploadEntry:pageStart', {
-                            page: a.page,
-                            entryNumber: a.entryNumber,
-                            hasKnownEntry: Boolean(knownEntry?.id),
-                        });
-                        const uploadStartedAt = performance.now();
-                        await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth, knownEntry);
-                        addMs(perfStats, 'uploadMs', uploadStartedAt);
-                    } catch (e) {
-                        console.error(`Entry ${a.entryNumber} upload error:`, e);
-                        logUploadDebug('uploadEntry:pageFailed', {
-                            page: a.page,
-                            entryNumber: a.entryNumber,
-                            code: e.code || null,
-                            message: e.message || String(e),
-                        });
-                        uploadFailures.push({
-                            entryNumber: a.entryNumber,
-                            page: a.page,
-                            message: e.message || String(e),
-                        });
-                    }
-                    if (a.fullCanvas) {
-                        a.fullCanvas.width = 0;
-                        a.fullCanvas.height = 0;
-                        a.fullCanvas = null;
-                    }
-                    a.pageImage = null;
-                    current++;
-                    setProgressClass(overlayBar, (current / totalBatch) * 100);
-                    overlayText.textContent = `${current} / ${totalBatch} 件保存`;
-                }
-
-                // 並列実行（同時接続数制限付き）
-                for (let i = 0; i < scanAnswers.length; i += UPLOAD_CONCURRENCY) {
-                    const batch = scanAnswers.slice(i, i + UPLOAD_CONCURRENCY);
-                    await Promise.all(batch.map(uploadEntry));
-                }
+                await Promise.allSettled(inFlightUploads);
 
                 overlayText.textContent = '完了しました！';
                 logPerf('answerUploadComplete', perfStats, { uploadFailures: uploadFailures.length });
@@ -452,6 +475,8 @@
                 }
                 loadEntryList();
             } catch (e) {
+                await Promise.allSettled(inFlightUploads);
+                await rollbackUploadedAnswers(uploadedEntryNumbers);
                 console.error(e); overlay.classList.remove('is-visible-flex');
                 showAdminToast('処理エラー: ' + e.message);
             } finally {
