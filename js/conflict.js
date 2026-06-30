@@ -117,6 +117,11 @@ function buildConflicts() {
     const required = Number(project?.required_scorers || 3);
     const totalQuestions = Number(project?.question_count || 100);
     const completedByQuestion = new Map();
+    const pagesMeta = answerPages
+        .map(getEntryMeta)
+        .filter(meta => meta.entryId && meta.entryNumber);
+    const votesByQuestionEntry = new Map();
+    const finalsByQuestionEntry = new Map();
 
     for (const scorer of questionScorers) {
         if (!scorer.completed_at) continue;
@@ -124,17 +129,32 @@ function buildConflicts() {
         completedByQuestion.set(q, (completedByQuestion.get(q) || 0) + 1);
     }
 
+    for (const vote of scoreVotes) {
+        const q = Number(vote.question_number);
+        const key = `${q}:${vote.entry_id}`;
+        const list = votesByQuestionEntry.get(key) || [];
+        list.push(vote);
+        votesByQuestionEntry.set(key, list);
+    }
+
+    for (const finalResult of finalResults) {
+        const q = Number(finalResult.question_number);
+        finalsByQuestionEntry.set(`${q}:${finalResult.entry_id}`, finalResult);
+    }
+
     for (let q = 1; q <= totalQuestions; q++) {
         if ((completedByQuestion.get(q) || 0) < required) continue;
 
-        for (const page of answerPages) {
-            const meta = getEntryMeta(page);
-            if (!meta.entryId || !meta.entryNumber) continue;
-
-            const votes = scoreVotes.filter(row => Number(row.question_number) === q && row.entry_id === meta.entryId);
-            const corrects = votes.filter(row => row.result === 'correct').length;
-            const wrongs = votes.filter(row => row.result === 'wrong').length;
-            const finalResult = finalResults.find(row => Number(row.question_number) === q && row.entry_id === meta.entryId);
+        for (const meta of pagesMeta) {
+            const key = `${q}:${meta.entryId}`;
+            const votes = votesByQuestionEntry.get(key) || [];
+            let corrects = 0;
+            let wrongs = 0;
+            for (const vote of votes) {
+                if (vote.result === 'correct') corrects++;
+                if (vote.result === 'wrong') wrongs++;
+            }
+            const finalResult = finalsByQuestionEntry.get(key);
 
             if (corrects >= required || wrongs >= required) continue;
             conflicts.push({
