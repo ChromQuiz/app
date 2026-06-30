@@ -167,6 +167,15 @@
         const workCtx = workCanvas.getContext('2d');
         let scanConfig = null, scanAnswers = [];
 
+        function canvasToBlob(canvas, type = 'image/webp', quality = 0.22) {
+            return new Promise((resolve, reject) => {
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else reject(new Error('画像の圧縮に失敗しました。'));
+                }, type, quality);
+            });
+        }
+
         function clearPdfFileSelection(fileInput) {
             if (fileInput) fileInput.value = '';
             const fileName = document.getElementById('pdf-file-name');
@@ -276,19 +285,21 @@
                         const cr = transformRegion(scanConfig.answerRegions[q], transform);
                         cellRegions[`q${q + 1}`] = { x: Math.round(cr.x), y: Math.round(cr.y), w: Math.round(cr.w), h: Math.round(cr.h) };
                     }
-                    // ページ画像を縮小してBase64化（プレビュー用）
+                    // ページ画像を縮小してBlob化（Base64変換を避ける）
                     const MAX_IMG_W = 1000;
-                    let pageDataUrl;
+                    let pageBlob;
                     if (workCanvas.width > MAX_IMG_W) {
                         const ratio = MAX_IMG_W / workCanvas.width;
                         const sc = document.createElement('canvas');
                         sc.width = MAX_IMG_W; sc.height = Math.round(workCanvas.height * ratio);
                         sc.getContext('2d').drawImage(workCanvas, 0, 0, sc.width, sc.height);
-                        pageDataUrl = sc.toDataURL('image/webp', 0.22);
+                        pageBlob = await canvasToBlob(sc);
+                        sc.width = 0;
+                        sc.height = 0;
                     } else {
-                        pageDataUrl = workCanvas.toDataURL('image/webp', 0.22);
+                        pageBlob = await canvasToBlob(workCanvas);
                     }
-                    scanAnswers.push({ page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageDataUrl, pageWidth: workCanvas.width });
+                    scanAnswers.push({ page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageBlob, pageWidth: workCanvas.width });
                 }
 
                 logUploadDebug('loadAnswers:scanComplete', {
@@ -329,7 +340,7 @@
                 const uploadFailures = [];
                 const seenEntryNumbers = new Set();
 
-                const UPLOAD_CONCURRENCY = 3;
+                const UPLOAD_CONCURRENCY = 6;
                 logUploadDebug('loadAnswers:uploadStart', { totalBatch, concurrency: UPLOAD_CONCURRENCY });
 
                 async function uploadEntry(a) {
