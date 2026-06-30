@@ -129,11 +129,12 @@ async function flushFallbackImages() {
     batch.forEach((item) => {
         item.cardData.pageUrl = item.cardData.pageUrl || pageUrls[String(item.cardData.entryId)] || '';
     });
-    await runLimited(batch, 6, ({ image, cardData, card }) => loadFallbackImage(image, cardData, card));
+    const results = await runLimited(batch, 6, ({ image, cardData, card }) => resolveFallbackImage(image, cardData, card));
+    await Promise.all(results.map(applyFallbackImageResult));
 }
 
-async function loadFallbackImage(image, cardData, card) {
-    if (!image || image.dataset.fallbackPending !== 'true') return;
+async function resolveFallbackImage(image, cardData, card) {
+    if (!image || image.dataset.fallbackPending !== 'true') return { image, card, cellUrl: '' };
     image.dataset.fallbackPending = 'loading';
     try {
         let pageUrl = cardData.pageUrl || '';
@@ -145,19 +146,30 @@ async function loadFallbackImage(image, cardData, card) {
             pageUrl = pageUrls[String(cardData.entryId)];
         }
         if (!pageUrl) throw new Error('Missing page URL');
-        image.src = await CIQSupabaseAPI.cropImageRegion(pageUrl, cardData.cellRegion, cardData.pageWidth);
+        const cellUrl = await CIQSupabaseAPI.cropImageRegion(pageUrl, cardData.cellRegion, cardData.pageWidth);
+        return { image, card, cellUrl };
+    } catch (_) {
+        return { image, card, cellUrl: '' };
+    }
+}
+
+async function applyFallbackImageResult(result) {
+    const { image, card, cellUrl } = result || {};
+    if (!image || !card || image.dataset.fallbackPending !== 'loading') return;
+    if (cellUrl) {
+        image.src = cellUrl;
         await image.decode?.().catch(() => {});
         image.classList.remove('is-loading');
         delete image.dataset.fallbackPending;
-    } catch (_) {
-        image.remove();
-        const expired = document.createElement('div');
-        expired.className = 'img-expired';
-        const icon = document.createElement('i');
-        icon.className = 'fa-solid fa-clock';
-        expired.append(icon, ' 画像がありません');
-        card.prepend(expired);
+        return;
     }
+    image.remove();
+    const expired = document.createElement('div');
+    expired.className = 'img-expired';
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid fa-clock';
+    expired.append(icon, ' 画像がありません');
+    card.prepend(expired);
 }
 
 async function prewarmInitialImages(cards, limit = 48) {

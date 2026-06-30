@@ -506,12 +506,6 @@ const CIQSupabaseAPI = {
 
     async uploadAnswerPage(projectId, entryNumber, pageImage, cells, pageWidth, knownEntry = null) {
         const entry = knownEntry?.id ? knownEntry : await this.findEntryByNumber(projectId, entryNumber);
-        console.info('[CIQ upload debug] uploadAnswerPage:entryLookup', {
-            projectId,
-            entryNumber,
-            usedKnownEntry: Boolean(knownEntry?.id),
-            foundEntry: Boolean(entry?.id),
-        });
         if (!entry) throw new Error(`受付番号 ${entryNumber} の参加者が見つかりません。`);
 
         const pagePath = `${projectId}/${entryNumber}/page.webp`;
