@@ -736,15 +736,6 @@ const CIQSupabaseAPI = {
 
     async getQuestionAnswerCards(projectId, questionNumber) {
         const pages = await this.listAnswerPages(projectId);
-        const pageUrlMap = await this.getAnswerPageUrls(
-            projectId,
-            pages.map((page) => {
-                return {
-                    key: String(page.entry_id),
-                    storagePath: page.storage_path,
-                };
-            })
-        ).catch(() => ({}));
         const cards = await Promise.all(pages.map(async (page) => {
             const entry = page.entries || {};
             const entryNumber = Number(entry.entry_number);
@@ -755,7 +746,7 @@ const CIQSupabaseAPI = {
                 displayName: entry.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
                 affiliation: entry.affiliation || '',
                 grade: entry.grade || '',
-                pageUrl: pageUrlMap[String(page.entry_id)] || null,
+                pageUrl: null,
                 cellUrl: null,
                 storagePath: page.storage_path || null,
                 pageWidth: Number(page.cells?.pageWidth || 0) || null,

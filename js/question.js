@@ -135,9 +135,15 @@ async function loadFallbackImage(image, cardData, card) {
 async function prewarmInitialImages(cards, limit = 24) {
     const targets = cards
         .slice(0, limit)
-        .filter(card => !card.cellUrl && card.pageUrl && card.cellRegion);
+        .filter(card => !card.cellUrl && card.storagePath && card.cellRegion);
+    const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, targets.map(card => ({
+        key: String(card.entryId),
+        storagePath: card.storagePath,
+    }))).catch(() => ({}));
     await runLimited(targets, 6, async (card) => {
         try {
+            card.pageUrl = pageUrls[String(card.entryId)] || card.pageUrl || '';
+            if (!card.pageUrl) throw new Error('Missing page URL');
             card.cellUrl = await CIQSupabaseAPI.cropImageRegion(card.pageUrl, card.cellRegion, card.pageWidth);
         } catch (_) {
             card.cellUrl = null;
