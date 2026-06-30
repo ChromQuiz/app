@@ -13,6 +13,7 @@
 
         const ANSWER_UPLOAD_DEBUG_VERSION = '2026-06-29-answer-upload-v2';
         console.info('[CIQ upload debug] admin_prep loaded', { version: ANSWER_UPLOAD_DEBUG_VERSION });
+        const ANSWER_SCAN_RENDER_SCALE = 2.2;
 
         function summarizeNumbers(numbers) {
             const clean = (numbers || [])
@@ -79,7 +80,7 @@
         async function buildLayoutConfig(qCount) {
             const qCols = 5;
             const pageWidth = 210, pageHeight = 297;
-            const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: 3, tombo: [], markCells: [], answerRegions: [] };
+            const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: ANSWER_SCAN_RENDER_SCALE, tombo: [], markCells: [], answerRegions: [] };
             const markerSize = 10, margin = 5;
             const markerPositions = [{ x: margin, y: margin, id: 0 }, { x: pageWidth - margin - markerSize, y: margin, id: 1 }, { x: margin, y: pageHeight - margin - markerSize, id: 2 }, { x: pageWidth - margin - markerSize, y: pageHeight - margin - markerSize, id: 3 }];
             
@@ -130,7 +131,7 @@
                 window.jsPDF = window.jspdf.jsPDF;
                 const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 const pageWidth = 210, pageHeight = 297;
-                const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: 3, tombo: [], markCells: [], answerRegions: [] };
+                const config = { questionCount: qCount, columns: qCols, questionOrder: 'horizontal', scale: ANSWER_SCAN_RENDER_SCALE, tombo: [], markCells: [], answerRegions: [] };
                 const markerSize = 10, margin = 5;
                 // マーカー画像をcanvas経由でjsPDFに渡す（PNGデコーダ不具合 & JPEG劣化回避）
                 const markerPositions = [{ x: margin, y: margin, id: 0 }, { x: pageWidth - margin - markerSize, y: margin, id: 1 }, { x: margin, y: pageHeight - margin - markerSize, id: 2 }, { x: pageWidth - margin - markerSize, y: pageHeight - margin - markerSize, id: 3 }];
