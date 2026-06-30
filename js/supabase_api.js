@@ -780,7 +780,7 @@ const CIQSupabaseAPI = {
         return promise;
     },
 
-    canvasToObjectUrl(canvas, type = 'image/webp', quality = 0.72) {
+    canvasToObjectUrl(canvas, type = 'image/webp', quality = 0.64) {
         return new Promise((resolve, reject) => {
             canvas.toBlob((blob) => {
                 if (!blob) {
@@ -792,7 +792,7 @@ const CIQSupabaseAPI = {
         });
     },
 
-    cropImageRegion(imageUrl, region, sourceWidth, quality = 0.72) {
+    cropImageRegion(imageUrl, region, sourceWidth, quality = 0.64) {
         return new Promise(async (resolve, reject) => {
             try {
                 if (!imageUrl || !region) throw new Error('Missing image region');

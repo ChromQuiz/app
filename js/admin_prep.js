@@ -201,8 +201,10 @@
         const workCanvas = document.getElementById('work-canvas');
         const workCtx = workCanvas.getContext('2d');
         let scanConfig = null, scanAnswers = [];
+        const ANSWER_PAGE_IMAGE_MAX_WIDTH = 840;
+        const ANSWER_PAGE_IMAGE_QUALITY = 0.18;
 
-        function canvasToBlob(canvas, type = 'image/webp', quality = 0.22) {
+        function canvasToBlob(canvas, type = 'image/webp', quality = ANSWER_PAGE_IMAGE_QUALITY) {
             return new Promise((resolve, reject) => {
                 canvas.toBlob((blob) => {
                     if (blob) resolve(blob);
@@ -412,14 +414,13 @@
                         const cr = transformRegion(scanConfig.answerRegions[q], transform);
                         cellRegions[`q${q + 1}`] = { x: Math.round(cr.x), y: Math.round(cr.y), w: Math.round(cr.w), h: Math.round(cr.h) };
                     }
-                    // ページ画像を縮小してBlob化（Base64変換を避ける）
-                    const MAX_IMG_W = 1000;
+                    // 採点画面ではページ全体を取得してセルを切り出すため、保存時点で転送量を抑える。
                     let pageBlob;
                     stepStartedAt = performance.now();
-                    if (workCanvas.width > MAX_IMG_W) {
-                        const ratio = MAX_IMG_W / workCanvas.width;
+                    if (workCanvas.width > ANSWER_PAGE_IMAGE_MAX_WIDTH) {
+                        const ratio = ANSWER_PAGE_IMAGE_MAX_WIDTH / workCanvas.width;
                         const sc = document.createElement('canvas');
-                        sc.width = MAX_IMG_W; sc.height = Math.round(workCanvas.height * ratio);
+                        sc.width = ANSWER_PAGE_IMAGE_MAX_WIDTH; sc.height = Math.round(workCanvas.height * ratio);
                         sc.getContext('2d').drawImage(workCanvas, 0, 0, sc.width, sc.height);
                         pageBlob = await canvasToBlob(sc);
                         sc.width = 0;

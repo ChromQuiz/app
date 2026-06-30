@@ -54,8 +54,6 @@ function createAnswerCard(cardData, idx) {
     updateAnswerCardClass(card, myScore, idx === selectedIndex);
     card.setAttribute('aria-label', `${cardData.displayName} の答案`);
     card.setAttribute('aria-selected', idx === selectedIndex ? 'true' : 'false');
-    const waitsForImage = !cardData.cellUrl && (cardData.pageUrl || cardData.storagePath) && cardData.cellRegion;
-
     if (cardData.cellUrl || (cardData.pageUrl && cardData.cellRegion) || (cardData.storagePath && cardData.cellRegion)) {
         const image = document.createElement('img');
         image.alt = cardData.displayName;
@@ -82,7 +80,6 @@ function createAnswerCard(cardData, idx) {
     const entryNum = document.createElement('div');
     entryNum.className = 'entry-num';
     entryNum.textContent = cardData.displayName;
-    entryNum.hidden = Boolean(waitsForImage);
     card.appendChild(entryNum);
     card.addEventListener('click', () => selectCard(idx));
     card.addEventListener('dblclick', () => showPreview(projectId, null, cardData.entryNumber));
@@ -151,8 +148,6 @@ async function loadFallbackImage(image, cardData, card) {
         image.src = await CIQSupabaseAPI.cropImageRegion(pageUrl, cardData.cellRegion, cardData.pageWidth);
         await image.decode?.().catch(() => {});
         image.classList.remove('is-loading');
-        const entryNum = card.querySelector('.entry-num');
-        if (entryNum) entryNum.hidden = false;
         delete image.dataset.fallbackPending;
     } catch (_) {
         image.remove();
@@ -162,8 +157,6 @@ async function loadFallbackImage(image, cardData, card) {
         icon.className = 'fa-solid fa-clock';
         expired.append(icon, ' 画像がありません');
         card.prepend(expired);
-        const entryNum = card.querySelector('.entry-num');
-        if (entryNum) entryNum.hidden = false;
     }
 }
 
