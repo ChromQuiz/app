@@ -186,17 +186,23 @@ async function init() {
 
 async function refreshVotes() {
     const votes = await CIQSupabaseAPI.listQuestionScoreVotes(projectId, currentQ);
+    const myVoteByEntry = new Map();
+    for (const vote of votes) {
+        if (vote.scorer_member_id === currentMemberId) {
+            myVoteByEntry.set(vote.entry_id, vote);
+        }
+    }
     const nextScores = {};
     for (const card of answerCards) {
         if (pendingWrites[card.entryId] !== undefined) {
             nextScores[card.entryId] = pendingWrites[card.entryId];
             continue;
         }
-        const vote = votes.find(row => row.entry_id === card.entryId && row.scorer_member_id === currentMemberId);
+        const vote = myVoteByEntry.get(card.entryId);
         nextScores[card.entryId] = vote?.result || null;
     }
     for (const [entryId, result] of Object.entries(pendingWrites)) {
-        const serverVote = votes.find(row => row.entry_id === entryId && row.scorer_member_id === currentMemberId);
+        const serverVote = myVoteByEntry.get(entryId);
         if (serverVote?.result === result) delete pendingWrites[entryId];
     }
     myScores = nextScores;
@@ -209,7 +215,10 @@ function renderGrid() {
     if (selectedIndex >= answerCards.length) selectedIndex = Math.max(0, answerCards.length - 1);
 
     const total = answerCards.length;
-    const done = answerCards.filter(card => myScores[card.entryId] !== null).length;
+    let done = 0;
+    for (const card of answerCards) {
+        if (myScores[card.entryId] !== null) done++;
+    }
     document.getElementById('progress-text').textContent = `${done} / ${total} 件`;
 
     if (grid.children.length === answerCards.length && grid.children[0]?.className?.includes('answer-card')) {
