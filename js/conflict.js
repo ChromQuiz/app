@@ -14,6 +14,9 @@ let currentConflicts = [];
 let selectedIndex = 0;
 let cellUrlCache = {};
 let cellUrlPreloadKey = '';
+let conflictImageObserver = null;
+let conflictImageFlushTimer = null;
+const conflictImageQueue = new Map();
 
 async function runLimited(items, limit, task) {
     const results = [];
@@ -207,7 +210,8 @@ async function render() {
         return;
     }
 
-    const missingImages = getMissingConflictImageRequests(currentConflicts);
+    const initialImageLimit = 32;
+    const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, initialImageLimit));
     if (missingImages.length) {
         setConflictGridMessage('画像を準備中...', { icon: 'fa-solid fa-spinner fa-spin' });
         const imageStartedAt = performance.now();
@@ -269,6 +273,9 @@ function createConflictCard(conflict, idx) {
         icon.className = 'fa-solid fa-clock';
         expired.append(icon, hasTriedImage ? ' 画像がありません' : ' 画像を読み込み中');
         card.appendChild(expired);
+        if (!hasTriedImage && conflict.storagePath && conflict.cellRegions?.[`q${conflict.q}`]) {
+            observeConflictImage(card, conflict);
+        }
     }
 
     const qTag = document.createElement('div');
@@ -298,6 +305,74 @@ function createConflictCard(conflict, idx) {
     });
     card.appendChild(votes);
     return card;
+}
+
+function observeConflictImage(card, conflict) {
+    if (!conflictImageObserver && 'IntersectionObserver' in window) {
+        conflictImageObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                conflictImageObserver.unobserve(entry.target);
+                queueConflictImage(entry.target._ciqConflict);
+            });
+        }, { rootMargin: '700px 0px' });
+    }
+    card._ciqConflict = conflict;
+    if (conflictImageObserver) {
+        conflictImageObserver.observe(card);
+    } else {
+        queueConflictImage(conflict);
+    }
+}
+
+function queueConflictImage(conflict) {
+    const key = `${conflict.entryNumber}:q${conflict.q}`;
+    if (cellUrlCache[key] !== undefined) return;
+    conflictImageQueue.set(key, {
+        key,
+        entryNumber: conflict.entryNumber,
+        questionNumber: conflict.q,
+        storagePath: conflict.storagePath,
+        cellRegion: conflict.cellRegions?.[`q${conflict.q}`] || null,
+        pageWidth: conflict.pageWidth,
+    });
+    if (conflictImageFlushTimer) return;
+    conflictImageFlushTimer = setTimeout(flushConflictImages, 40);
+}
+
+async function flushConflictImages() {
+    conflictImageFlushTimer = null;
+    const batch = Array.from(conflictImageQueue.values());
+    conflictImageQueue.clear();
+    if (!batch.length) return;
+    await ensureConflictCellUrls(batch);
+    updateVisibleConflictImages(batch);
+}
+
+function updateVisibleConflictImages(requests) {
+    const requestKeys = new Set(requests.map(request => request.key));
+    document.querySelectorAll('.conflict-card').forEach((card) => {
+        const conflict = card._ciqConflict;
+        if (!conflict) return;
+        const key = `${conflict.entryNumber}:q${conflict.q}`;
+        if (!requestKeys.has(key)) return;
+        const cellUrl = cellUrlCache[key];
+        const imageSlot = card.querySelector('.img-expired');
+        if (!imageSlot) return;
+        if (!cellUrl) {
+            imageSlot.textContent = '';
+            const icon = document.createElement('i');
+            icon.className = 'fa-solid fa-clock';
+            imageSlot.append(icon, ' 画像がありません');
+            return;
+        }
+        const image = document.createElement('img');
+        image.src = cellUrl;
+        image.alt = `${conflict.displayName} ${conflict.q}問`;
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        imageSlot.replaceWith(image);
+    });
 }
 
 async function ensureConflictCellUrls(missing) {
