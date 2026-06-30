@@ -2,7 +2,8 @@
 
 ## Authenticated Pages
 
-- `index.html`: login, project creation, and project join.
+- `index.html`: login and project join.
+- `create.html`: project creation.
 - `admin.html`: main admin dashboard.
 - `judge.html`: question overview and scorer navigation.
 - `question.html`: per-question scoring.

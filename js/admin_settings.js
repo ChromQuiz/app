@@ -151,7 +151,7 @@
         }
 
         async function removeProjectMember(memberId) {
-            const ok = await showConfirm('このメンバーをキックします。同じ採点者コードでは再参加できなくなります。', 'キックする');
+            const ok = await showConfirm('このメンバーをキックします。同じパスワードでは再参加できなくなります。', 'キックする');
             if (!ok) return;
             try {
                 await CIQSupabaseAPI.removeProjectMember(memberId);

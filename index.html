@@ -40,7 +40,7 @@
       </div>
       <div class="auth-provider-actions">
         <button type="button" class="google-signin-btn" id="supabase-login-btn">
-          <img class="google-signin-img" src="assets/vendor/google/web_light_rd_ctn.svg" alt="Continue with Google">
+          <img class="google-signin-img" src="assets/vendor/google/web_light_rd_ctn.svg" alt="Googleで続行">
         </button>
         <button type="button" class="btn secondary" id="supabase-logout-btn" hidden>
           Googleからサインアウト
@@ -48,56 +48,17 @@
       </div>
     </div>
 
-    <div class="tabs" id="tabs-container">
-      <div class="tab active" id="tab-join">プロジェクト</div>
-      <div class="tab" id="tab-create">新規作成</div>
-    </div>
-
-    <div id="section-join">
+    <div id="section-join" hidden>
       <div id="project-list" class="project-list">
       </div>
       <div class="scorer-join-panel">
         <div class="scorer-join-title"><i class="fa-solid fa-user-check"></i> 採点者参加</div>
         <label>プロジェクトID</label>
         <input type="text" id="join-project-id" placeholder="例: ciq13" />
-        <label>採点者コード</label>
-        <input type="password" id="join-scorer-code" placeholder="管理者から共有されたコード" />
+        <label>パスワード</label>
+        <input type="password" id="join-scorer-code" placeholder="管理者から共有されたパスワード" />
         <button class="btn secondary" id="join-scorer-btn">参加 <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
       </div>
-    </div>
-
-    <!-- 新規作成セクション -->
-    <div id="section-create" hidden>
-      <label>回数（例：第13回 → 13）</label>
-      <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
-
-      <button class="btn" id="create-btn">作成 <i class="fa-solid fa-plus"></i></button>
-    </div>
-
-    <!-- 作成完了セクション -->
-    <div id="section-success" class="u-text-center" hidden>
-      <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
-      <h3 class="success-title">作成完了！</h3>
-      <p class="success-desc">以下を安全に保管してください。</p>
-      
-      <div class="credential-panel" data-stagger>
-        <label><i class="fa-solid fa-fingerprint"></i> プロジェクトID</label>
-        <div class="credential-row">
-          <input type="text" id="success-id" readonly />
-          <button class="btn standard credential-copy-btn" data-copy-target="success-id"><i class="fa-solid fa-copy"></i></button>
-        </div>
-        <label id="success-admin-pwd-label"><i class="fa-solid fa-crown crown-icon"></i> 管理者用 マスターパスワード</label>
-        <div class="credential-row">
-          <input type="text" id="success-admin-pwd" readonly />
-          <button class="btn master credential-copy-btn" data-copy-target="success-admin-pwd"><i class="fa-solid fa-copy"></i></button>
-        </div>
-        <label><i class="fa-solid fa-users"></i> 採点者コード</label>
-        <div class="credential-row">
-          <input type="text" id="success-pwd" readonly />
-          <button class="btn standard credential-copy-btn" data-copy-target="success-pwd"><i class="fa-solid fa-copy"></i></button>
-        </div>
-      </div>
-      <button class="btn" id="admin-proceed-btn">管理画面へ <i class="fa-solid fa-gear"></i></button>
     </div>
 
 
@@ -107,6 +68,6 @@
       <i class="fa-solid fa-circle-question"></i> ヘルプ
     </a>
   </div>
-  <script defer src="js/index.js?v=5"></script>
+  <script defer src="js/index.js?v=6"></script>
 </body>
 </html>

@@ -279,17 +279,17 @@
             </div>
         </div>
 
-        <!-- ==================== TAB 1: 採点準備（回答用紙＋模範解答） ==================== -->
+        <!-- ==================== TAB 1: 採点準備（解答用紙＋模範解答） ==================== -->
         <div class="tab-content" id="tab-prep">
             <div class="section glass-panel">
-                <h2><i class="fa-solid fa-file-pdf"></i> 回答用紙の生成</h2>
+                <h2><i class="fa-solid fa-file-pdf"></i> 解答用紙の生成</h2>
                 <label><i class="fa-solid fa-list-ol"></i> 問題数</label>
                 <div class="number-spinner-wrap mt-sm">
                     <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="-10"><i class="fa-solid fa-minus"></i></button>
                     <input type="number" id="question-count" value="100" min="10" max="200" step="10" />
                     <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="10"><i class="fa-solid fa-plus"></i></button>
                 </div>
-                <div class="info-hint"><i class="fa-solid fa-circle-info"></i> 10の倍数で指定 / 列数は5固定</div>
+                <div class="info-hint"><i class="fa-solid fa-circle-info"></i> 10の倍数で指定</div>
                 <button class="btn secondary mt-lg" data-action="generate-pdf"><i class="fa-solid fa-download"></i> ダウンロード</button>
             </div>
 
@@ -442,7 +442,7 @@
 
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-user-shield"></i> メンバー管理</h2>
-                <p class="desc-text mb-md">採点者はプロジェクトIDと採点者コードで参加できます。管理者は参加済みメンバーの権限変更、キック、復帰ができます。</p>
+                <p class="desc-text mb-md">採点者はプロジェクトIDとパスワードで参加できます。管理者は参加済みメンバーの権限変更、キック、復帰ができます。</p>
                 <div class="member-management-toolbar">
                     <button class="btn secondary" data-action="load-project-members"><i class="fa-solid fa-rotate"></i> 更新</button>
                 </div>

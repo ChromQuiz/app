@@ -328,7 +328,7 @@ const CIQSupabaseAPI = {
             })
             .single();
         if (error) {
-            if (error.message?.includes('Invalid scorer code')) throw new Error('プロジェクトIDまたは採点者コードが正しくありません。');
+            if (error.message?.includes('Invalid scorer code')) throw new Error('プロジェクトIDまたはパスワードが正しくありません。');
             if (error.message?.includes('Project not found')) throw new Error('プロジェクトが見つかりません。');
             throw error;
         }

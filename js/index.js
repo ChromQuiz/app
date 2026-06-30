@@ -30,7 +30,7 @@ function generateStrongPassword() {
     return chars.join('');
 }
 
-let currentTab = 'join';
+let currentTab = document.body?.dataset?.authPage === 'create' ? 'create' : 'join';
 let supabaseSession = null;
 
 function getGoogleDisplayName() {
@@ -80,8 +80,11 @@ function setTab(tab) {
     const tabCreate = document.getElementById('tab-create');
     if (tabJoin) tabJoin.className = tab === 'join' ? 'tab active' : 'tab';
     if (tabCreate) tabCreate.className = tab === 'create' ? 'tab active' : 'tab';
-    document.getElementById('section-join').hidden = tab !== 'join';
-    document.getElementById('section-create').hidden = tab !== 'create';
+    const joinSection = document.getElementById('section-join');
+    const createSection = document.getElementById('section-create');
+    const signedIn = Boolean(supabaseSession?.user);
+    if (joinSection) joinSection.hidden = tab !== 'join' || !signedIn;
+    if (createSection) createSection.hidden = tab !== 'create' || !signedIn;
     renderCreateAuthState();
 }
 
@@ -99,6 +102,7 @@ function renderSupabaseAuth(sessionData) {
     if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '';
     if (loginBtn) loginBtn.hidden = Boolean(email);
     if (logoutBtn) logoutBtn.hidden = !email;
+    setTab(currentTab);
     renderCreateAuthState();
     renderProjectList();
 }
@@ -108,6 +112,8 @@ function renderCreateAuthState() {
     const createBtn = document.getElementById('create-btn');
     const email = supabaseSession?.user?.email || '';
 
+    const createSection = document.getElementById('section-create');
+    if (createSection) createSection.hidden = currentTab !== 'create' || !email;
     if (createBtn) {
         createBtn.disabled = !email;
         setButtonContent(createBtn, '作成', email ? 'fa-solid fa-plus' : '');
@@ -135,6 +141,7 @@ async function renderProjectList() {
         clearProjectList();
         return;
     }
+    if (currentTab !== 'join') return;
 
     list.textContent = '';
     const loading = document.createElement('div');
@@ -195,7 +202,7 @@ async function joinProjectAsScorer() {
         return;
     }
     if (!projectId || !accessCode) {
-        showError('プロジェクトIDと採点者コードを入力してください。');
+        showError('プロジェクトIDとパスワードを入力してください。');
         return;
     }
 
@@ -257,7 +264,7 @@ async function copyToClipboard(id, btn) {
 
 async function createProject() {
     const edition = parseInt(document.getElementById('create-edition').value, 10);
-    const recoveryPassword = generateStrongPassword();
+    const keyWrappingPassword = generateStrongPassword();
     const scorerCode = generateStrongPassword();
     const btn = document.getElementById('create-btn');
 
@@ -278,7 +285,7 @@ async function createProject() {
 
     try {
         const { publicKeyJwk, privateKeyJwk } = await AppCrypto.generateRSAKeyPair();
-        const encryptedPriv = await AppCrypto.encryptAES(JSON.stringify(privateKeyJwk), recoveryPassword);
+        const encryptedPriv = await AppCrypto.encryptAES(JSON.stringify(privateKeyJwk), keyWrappingPassword);
         const scorerAccessCodeHash = await AppCrypto.hashPassword(scorerCode);
         const ownerDisplayName = getGoogleDisplayName();
 
@@ -303,18 +310,16 @@ async function createProject() {
 
         const tabsContainer = document.getElementById('tabs-container');
         if (tabsContainer) tabsContainer.hidden = true;
-        document.getElementById('section-create').hidden = true;
-        document.getElementById('section-join').hidden = true;
-        document.getElementById('section-success').hidden = false;
-        document.getElementById('success-id').value = pid;
-        document.getElementById('success-admin-pwd').value = recoveryPassword;
-        document.getElementById('success-pwd').value = scorerCode;
-        const adminPwdLabel = document.getElementById('success-admin-pwd-label');
-        if (adminPwdLabel) {
-            adminPwdLabel.textContent = '';
-            const keyIcon = icon('fa-solid fa-key crown-icon');
-            adminPwdLabel.append(keyIcon, ' 秘密鍵復旧パスワード');
-        }
+        const createSection = document.getElementById('section-create');
+        const joinSection = document.getElementById('section-join');
+        const successSection = document.getElementById('section-success');
+        if (createSection) createSection.hidden = true;
+        if (joinSection) joinSection.hidden = true;
+        if (successSection) successSection.hidden = false;
+        const successId = document.getElementById('success-id');
+        const successPwd = document.getElementById('success-pwd');
+        if (successId) successId.value = pid;
+        if (successPwd) successPwd.value = scorerCode;
 
         await renderProjectList();
     } catch (e) {
@@ -337,6 +342,7 @@ function setupIndexEvents() {
     document.getElementById('admin-proceed-btn')?.addEventListener('click', () => {
         location.href = 'admin.html';
     });
+    setTab(currentTab);
 }
 
 async function initSupabaseAuth() {

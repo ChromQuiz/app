@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="description" content="CIQ - クイズ大会の解答採点を支援するウェブプラットフォーム">
+  <meta property="og:title" content="CIQ - プロジェクト作成">
+  <meta property="og:description" content="CIQプロジェクトを作成します">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="og-image.png">
+  <title>CIQ - プロジェクト作成</title>
+  <script defer src="js/config.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="js/supabase_config.js"></script>
+  <script defer src="js/supabase_client.js"></script>
+  <script defer src="js/supabase_api.js?v=7"></script>
+  <script defer src="js/crypto.js"></script>
+  <script defer src="js/ui.js?v=2"></script>
+  <script defer src="js/custom-select.js"></script>
+  <script defer src="js/shared.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/design_system.css?v=20">
+  <link rel="stylesheet" href="css/pages.css?v=30">
+</head>
+
+<body class="page-index" data-auth-page="create">
+  <h1>CIQ</h1>
+  <div class="card">
+    <div id="status-msg" class="status-msg-box"></div>
+
+    <div id="supabase-auth-panel" class="auth-provider-panel" hidden>
+      <div class="auth-provider-main">
+        <div class="auth-provider-user" id="supabase-auth-user"></div>
+      </div>
+      <div class="auth-provider-actions">
+        <button type="button" class="google-signin-btn" id="supabase-login-btn">
+          <img class="google-signin-img" src="assets/vendor/google/web_light_rd_ctn.svg" alt="Googleで続行">
+        </button>
+        <button type="button" class="btn secondary" id="supabase-logout-btn" hidden>
+          Googleからサインアウト
+        </button>
+      </div>
+    </div>
+
+    <div id="section-create" hidden>
+      <label>回数（例：第13回 → 13）</label>
+      <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
+      <button class="btn" id="create-btn">作成 <i class="fa-solid fa-plus"></i></button>
+    </div>
+
+    <div id="section-success" class="u-text-center" hidden>
+      <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <h3 class="success-title">作成完了</h3>
+      <p class="success-desc">以下を安全に保管してください。</p>
+
+      <div class="credential-panel" data-stagger>
+        <label><i class="fa-solid fa-fingerprint"></i> プロジェクトID</label>
+        <div class="credential-row">
+          <input type="text" id="success-id" readonly />
+          <button class="btn standard credential-copy-btn" data-copy-target="success-id"><i class="fa-solid fa-copy"></i></button>
+        </div>
+        <label><i class="fa-solid fa-key"></i> パスワード</label>
+        <div class="credential-row">
+          <input type="text" id="success-pwd" readonly />
+          <button class="btn standard credential-copy-btn" data-copy-target="success-pwd"><i class="fa-solid fa-copy"></i></button>
+        </div>
+      </div>
+      <button class="btn" id="admin-proceed-btn">管理画面へ <i class="fa-solid fa-gear"></i></button>
+    </div>
+  </div>
+  <div class="index-help-link-wrap">
+    <a href="index.html" class="index-help-link">
+      <i class="fa-solid fa-arrow-right-to-bracket"></i> ログインへ
+    </a>
+  </div>
+  <script defer src="js/index.js?v=6"></script>
+</body>
+</html>
