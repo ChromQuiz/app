@@ -86,7 +86,7 @@ const CIQSupabaseAPI = {
     async signInWithGoogle() {
         const redirectTo = location.protocol === 'file:'
             ? undefined
-            : new URL('index.html', location.href).href;
+            : new URL(location.pathname.split('/').pop() || 'index.html', location.href).href;
         const { error } = await this.client().auth.signInWithOAuth({
             provider: 'google',
             options: redirectTo ? { redirectTo } : undefined,
