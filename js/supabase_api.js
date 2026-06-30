@@ -789,6 +789,18 @@ const CIQSupabaseAPI = {
         return promise;
     },
 
+    canvasToObjectUrl(canvas, type = 'image/webp', quality = 0.72) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    reject(new Error('Image encode failed'));
+                    return;
+                }
+                resolve(URL.createObjectURL(blob));
+            }, type, quality);
+        });
+    },
+
     cropImageRegion(imageUrl, region, sourceWidth, quality = 0.72) {
         return new Promise(async (resolve, reject) => {
             try {
@@ -803,7 +815,8 @@ const CIQSupabaseAPI = {
                 canvas.width = Math.min(w, Math.max(1, image.naturalWidth - x));
                 canvas.height = Math.min(h, Math.max(1, image.naturalHeight - y));
                 canvas.getContext('2d').drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL('image/webp', quality));
+                const objectUrl = await this.canvasToObjectUrl(canvas, 'image/webp', quality);
+                resolve(objectUrl);
                 canvas.width = 0;
                 canvas.height = 0;
             } catch (error) {

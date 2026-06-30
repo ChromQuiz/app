@@ -378,6 +378,7 @@
                         a.fullCanvas.height = 0;
                         a.fullCanvas = null;
                     }
+                    a.pageImage = null;
                     current++;
                     setProgressClass(overlayBar, (current / totalBatch) * 100);
                     overlayText.textContent = `${current} / ${totalBatch} 件保存`;
