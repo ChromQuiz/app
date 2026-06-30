@@ -26,12 +26,18 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/design_system.css?v=20">
-  <link rel="stylesheet" href="css/pages.css?v=30">
+  <link rel="stylesheet" href="css/pages.css?v=31">
 </head>
 
 <body class="page-index">
   <h1>CIQ</h1>
   <div class="card">
+    <div class="auth-page-header">
+      <p class="auth-page-kicker">ログイン</p>
+      <h2>プロジェクトに入る</h2>
+      <p>採点・管理を行うプロジェクトに参加します。</p>
+    </div>
+
     <div id="status-msg" class="status-msg-box"></div>
 
     <div id="supabase-auth-panel" class="auth-provider-panel" hidden>
@@ -64,6 +70,9 @@
 
   </div>
   <div class="index-help-link-wrap">
+    <a href="create.html" class="index-help-link">
+      <i class="fa-solid fa-circle-plus"></i> 新規作成
+    </a>
     <a href="help.html" class="index-help-link">
       <i class="fa-solid fa-circle-question"></i> ヘルプ
     </a>

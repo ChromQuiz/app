@@ -349,12 +349,17 @@ input::placeholder, textarea::placeholder { color: var(--text-faint); }
   text-align: center;
 }
 .index-help-link-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
   margin-top: 24px;
   text-align: center;
+  flex-wrap: wrap;
 }
 .index-help-link {
   color: var(--text-muted);
   font-size: 12px;
+  font-weight: 700;
   text-decoration: none;
 }
 .admin-manual-footer {
@@ -2857,11 +2862,12 @@ table tbody tr:hover,
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 12px 14px;
+  align-items: center;
+  padding: 18px 16px;
   margin-bottom: 16px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(37, 99, 235, 0.14);
   border-radius: 7px;
-  background: var(--surface-2);
+  background: rgba(37, 99, 235, 0.035);
   width: 100%;
   min-width: 0;
 }
@@ -2874,8 +2880,10 @@ table tbody tr:hover,
 .auth-provider-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   min-width: 0;
+  width: 100%;
 }
 
 .auth-provider-main > div {
@@ -2949,14 +2957,51 @@ table tbody tr:hover,
   writing-mode: horizontal-tb;
   text-orientation: mixed;
   white-space: normal;
+  text-align: center;
 }
 
 .auth-provider-panel .btn.secondary {
-  width: 100%;
+  width: auto;
   min-height: 34px;
   padding: 8px 12px;
   font-size: 12px;
   white-space: nowrap;
+}
+
+.auth-page-header {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.auth-page-kicker {
+  width: fit-content;
+  margin: 0 auto;
+  padding: 4px 10px;
+  border: 1px solid rgba(37, 99, 235, 0.26);
+  border-radius: 999px;
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.auth-page-header h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.auth-page-header p:not(.auth-page-kicker) {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
 }
 
 .index-mode-note {
