@@ -12,6 +12,8 @@ let selectedIndex = 0;
 let isCompleted = false;
 let pendingWrites = {};
 let fallbackImageObserver = null;
+let fallbackImageFlushTimer = null;
+const fallbackImageQueue = new Map();
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
@@ -92,7 +94,7 @@ function observeFallbackImage(card, image, cardData) {
                 if (!entry.isIntersecting) return;
                 fallbackImageObserver.unobserve(entry.target);
                 const target = entry.target;
-                loadFallbackImage(target._ciqImage, target._ciqCardData, target);
+                queueFallbackImage(target._ciqImage, target._ciqCardData, target);
             });
         }, { rootMargin: '600px 0px' });
     }
@@ -101,8 +103,34 @@ function observeFallbackImage(card, image, cardData) {
     if (fallbackImageObserver) {
         fallbackImageObserver.observe(card);
     } else {
-        loadFallbackImage(image, cardData, card);
+        queueFallbackImage(image, cardData, card);
     }
+}
+
+function queueFallbackImage(image, cardData, card) {
+    if (!image || image.dataset.fallbackPending !== 'true') return;
+    fallbackImageQueue.set(String(cardData.entryId), { image, cardData, card });
+    if (fallbackImageFlushTimer) return;
+    fallbackImageFlushTimer = setTimeout(flushFallbackImages, 40);
+}
+
+async function flushFallbackImages() {
+    fallbackImageFlushTimer = null;
+    const batch = Array.from(fallbackImageQueue.values());
+    fallbackImageQueue.clear();
+    if (!batch.length) return;
+
+    const needsPageUrl = batch
+        .filter(item => !item.cardData.pageUrl && item.cardData.storagePath)
+        .map(item => ({
+            key: String(item.cardData.entryId),
+            storagePath: item.cardData.storagePath,
+        }));
+    const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, needsPageUrl).catch(() => ({}));
+    batch.forEach((item) => {
+        item.cardData.pageUrl = item.cardData.pageUrl || pageUrls[String(item.cardData.entryId)] || '';
+    });
+    await runLimited(batch, 6, ({ image, cardData, card }) => loadFallbackImage(image, cardData, card));
 }
 
 async function loadFallbackImage(image, cardData, card) {
