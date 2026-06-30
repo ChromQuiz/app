@@ -32,6 +32,41 @@
             console.info('[CIQ upload debug]', label, details);
         }
 
+        function createPerfStats() {
+            return {
+                startedAt: performance.now(),
+                pdfLoadMs: 0,
+                pageRenderMs: 0,
+                pageDetectMs: 0,
+                imageEncodeMs: 0,
+                uploadMs: 0,
+                pages: 0,
+                bytes: 0,
+            };
+        }
+
+        function addMs(stats, key, startedAt) {
+            stats[key] += performance.now() - startedAt;
+        }
+
+        function roundedMs(value) {
+            return Math.round(value);
+        }
+
+        function logPerf(label, stats, extra = {}) {
+            console.info('[CIQ perf]', label, {
+                ...extra,
+                pages: stats.pages,
+                imageBytes: stats.bytes,
+                totalMs: roundedMs(performance.now() - stats.startedAt),
+                pdfLoadMs: roundedMs(stats.pdfLoadMs),
+                pageRenderMs: roundedMs(stats.pageRenderMs),
+                pageDetectMs: roundedMs(stats.pageDetectMs),
+                imageEncodeMs: roundedMs(stats.imageEncodeMs),
+                uploadMs: roundedMs(stats.uploadMs),
+            });
+        }
+
         function setProgressClass(el, percent) {
             if (!el) return;
             const rounded = Math.max(0, Math.min(100, Math.round(percent / 5) * 5));
@@ -235,8 +270,11 @@
             overlayTitle.textContent = '答案を読み込み中...';
 
             try {
+                const perfStats = createPerfStats();
+                let stepStartedAt = performance.now();
                 const arrayBuffer = await file.arrayBuffer();
                 let pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                addMs(perfStats, 'pdfLoadMs', stepStartedAt);
                 const total = pdfDoc.numPages; scanAnswers = [];
                 logUploadDebug('loadAnswers:pdfLoaded', { totalPages: total });
                 const pageValidation = CIQUploadValidation.validatePdfPageCount(total);
@@ -250,8 +288,11 @@
                     const viewport = page.getViewport({ scale: scanConfig.scale || 1.8 });
                     workCanvas.width = viewport.width; workCanvas.height = viewport.height;
                     workCtx.fillStyle = '#ffffff'; workCtx.fillRect(0, 0, workCanvas.width, workCanvas.height);
+                    stepStartedAt = performance.now();
                     await page.render({ canvasContext: workCtx, viewport }).promise;
+                    addMs(perfStats, 'pageRenderMs', stepStartedAt);
 
+                    stepStartedAt = performance.now();
                     let detectedResult = detectTombo(scanConfig.tombo);
                     if (!detectedResult.error && detectedResult.markerMap[0] && detectedResult.markerMap[2]) {
                         if (detectedResult.markerMap[0].y > detectedResult.markerMap[2].y) {
@@ -275,6 +316,7 @@
                             workCanvas.width = origData.width; workCanvas.height = origData.height; workCtx.putImageData(origData, 0, 0);
                         }
                     }
+                    addMs(perfStats, 'pageDetectMs', stepStartedAt);
 
 
                     const transform = calcPerspectiveTransform(scanConfig.tombo.map(r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })), detectedResult.points);
@@ -288,6 +330,7 @@
                     // ページ画像を縮小してBlob化（Base64変換を避ける）
                     const MAX_IMG_W = 1000;
                     let pageBlob;
+                    stepStartedAt = performance.now();
                     if (workCanvas.width > MAX_IMG_W) {
                         const ratio = MAX_IMG_W / workCanvas.width;
                         const sc = document.createElement('canvas');
@@ -299,6 +342,9 @@
                     } else {
                         pageBlob = await canvasToBlob(workCanvas);
                     }
+                    addMs(perfStats, 'imageEncodeMs', stepStartedAt);
+                    perfStats.pages++;
+                    perfStats.bytes += pageBlob?.size || 0;
                     scanAnswers.push({ page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageBlob, pageWidth: workCanvas.width });
                 }
 
@@ -358,7 +404,9 @@
                             entryNumber: a.entryNumber,
                             hasKnownEntry: Boolean(knownEntry?.id),
                         });
+                        const uploadStartedAt = performance.now();
                         await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth, knownEntry);
+                        addMs(perfStats, 'uploadMs', uploadStartedAt);
                     } catch (e) {
                         console.error(`Entry ${a.entryNumber} upload error:`, e);
                         logUploadDebug('uploadEntry:pageFailed', {
@@ -391,6 +439,7 @@
                 }
 
                 overlayText.textContent = '完了しました！';
+                logPerf('answerUploadComplete', perfStats, { uploadFailures: uploadFailures.length });
                 setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);
                 if (uploadFailures.length) {
                     const detail = uploadFailures

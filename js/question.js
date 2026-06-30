@@ -24,6 +24,10 @@ async function runLimited(items, limit, task) {
     return results;
 }
 
+function logPerf(label, details = {}) {
+    console.info('[CIQ perf]', label, details);
+}
+
 function setAnswerGridMessage(message, iconClass = '') {
     const grid = document.getElementById('answer-grid');
     grid.textContent = '';
@@ -143,14 +147,17 @@ async function prewarmInitialImages(cards, limit = 24) {
 
 async function init() {
     try {
+        const startedAt = performance.now();
         const joined = await CIQSupabaseAPI.joinQuestionScorer(projectId, currentQ);
         currentMemberId = joined.scorer_member_id;
         isCompleted = Boolean(joined.completed_at);
 
+        const dataStartedAt = performance.now();
         const [answerText, cards] = await Promise.all([
             CIQSupabaseAPI.getModelAnswer(projectId, currentQ),
             CIQSupabaseAPI.getQuestionAnswerCards(projectId, currentQ),
         ]);
+        const dataMs = Math.round(performance.now() - dataStartedAt);
 
         document.getElementById('answer-badge').textContent = answerText || '未設定';
         answerCards = cards;
@@ -160,8 +167,17 @@ async function init() {
             return;
         }
 
+        const prewarmStartedAt = performance.now();
         await prewarmInitialImages(answerCards);
+        const prewarmMs = Math.round(performance.now() - prewarmStartedAt);
         await refreshVotes();
+        logPerf('questionInitialLoad', {
+            questionNumber: currentQ,
+            cards: answerCards.length,
+            dataMs,
+            initialImageMs: prewarmMs,
+            totalMs: Math.round(performance.now() - startedAt),
+        });
         setInterval(refreshVotes, 3000);
     } catch (e) {
         setAnswerGridMessage(e.message || '採点データを読み込めませんでした', 'fa-solid fa-triangle-exclamation');

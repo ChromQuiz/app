@@ -24,6 +24,10 @@ async function runLimited(items, limit, task) {
     return results;
 }
 
+function logPerf(label, details = {}) {
+    console.info('[CIQ perf]', label, details);
+}
+
 function setConflictGridMessage(message, options = {}) {
     const grid = document.getElementById('conflict-grid');
     grid.textContent = '';
@@ -55,6 +59,7 @@ async function init() {
 }
 
 async function refreshData() {
+    const startedAt = performance.now();
     const [
         projectRow,
         pages,
@@ -70,6 +75,7 @@ async function refreshData() {
         CIQSupabaseAPI.listFinalResults(projectId),
         CIQSupabaseAPI.listQuestionScorers(projectId),
     ]);
+    const dataMs = Math.round(performance.now() - startedAt);
 
     project = projectRow;
     answerPages = pages;
@@ -79,7 +85,16 @@ async function refreshData() {
     modelAnswers = {};
     for (const row of modelRows) modelAnswers[row.question_number] = row.answer;
 
+    const renderStartedAt = performance.now();
     await render();
+    logPerf('conflictRefresh', {
+        pages: answerPages.length,
+        votes: scoreVotes.length,
+        conflicts: currentConflicts.length,
+        dataMs,
+        renderMs: Math.round(performance.now() - renderStartedAt),
+        totalMs: Math.round(performance.now() - startedAt),
+    });
 }
 
 function getEntryMeta(page) {
@@ -175,7 +190,12 @@ async function render() {
     const missingImages = getMissingConflictImageRequests(currentConflicts);
     if (missingImages.length) {
         setConflictGridMessage('画像を準備中...', { icon: 'fa-solid fa-spinner fa-spin' });
+        const imageStartedAt = performance.now();
         await ensureConflictCellUrls(missingImages);
+        logPerf('conflictImagePrep', {
+            requested: missingImages.length,
+            imageMs: Math.round(performance.now() - imageStartedAt),
+        });
         await render();
         return;
     }
