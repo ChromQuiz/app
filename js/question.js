@@ -15,6 +15,15 @@ let fallbackImageObserver = null;
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
+async function runLimited(items, limit, task) {
+    const results = [];
+    for (let i = 0; i < items.length; i += limit) {
+        const batch = items.slice(i, i + limit);
+        results.push(...await Promise.all(batch.map(task)));
+    }
+    return results;
+}
+
 function setAnswerGridMessage(message, iconClass = '') {
     const grid = document.getElementById('answer-grid');
     grid.textContent = '';
@@ -40,7 +49,7 @@ function createAnswerCard(cardData, idx) {
     card.setAttribute('aria-label', `${cardData.displayName} の答案`);
     card.setAttribute('aria-selected', idx === selectedIndex ? 'true' : 'false');
 
-    if (cardData.cellUrl || (cardData.storagePath && cardData.cellRegion)) {
+    if (cardData.cellUrl || (cardData.pageUrl && cardData.cellRegion) || (cardData.storagePath && cardData.cellRegion)) {
         const image = document.createElement('img');
         image.alt = cardData.displayName;
         image.loading = idx < 16 ? 'eager' : 'lazy';
@@ -96,11 +105,14 @@ async function loadFallbackImage(image, cardData, card) {
     if (!image || image.dataset.fallbackPending !== 'true') return;
     image.dataset.fallbackPending = 'loading';
     try {
-        const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, [{
-            key: String(cardData.entryId),
-            storagePath: cardData.storagePath,
-        }]);
-        const pageUrl = pageUrls[String(cardData.entryId)];
+        let pageUrl = cardData.pageUrl || '';
+        if (!pageUrl) {
+            const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, [{
+                key: String(cardData.entryId),
+                storagePath: cardData.storagePath,
+            }]);
+            pageUrl = pageUrls[String(cardData.entryId)];
+        }
         if (!pageUrl) throw new Error('Missing page URL');
         image.src = await CIQSupabaseAPI.cropImageRegion(pageUrl, cardData.cellRegion, cardData.pageWidth);
         image.classList.remove('is-loading');
@@ -114,6 +126,19 @@ async function loadFallbackImage(image, cardData, card) {
         expired.append(icon, ' 画像がありません');
         card.prepend(expired);
     }
+}
+
+async function prewarmInitialImages(cards, limit = 24) {
+    const targets = cards
+        .slice(0, limit)
+        .filter(card => !card.cellUrl && card.pageUrl && card.cellRegion);
+    await runLimited(targets, 6, async (card) => {
+        try {
+            card.cellUrl = await CIQSupabaseAPI.cropImageRegion(card.pageUrl, card.cellRegion, card.pageWidth);
+        } catch (_) {
+            card.cellUrl = null;
+        }
+    });
 }
 
 async function init() {
@@ -135,6 +160,7 @@ async function init() {
             return;
         }
 
+        await prewarmInitialImages(answerCards);
         await refreshVotes();
         setInterval(refreshVotes, 3000);
     } catch (e) {

@@ -166,14 +166,6 @@
         const workCanvas = document.getElementById('work-canvas');
         const workCtx = workCanvas.getContext('2d');
         let scanConfig = null, scanAnswers = [];
-        async function runLimited(items, limit, task) {
-            const results = [];
-            for (let i = 0; i < items.length; i += limit) {
-                const batch = items.slice(i, i + limit);
-                results.push(...await Promise.all(batch.map(task)));
-            }
-            return results;
-        }
 
         function clearPdfFileSelection(fileInput) {
             if (fileInput) fileInput.value = '';
@@ -356,13 +348,6 @@
                             hasKnownEntry: Boolean(knownEntry?.id),
                         });
                         await CIQSupabaseAPI.uploadAnswerPage(projectId, a.entryNumber, a.pageImage, a.cellRegions, a.pageWidth, knownEntry);
-                        const pageImage = await loadImage(a.pageImage);
-                        const cells = Object.entries(a.cellRegions);
-                        await runLimited(cells, 6, async ([qKey, region]) => {
-                            const qNum = Number(String(qKey).replace(/^q/, ''));
-                            const cropped = cropCell(pageImage, region, a.pageWidth);
-                            if (cropped) await CIQSupabaseAPI.uploadAnswerCell(projectId, a.entryNumber, qNum, cropped, false);
-                        });
                     } catch (e) {
                         console.error(`Entry ${a.entryNumber} upload error:`, e);
                         logUploadDebug('uploadEntry:pageFailed', {
@@ -443,39 +428,4 @@
         function transformRegion(r, t) { const tl = transformPoint(r.x, r.y, t), br = transformPoint(r.x + r.w, r.y + r.h, t); return { x: tl.x, y: tl.y, w: br.x - tl.x, h: br.y - tl.y, row: r.row, col: r.col }; }
         function readEntryNumber(markCells) { const rows = [[], [], []]; markCells.forEach(c => { if (c.row === undefined) return; rows[c.row].push({ col: c.col, darkness: getMeanDarkness(c) }); }); return rows.map(r => { if (!r.length) return 0; return [...r].sort((a, b) => b.darkness - a.darkness)[0].col; }).reduce((a, d, i) => a + d * Math.pow(10, 2 - i), 0); }
         function getMeanDarkness(r) { const x = Math.round(Math.max(0, r.x)), y = Math.round(Math.max(0, r.y)), w = Math.max(1, Math.round(Math.min(r.w, workCanvas.width - x))), h = Math.max(1, Math.round(Math.min(r.h, workCanvas.height - y))); const d = workCtx.getImageData(x, y, w, h); let t = 0; for (let i = 0; i < d.data.length; i += 4)t += (255 - (d.data[i] + d.data[i + 1] + d.data[i + 2]) / 3); return t / (d.data.length / 4); }
-        function cutRegion(r) { const x = Math.round(Math.max(0, r.x)), y = Math.round(Math.max(0, r.y)), w = Math.max(1, Math.round(Math.min(r.w, workCanvas.width - x))), h = Math.max(1, Math.round(Math.min(r.h, workCanvas.height - y))); const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(workCanvas, x, y, w, h, 0, 0, w, h); return c.toDataURL('image/webp', 0.7); }
-        // 任意canvasから指定領域をクロップしてBase64化
-        function loadImage(src) {
-            return new Promise((resolve, reject) => {
-                const image = new Image();
-                image.onload = () => resolve(image);
-                image.onerror = reject;
-                image.src = src;
-            });
-        }
-
-        function cropCell(img, region, sourceWidth) {
-            const scale = sourceWidth ? img.naturalWidth / sourceWidth : 1;
-            const x = Math.round(Math.max(0, region.x));
-            const y = Math.round(Math.max(0, region.y));
-            const w = Math.max(1, Math.round(region.w));
-            const h = Math.max(1, Math.round(region.h));
-            const sx = Math.round(x * scale);
-            const sy = Math.round(y * scale);
-            const sw = Math.round(w * scale);
-            const sh = Math.round(h * scale);
-            const maxWidth = 420;
-            const ratio = Math.min(1, maxWidth / Math.max(1, sw));
-            const c = document.createElement('canvas');
-            c.width = Math.max(1, Math.round(sw * ratio));
-            c.height = Math.max(1, Math.round(sh * ratio));
-            c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
-            const dataUrl = c.toDataURL('image/webp', 0.48);
-            c.width = 0;
-            c.height = 0;
-            return dataUrl;
-        }
-
-
-
         // 答案一覧

@@ -15,6 +15,15 @@ let selectedIndex = 0;
 let cellUrlCache = {};
 let cellUrlPreloadKey = '';
 
+async function runLimited(items, limit, task) {
+    const results = [];
+    for (let i = 0; i < items.length; i += limit) {
+        const batch = items.slice(i, i + limit);
+        results.push(...await Promise.all(batch.map(task)));
+    }
+    return results;
+}
+
 function setConflictGridMessage(message, options = {}) {
     const grid = document.getElementById('conflict-grid');
     grid.textContent = '';
@@ -70,7 +79,7 @@ async function refreshData() {
     modelAnswers = {};
     for (const row of modelRows) modelAnswers[row.question_number] = row.answer;
 
-    render();
+    await render();
 }
 
 function getEntryMeta(page) {
@@ -125,7 +134,20 @@ function buildConflicts() {
     return conflicts.sort((a, b) => a.q - b.q || a.entryNumber - b.entryNumber);
 }
 
-function render() {
+function getMissingConflictImageRequests(conflicts) {
+    return conflicts
+        .map(conflict => ({
+            key: `${conflict.entryNumber}:q${conflict.q}`,
+            entryNumber: conflict.entryNumber,
+            questionNumber: conflict.q,
+            storagePath: conflict.storagePath,
+            cellRegion: conflict.cellRegions?.[`q${conflict.q}`] || null,
+            pageWidth: conflict.pageWidth,
+        }))
+        .filter(request => cellUrlCache[request.key] === undefined);
+}
+
+async function render() {
     currentConflicts = buildConflicts();
     if (selectedIndex >= currentConflicts.length) selectedIndex = Math.max(0, currentConflicts.length - 1);
 
@@ -150,6 +172,14 @@ function render() {
         return;
     }
 
+    const missingImages = getMissingConflictImageRequests(currentConflicts);
+    if (missingImages.length) {
+        setConflictGridMessage('画像を準備中...', { icon: 'fa-solid fa-spinner fa-spin' });
+        await ensureConflictCellUrls(missingImages);
+        await render();
+        return;
+    }
+
     grid.textContent = '';
     currentConflicts.forEach((conflict, idx) => {
         const card = createConflictCard(conflict, idx);
@@ -157,7 +187,6 @@ function render() {
         card.addEventListener('dblclick', () => showPreview(projectId, null, conflict.entryNumber));
         grid.appendChild(card);
     });
-    ensureConflictCellUrls(currentConflicts);
 
     scrollToSelectedConflict();
 }
@@ -179,6 +208,7 @@ function createVoteDot(result) {
 
 function createConflictCard(conflict, idx) {
     const cacheKey = `${conflict.entryNumber}:q${conflict.q}`;
+    const hasTriedImage = Object.prototype.hasOwnProperty.call(cellUrlCache, cacheKey);
     const cellUrl = cellUrlCache[cacheKey];
     const modelAnswer = modelAnswers[conflict.q] || '';
 
@@ -197,7 +227,7 @@ function createConflictCard(conflict, idx) {
         expired.className = 'img-expired';
         const icon = document.createElement('i');
         icon.className = 'fa-solid fa-clock';
-        expired.append(icon, ' 画像を読み込み中');
+        expired.append(icon, hasTriedImage ? ' 画像がありません' : ' 画像を読み込み中');
         card.appendChild(expired);
     }
 
@@ -230,17 +260,7 @@ function createConflictCard(conflict, idx) {
     return card;
 }
 
-async function ensureConflictCellUrls(conflicts) {
-    const missing = conflicts
-        .map(conflict => ({
-            key: `${conflict.entryNumber}:q${conflict.q}`,
-            entryNumber: conflict.entryNumber,
-            questionNumber: conflict.q,
-            storagePath: conflict.storagePath,
-            cellRegion: conflict.cellRegions?.[`q${conflict.q}`] || null,
-            pageWidth: conflict.pageWidth,
-        }))
-        .filter(request => cellUrlCache[request.key] === undefined);
+async function ensureConflictCellUrls(missing) {
     if (!missing.length) return;
 
     const preloadKey = missing.map(request => request.key).sort().join('|');
@@ -249,23 +269,23 @@ async function ensureConflictCellUrls(conflicts) {
     for (const request of missing) cellUrlCache[request.key] = null;
 
     try {
-        const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, missing).catch(() => ({}));
-        Object.assign(cellUrlCache, cellUrls);
-        const fallbackRequests = missing.filter(request => !cellUrlCache[request.key] && request.storagePath && request.cellRegion);
+        const fallbackRequests = missing.filter(request => request.storagePath && request.cellRegion);
         const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, fallbackRequests.map(request => ({
             key: request.key,
             storagePath: request.storagePath,
         }))).catch(() => ({}));
-        await Promise.all(fallbackRequests.map(async (request) => {
+        await runLimited(fallbackRequests, 8, async (request) => {
             const pageUrl = pageUrls[request.key];
-            if (!pageUrl) return;
+            if (!pageUrl) {
+                cellUrlCache[request.key] = '';
+                return;
+            }
             cellUrlCache[request.key] = await CIQSupabaseAPI.cropImageRegion(pageUrl, request.cellRegion, request.pageWidth);
-        }));
+        });
     } catch (_) {
         for (const request of missing) cellUrlCache[request.key] = '';
     }
     cellUrlPreloadKey = '';
-    render();
 }
 
 async function setFinal(q, entryId, result) {

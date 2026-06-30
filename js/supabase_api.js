@@ -728,14 +728,12 @@ const CIQSupabaseAPI = {
 
     async getQuestionAnswerCards(projectId, questionNumber) {
         const pages = await this.listAnswerPages(projectId);
-        const urlMap = await this.getAnswerCellUrls(
+        const pageUrlMap = await this.getAnswerPageUrls(
             projectId,
             pages.map((page) => {
-                const entryNumber = Number(page.entries?.entry_number);
                 return {
                     key: String(page.entry_id),
-                    entryNumber,
-                    questionNumber,
+                    storagePath: page.storage_path,
                 };
             })
         ).catch(() => ({}));
@@ -749,7 +747,8 @@ const CIQSupabaseAPI = {
                 displayName: entry.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
                 affiliation: entry.affiliation || '',
                 grade: entry.grade || '',
-                cellUrl: urlMap[String(page.entry_id)] || null,
+                pageUrl: pageUrlMap[String(page.entry_id)] || null,
+                cellUrl: null,
                 storagePath: page.storage_path || null,
                 pageWidth: Number(page.cells?.pageWidth || 0) || null,
                 cellRegion,
