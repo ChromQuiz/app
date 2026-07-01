@@ -18,7 +18,6 @@ let cellUrlPreloadKey = '';
 let conflictImageObserver = null;
 let conflictImageFlushTimer = null;
 const conflictImageQueue = new Map();
-const INITIAL_CONFLICT_IMAGE_LIMIT = 16;
 const CONFLICT_IMAGE_CROP_CONCURRENCY = 12;
 const BACKGROUND_CONFLICT_IMAGE_BATCH = 24;
 let conflictBackgroundPreloadToken = 0;
@@ -73,6 +72,40 @@ async function preloadImageUrls(urls, limit = CONFLICT_IMAGE_CROP_CONCURRENCY) {
 
 function nextFrame() {
     return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+function getConflictGridColumnCount(grid) {
+    const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+    return Math.max(1, columns || 1);
+}
+
+function getMedianConflictAspect(conflicts) {
+    const aspects = conflicts
+        .map(conflict => {
+            const region = conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`] || null;
+            const width = Number(region?.w || 0);
+            const height = Number(region?.h || 0);
+            return width > 0 && height > 0 ? height / width : 0;
+        })
+        .filter(Boolean)
+        .sort((a, b) => a - b);
+    if (!aspects.length) return 0.62;
+    return aspects[Math.floor(aspects.length / 2)];
+}
+
+function getInitialConflictImageLimit(conflicts) {
+    const grid = document.getElementById('conflict-grid');
+    const style = getComputedStyle(grid);
+    const columns = getConflictGridColumnCount(grid);
+    const columnGap = Number.parseFloat(style.columnGap || style.gap || '0') || 0;
+    const inlinePadding = (Number.parseFloat(style.paddingLeft || '0') || 0) + (Number.parseFloat(style.paddingRight || '0') || 0);
+    const gridWidth = Math.max(1, grid.clientWidth || window.innerWidth);
+    const cardWidth = Math.max(1, (gridWidth - inlinePadding - columnGap * (columns - 1)) / columns);
+    const estimatedRowHeight = Math.max(96, cardWidth * getMedianConflictAspect(conflicts) + 76);
+    const gridTop = Math.max(0, grid.getBoundingClientRect().top);
+    const visibleHeight = Math.max(estimatedRowHeight, window.innerHeight - gridTop);
+    const rows = Math.max(1, Math.ceil(visibleHeight / estimatedRowHeight) + 1);
+    return Math.min(conflicts.length, columns * rows);
 }
 
 function setConflictGridMessage(message, options = {}) {
@@ -327,7 +360,8 @@ async function render() {
         return;
     }
 
-    const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, INITIAL_CONFLICT_IMAGE_LIMIT));
+    const initialImageLimit = getInitialConflictImageLimit(currentConflicts);
+    const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, initialImageLimit));
     if (missingImages.length) {
         setConflictGridMessage('画像を準備中...', { icon: 'fa-solid fa-spinner fa-spin' });
         const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
@@ -336,6 +370,7 @@ async function render() {
         await preloadImageUrls(missingImages.map(request => cellUrlCache[request.key]));
         logPerf('conflictImagePrep', {
             requested: missingImages.length,
+            initialImageLimit,
             imageMs: Math.round(performance.now() - imageStartedAt),
             imageStats: CIQSupabaseAPI.takeImagePerfStats(imageStatsBefore),
         });
@@ -353,7 +388,7 @@ async function render() {
         fragment.appendChild(card);
     });
     grid.appendChild(fragment);
-    scheduleBackgroundConflictImages(currentConflicts);
+    scheduleBackgroundConflictImages(currentConflicts, initialImageLimit);
 
     scrollToSelectedConflict();
 }
@@ -540,9 +575,9 @@ async function ensureConflictCellUrls(missing) {
     cellUrlPreloadKey = '';
 }
 
-function scheduleBackgroundConflictImages(conflicts) {
+function scheduleBackgroundConflictImages(conflicts, startIndex) {
     const token = ++conflictBackgroundPreloadToken;
-    const candidates = getMissingConflictImageRequests(conflicts.slice(INITIAL_CONFLICT_IMAGE_LIMIT));
+    const candidates = getMissingConflictImageRequests(conflicts.slice(startIndex));
     if (!candidates.length) return;
 
     let offset = 0;

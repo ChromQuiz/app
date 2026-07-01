@@ -14,7 +14,6 @@ let pendingWrites = {};
 let fallbackImageObserver = null;
 let fallbackImageFlushTimer = null;
 const fallbackImageQueue = new Map();
-const INITIAL_IMAGE_PREWARM_LIMIT = 24;
 const IMAGE_CROP_CONCURRENCY = 12;
 const BACKGROUND_PREWARM_BATCH = 24;
 let backgroundPrewarmToken = 0;
@@ -67,6 +66,39 @@ async function preloadImageUrls(urls, limit = IMAGE_CROP_CONCURRENCY) {
 
 function nextFrame() {
     return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+function getGridColumnCount(grid) {
+    const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+    return Math.max(1, columns || 1);
+}
+
+function getMedianCellAspect(cards) {
+    const aspects = cards
+        .map(card => {
+            const width = Number(card.cellRegion?.w || 0);
+            const height = Number(card.cellRegion?.h || 0);
+            return width > 0 && height > 0 ? height / width : 0;
+        })
+        .filter(Boolean)
+        .sort((a, b) => a - b);
+    if (!aspects.length) return 0.62;
+    return aspects[Math.floor(aspects.length / 2)];
+}
+
+function getInitialImageLimit(cards) {
+    const grid = document.getElementById('answer-grid');
+    const style = getComputedStyle(grid);
+    const columns = getGridColumnCount(grid);
+    const columnGap = Number.parseFloat(style.columnGap || style.gap || '0') || 0;
+    const inlinePadding = (Number.parseFloat(style.paddingLeft || '0') || 0) + (Number.parseFloat(style.paddingRight || '0') || 0);
+    const gridWidth = Math.max(1, grid.clientWidth || window.innerWidth);
+    const cardWidth = Math.max(1, (gridWidth - inlinePadding - columnGap * (columns - 1)) / columns);
+    const estimatedRowHeight = Math.max(72, cardWidth * getMedianCellAspect(cards) + 28);
+    const gridTop = Math.max(0, grid.getBoundingClientRect().top);
+    const visibleHeight = Math.max(estimatedRowHeight, window.innerHeight - gridTop);
+    const rows = Math.max(1, Math.ceil(visibleHeight / estimatedRowHeight) + 1);
+    return Math.min(cards.length, columns * rows);
 }
 
 function setAnswerGridMessage(message, iconClass = '') {
@@ -230,7 +262,7 @@ async function applyFallbackImageResult(result) {
     card.prepend(expired);
 }
 
-async function prewarmInitialImages(cards, limit = INITIAL_IMAGE_PREWARM_LIMIT) {
+async function prewarmInitialImages(cards, limit) {
     const targets = cards
         .slice(0, limit)
         .filter(card => !card.cellUrl && card.storagePath && card.cellRegion);
@@ -264,7 +296,7 @@ async function prewarmInitialImages(cards, limit = INITIAL_IMAGE_PREWARM_LIMIT) 
     await preloadImageUrls(targets.map(card => card.cellUrl));
 }
 
-function scheduleBackgroundImagePrewarm(cards, startIndex = INITIAL_IMAGE_PREWARM_LIMIT) {
+function scheduleBackgroundImagePrewarm(cards, startIndex) {
     const token = ++backgroundPrewarmToken;
     const candidates = cards
         .slice(startIndex)
@@ -338,14 +370,16 @@ async function init() {
 
         const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
         const prewarmStartedAt = performance.now();
-        await prewarmInitialImages(answerCards);
+        const initialImageLimit = getInitialImageLimit(answerCards);
+        await prewarmInitialImages(answerCards, initialImageLimit);
         const prewarmMs = Math.round(performance.now() - prewarmStartedAt);
         const initialImageStats = CIQSupabaseAPI.takeImagePerfStats(imageStatsBefore);
         await refreshVotes();
-        scheduleBackgroundImagePrewarm(answerCards);
+        scheduleBackgroundImagePrewarm(answerCards, initialImageLimit);
         logPerf('questionInitialLoad', {
             questionNumber: currentQ,
             cards: answerCards.length,
+            initialImageLimit,
             dataMs,
             initialImageMs: prewarmMs,
             imageStats: initialImageStats,

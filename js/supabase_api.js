@@ -8,6 +8,10 @@ const CIQSupabaseAPI = {
     _imageBitmapCache: new Map(),
     _cropUrlCache: new Map(),
     _cropPromiseCache: new Map(),
+    _cropWorker: null,
+    _cropWorkerAvailable: null,
+    _cropWorkerRequests: new Map(),
+    _cropWorkerRequestId: 0,
     _imageCacheLimit: 80,
     _imageBitmapCacheLimit: 50,
     _cropUrlCacheLimit: 400,
@@ -87,6 +91,56 @@ const CIQSupabaseAPI = {
             pageImageCacheSize: current.pageImageCacheSize,
             pageBitmapCacheSize: current.pageBitmapCacheSize,
         };
+    },
+
+    getCropWorker() {
+        if (this._cropWorkerAvailable === false) return null;
+        if (this._cropWorker) return this._cropWorker;
+        if (!window.Worker || !window.OffscreenCanvas || !window.OffscreenCanvas.prototype?.convertToBlob || !window.createImageBitmap) {
+            this._cropWorkerAvailable = false;
+            return null;
+        }
+        try {
+            const worker = new Worker('js/image_crop_worker.js');
+            worker.addEventListener('message', (event) => {
+                const { id, ok, blob, error } = event.data || {};
+                const request = this._cropWorkerRequests.get(id);
+                if (!request) return;
+                this._cropWorkerRequests.delete(id);
+                if (ok && blob) {
+                    request.resolve(blob);
+                } else {
+                    request.reject(new Error(error || 'Image crop worker failed'));
+                }
+            });
+            worker.addEventListener('error', () => {
+                this._cropWorkerAvailable = false;
+                this._cropWorkerRequests.forEach(request => request.reject(new Error('Image crop worker failed')));
+                this._cropWorkerRequests.clear();
+                this._cropWorker?.terminate?.();
+                this._cropWorker = null;
+            });
+            this._cropWorker = worker;
+            this._cropWorkerAvailable = true;
+            return worker;
+        } catch (_) {
+            this._cropWorkerAvailable = false;
+            return null;
+        }
+    },
+
+    cropImageRegionInWorker(imageUrl, region, sourceWidth, quality) {
+        const worker = this.getCropWorker();
+        if (!worker) return null;
+        const id = ++this._cropWorkerRequestId;
+        const promise = new Promise((resolve, reject) => {
+            this._cropWorkerRequests.set(id, { resolve, reject });
+            worker.postMessage({
+                id,
+                payload: { imageUrl, region, sourceWidth, quality },
+            });
+        });
+        return promise.then(blob => URL.createObjectURL(blob));
     },
 
     getConfigStatus() {
@@ -938,6 +992,41 @@ const CIQSupabaseAPI = {
         });
     },
 
+    async cropImageRegionOnMainThread(imageUrl, region, sourceWidth, quality = 0.64) {
+        let image = null;
+        try {
+            image = await (this.loadCachedImageBitmap(imageUrl) || Promise.reject(new Error('ImageBitmap unavailable')));
+        } catch (_) {
+            image = await this.loadCachedImage(imageUrl);
+        }
+        const imageWidth = image.naturalWidth || image.width;
+        const imageHeight = image.naturalHeight || image.height;
+        const scale = sourceWidth ? imageWidth / sourceWidth : 1;
+        const x = Math.max(0, Math.round(Number(region.x || 0) * scale));
+        const y = Math.max(0, Math.round(Number(region.y || 0) * scale));
+        const w = Math.max(1, Math.round(Number(region.w || 1) * scale));
+        const h = Math.max(1, Math.round(Number(region.h || 1) * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.min(w, Math.max(1, imageWidth - x));
+        canvas.height = Math.min(h, Math.max(1, imageHeight - y));
+        canvas.getContext('2d').drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        const objectUrl = await this.canvasToObjectUrl(canvas, 'image/webp', quality);
+        canvas.width = 0;
+        canvas.height = 0;
+        return objectUrl;
+    },
+
+    rememberCropUrl(cropKey, objectUrl) {
+        this._cropUrlCache.set(cropKey, objectUrl);
+        while (this._cropUrlCache.size > this._cropUrlCacheLimit) {
+            const oldestKey = this._cropUrlCache.keys().next().value;
+            const oldestUrl = this._cropUrlCache.get(oldestKey);
+            this._cropUrlCache.delete(oldestKey);
+            if (typeof oldestUrl === 'string' && oldestUrl.startsWith('blob:')) URL.revokeObjectURL(oldestUrl);
+        }
+        return objectUrl;
+    },
+
     cropImageRegion(imageUrl, region, sourceWidth, quality = 0.64) {
         if (!imageUrl || !region) return Promise.reject(new Error('Missing image region'));
         const cropKey = [
@@ -963,34 +1052,17 @@ const CIQSupabaseAPI = {
 
         const promise = new Promise(async (resolve, reject) => {
             try {
-                let image = null;
-                try {
-                    image = await (this.loadCachedImageBitmap(imageUrl) || Promise.reject(new Error('ImageBitmap unavailable')));
-                } catch (_) {
-                    image = await this.loadCachedImage(imageUrl);
+                let objectUrl = null;
+                const workerCrop = this.cropImageRegionInWorker(imageUrl, region, sourceWidth, quality);
+                if (workerCrop) {
+                    try {
+                        objectUrl = await workerCrop;
+                    } catch (_) {
+                        objectUrl = null;
+                    }
                 }
-                const imageWidth = image.naturalWidth || image.width;
-                const imageHeight = image.naturalHeight || image.height;
-                const scale = sourceWidth ? imageWidth / sourceWidth : 1;
-                const x = Math.max(0, Math.round(Number(region.x || 0) * scale));
-                const y = Math.max(0, Math.round(Number(region.y || 0) * scale));
-                const w = Math.max(1, Math.round(Number(region.w || 1) * scale));
-                const h = Math.max(1, Math.round(Number(region.h || 1) * scale));
-                const canvas = document.createElement('canvas');
-                canvas.width = Math.min(w, Math.max(1, imageWidth - x));
-                canvas.height = Math.min(h, Math.max(1, imageHeight - y));
-                canvas.getContext('2d').drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-                const objectUrl = await this.canvasToObjectUrl(canvas, 'image/webp', quality);
-                this._cropUrlCache.set(cropKey, objectUrl);
-                while (this._cropUrlCache.size > this._cropUrlCacheLimit) {
-                    const oldestKey = this._cropUrlCache.keys().next().value;
-                    const oldestUrl = this._cropUrlCache.get(oldestKey);
-                    this._cropUrlCache.delete(oldestKey);
-                    if (typeof oldestUrl === 'string' && oldestUrl.startsWith('blob:')) URL.revokeObjectURL(oldestUrl);
-                }
-                resolve(objectUrl);
-                canvas.width = 0;
-                canvas.height = 0;
+                if (!objectUrl) objectUrl = await this.cropImageRegionOnMainThread(imageUrl, region, sourceWidth, quality);
+                resolve(this.rememberCropUrl(cropKey, objectUrl));
             } catch (error) {
                 this._imagePerfStats.cropErrors++;
                 reject(error);
