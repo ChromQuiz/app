@@ -34,11 +34,11 @@ function logPerf(label, details = {}) {
     console.info('[CIQ perf]', label, details);
 }
 
-function runWhenIdle(task, timeout = 1200) {
+function runWhenIdle(task, timeout = 2500) {
     if ('requestIdleCallback' in window) {
         window.requestIdleCallback(task, { timeout });
     } else {
-        setTimeout(task, 80);
+        setTimeout(task, 250);
     }
 }
 
