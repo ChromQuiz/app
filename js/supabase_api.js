@@ -6,8 +6,10 @@ const CIQSupabaseAPI = {
     _cache: new Map(),
     _imageCache: new Map(),
     _imageBitmapCache: new Map(),
+    _cropUrlCache: new Map(),
     _imageCacheLimit: 80,
     _imageBitmapCacheLimit: 50,
+    _cropUrlCacheLimit: 400,
     _answerPagesCacheMs: 15000,
     _signedUrlCacheMs: 5 * 60 * 1000,
 
@@ -34,6 +36,14 @@ const CIQSupabaseAPI = {
         Array.from(this._cache.keys()).forEach(key => {
             if (String(key).startsWith(prefix)) this._cache.delete(key);
         });
+        this.clearCropUrlCache();
+    },
+
+    clearCropUrlCache() {
+        this._cropUrlCache.forEach((url) => {
+            if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url);
+        });
+        this._cropUrlCache.clear();
     },
 
     getConfigStatus() {
@@ -818,6 +828,20 @@ const CIQSupabaseAPI = {
         return new Promise(async (resolve, reject) => {
             try {
                 if (!imageUrl || !region) throw new Error('Missing image region');
+                const cropKey = [
+                    imageUrl,
+                    Number(region.x || 0),
+                    Number(region.y || 0),
+                    Number(region.w || 1),
+                    Number(region.h || 1),
+                    Number(sourceWidth || 0),
+                    quality,
+                ].join(':');
+                const cachedUrl = this._cropUrlCache.get(cropKey);
+                if (cachedUrl) {
+                    resolve(cachedUrl);
+                    return;
+                }
                 let image = null;
                 try {
                     image = await (this.loadCachedImageBitmap(imageUrl) || Promise.reject(new Error('ImageBitmap unavailable')));
@@ -836,6 +860,13 @@ const CIQSupabaseAPI = {
                 canvas.height = Math.min(h, Math.max(1, imageHeight - y));
                 canvas.getContext('2d').drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                 const objectUrl = await this.canvasToObjectUrl(canvas, 'image/webp', quality);
+                this._cropUrlCache.set(cropKey, objectUrl);
+                while (this._cropUrlCache.size > this._cropUrlCacheLimit) {
+                    const oldestKey = this._cropUrlCache.keys().next().value;
+                    const oldestUrl = this._cropUrlCache.get(oldestKey);
+                    this._cropUrlCache.delete(oldestKey);
+                    if (typeof oldestUrl === 'string' && oldestUrl.startsWith('blob:')) URL.revokeObjectURL(oldestUrl);
+                }
                 resolve(objectUrl);
                 canvas.width = 0;
                 canvas.height = 0;
