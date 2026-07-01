@@ -19,6 +19,8 @@ let conflictImageFlushTimer = null;
 const conflictImageQueue = new Map();
 const INITIAL_CONFLICT_IMAGE_LIMIT = 16;
 const CONFLICT_IMAGE_CROP_CONCURRENCY = 12;
+const BACKGROUND_CONFLICT_IMAGE_BATCH = 24;
+let conflictBackgroundPreloadToken = 0;
 
 async function runLimited(items, limit, task) {
     const results = [];
@@ -31,6 +33,14 @@ async function runLimited(items, limit, task) {
 
 function logPerf(label, details = {}) {
     console.info('[CIQ perf]', label, details);
+}
+
+function runWhenIdle(task, timeout = 1200) {
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(task, { timeout });
+    } else {
+        setTimeout(task, 80);
+    }
 }
 
 function setConflictGridMessage(message, options = {}) {
@@ -232,6 +242,7 @@ async function render() {
         card.addEventListener('dblclick', () => showPreview(projectId, null, conflict.entryNumber));
         grid.appendChild(card);
     });
+    scheduleBackgroundConflictImages(currentConflicts);
 
     scrollToSelectedConflict();
 }
@@ -402,6 +413,25 @@ async function ensureConflictCellUrls(missing) {
         for (const request of missing) cellUrlCache[request.key] = '';
     }
     cellUrlPreloadKey = '';
+}
+
+function scheduleBackgroundConflictImages(conflicts) {
+    const token = ++conflictBackgroundPreloadToken;
+    const candidates = getMissingConflictImageRequests(conflicts.slice(INITIAL_CONFLICT_IMAGE_LIMIT));
+    if (!candidates.length) return;
+
+    let offset = 0;
+    const runNextBatch = async () => {
+        if (token !== conflictBackgroundPreloadToken) return;
+        const batch = candidates.slice(offset, offset + BACKGROUND_CONFLICT_IMAGE_BATCH);
+        offset += BACKGROUND_CONFLICT_IMAGE_BATCH;
+        if (!batch.length) return;
+
+        await ensureConflictCellUrls(batch);
+        if (offset < candidates.length) runWhenIdle(runNextBatch);
+    };
+
+    runWhenIdle(runNextBatch);
 }
 
 async function setFinal(q, entryId, result) {

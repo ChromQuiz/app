@@ -16,6 +16,8 @@ let fallbackImageFlushTimer = null;
 const fallbackImageQueue = new Map();
 const INITIAL_IMAGE_PREWARM_LIMIT = 24;
 const IMAGE_CROP_CONCURRENCY = 12;
+const BACKGROUND_PREWARM_BATCH = 24;
+let backgroundPrewarmToken = 0;
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
@@ -30,6 +32,14 @@ async function runLimited(items, limit, task) {
 
 function logPerf(label, details = {}) {
     console.info('[CIQ perf]', label, details);
+}
+
+function runWhenIdle(task, timeout = 1200) {
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(task, { timeout });
+    } else {
+        setTimeout(task, 80);
+    }
 }
 
 function setAnswerGridMessage(message, iconClass = '') {
@@ -192,6 +202,41 @@ async function prewarmInitialImages(cards, limit = INITIAL_IMAGE_PREWARM_LIMIT) 
     });
 }
 
+function scheduleBackgroundImagePrewarm(cards, startIndex = INITIAL_IMAGE_PREWARM_LIMIT) {
+    const token = ++backgroundPrewarmToken;
+    const candidates = cards
+        .slice(startIndex)
+        .filter(card => !card.cellUrl && card.storagePath && card.cellRegion);
+    if (!candidates.length) return;
+
+    let offset = 0;
+    const runNextBatch = async () => {
+        if (token !== backgroundPrewarmToken) return;
+        const batch = candidates.slice(offset, offset + BACKGROUND_PREWARM_BATCH);
+        offset += BACKGROUND_PREWARM_BATCH;
+        if (!batch.length) return;
+
+        const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, batch.map(card => ({
+            key: String(card.entryId),
+            storagePath: card.storagePath,
+        }))).catch(() => ({}));
+
+        await runLimited(batch, IMAGE_CROP_CONCURRENCY, async (card) => {
+            try {
+                card.pageUrl = pageUrls[String(card.entryId)] || card.pageUrl || '';
+                if (!card.pageUrl) throw new Error('Missing page URL');
+                card.cellUrl = await CIQSupabaseAPI.cropImageRegion(card.pageUrl, card.cellRegion, card.pageWidth);
+            } catch (_) {
+                card.cellUrl = null;
+            }
+        });
+
+        if (offset < candidates.length) runWhenIdle(runNextBatch);
+    };
+
+    runWhenIdle(runNextBatch);
+}
+
 async function init() {
     try {
         const startedAt = performance.now();
@@ -218,6 +263,7 @@ async function init() {
         await prewarmInitialImages(answerCards);
         const prewarmMs = Math.round(performance.now() - prewarmStartedAt);
         await refreshVotes();
+        scheduleBackgroundImagePrewarm(answerCards);
         logPerf('questionInitialLoad', {
             questionNumber: currentQ,
             cards: answerCards.length,
