@@ -282,11 +282,13 @@ async function render() {
     const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, INITIAL_CONFLICT_IMAGE_LIMIT));
     if (missingImages.length) {
         setConflictGridMessage('画像を準備中...', { icon: 'fa-solid fa-spinner fa-spin' });
+        const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
         const imageStartedAt = performance.now();
         await ensureConflictCellUrls(missingImages);
         logPerf('conflictImagePrep', {
             requested: missingImages.length,
             imageMs: Math.round(performance.now() - imageStartedAt),
+            imageStats: CIQSupabaseAPI.takeImagePerfStats(imageStatsBefore),
         });
         await render();
         return;

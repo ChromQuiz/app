@@ -11,6 +11,12 @@ const CIQSupabaseAPI = {
     _imageCacheLimit: 80,
     _imageBitmapCacheLimit: 50,
     _cropUrlCacheLimit: 400,
+    _imagePerfStats: {
+        cropUrlHits: 0,
+        cropPromiseHits: 0,
+        cropMisses: 0,
+        cropErrors: 0,
+    },
     _answerPagesCacheMs: 15000,
     _signedUrlCacheMs: 5 * 60 * 1000,
 
@@ -46,6 +52,31 @@ const CIQSupabaseAPI = {
         });
         this._cropUrlCache.clear();
         this._cropPromiseCache.clear();
+    },
+
+    getImagePerfStats() {
+        return {
+            ...this._imagePerfStats,
+            cropUrlCacheSize: this._cropUrlCache.size,
+            cropPromiseCacheSize: this._cropPromiseCache.size,
+            pageImageCacheSize: this._imageCache.size,
+            pageBitmapCacheSize: this._imageBitmapCache.size,
+        };
+    },
+
+    takeImagePerfStats(previous = null) {
+        const current = this.getImagePerfStats();
+        if (!previous) return current;
+        return {
+            cropUrlHits: current.cropUrlHits - (previous.cropUrlHits || 0),
+            cropPromiseHits: current.cropPromiseHits - (previous.cropPromiseHits || 0),
+            cropMisses: current.cropMisses - (previous.cropMisses || 0),
+            cropErrors: current.cropErrors - (previous.cropErrors || 0),
+            cropUrlCacheSize: current.cropUrlCacheSize,
+            cropPromiseCacheSize: current.cropPromiseCacheSize,
+            pageImageCacheSize: current.pageImageCacheSize,
+            pageBitmapCacheSize: current.pageBitmapCacheSize,
+        };
     },
 
     getConfigStatus() {
@@ -866,9 +897,16 @@ const CIQSupabaseAPI = {
             quality,
         ].join(':');
         const cachedUrl = this._cropUrlCache.get(cropKey);
-        if (cachedUrl) return Promise.resolve(cachedUrl);
+        if (cachedUrl) {
+            this._imagePerfStats.cropUrlHits++;
+            return Promise.resolve(cachedUrl);
+        }
         const pending = this._cropPromiseCache.get(cropKey);
-        if (pending) return pending;
+        if (pending) {
+            this._imagePerfStats.cropPromiseHits++;
+            return pending;
+        }
+        this._imagePerfStats.cropMisses++;
 
         const promise = new Promise(async (resolve, reject) => {
             try {
@@ -901,6 +939,7 @@ const CIQSupabaseAPI = {
                 canvas.width = 0;
                 canvas.height = 0;
             } catch (error) {
+                this._imagePerfStats.cropErrors++;
                 reject(error);
             }
         });

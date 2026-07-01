@@ -259,9 +259,11 @@ async function init() {
             return;
         }
 
+        const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
         const prewarmStartedAt = performance.now();
         await prewarmInitialImages(answerCards);
         const prewarmMs = Math.round(performance.now() - prewarmStartedAt);
+        const initialImageStats = CIQSupabaseAPI.takeImagePerfStats(imageStatsBefore);
         await refreshVotes();
         scheduleBackgroundImagePrewarm(answerCards);
         logPerf('questionInitialLoad', {
@@ -269,6 +271,7 @@ async function init() {
             cards: answerCards.length,
             dataMs,
             initialImageMs: prewarmMs,
+            imageStats: initialImageStats,
             totalMs: Math.round(performance.now() - startedAt),
         });
         setInterval(refreshVotes, 3000);
