@@ -1114,4 +1114,6 @@ const CIQSupabaseAPI = {
 };
 
 window.CIQSupabaseAPI = CIQSupabaseAPI;
-window.addEventListener('pagehide', () => CIQSupabaseAPI.releaseImageCaches(), { once: true });
+window.addEventListener('pagehide', (event) => {
+    if (!event.persisted) CIQSupabaseAPI.releaseImageCaches();
+}, { once: true });
