@@ -274,7 +274,6 @@ async function init() {
             imageStats: initialImageStats,
             totalMs: Math.round(performance.now() - startedAt),
         });
-        setInterval(refreshVotes, 3000);
     } catch (e) {
         setAnswerGridMessage(e.message || '採点データを読み込めませんでした', 'fa-solid fa-triangle-exclamation');
     }
@@ -341,6 +340,10 @@ async function mark(entryId, result) {
     renderGrid();
     try {
         await CIQSupabaseAPI.setScoreVote(projectId, currentQ, entryId, result);
+        if (pendingWrites[entryId] === result) delete pendingWrites[entryId];
+        myScores[entryId] = result;
+        renderGrid();
+        await checkAutoCompletion();
     } catch (e) {
         delete pendingWrites[entryId];
         showToast('採点の保存に失敗しました: ' + e.message, 'error');
