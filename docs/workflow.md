@@ -29,6 +29,8 @@ find js -name '*.js' -exec node --check {} \;
 git diff --check
 ```
 
+If a verification command cannot run because the required tool is unavailable, explain why, run the closest equivalent command if possible, and clearly state that it is a substitute.
+
 For UI work, inspect affected pages manually when possible and note anything not visually verified.
 
 ## Commit Style

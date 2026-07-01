@@ -150,6 +150,7 @@ Prefer issue-scoped work. Keep commits small with imperative summaries such as `
 - Leave unrelated user changes untouched.
 - Do not use destructive git commands unless explicitly requested.
 - Update cache-busting query strings when changed JS/CSS must refresh on GitHub Pages.
+- Do not mention unrelated `.DS_Store` changes in final summaries; ignore them unless the task is specifically about repository hygiene.
 
 ## After Implementation
 
@@ -157,6 +158,7 @@ Before final response or PR:
 - run relevant tests
 - run JS syntax checks for browser script changes
 - run `git diff --check`
+- if a verification command cannot run because a tool is unavailable, explain why, run the closest equivalent if possible, and clearly label it as a substitute
 - summarize changes clearly
 - mention remaining risks and follow-up ideas
 

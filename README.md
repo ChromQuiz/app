@@ -31,7 +31,8 @@ app/
 ├── css/
 │   └── design_system.css   # 全ページ共通デザインシステム
 ├── js/
-│   ├── config.js       # セッション管理・メール設定
+│   ├── config.js       # セッション管理・共通初期化
+│   ├── supabase_config.js # Supabase接続設定（Project URL / publishable key）
 │   ├── supabase_client.js # Supabaseクライアント初期化
 │   ├── supabase_api.js # Supabase APIアダプタ
 │   ├── shared.js       # 共通ユーティリティ (認証, Toast, Menu)
@@ -70,8 +71,17 @@ http://localhost:8080/index.html にアクセス。
 1. Supabaseプロジェクトを作成
 2. `supabase/migrations/` を順番に適用
 3. Supabase AuthでGoogleログインを有効化
-4. `js/supabase_config.js` にProject URLとpublishable keyを設定
-5. メールを使う場合はEdge Function SecretsにSES設定を追加
+4. 本番/共有環境では `js/supabase_config.js` にProject URLとpublishable keyを設定
+5. ローカル専用の上書きが必要な場合は `js/config.local.js` を作成（未コミット）
+6. メールを使う場合はEdge Function SecretsにSES設定を追加
+
+## 🧪 開発時チェック
+
+```bash
+npm test
+find js -name '*.js' -exec node --check {} \;
+git diff --check
+```
 
 ## 📋 運用フロー
 
