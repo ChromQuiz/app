@@ -54,6 +54,15 @@ const CIQSupabaseAPI = {
         this._cropPromiseCache.clear();
     },
 
+    releaseImageCaches() {
+        this.clearCropUrlCache();
+        this._imageBitmapCache.forEach((bitmapPromise) => {
+            Promise.resolve(bitmapPromise).then(bitmap => bitmap?.close?.()).catch(() => {});
+        });
+        this._imageBitmapCache.clear();
+        this._imageCache.clear();
+    },
+
     getImagePerfStats() {
         return {
             ...this._imagePerfStats,
@@ -1105,3 +1114,4 @@ const CIQSupabaseAPI = {
 };
 
 window.CIQSupabaseAPI = CIQSupabaseAPI;
+window.addEventListener('pagehide', () => CIQSupabaseAPI.releaseImageCaches(), { once: true });
