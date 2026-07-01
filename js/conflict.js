@@ -21,6 +21,7 @@ const INITIAL_CONFLICT_IMAGE_LIMIT = 16;
 const CONFLICT_IMAGE_CROP_CONCURRENCY = 12;
 const BACKGROUND_CONFLICT_IMAGE_BATCH = 24;
 let conflictBackgroundPreloadToken = 0;
+let lastConflictRenderSignature = '';
 
 async function runLimited(items, limit, task) {
     const results = [];
@@ -197,6 +198,29 @@ function getMissingConflictImageRequests(conflicts) {
         .filter(request => cellUrlCache[request.key] === undefined);
 }
 
+function getConflictRenderSignature(conflicts) {
+    return conflicts.map((conflict) => {
+        const votes = conflict.votes
+            .map(vote => `${vote.scorer_member_id || ''}:${vote.result || ''}`)
+            .sort()
+            .join(',');
+        return [
+            conflict.q,
+            conflict.entryId,
+            conflict.entryNumber,
+            conflict.finalResult || '',
+            modelAnswers[conflict.q] || '',
+            votes,
+        ].join(':');
+    }).join('|');
+}
+
+function updateConflictSelectionClasses() {
+    document.querySelectorAll('.conflict-card').forEach((card, i) => {
+        card.classList.toggle('selected', i === selectedIndex);
+    });
+}
+
 async function render() {
     currentConflicts = buildConflicts();
     if (selectedIndex >= currentConflicts.length) selectedIndex = Math.max(0, currentConflicts.length - 1);
@@ -213,12 +237,19 @@ async function render() {
 
     const grid = document.getElementById('conflict-grid');
     if (currentConflicts.length === 0) {
+        lastConflictRenderSignature = '';
         setConflictGridMessage('要確認はありません', {
             className: 'no-conflict',
             icon: 'fa-solid fa-circle-check',
             iconSize: '48px',
             iconColor: 'var(--success)',
         });
+        return;
+    }
+
+    const renderSignature = getConflictRenderSignature(currentConflicts);
+    if (renderSignature === lastConflictRenderSignature && grid.children.length === currentConflicts.length) {
+        updateConflictSelectionClasses();
         return;
     }
 
@@ -235,6 +266,7 @@ async function render() {
         return;
     }
 
+    lastConflictRenderSignature = renderSignature;
     grid.textContent = '';
     const fragment = document.createDocumentFragment();
     currentConflicts.forEach((conflict, idx) => {
@@ -444,8 +476,7 @@ async function setFinal(q, entryId, result) {
 function selectConflictCard(idx) {
     if (idx < 0 || idx >= currentConflicts.length) return;
     selectedIndex = idx;
-    const cards = document.querySelectorAll('.conflict-card');
-    cards.forEach((card, i) => card.classList.toggle('selected', i === selectedIndex));
+    updateConflictSelectionClasses();
     scrollToSelectedConflict();
 }
 
