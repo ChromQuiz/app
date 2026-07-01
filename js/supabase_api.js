@@ -57,7 +57,6 @@ const CIQSupabaseAPI = {
         Array.from(this._cache.keys()).forEach(key => {
             if (String(key).startsWith(prefix)) this._cache.delete(key);
         });
-        this.clearCropUrlCache();
     },
 
     clearCropUrlCache() {
