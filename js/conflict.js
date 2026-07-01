@@ -48,6 +48,29 @@ function runWhenIdle(task, timeout = 2500) {
     }
 }
 
+function preloadImageUrl(url) {
+    if (!url) return Promise.resolve();
+    return new Promise((resolve) => {
+        const image = new Image();
+        image.decoding = 'async';
+        image.onload = () => {
+            if (image.decode) {
+                image.decode().then(resolve).catch(resolve);
+                return;
+            }
+            resolve();
+        };
+        image.onerror = resolve;
+        image.src = url;
+    });
+}
+
+async function preloadImageUrls(urls, limit = CONFLICT_IMAGE_CROP_CONCURRENCY) {
+    const uniqueUrls = Array.from(new Set(urls.filter(Boolean)));
+    if (!uniqueUrls.length) return;
+    await runLimited(uniqueUrls, limit, preloadImageUrl);
+}
+
 function setConflictGridMessage(message, options = {}) {
     const grid = document.getElementById('conflict-grid');
     grid.textContent = '';
@@ -306,6 +329,7 @@ async function render() {
         const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
         const imageStartedAt = performance.now();
         await ensureConflictCellUrls(missingImages);
+        await preloadImageUrls(missingImages.map(request => cellUrlCache[request.key]));
         logPerf('conflictImagePrep', {
             requested: missingImages.length,
             imageMs: Math.round(performance.now() - imageStartedAt),
@@ -441,6 +465,7 @@ async function flushConflictImages() {
     conflictImageQueue.clear();
     if (!batch.length) return;
     await ensureConflictCellUrls(batch);
+    await preloadImageUrls(batch.map(request => cellUrlCache[request.key]));
     updateVisibleConflictImages(batch);
 }
 

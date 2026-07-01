@@ -42,6 +42,29 @@ function runWhenIdle(task, timeout = 2500) {
     }
 }
 
+function preloadImageUrl(url) {
+    if (!url) return Promise.resolve();
+    return new Promise((resolve) => {
+        const image = new Image();
+        image.decoding = 'async';
+        image.onload = () => {
+            if (image.decode) {
+                image.decode().then(resolve).catch(resolve);
+                return;
+            }
+            resolve();
+        };
+        image.onerror = resolve;
+        image.src = url;
+    });
+}
+
+async function preloadImageUrls(urls, limit = IMAGE_CROP_CONCURRENCY) {
+    const uniqueUrls = Array.from(new Set(urls.filter(Boolean)));
+    if (!uniqueUrls.length) return;
+    await runLimited(uniqueUrls, limit, preloadImageUrl);
+}
+
 function setAnswerGridMessage(message, iconClass = '') {
     const grid = document.getElementById('answer-grid');
     grid.textContent = '';
@@ -159,7 +182,9 @@ async function flushFallbackImages() {
         item.cardData.pageUrl = item.cardData.pageUrl || pageUrls[String(item.cardData.entryId)] || '';
     });
     const cropResults = await runLimited(cropBatch, IMAGE_CROP_CONCURRENCY, ({ image, cardData, card }) => resolveFallbackImage(image, cardData, card));
-    await Promise.all([...directResults, ...cropResults].map(applyFallbackImageResult));
+    const results = [...directResults, ...cropResults];
+    await preloadImageUrls(results.map(result => result.cellUrl));
+    await Promise.all(results.map(applyFallbackImageResult));
 }
 
 async function resolveFallbackImage(image, cardData, card) {
@@ -231,6 +256,7 @@ async function prewarmInitialImages(cards, limit = INITIAL_IMAGE_PREWARM_LIMIT) 
             card.cellUrl = null;
         }
     });
+    await preloadImageUrls(targets.map(card => card.cellUrl));
 }
 
 function scheduleBackgroundImagePrewarm(cards, startIndex = INITIAL_IMAGE_PREWARM_LIMIT) {
