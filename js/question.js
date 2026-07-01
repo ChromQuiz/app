@@ -278,12 +278,10 @@ async function init() {
 }
 
 async function refreshVotes() {
-    const votes = await CIQSupabaseAPI.listQuestionScoreVotes(projectId, currentQ);
+    const votes = await CIQSupabaseAPI.listMyQuestionScoreVotes(projectId, currentQ, currentMemberId);
     const myVoteByEntry = new Map();
     for (const vote of votes) {
-        if (vote.scorer_member_id === currentMemberId) {
-            myVoteByEntry.set(vote.entry_id, vote);
-        }
+        myVoteByEntry.set(vote.entry_id, vote);
     }
     const nextScores = {};
     for (const card of answerCards) {

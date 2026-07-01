@@ -1020,6 +1020,17 @@ const CIQSupabaseAPI = {
         return data || [];
     },
 
+    async listMyQuestionScoreVotes(projectId, questionNumber, scorerMemberId) {
+        const { data, error } = await this.client()
+            .from('score_votes')
+            .select('entry_id, result')
+            .eq('project_id', projectId)
+            .eq('question_number', questionNumber)
+            .eq('scorer_member_id', scorerMemberId);
+        if (error) throw error;
+        return data || [];
+    },
+
     async resolveScoreConflict(projectId, questionNumber, entryId, result) {
         const { data, error } = await this.client()
             .rpc('resolve_score_conflict', {
