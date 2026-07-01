@@ -322,9 +322,11 @@ function renderGrid() {
         });
     } else {
         grid.textContent = '';
+        const fragment = document.createDocumentFragment();
         answerCards.forEach((cardData, idx) => {
-            grid.appendChild(createAnswerCard(cardData, idx));
+            fragment.appendChild(createAnswerCard(cardData, idx));
         });
+        grid.appendChild(fragment);
     }
 
     scrollToSelected();

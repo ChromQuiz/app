@@ -236,12 +236,14 @@ async function render() {
     }
 
     grid.textContent = '';
+    const fragment = document.createDocumentFragment();
     currentConflicts.forEach((conflict, idx) => {
         const card = createConflictCard(conflict, idx);
         card.addEventListener('click', () => selectConflictCard(idx));
         card.addEventListener('dblclick', () => showPreview(projectId, null, conflict.entryNumber));
-        grid.appendChild(card);
+        fragment.appendChild(card);
     });
+    grid.appendChild(fragment);
     scheduleBackgroundConflictImages(currentConflicts);
 
     scrollToSelectedConflict();
