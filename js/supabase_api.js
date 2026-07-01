@@ -17,6 +17,7 @@ const CIQSupabaseAPI = {
         cropMisses: 0,
         cropErrors: 0,
     },
+    _answerCellUrlLookupEnabled: false,
     _answerPagesCacheMs: 15000,
     _signedUrlCacheMs: 5 * 60 * 1000,
 
@@ -767,6 +768,7 @@ const CIQSupabaseAPI = {
     },
 
     async getAnswerCellUrls(projectId, requests, expiresIn = 3600) {
+        if (!this._answerCellUrlLookupEnabled) return {};
         const normalized = (requests || [])
             .map((request) => ({
                 key: request.key,
