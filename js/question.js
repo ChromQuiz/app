@@ -14,6 +14,8 @@ let pendingWrites = {};
 let fallbackImageObserver = null;
 let fallbackImageFlushTimer = null;
 const fallbackImageQueue = new Map();
+const INITIAL_IMAGE_PREWARM_LIMIT = 24;
+const IMAGE_CROP_CONCURRENCY = 12;
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
@@ -95,7 +97,7 @@ function observeFallbackImage(card, image, cardData) {
                 const target = entry.target;
                 queueFallbackImage(target._ciqImage, target._ciqCardData, target);
             });
-        }, { rootMargin: '600px 0px' });
+        }, { rootMargin: '240px 0px' });
     }
     card._ciqImage = image;
     card._ciqCardData = cardData;
@@ -129,7 +131,7 @@ async function flushFallbackImages() {
     batch.forEach((item) => {
         item.cardData.pageUrl = item.cardData.pageUrl || pageUrls[String(item.cardData.entryId)] || '';
     });
-    const results = await runLimited(batch, 6, ({ image, cardData, card }) => resolveFallbackImage(image, cardData, card));
+    const results = await runLimited(batch, IMAGE_CROP_CONCURRENCY, ({ image, cardData, card }) => resolveFallbackImage(image, cardData, card));
     await Promise.all(results.map(applyFallbackImageResult));
 }
 
@@ -158,7 +160,6 @@ async function applyFallbackImageResult(result) {
     if (!image || !card || image.dataset.fallbackPending !== 'loading') return;
     if (cellUrl) {
         image.src = cellUrl;
-        await image.decode?.().catch(() => {});
         image.classList.remove('is-loading');
         delete image.dataset.fallbackPending;
         return;
@@ -172,7 +173,7 @@ async function applyFallbackImageResult(result) {
     card.prepend(expired);
 }
 
-async function prewarmInitialImages(cards, limit = 48) {
+async function prewarmInitialImages(cards, limit = INITIAL_IMAGE_PREWARM_LIMIT) {
     const targets = cards
         .slice(0, limit)
         .filter(card => !card.cellUrl && card.storagePath && card.cellRegion);
@@ -180,7 +181,7 @@ async function prewarmInitialImages(cards, limit = 48) {
         key: String(card.entryId),
         storagePath: card.storagePath,
     }))).catch(() => ({}));
-    await runLimited(targets, 6, async (card) => {
+    await runLimited(targets, IMAGE_CROP_CONCURRENCY, async (card) => {
         try {
             card.pageUrl = pageUrls[String(card.entryId)] || card.pageUrl || '';
             if (!card.pageUrl) throw new Error('Missing page URL');

@@ -17,6 +17,8 @@ let cellUrlPreloadKey = '';
 let conflictImageObserver = null;
 let conflictImageFlushTimer = null;
 const conflictImageQueue = new Map();
+const INITIAL_CONFLICT_IMAGE_LIMIT = 16;
+const CONFLICT_IMAGE_CROP_CONCURRENCY = 12;
 
 async function runLimited(items, limit, task) {
     const results = [];
@@ -210,8 +212,7 @@ async function render() {
         return;
     }
 
-    const initialImageLimit = 32;
-    const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, initialImageLimit));
+    const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, INITIAL_CONFLICT_IMAGE_LIMIT));
     if (missingImages.length) {
         setConflictGridMessage('画像を準備中...', { icon: 'fa-solid fa-spinner fa-spin' });
         const imageStartedAt = performance.now();
@@ -315,7 +316,7 @@ function observeConflictImage(card, conflict) {
                 conflictImageObserver.unobserve(entry.target);
                 queueConflictImage(entry.target._ciqConflict);
             });
-        }, { rootMargin: '700px 0px' });
+        }, { rootMargin: '300px 0px' });
     }
     card._ciqConflict = conflict;
     if (conflictImageObserver) {
@@ -389,7 +390,7 @@ async function ensureConflictCellUrls(missing) {
             key: request.key,
             storagePath: request.storagePath,
         }))).catch(() => ({}));
-        await runLimited(fallbackRequests, 8, async (request) => {
+        await runLimited(fallbackRequests, CONFLICT_IMAGE_CROP_CONCURRENCY, async (request) => {
             const pageUrl = pageUrls[request.key];
             if (!pageUrl) {
                 cellUrlCache[request.key] = '';
