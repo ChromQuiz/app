@@ -60,7 +60,7 @@
             if (!window.CV) await loadAdminScriptOnce('js/cv.js');
             if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
             if (typeof window.generatePDF !== 'function' || typeof window.loadAnswers !== 'function') {
-                await loadAdminScriptOnce('js/admin_prep.js?v=23');
+                await loadAdminScriptOnce('js/admin_prep.js?v=24');
             }
         }
 

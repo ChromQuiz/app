@@ -563,15 +563,7 @@ const CIQSupabaseAPI = {
         if (!entry) throw new Error(`受付番号 ${entryNumber} の参加者が見つかりません。`);
 
         const pagePath = `${projectId}/${entryNumber}/page.webp`;
-        const pageBlob = this.toUploadBlob(pageImage, 'image/webp');
-        const { error: pageError } = await this.client()
-            .storage
-            .from('answer-pages')
-            .upload(pagePath, pageBlob, {
-                contentType: pageBlob.type || 'image/webp',
-                upsert: true,
-            });
-        if (pageError) throw pageError;
+        await this.uploadAnswerPageImage(projectId, entryNumber, pageImage);
 
         const { data, error } = await this.client()
             .from('answer_pages')
@@ -589,6 +581,54 @@ const CIQSupabaseAPI = {
         if (error) throw error;
         this.invalidateProjectAnswerCache(projectId);
         return data;
+    },
+
+    async uploadAnswerPageImage(projectId, entryNumber, pageImage) {
+        const pagePath = `${projectId}/${entryNumber}/page.webp`;
+        const pageBlob = this.toUploadBlob(pageImage, 'image/webp');
+        const { error } = await this.client()
+            .storage
+            .from('answer-pages')
+            .upload(pagePath, pageBlob, {
+                contentType: pageBlob.type || 'image/webp',
+                upsert: true,
+            });
+        if (error) throw error;
+        return pagePath;
+    },
+
+    async upsertAnswerPages(projectId, records) {
+        const rows = (records || [])
+            .filter(record => record?.entryId && record?.storagePath)
+            .map(record => ({
+                project_id: projectId,
+                entry_id: record.entryId,
+                storage_path: record.storagePath,
+                cells: {
+                    regions: record.cells || {},
+                    pageWidth: record.pageWidth || null,
+                },
+            }));
+        if (!rows.length) return [];
+
+        const results = [];
+        for (let i = 0; i < rows.length; i += 100) {
+            const { data, error } = await this.client()
+                .from('answer_pages')
+                .upsert(rows.slice(i, i + 100), { onConflict: 'project_id,entry_id' })
+                .select('id, project_id, entry_id, storage_path, cells, uploaded_at');
+            if (error) throw error;
+            results.push(...(data || []));
+        }
+        this.invalidateProjectAnswerCache(projectId);
+        return results;
+    },
+
+    async deleteAnswerPageStoragePaths(paths) {
+        const uniquePaths = Array.from(new Set((paths || []).filter(Boolean)));
+        if (!uniquePaths.length) return;
+        const { error } = await this.client().storage.from('answer-pages').remove(uniquePaths);
+        if (error) throw error;
     },
 
     async uploadAnswerCell(projectId, entryNumber, questionNumber, cellDataUrl, invalidateCache = true) {

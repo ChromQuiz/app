@@ -11,7 +11,7 @@
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-07-01-answer-upload-v3';
+        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-07-01-answer-upload-v4';
         const ANSWER_UPLOAD_DEBUG = localStorage.getItem('ciqUploadDebug') === '1';
         if (ANSWER_UPLOAD_DEBUG) console.info('[CIQ upload debug] admin_prep loaded', { version: ANSWER_UPLOAD_DEBUG_VERSION });
         const ANSWER_SCAN_RENDER_SCALE = 1.9;
@@ -287,6 +287,7 @@
             setProgressClass(overlayBar, 0);
             overlayTitle.textContent = '答案を読み込み中...';
             let uploadedEntryNumbers = new Set();
+            let uploadedPagePaths = new Set();
             let inFlightUploads = [];
 
             try {
@@ -314,6 +315,7 @@
 
                 const seenEntryNumbers = new Set();
                 const uploadFailures = [];
+                const answerPageRecords = [];
                 const UPLOAD_CONCURRENCY = 8;
                 let uploadedCount = 0;
 
@@ -330,9 +332,16 @@
                                 hasKnownEntry: Boolean(knownEntry?.id),
                             });
                             const uploadStartedAt = performance.now();
-                            await CIQSupabaseAPI.uploadAnswerPage(projectId, answer.entryNumber, answer.pageImage, answer.cellRegions, answer.pageWidth, knownEntry);
+                            const storagePath = await CIQSupabaseAPI.uploadAnswerPageImage(projectId, answer.entryNumber, answer.pageImage);
                             addMs(perfStats, 'uploadMs', uploadStartedAt);
                             uploadedEntryNumbers.add(answer.entryNumber);
+                            uploadedPagePaths.add(storagePath);
+                            answerPageRecords.push({
+                                entryId: knownEntry.id,
+                                storagePath,
+                                cells: answer.cellRegions,
+                                pageWidth: answer.pageWidth,
+                            });
                         } catch (e) {
                             console.error(`Entry ${answer.entryNumber} upload error:`, e);
                             logUploadDebug('uploadEntry:pageFailed', {
@@ -465,6 +474,13 @@
 
                 await Promise.allSettled(inFlightUploads);
 
+                if (answerPageRecords.length) {
+                    overlayText.textContent = '保存情報を更新中';
+                    const metadataStartedAt = performance.now();
+                    await CIQSupabaseAPI.upsertAnswerPages(projectId, answerPageRecords);
+                    addMs(perfStats, 'uploadMs', metadataStartedAt);
+                }
+
                 overlayText.textContent = '完了しました！';
                 logPerf('answerUploadComplete', perfStats, { uploadFailures: uploadFailures.length });
                 setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);
@@ -481,6 +497,7 @@
             } catch (e) {
                 await Promise.allSettled(inFlightUploads);
                 await rollbackUploadedAnswers(uploadedEntryNumbers);
+                await CIQSupabaseAPI.deleteAnswerPageStoragePaths(Array.from(uploadedPagePaths)).catch(() => {});
                 console.error(e); overlay.classList.remove('is-visible-flex');
                 showAdminToast('処理エラー: ' + e.message);
             } finally {
