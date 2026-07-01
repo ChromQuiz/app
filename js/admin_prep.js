@@ -11,7 +11,7 @@
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-07-01-answer-upload-v5';
+        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-07-01-answer-upload-v6';
         const ANSWER_UPLOAD_DEBUG = localStorage.getItem('ciqUploadDebug') === '1';
         if (ANSWER_UPLOAD_DEBUG) console.info('[CIQ upload debug] admin_prep loaded', { version: ANSWER_UPLOAD_DEBUG_VERSION });
         const ANSWER_SCAN_RENDER_SCALE = 1.9;
@@ -319,8 +319,17 @@
                 const answerPageRecords = [];
                 const UPLOAD_CONCURRENCY = 8;
                 let uploadedCount = 0;
+                let lastUploadProgressText = '';
 
                 logUploadDebug('loadAnswers:uploadPipelineStart', { totalPages: total, concurrency: UPLOAD_CONCURRENCY });
+
+                function updateUploadProgress() {
+                    const text = `${uploadedCount} / ${total} 件保存`;
+                    if (text === lastUploadProgressText) return;
+                    lastUploadProgressText = text;
+                    setProgressClass(overlayBar, (uploadedCount / total) * 100);
+                    overlayText.textContent = text;
+                }
 
                 async function enqueueUpload(answer) {
                     await waitForUploadSlot(inFlightUploads, UPLOAD_CONCURRENCY);
@@ -359,8 +368,7 @@
                         } finally {
                             answer.pageImage = null;
                             uploadedCount++;
-                            setProgressClass(overlayBar, (uploadedCount / total) * 100);
-                            overlayText.textContent = `${uploadedCount} / ${total} 件保存`;
+                            updateUploadProgress();
                         }
                     })();
                     inFlightUploads.push(promise);
