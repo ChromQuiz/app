@@ -32,6 +32,11 @@ async function runLimited(items, limit, task) {
 
 function logPerf(label, details = {}) {
     console.info('[CIQ perf]', label, details);
+    try {
+        console.info(`[CIQ perf json] ${label} ${JSON.stringify(details)}`);
+    } catch (_) {
+        // Keep profiling non-blocking if a browser cannot serialize a field.
+    }
 }
 
 function roundMs(value) {
