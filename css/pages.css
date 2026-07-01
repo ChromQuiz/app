@@ -836,31 +836,32 @@ body.page-help {
   background: var(--bg-dark); color: var(--text-main);
   font-family: var(--font-family); margin: 0; padding: 24px;
 }
-.help-container { max-width: 720px; margin: 0 auto; }
-.help-header { text-align: center; margin-bottom: 40px; }
-.help-header h1 { font-size: 28px; margin-bottom: 8px; }
-.help-header p { color: var(--text-muted); font-size: 14px; }
+.help-container { max-width: 880px; margin: 0 auto; }
+.help-header { margin-bottom: 36px; }
+.help-header h1 { font-size: 30px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.help-header p { color: var(--text-muted); font-size: 14px; margin: 0; }
 .help-back {
   display: inline-flex; align-items: center; gap: 6px;
   color: var(--text-muted); font-size: 13px; text-decoration: none;
   margin-bottom: 24px; transition: color 0.2s;
 }
 .help-back:hover { color: var(--primary); }
-.qa-category { margin-bottom: 32px; }
+.qa-category { margin-bottom: 36px; }
 .qa-category-title {
-  font-size: 16px; font-weight: 700; color: var(--primary);
-  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  font-size: 16px; font-weight: 800; color: var(--text-main);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
 }
+.qa-category-title i { color: var(--primary); width: 20px; text-align: center; }
 .qa-item {
-  background: var(--glass-bg); border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg); margin-bottom: 8px;
+  background: #ffffff; border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 8px;
   overflow: hidden; transition: border-color 0.3s;
 }
-.qa-item:hover { border-color: var(--glass-border-hover); }
+.qa-item:hover { border-color: var(--primary-soft-border); }
 .qa-question {
   padding: 16px 20px; cursor: pointer; display: flex;
   align-items: center; justify-content: space-between;
-  gap: 12px; font-weight: 600; font-size: 14px; user-select: none;
+  gap: 12px; font-weight: 700; font-size: 14px; user-select: none;
 }
 .qa-question i.fa-chevron-down {
   transition: transform 0.3s; color: var(--text-muted);
@@ -871,10 +872,10 @@ body.page-help {
   max-height: 0; overflow: hidden;
   transition: max-height 0.4s ease, padding 0.3s;
 }
-.qa-item.open .qa-answer { max-height: 500px; }
+.qa-item.open .qa-answer { max-height: 700px; }
 .qa-answer-inner {
-  padding: 0 20px 16px; font-size: 13px;
-  color: var(--text-muted); line-height: 1.7;
+  padding: 0 20px 18px; font-size: 13px;
+  color: var(--text-muted); line-height: 1.85;
 }
 .qa-answer-inner code {
   background: var(--bg-secondary); padding: 2px 6px;

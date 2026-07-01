@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
-    <meta name="description" content="CIQ - 運営マニュアル">
+    <meta name="description" content="CIQ - 運営ヘルプ">
     <title>CIQ - 運営ヘルプ</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
     <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=30">
+    <link rel="stylesheet" href="css/pages.css?v=33">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="page-help">
@@ -19,124 +19,268 @@
         <a href="index.html" class="help-back"><i class="fa-solid fa-arrow-left"></i> トップページに戻る</a>
         <div class="help-header">
             <h1><i class="fa-solid fa-circle-question"></i> 運営ヘルプ</h1>
-            <p>CIQのシステム管理者および大会運営者向けのマニュアルです</p>
+            <p>大会準備から採点、成績照会までの運用手順をまとめています</p>
         </div>
 
         <div class="qa-category">
-            <div class="qa-category-title"><i class="fa-solid fa-right-to-bracket"></i> プロジェクト（大会）管理</div>
+            <div class="qa-category-title"><i class="fa-solid fa-flag-checkered"></i> 最初にやること</div>
 
             <div class="qa-item">
                 <div class="qa-question">
-                    新しいプロジェクトを作成するには？
+                    大会用プロジェクトを作る流れ
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="qa-answer"><div class="qa-answer-inner">
-                    管理者専用のログインURLからアクセスすると、プロジェクト（大会）作成パネルが表示されます。そこで任意の大会名、パスワード、管理者キーなどを設定して作成を行ってください。
+                    「新規作成」からGoogleでログインし、大会名・プロジェクトID・採点者用パスワードを設定します。作成したユーザーは最初の管理者になります。プロジェクトIDは管理者・採点者が入室するための識別子なので、参加者向けの案内には原則含めません。
                 </div></div>
             </div>
 
             <div class="qa-item">
                 <div class="qa-question">
-                    参加者へのエントリーや成績照会の案内方法は？
+                    参加者に公開する前に確認する設定
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="qa-answer"><div class="qa-answer-inner">
-                    管理画面の「設定」タブ内にある「共有リンク」セクションから、各機能（エントリー、リスト、編集、キャンセル、遅刻、成績照会）の専用URLをコピーできます。これを参加者に共有してください。
+                    管理画面で大会名、問題数、エントリー期間、定員、参加規約、メール送信設定を確認します。成績照会を使う場合は、照会期間も別途設定してください。期間外のページは参加者から操作できないため、公開前に一度リンクを開いて表示を確認しておくと安全です。
                 </div></div>
             </div>
-            
-            <div class="qa-item">
-                <div class="qa-question">
-                    採点スタッフを招待するには？
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
-                    採点スタッフには、プロジェクト作成時に設定した「プロジェクトID」と「パスワード」を共有してください。通常のログイン画面からアクセスすることで、採点専用画面に入ることができます。
-                </div></div>
-            </div>
-        </div>
-
-        <div class="qa-category">
-            <div class="qa-category-title"><i class="fa-solid fa-file-pdf"></i> 答案データの管理</div>
 
             <div class="qa-item">
                 <div class="qa-question">
-                    解答用紙のPDFはどう準備・アップロードしますか？
+                    参加者向けリンクの扱い
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="qa-answer"><div class="qa-answer-inner">
-                    スキャナー等で参加者の解答用紙をPDF化（1ページ1枚、QRコードが読み取れる解像度）し、管理画面の「答案管理」タブからアップロードしてください。アップロードすると自動で分割・QRコード読み取りが行われ、各参加者の答案として登録されます。
-                </div></div>
-            </div>
-            
-            <div class="qa-item">
-                <div class="qa-question">
-                    模範解答のCSVフォーマットは？
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
-                    2つのフォーマットに対応しています：<br>
-                    ① <strong>番号付き</strong>: <code>1,東京</code> のように「問題番号,解答」の形式<br>
-                    ② <strong>番号なし</strong>: 1行目が第1問の解答、2行目が第2問の解答…という形式
+                    管理画面のリンク一覧から、エントリー、参加者一覧、参加規約、編集、キャンセル、遅刻連絡、成績照会のリンクをコピーできます。QRコードやメールに使う場合は、必ず本番で使うプロジェクトのリンクか確認してください。
                 </div></div>
             </div>
         </div>
 
         <div class="qa-category">
-            <div class="qa-category-title"><i class="fa-solid fa-chart-pie"></i> 採点・集計管理</div>
+            <div class="qa-category-title"><i class="fa-solid fa-users-gear"></i> 権限とログイン</div>
 
             <div class="qa-item">
                 <div class="qa-question">
-                    採点コンフリクト（競合）とは何ですか？
+                    管理者と採点者の違い
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="qa-answer"><div class="qa-answer-inner">
-                    複数人の採点スタッフが同じ問題で異なる判定（○と×）を出した場合に発生します。管理画面の「採点」タブからコンフリクト一覧を確認し、管理者が最終的な正誤判断を行ってください。
+                    管理者は設定変更、参加者管理、答案アップロード、競合解決、集計出力を行えます。採点者は採点画面で割り当てられた問題を採点します。採点者には原則として参加者の個人情報や管理機能を見せない設計です。
                 </div></div>
             </div>
 
             <div class="qa-item">
                 <div class="qa-question">
-                    採点結果のエクスポート機能について
+                    採点者を参加させる方法
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="qa-answer"><div class="qa-answer-inner">
-                    「集計」タブから、全参加者の点数データ（採点結果CSV）および問題ごとの正答率データ（正答率分析CSV）を出力可能です。また、採点済み（○×等のスタンプ付き）の解答用紙PDFを出力することもできます。
+                    採点者にはログインページ、プロジェクトID、採点者用パスワードを共有します。Googleログイン後、プロジェクトIDとパスワードを入力すると採点者として参加します。最初は採点者権限で入り、必要な人だけ既存管理者が管理者へ変更します。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    管理者を増やす・外すとき
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    管理画面のメンバー管理で、参加済みメンバーの権限変更やキックができます。誤って外した場合は復帰操作を使います。知らないアカウントや不要になった採点者は、セキュリティ上そのまま残さず整理してください。
                 </div></div>
             </div>
         </div>
 
         <div class="qa-category">
-            <div class="qa-category-title"><i class="fa-solid fa-triangle-exclamation"></i> トラブルシューティング</div>
+            <div class="qa-category-title"><i class="fa-solid fa-user-check"></i> エントリーと当日受付</div>
 
             <div class="qa-item">
                 <div class="qa-question">
-                    プロジェクトのデータをリセットしたい
+                    エントリー受付を開始・停止する
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="qa-answer"><div class="qa-answer-inner">
-                    「設定」タブの下部からプロジェクトの初期化が可能です。参加者データや答案、採点データが完全に消去されます（復元不可）。プロジェクトの基本設定は維持されるため、同じIDで次回の大会運営が可能です。
+                    管理画面でエントリーの公開状態と期間を設定します。期間を指定した場合、開始前・終了後は参加者がエントリーできません。定員制限を使う場合は人数を1人単位で調整できます。キャンセル待ちから繰り上がった参加者には、必要に応じて通知を送ります。
                 </div></div>
             </div>
 
             <div class="qa-item">
                 <div class="qa-question">
-                    「データベース通信拒否」と表示されます
+                    参加者情報を確認・管理する
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="qa-answer"><div class="qa-answer-inner">
-                    認証セッションが切れたか、無効なプロジェクトIDにアクセスしようとしている可能性があります。一度ログアウトし、ログイン画面から再度プロジェクトに入り直してください。
+                    管理者は参加者一覧でエントリー状況、当日受付状態、キャンセル待ち、連絡に必要な情報を確認します。参加者のメールアドレスや氏名などの個人情報は慎重に扱い、公開ページや採点者向け画面へ出さないようにします。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    当日受付で使うもの
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    当日受付ページでは参加者のQRコードを読み取り、受付済みにできます。カメラを使う端末ではブラウザのカメラ許可が必要です。読み取りできない場合は、管理画面の参加者一覧から状態を確認してください。
+                </div></div>
+            </div>
+        </div>
+
+        <div class="qa-category">
+            <div class="qa-category-title"><i class="fa-solid fa-file-pen"></i> 答案準備</div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    解答用紙PDFを作る
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    管理画面で問題数を設定し、解答用紙PDFを生成します。参加者ごとに受付番号をマークして印刷・配布します。答案の読み取りでは受付番号が重要なので、印刷時にマーカーや番号欄が欠けないよう確認してください。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    採点準備で模範解答を入れる
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    模範解答は管理画面から入力・保存します。CSVを使う場合は、問題番号と解答の対応がずれないよう確認してください。表記ゆれが採点判断に影響する場合は、採点者へ事前に基準を共有します。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    答案PDFをアップロードする
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    スキャンした答案PDFを答案管理からアップロードします。1ページが1人分の答案として扱われ、受付番号を読み取って参加者に紐づけます。読み取り失敗や受付番号不一致が出た場合は、参加者一覧とPDF上の番号を確認してください。
+                </div></div>
+            </div>
+        </div>
+
+        <div class="qa-category">
+            <div class="qa-category-title"><i class="fa-solid fa-check-double"></i> 採点と競合解決</div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    採点者は何をするか
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    採点者は問題一覧から担当する問題を開き、各答案を正解・不正解・保留で判定します。保存は答案ごとに行われます。担当問題の採点が終わったら完了操作を行い、管理者が全体の進行状況を確認します。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    競合とは何か
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    同じ答案に対して採点者の判断が分かれ、必要人数の一致に達していない状態を競合として扱います。競合ページでは、管理者が該当答案、模範解答、採点者の投票を見て最終判定を決めます。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    集計と順位の考え方
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    採点結果は問題ごとの最終判定から集計されます。同点の場合は連答などの順位決定ルールを使います。連答が完全一致した場合は、CSV上で判別できるように出力されます。公開前にCSVを確認し、想定外の未確定答案が残っていないか見てください。
+                </div></div>
+            </div>
+        </div>
+
+        <div class="qa-category">
+            <div class="qa-category-title"><i class="fa-solid fa-ranking-star"></i> 成績照会と出力</div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    成績照会を公開する
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    成績照会はエントリーとは別に公開状態と期間を設定します。公開すると、参加者本人だけが照会用情報を使って自分の成績を確認できます。大会中や採点未完了の状態で誤って公開しないよう、公開前に設定を確認してください。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    CSV・採点済みPDFを出力する
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    管理画面から成績CSV、問題別分析、採点済みPDFを出力できます。外部に共有する前に、参加者名、受付番号、順位、未確定答案の有無を確認してください。個人情報を含むファイルは共有先を限定して扱います。
+                </div></div>
+            </div>
+        </div>
+
+        <div class="qa-category">
+            <div class="qa-category-title"><i class="fa-solid fa-shield-halved"></i> 安全に使うために</div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    漏洩・改ざんを避ける基本
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    管理者権限は必要な人にだけ付与します。採点者用パスワードを不要な場所に貼らない、公開リンクと管理者向け情報を混ぜない、不要になったメンバーを外す、出力ファイルを公開ストレージに置かない、という運用を徹底してください。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    答案画像と個人情報の扱い
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    答案画像と参加者情報は大会運営に必要な範囲でだけ利用します。採点者に不要な個人情報は見せず、参加者本人向けの成績照会でも本人以外の成績が見えないことを前提に運用します。大会後に不要になった答案画像は削除対象です。
+                </div></div>
+            </div>
+        </div>
+
+        <div class="qa-category">
+            <div class="qa-category-title"><i class="fa-solid fa-triangle-exclamation"></i> 困ったとき</div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    ログイン・プロジェクト参加ができない
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    Googleログイン状態、プロジェクトID、採点者用パスワードを確認します。別のGoogleアカウントでログインしている場合は、一度Googleログアウトして入り直してください。管理者がキックしたメンバーは、復帰操作が必要な場合があります。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    答案画像が表示されない・重い
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    まずページを再読み込みします。直らない場合は、答案PDFの保存が完了しているか、対象参加者の答案が登録されているかを管理画面で確認します。ブラウザの通信が不安定な場合、画像の読み込みに時間がかかることがあります。
+                </div></div>
+            </div>
+
+            <div class="qa-item">
+                <div class="qa-question">
+                    データをリセットしたい
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="qa-answer"><div class="qa-answer-inner">
+                    リセットは復元できない操作です。エントリー、答案、採点、成績など何を消すのかを確認し、必要なCSVやPDFを先に保存してください。大会本番のプロジェクトでは、誤操作を避けるため複数人で確認してから実行します。
                 </div></div>
             </div>
         </div>
 
         <div class="admin-manual-footer">
-            <p>CIQ Admin Manual</p>
+            <p>CIQ Help</p>
         </div>
     </div>
     <script defer src="js/ui.js?v=2"></script>
     <script defer src="js/custom-select.js"></script>
     <script defer src="js/shared.js"></script>
-    <script defer src="js/help.js?v=1"></script>
+    <script defer src="js/help.js?v=2"></script>
 </body>
 </html>
