@@ -21,7 +21,13 @@ const CIQSupabaseAPI = {
         cropMisses: 0,
         cropErrors: 0,
     },
-    _answerCellUrlLookupEnabled: false,
+    _answerCellUrlLookupEnabled: true,
+    _answerCellVersion: 'answer-cell-v1',
+    _answerCellProcessingStaleMs: 10 * 60 * 1000,
+    _answerCellQueue: [],
+    _answerCellRunningKeys: new Set(),
+    _answerCellQueuedKeys: new Set(),
+    _answerCellQueueScheduled: false,
     _answerPagesCacheMs: 15000,
     _signedUrlCacheMs: 5 * 60 * 1000,
 
@@ -129,7 +135,7 @@ const CIQSupabaseAPI = {
         }
     },
 
-    cropImageRegionInWorker(imageUrl, region, sourceWidth, quality) {
+    cropImageRegionBlobInWorker(imageUrl, region, sourceWidth, quality) {
         const worker = this.getCropWorker();
         if (!worker) return null;
         const id = ++this._cropWorkerRequestId;
@@ -140,7 +146,7 @@ const CIQSupabaseAPI = {
                 payload: { imageUrl, region, sourceWidth, quality },
             });
         });
-        return promise.then(blob => URL.createObjectURL(blob));
+        return promise;
     },
 
     getConfigStatus() {
@@ -613,6 +619,72 @@ const CIQSupabaseAPI = {
         throw new Error('Invalid upload image data');
     },
 
+    createEmptyCellGeneration(status = 'not_started') {
+        return {
+            version: this._answerCellVersion,
+            status,
+            startedAt: null,
+            generatedAt: null,
+            failedAt: null,
+            questions: {},
+        };
+    },
+
+    normalizeCellsForSave(cells, pageWidth) {
+        return {
+            regions: cells || {},
+            pageWidth: pageWidth || null,
+            cellGeneration: this.createEmptyCellGeneration('not_started'),
+        };
+    },
+
+    normalizeAnswerCellGeneration(cells) {
+        const generation = cells?.cellGeneration || {};
+        return {
+            ...this.createEmptyCellGeneration(generation.status || 'not_started'),
+            ...generation,
+            questions: {
+                ...(generation.questions || {}),
+            },
+        };
+    },
+
+    getAnswerCellPath(projectId, entryNumber, questionNumber) {
+        return `${projectId}/${entryNumber}/q${questionNumber}.webp`;
+    },
+
+    getCellStatus(cells, questionNumber) {
+        const generation = this.normalizeAnswerCellGeneration(cells);
+        if (generation.version !== this._answerCellVersion) return null;
+        return generation.questions?.[`q${questionNumber}`] === 'ready' ? 'ready' : null;
+    },
+
+    buildCellGenerationPatch(questionStatuses, totalQuestions = 0, base = {}) {
+        const questions = { ...(base.questions || {}), ...(questionStatuses || {}) };
+        const keys = Object.keys(questions);
+        const readyCount = keys.filter(key => questions[key] === 'ready').length;
+        const failedCount = keys.filter(key => questions[key] === 'failed').length;
+        const now = new Date().toISOString();
+        let status = 'not_started';
+        if (totalQuestions && readyCount >= totalQuestions) status = 'complete';
+        else if (keys.length && failedCount === keys.length) status = 'failed';
+        else if (readyCount || failedCount) status = 'partial';
+        return {
+            version: this._answerCellVersion,
+            status,
+            startedAt: base.startedAt || null,
+            generatedAt: status === 'complete' ? now : null,
+            failedAt: status === 'failed' ? now : null,
+            questions,
+        };
+    },
+
+    isCellGenerationStale(generation) {
+        if (!generation?.startedAt) return false;
+        const startedAt = Date.parse(generation.startedAt);
+        return Number.isFinite(startedAt) && Date.now() - startedAt > this._answerCellProcessingStaleMs;
+    },
+
     async uploadAnswerPage(projectId, entryNumber, pageImage, cells, pageWidth, knownEntry = null) {
         const entry = knownEntry?.id ? knownEntry : await this.findEntryByNumber(projectId, entryNumber);
         if (!entry) throw new Error(`受付番号 ${entryNumber} の参加者が見つかりません。`);
@@ -626,10 +698,7 @@ const CIQSupabaseAPI = {
                 project_id: projectId,
                 entry_id: entry.id,
                 storage_path: pagePath,
-                cells: {
-                    regions: cells || {},
-                    pageWidth: pageWidth || null,
-                },
+                cells: this.normalizeCellsForSave(cells, pageWidth),
             }, { onConflict: 'project_id,entry_id' })
             .select('id, project_id, entry_id, storage_path, cells, uploaded_at')
             .single();
@@ -659,10 +728,7 @@ const CIQSupabaseAPI = {
                 project_id: projectId,
                 entry_id: record.entryId,
                 storage_path: record.storagePath,
-                cells: {
-                    regions: record.cells || {},
-                    pageWidth: record.pageWidth || null,
-                },
+                cells: this.normalizeCellsForSave(record.cells, record.pageWidth),
             }));
         if (!rows.length) return [];
 
@@ -687,8 +753,12 @@ const CIQSupabaseAPI = {
     },
 
     async uploadAnswerCell(projectId, entryNumber, questionNumber, cellDataUrl, invalidateCache = true) {
-        const path = `${projectId}/${entryNumber}/q${questionNumber}.webp`;
         const blob = this.dataUrlToBlob(cellDataUrl);
+        return this.uploadAnswerCellBlob(projectId, entryNumber, questionNumber, blob, invalidateCache);
+    },
+
+    async uploadAnswerCellBlob(projectId, entryNumber, questionNumber, blob, invalidateCache = true) {
+        const path = this.getAnswerCellPath(projectId, entryNumber, questionNumber);
         const { error } = await this.client()
             .storage
             .from('answer-cells')
@@ -699,6 +769,55 @@ const CIQSupabaseAPI = {
         if (error) throw error;
         if (invalidateCache) this.invalidateProjectAnswerCache(projectId);
         return path;
+    },
+
+    async updateAnswerCellGeneration(projectId, entryId, patch) {
+        if (!projectId || !entryId) throw new Error('Missing answer page identity');
+        const { data: current, error: readError } = await this.client()
+            .from('answer_pages')
+            .select('cells')
+            .eq('project_id', projectId)
+            .eq('entry_id', entryId)
+            .single();
+        if (readError) throw readError;
+
+        const cells = current?.cells || {};
+        const previous = this.normalizeAnswerCellGeneration(cells);
+        const nextGeneration = {
+            ...previous,
+            ...(patch || {}),
+            questions: {
+                ...(previous.questions || {}),
+                ...((patch || {}).questions || {}),
+            },
+        };
+        const nextCells = {
+            ...cells,
+            cellGeneration: nextGeneration,
+        };
+        const { data, error } = await this.client()
+            .from('answer_pages')
+            .update({ cells: nextCells })
+            .eq('project_id', projectId)
+            .eq('entry_id', entryId)
+            .select('id, project_id, entry_id, storage_path, cells, uploaded_at')
+            .single();
+        if (error) throw error;
+        this.invalidateProjectAnswerCache(projectId);
+        return data;
+    },
+
+    async markAnswerCellFailed(projectId, entryId, questionNumber) {
+        try {
+            await this.updateAnswerCellGeneration(projectId, entryId, {
+                version: this._answerCellVersion,
+                status: 'partial',
+                failedAt: new Date().toISOString(),
+                questions: { [`q${questionNumber}`]: 'failed' },
+            });
+        } catch (error) {
+            console.warn('Answer cell failure mark skipped:', error);
+        }
     },
 
     async findEntryByNumber(projectId, entryNumber) {
@@ -826,7 +945,7 @@ const CIQSupabaseAPI = {
         const normalized = (requests || [])
             .map((request) => ({
                 key: request.key,
-                path: `${projectId}/${request.entryNumber}/q${request.questionNumber}.webp`,
+                path: request.cellPath || this.getAnswerCellPath(projectId, request.entryNumber, request.questionNumber),
             }))
             .filter(request => request.key && request.path);
         if (!normalized.length) return {};
@@ -902,6 +1021,9 @@ const CIQSupabaseAPI = {
                         storagePath: row.storage_path || null,
                         pageWidth: Number(row.page_width || 0) || null,
                         cellRegion: row.cell_region || null,
+                        cellStatus: row.cell_status || null,
+                        cellPath: row.cell_path || null,
+                        cellGenerationVersion: row.cell_generation_version || null,
                     };
                 })
                 .filter(card => card.entryId && card.entryNumber);
@@ -914,6 +1036,7 @@ const CIQSupabaseAPI = {
             const entry = page.entries || {};
             const entryNumber = Number(entry.entry_number);
             const cellRegion = page.cells?.regions?.[`q${questionNumber}`] || null;
+            const cellStatus = this.getCellStatus(page.cells, questionNumber);
             return {
                 entryId: page.entry_id,
                 entryNumber,
@@ -925,6 +1048,9 @@ const CIQSupabaseAPI = {
                 storagePath: page.storage_path || null,
                 pageWidth: Number(page.cells?.pageWidth || 0) || null,
                 cellRegion,
+                cellStatus,
+                cellPath: cellStatus === 'ready' ? this.getAnswerCellPath(projectId, entryNumber, questionNumber) : null,
+                cellGenerationVersion: page.cells?.cellGeneration?.version || null,
             };
         });
         return cards.filter(card => card.entryId && card.entryNumber).sort((a, b) => a.entryNumber - b.entryNumber);
@@ -992,7 +1118,19 @@ const CIQSupabaseAPI = {
         });
     },
 
-    async cropImageRegionOnMainThread(imageUrl, region, sourceWidth, quality = 0.64) {
+    canvasToBlob(canvas, type = 'image/webp', quality = 0.64) {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    reject(new Error('Image encode failed'));
+                    return;
+                }
+                resolve(blob);
+            }, type, quality);
+        });
+    },
+
+    async cropImageRegionBlobOnMainThread(imageUrl, region, sourceWidth, quality = 0.64) {
         let image = null;
         try {
             image = await (this.loadCachedImageBitmap(imageUrl) || Promise.reject(new Error('ImageBitmap unavailable')));
@@ -1010,10 +1148,28 @@ const CIQSupabaseAPI = {
         canvas.width = Math.min(w, Math.max(1, imageWidth - x));
         canvas.height = Math.min(h, Math.max(1, imageHeight - y));
         canvas.getContext('2d').drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-        const objectUrl = await this.canvasToObjectUrl(canvas, 'image/webp', quality);
+        const blob = await this.canvasToBlob(canvas, 'image/webp', quality);
         canvas.width = 0;
         canvas.height = 0;
-        return objectUrl;
+        return blob;
+    },
+
+    async cropImageRegionOnMainThread(imageUrl, region, sourceWidth, quality = 0.64) {
+        const blob = await this.cropImageRegionBlobOnMainThread(imageUrl, region, sourceWidth, quality);
+        return URL.createObjectURL(blob);
+    },
+
+    async cropImageRegionBlob(imageUrl, region, sourceWidth, quality = 0.64) {
+        if (!imageUrl || !region) throw new Error('Missing image region');
+        const workerCrop = this.cropImageRegionBlobInWorker(imageUrl, region, sourceWidth, quality);
+        if (workerCrop) {
+            try {
+                return await workerCrop;
+            } catch (_) {
+                // Fall back to the main thread below.
+            }
+        }
+        return this.cropImageRegionBlobOnMainThread(imageUrl, region, sourceWidth, quality);
     },
 
     rememberCropUrl(cropKey, objectUrl) {
@@ -1053,15 +1209,8 @@ const CIQSupabaseAPI = {
         const promise = new Promise(async (resolve, reject) => {
             try {
                 let objectUrl = null;
-                const workerCrop = this.cropImageRegionInWorker(imageUrl, region, sourceWidth, quality);
-                if (workerCrop) {
-                    try {
-                        objectUrl = await workerCrop;
-                    } catch (_) {
-                        objectUrl = null;
-                    }
-                }
-                if (!objectUrl) objectUrl = await this.cropImageRegionOnMainThread(imageUrl, region, sourceWidth, quality);
+                const blob = await this.cropImageRegionBlob(imageUrl, region, sourceWidth, quality);
+                objectUrl = URL.createObjectURL(blob);
                 resolve(this.rememberCropUrl(cropKey, objectUrl));
             } catch (error) {
                 this._imagePerfStats.cropErrors++;
@@ -1071,6 +1220,157 @@ const CIQSupabaseAPI = {
         this._cropPromiseCache.set(cropKey, promise);
         promise.finally(() => this._cropPromiseCache.delete(cropKey));
         return promise;
+    },
+
+    shouldGenerateAnswerCells(page) {
+        const cells = page?.cells || {};
+        const regions = cells.regions || page?.cellRegions || {};
+        const generation = this.normalizeAnswerCellGeneration(cells);
+        const questionKeys = Object.keys(regions).filter(key => regions[key]);
+        if (!questionKeys.length) return false;
+        if (generation.version !== this._answerCellVersion) return true;
+        const hasMissingQuestion = questionKeys.some(key => generation.questions?.[key] !== 'ready');
+        if (!hasMissingQuestion) return false;
+        if (generation.status === 'not_started' || generation.status === 'partial' || generation.status === 'failed') return true;
+        if (generation.status === 'processing' && this.isCellGenerationStale(generation)) return true;
+        return hasMissingQuestion;
+    },
+
+    enqueueAnswerCellGeneration(projectId, pages) {
+        if (!projectId) return;
+        const candidates = (pages || [])
+            .map((page) => {
+                const rawCells = page.cells || null;
+                const singleRegion = page.cellRegion && page.questionNumber ? { [`q${page.questionNumber}`]: page.cellRegion } : {};
+                const pageRegions = page.cellRegions && Object.keys(page.cellRegions).length ? page.cellRegions : null;
+                const cells = rawCells?.regions
+                    ? rawCells
+                    : {
+                        regions: pageRegions || rawCells || singleRegion,
+                        pageWidth: page.pageWidth || rawCells?.pageWidth || null,
+                        cellGeneration: page.cellGeneration || {
+                            version: page.cellGenerationVersion || null,
+                            status: page.cellStatus === 'ready' ? 'partial' : 'not_started',
+                            questions: page.cellStatus === 'ready' && page.questionNumber ? { [`q${page.questionNumber}`]: 'ready' } : {},
+                        },
+                    };
+                return {
+                    projectId,
+                    entryId: page.entryId || page.entry_id,
+                    entryNumber: Number(page.entryNumber || page.entry_number || page.entries?.entry_number || 0),
+                    storagePath: page.storagePath || page.storage_path || '',
+                    cells,
+                    partialCellGeneration: Boolean(!rawCells?.regions && page.questionNumber),
+                };
+            })
+            .filter(page => page.entryId && page.entryNumber && page.storagePath && this.shouldGenerateAnswerCells(page));
+        for (const page of candidates) {
+            const key = `${projectId}:${page.entryNumber}`;
+            if (this._answerCellRunningKeys.has(key)) continue;
+            if (this._answerCellQueuedKeys.has(key)) {
+                const queued = this._answerCellQueue.find(item => item.key === key);
+                if (queued) {
+                    queued.cells = {
+                        ...queued.cells,
+                        regions: {
+                            ...(queued.cells?.regions || {}),
+                            ...(page.cells?.regions || {}),
+                        },
+                        pageWidth: queued.cells?.pageWidth || page.cells?.pageWidth || null,
+                    };
+                    queued.partialCellGeneration = queued.partialCellGeneration && page.partialCellGeneration;
+                }
+                continue;
+            }
+            this._answerCellQueuedKeys.add(key);
+            this._answerCellQueue.push({ ...page, key });
+        }
+        this.scheduleAnswerCellQueue();
+    },
+
+    scheduleAnswerCellQueue() {
+        if (this._answerCellQueueScheduled) return;
+        if (!this._answerCellQueue.length) return;
+        this._answerCellQueueScheduled = true;
+        const run = () => {
+            this._answerCellQueueScheduled = false;
+            this.processAnswerCellQueue().catch(error => {
+                console.warn('Answer cell generation queue failed:', error);
+            });
+        };
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(run, { timeout: 3000 });
+        } else {
+            setTimeout(run, 250);
+        }
+    },
+
+    async processAnswerCellQueue() {
+        const next = this._answerCellQueue.shift();
+        if (!next) return;
+        this._answerCellQueuedKeys.delete(next.key);
+        if (this._answerCellRunningKeys.has(next.key)) {
+            this.scheduleAnswerCellQueue();
+            return;
+        }
+        this._answerCellRunningKeys.add(next.key);
+        try {
+            await this.generateAnswerCellsForPage(next.projectId, next);
+        } catch (error) {
+            console.warn('Answer cell generation skipped:', error);
+        } finally {
+            this._answerCellRunningKeys.delete(next.key);
+            this.scheduleAnswerCellQueue();
+        }
+    },
+
+    async generateAnswerCellsForPage(projectId, page) {
+        const regions = page.cells?.regions || page.cellRegions || {};
+        const questionKeys = Object.keys(regions).filter(key => regions[key]).sort((a, b) => Number(a.replace(/^q/, '')) - Number(b.replace(/^q/, '')));
+        if (!questionKeys.length) return;
+
+        const existingGeneration = this.normalizeAnswerCellGeneration(page.cells);
+        const versionMismatch = existingGeneration.version !== this._answerCellVersion;
+        const startedAt = new Date().toISOString();
+        await this.updateAnswerCellGeneration(projectId, page.entryId, {
+            version: this._answerCellVersion,
+            status: 'processing',
+            startedAt,
+            failedAt: null,
+            questions: versionMismatch ? {} : existingGeneration.questions,
+        }).catch(error => {
+            console.warn('Answer cell generation status update skipped:', error);
+        });
+
+        const pageUrls = await this.getAnswerPageUrls(projectId, [{
+            key: String(page.entryId),
+            storagePath: page.storagePath,
+        }]);
+        const pageUrl = pageUrls[String(page.entryId)];
+        if (!pageUrl) throw new Error('Missing answer page URL');
+
+        const questions = versionMismatch ? {} : { ...(existingGeneration.questions || {}) };
+        const targets = questionKeys.filter(key => versionMismatch || questions[key] !== 'ready');
+        const totalQuestions = page.partialCellGeneration ? 0 : questionKeys.length;
+        for (let i = 0; i < targets.length; i += 2) {
+            const batch = targets.slice(i, i + 2);
+            await Promise.all(batch.map(async (key) => {
+                const questionNumber = Number(String(key).replace(/^q/, ''));
+                try {
+                    const blob = await this.cropImageRegionBlob(pageUrl, regions[key], page.cells?.pageWidth || page.pageWidth || null);
+                    await this.uploadAnswerCellBlob(projectId, page.entryNumber, questionNumber, blob, false);
+                    questions[key] = 'ready';
+                } catch (error) {
+                    console.warn('Answer cell generation failed:', { entryNumber: page.entryNumber, questionNumber, error });
+                    questions[key] = 'failed';
+                }
+            }));
+        }
+
+        const patch = this.buildCellGenerationPatch(questions, totalQuestions, { startedAt });
+        await this.updateAnswerCellGeneration(projectId, page.entryId, patch).catch(error => {
+            console.warn('Answer cell generation final status skipped:', error);
+        });
     },
 
     async getModelAnswer(projectId, questionNumber) {
@@ -1172,6 +1472,9 @@ const CIQSupabaseAPI = {
                 cellRegion: row.cell_region || null,
                 cellRegions: {},
                 pageWidth: Number(row.page_width || 0) || null,
+                cellStatus: row.cell_status || null,
+                cellPath: row.cell_path || null,
+                cellGenerationVersion: row.cell_generation_version || null,
                 modelAnswer: row.model_answer || '',
                 votes: Array.isArray(row.votes) ? row.votes : [],
                 finalResult: row.final_result || null,

@@ -133,6 +133,7 @@ function createAnswerCard(cardData, idx) {
         if (idx < 16) image.fetchPriority = 'high';
         if (cardData.cellUrl) {
             image.src = cardData.cellUrl;
+            attachAnswerImageErrorFallback(image, cardData, card);
         } else {
             image.classList.add('is-loading');
             image.dataset.fallbackPending = 'true';
@@ -155,6 +156,21 @@ function createAnswerCard(cardData, idx) {
     card.addEventListener('click', () => selectCard(idx));
     card.addEventListener('dblclick', () => showPreview(projectId, null, cardData.entryNumber));
     return card;
+}
+
+function attachAnswerImageErrorFallback(image, cardData, card) {
+    image.addEventListener('error', () => {
+        if (image.dataset.fallbackPending) return;
+        if (cardData.cellUrlSource === 'answer-cell') {
+            CIQSupabaseAPI.markAnswerCellFailed(projectId, cardData.entryId, currentQ);
+        }
+        cardData.cellUrl = null;
+        cardData.cellUrlSource = '';
+        image.removeAttribute('src');
+        image.classList.add('is-loading');
+        image.dataset.fallbackPending = 'true';
+        queueFallbackImage(image, cardData, card);
+    }, { once: true });
 }
 
 function observeFallbackImage(card, image, cardData) {
@@ -190,10 +206,12 @@ async function flushFallbackImages() {
     fallbackImageQueue.clear();
     if (!batch.length) return;
 
-    const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, batch.map(item => ({
+    const readyBatch = batch.filter(item => item.cardData.cellStatus === 'ready');
+    const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, readyBatch.map(item => ({
         key: String(item.cardData.entryId),
         entryNumber: item.cardData.entryNumber,
         questionNumber: currentQ,
+        cellPath: item.cardData.cellPath,
     }))).catch(() => ({}));
     const directResults = [];
     const cropBatch = [];
@@ -201,7 +219,9 @@ async function flushFallbackImages() {
         const cellUrl = cellUrls[String(item.cardData.entryId)] || '';
         if (cellUrl) {
             item.image.dataset.fallbackPending = 'loading';
-            directResults.push({ image: item.image, card: item.card, cellUrl });
+            item.cardData.cellUrl = cellUrl;
+            item.cardData.cellUrlSource = 'answer-cell';
+            directResults.push({ image: item.image, card: item.card, cardData: item.cardData, cellUrl, source: 'answer-cell' });
             return;
         }
         cropBatch.push(item);
@@ -238,16 +258,22 @@ async function resolveFallbackImage(image, cardData, card) {
         }
         if (!pageUrl) throw new Error('Missing page URL');
         const cellUrl = await CIQSupabaseAPI.cropImageRegion(pageUrl, cardData.cellRegion, cardData.pageWidth);
-        return { image, card, cellUrl };
+        cardData.cellUrlSource = 'crop';
+        return { image, card, cardData, cellUrl, source: 'crop' };
     } catch (_) {
-        return { image, card, cellUrl: '' };
+        return { image, card, cardData, cellUrl: '' };
     }
 }
 
 async function applyFallbackImageResult(result) {
-    const { image, card, cellUrl } = result || {};
+    const { image, card, cardData, cellUrl, source } = result || {};
     if (!image || !card || image.dataset.fallbackPending !== 'loading') return;
     if (cellUrl) {
+        if (cardData) {
+            cardData.cellUrl = cellUrl;
+            cardData.cellUrlSource = source || cardData.cellUrlSource || '';
+        }
+        if (source === 'answer-cell' && cardData) attachAnswerImageErrorFallback(image, cardData, card);
         image.src = cellUrl;
         image.classList.remove('is-loading');
         delete image.dataset.fallbackPending;
@@ -266,16 +292,19 @@ async function prewarmInitialImages(cards, limit) {
     const targets = cards
         .slice(0, limit)
         .filter(card => !card.cellUrl && card.storagePath && card.cellRegion);
-    const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, targets.map(card => ({
+    const readyTargets = targets.filter(card => card.cellStatus === 'ready');
+    const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, readyTargets.map(card => ({
         key: String(card.entryId),
         entryNumber: card.entryNumber,
         questionNumber: currentQ,
+        cellPath: card.cellPath,
     }))).catch(() => ({}));
     const cropTargets = [];
     for (const card of targets) {
         const cellUrl = cellUrls[String(card.entryId)] || '';
         if (cellUrl) {
             card.cellUrl = cellUrl;
+            card.cellUrlSource = 'answer-cell';
         } else {
             cropTargets.push(card);
         }
@@ -289,6 +318,7 @@ async function prewarmInitialImages(cards, limit) {
             card.pageUrl = pageUrls[String(card.entryId)] || card.pageUrl || '';
             if (!card.pageUrl) throw new Error('Missing page URL');
             card.cellUrl = await CIQSupabaseAPI.cropImageRegion(card.pageUrl, card.cellRegion, card.pageWidth);
+            card.cellUrlSource = 'crop';
         } catch (_) {
             card.cellUrl = null;
         }
@@ -310,16 +340,19 @@ function scheduleBackgroundImagePrewarm(cards, startIndex) {
         offset += BACKGROUND_PREWARM_BATCH;
         if (!batch.length) return;
 
-        const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, batch.map(card => ({
+        const readyBatch = batch.filter(card => card.cellStatus === 'ready');
+        const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, readyBatch.map(card => ({
             key: String(card.entryId),
             entryNumber: card.entryNumber,
             questionNumber: currentQ,
+            cellPath: card.cellPath,
         }))).catch(() => ({}));
         const cropBatch = [];
         for (const card of batch) {
             const cellUrl = cellUrls[String(card.entryId)] || '';
             if (cellUrl) {
                 card.cellUrl = cellUrl;
+                card.cellUrlSource = 'answer-cell';
             } else {
                 cropBatch.push(card);
             }
@@ -335,6 +368,7 @@ function scheduleBackgroundImagePrewarm(cards, startIndex) {
                 card.pageUrl = pageUrls[String(card.entryId)] || card.pageUrl || '';
                 if (!card.pageUrl) throw new Error('Missing page URL');
                 card.cellUrl = await CIQSupabaseAPI.cropImageRegion(card.pageUrl, card.cellRegion, card.pageWidth);
+                card.cellUrlSource = 'crop';
             } catch (_) {
                 card.cellUrl = null;
             }
@@ -362,6 +396,10 @@ async function init() {
 
         document.getElementById('answer-badge').textContent = answerText || '未設定';
         answerCards = cards;
+        CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, answerCards.map(card => ({
+            ...card,
+            questionNumber: currentQ,
+        })));
 
         if (answerCards.length === 0) {
             setAnswerGridMessage('答案データがありません', 'fa-solid fa-inbox');

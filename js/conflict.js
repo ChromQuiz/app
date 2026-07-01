@@ -230,6 +230,7 @@ function getEntryMeta(page) {
         storagePath: page.storage_path || '',
         cellRegions: page.cells?.regions || {},
         pageWidth: Number(page.cells?.pageWidth || 0) || null,
+        cellGeneration: page.cells?.cellGeneration || null,
     };
 }
 
@@ -283,6 +284,11 @@ function buildConflicts() {
             conflicts.push({
                 q,
                 ...meta,
+                cellStatus: CIQSupabaseAPI.getCellStatus({ cellGeneration: meta.cellGeneration }, q),
+                cellPath: CIQSupabaseAPI.getCellStatus({ cellGeneration: meta.cellGeneration }, q)
+                    ? CIQSupabaseAPI.getAnswerCellPath(projectId, meta.entryNumber, q)
+                    : null,
+                cellGenerationVersion: meta.cellGeneration?.version || null,
                 votes,
                 finalResult: finalResult?.result || null,
             });
@@ -298,9 +304,12 @@ function getMissingConflictImageRequests(conflicts) {
             key: `${conflict.entryNumber}:q${conflict.q}`,
             entryNumber: conflict.entryNumber,
             questionNumber: conflict.q,
+            entryId: conflict.entryId,
             storagePath: conflict.storagePath,
             cellRegion: conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`] || null,
             pageWidth: conflict.pageWidth,
+            cellStatus: conflict.cellStatus || null,
+            cellPath: conflict.cellPath || null,
         }))
         .filter(request => cellUrlCache[request.key] === undefined);
 }
@@ -330,6 +339,10 @@ function updateConflictSelectionClasses() {
 
 async function render() {
     currentConflicts = buildConflicts();
+    CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, currentConflicts.map(conflict => ({
+        ...conflict,
+        questionNumber: conflict.q,
+    })));
     if (selectedIndex >= currentConflicts.length) selectedIndex = Math.max(0, currentConflicts.length - 1);
 
     const unresolvedCount = currentConflicts.filter(c => !c.finalResult).length;
@@ -423,6 +436,7 @@ function createConflictCard(conflict, idx) {
         image.loading = idx < 12 ? 'eager' : 'lazy';
         image.decoding = 'async';
         if (idx < 12) image.fetchPriority = 'high';
+        attachConflictImageErrorFallback(image, conflict);
         card.appendChild(image);
     } else {
         const expired = document.createElement('div');
@@ -465,6 +479,23 @@ function createConflictCard(conflict, idx) {
     return card;
 }
 
+function attachConflictImageErrorFallback(image, conflict) {
+    image.addEventListener('error', () => {
+        const key = `${conflict.entryNumber}:q${conflict.q}`;
+        if (conflict.cellStatus === 'ready') {
+            CIQSupabaseAPI.markAnswerCellFailed(projectId, conflict.entryId, conflict.q);
+        }
+        delete cellUrlCache[key];
+        const placeholder = document.createElement('div');
+        placeholder.className = 'img-expired';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-clock';
+        placeholder.append(icon, ' 画像を読み込み中');
+        image.replaceWith(placeholder);
+        queueConflictImage(conflict);
+    }, { once: true });
+}
+
 function observeConflictImage(card, conflict) {
     if (!conflictImageObserver && 'IntersectionObserver' in window) {
         conflictImageObserver = new IntersectionObserver((entries) => {
@@ -493,6 +524,9 @@ function queueConflictImage(conflict) {
         storagePath: conflict.storagePath,
         cellRegion: conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`] || null,
         pageWidth: conflict.pageWidth,
+        cellStatus: conflict.cellStatus || null,
+        cellPath: conflict.cellPath || null,
+        entryId: conflict.entryId,
     });
     if (conflictImageFlushTimer) return;
     conflictImageFlushTimer = setTimeout(flushConflictImages, 40);
@@ -531,6 +565,7 @@ function updateVisibleConflictImages(requests) {
         image.alt = `${conflict.displayName} ${conflict.q}問`;
         image.loading = 'lazy';
         image.decoding = 'async';
+        attachConflictImageErrorFallback(image, conflict);
         imageSlot.replaceWith(image);
     });
 }
@@ -544,10 +579,12 @@ async function ensureConflictCellUrls(missing) {
     for (const request of missing) cellUrlCache[request.key] = null;
 
     try {
-        const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, missing.map(request => ({
+        const readyMissing = missing.filter(request => request.cellStatus === 'ready');
+        const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, readyMissing.map(request => ({
             key: request.key,
             entryNumber: request.entryNumber,
             questionNumber: request.questionNumber,
+            cellPath: request.cellPath,
         }))).catch(() => ({}));
         const fallbackRequests = missing.filter((request) => {
             const cellUrl = cellUrls[request.key] || '';

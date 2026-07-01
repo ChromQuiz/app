@@ -348,6 +348,7 @@
                             uploadedPagePaths.add(storagePath);
                             answerPageRecords.push({
                                 entryId: knownEntry.id,
+                                entryNumber: answer.entryNumber,
                                 storagePath,
                                 cells: answer.cellRegions,
                                 pageWidth: answer.pageWidth,
@@ -489,6 +490,7 @@
                     const metadataStartedAt = performance.now();
                     await CIQSupabaseAPI.upsertAnswerPages(projectId, answerPageRecords);
                     addMs(perfStats, 'uploadMs', metadataStartedAt);
+                    CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, answerPageRecords);
                 }
 
                 overlayText.textContent = '完了しました！';
