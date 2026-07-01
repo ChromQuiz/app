@@ -10,6 +10,7 @@ let modelAnswers = {};
 let scoreVotes = [];
 let finalResults = [];
 let questionScorers = [];
+let serverConflictRows = null;
 let currentConflicts = [];
 let selectedIndex = 0;
 let cellUrlCache = {};
@@ -22,6 +23,7 @@ const CONFLICT_IMAGE_CROP_CONCURRENCY = 12;
 const BACKGROUND_CONFLICT_IMAGE_BATCH = 24;
 let conflictBackgroundPreloadToken = 0;
 let lastConflictRenderSignature = '';
+let scoreConflictRpcAvailable = true;
 
 async function runLimited(items, limit, task) {
     const results = [];
@@ -76,6 +78,27 @@ async function init() {
 
 async function refreshData() {
     const startedAt = performance.now();
+    if (scoreConflictRpcAvailable) {
+        try {
+            serverConflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);
+            const dataMs = Math.round(performance.now() - startedAt);
+            const renderStartedAt = performance.now();
+            await render();
+            logPerf('conflictRefresh', {
+                conflicts: currentConflicts.length,
+                dataMs,
+                renderMs: Math.round(performance.now() - renderStartedAt),
+                totalMs: Math.round(performance.now() - startedAt),
+                source: 'rpc',
+            });
+            return;
+        } catch (error) {
+            scoreConflictRpcAvailable = false;
+            serverConflictRows = null;
+            console.warn('Score conflict RPC unavailable; falling back to client calculation.', error);
+        }
+    }
+
     const [
         projectRow,
         pages,
@@ -110,6 +133,7 @@ async function refreshData() {
         dataMs,
         renderMs: Math.round(performance.now() - renderStartedAt),
         totalMs: Math.round(performance.now() - startedAt),
+        source: 'client',
     });
 }
 
@@ -129,6 +153,8 @@ function getEntryMeta(page) {
 }
 
 function buildConflicts() {
+    if (serverConflictRows) return serverConflictRows;
+
     const conflicts = [];
     const required = Number(project?.required_scorers || 3);
     const totalQuestions = Number(project?.question_count || 100);
@@ -192,7 +218,7 @@ function getMissingConflictImageRequests(conflicts) {
             entryNumber: conflict.entryNumber,
             questionNumber: conflict.q,
             storagePath: conflict.storagePath,
-            cellRegion: conflict.cellRegions?.[`q${conflict.q}`] || null,
+            cellRegion: conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`] || null,
             pageWidth: conflict.pageWidth,
         }))
         .filter(request => cellUrlCache[request.key] === undefined);
@@ -209,7 +235,7 @@ function getConflictRenderSignature(conflicts) {
             conflict.entryId,
             conflict.entryNumber,
             conflict.finalResult || '',
-            modelAnswers[conflict.q] || '',
+            conflict.modelAnswer || modelAnswers[conflict.q] || '',
             votes,
         ].join(':');
     }).join('|');
@@ -300,7 +326,7 @@ function createConflictCard(conflict, idx) {
     const cacheKey = `${conflict.entryNumber}:q${conflict.q}`;
     const hasTriedImage = Object.prototype.hasOwnProperty.call(cellUrlCache, cacheKey);
     const cellUrl = cellUrlCache[cacheKey];
-    const modelAnswer = modelAnswers[conflict.q] || '';
+    const modelAnswer = conflict.modelAnswer || modelAnswers[conflict.q] || '';
 
     const card = document.createElement('div');
     card.className = `conflict-card ${conflict.finalResult ? 'resolved ' + conflict.finalResult : ''} ${idx === selectedIndex ? 'selected' : ''}`;
@@ -319,7 +345,7 @@ function createConflictCard(conflict, idx) {
         icon.className = 'fa-solid fa-clock';
         expired.append(icon, hasTriedImage ? ' 画像がありません' : ' 画像を読み込み中');
         card.appendChild(expired);
-        if (!hasTriedImage && conflict.storagePath && conflict.cellRegions?.[`q${conflict.q}`]) {
+        if (!hasTriedImage && conflict.storagePath && (conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`])) {
             observeConflictImage(card, conflict);
         }
     }
@@ -379,7 +405,7 @@ function queueConflictImage(conflict) {
         entryNumber: conflict.entryNumber,
         questionNumber: conflict.q,
         storagePath: conflict.storagePath,
-        cellRegion: conflict.cellRegions?.[`q${conflict.q}`] || null,
+        cellRegion: conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`] || null,
         pageWidth: conflict.pageWidth,
     });
     if (conflictImageFlushTimer) return;

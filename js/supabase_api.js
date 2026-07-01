@@ -983,6 +983,33 @@ const CIQSupabaseAPI = {
         return data || [];
     },
 
+    async listScoreConflicts(projectId) {
+        const { data, error } = await this.client()
+            .rpc('list_score_conflicts', {
+                p_project_id: projectId,
+            });
+        if (error) throw error;
+        return (data || []).map((row) => {
+            const q = Number(row.question_number);
+            const entryNumber = Number(row.entry_number);
+            return {
+                q,
+                entryId: row.entry_id,
+                entryNumber,
+                displayName: row.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
+                affiliation: row.affiliation || '',
+                grade: row.grade || '',
+                storagePath: row.storage_path || '',
+                cellRegion: row.cell_region || null,
+                cellRegions: {},
+                pageWidth: Number(row.page_width || 0) || null,
+                modelAnswer: row.model_answer || '',
+                votes: Array.isArray(row.votes) ? row.votes : [],
+                finalResult: row.final_result || null,
+            };
+        });
+    },
+
     async listQuestionScoreVotes(projectId, questionNumber) {
         const { data, error } = await this.client()
             .from('score_votes')
