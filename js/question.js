@@ -317,6 +317,7 @@ async function prewarmInitialImages(cards, limit) {
         pageUrlHits: 0,
         decodedImages: 0,
         decodeFailures: 0,
+        decodeSkipped: 0,
         answerCellUrlMs: 0,
         pageUrlMs: 0,
         cropMs: 0,
@@ -371,11 +372,9 @@ async function prewarmInitialImages(cards, limit) {
         }
     });
     metrics.cropMs = roundMs(performance.now() - stepStartedAt);
-    stepStartedAt = performance.now();
-    const decodeStats = await preloadImageUrls(targets.map(card => card.cellUrl));
-    metrics.decodeMs = roundMs(performance.now() - stepStartedAt);
-    metrics.decodedImages = decodeStats.decoded;
-    metrics.decodeFailures = decodeStats.failed;
+    metrics.decodedImages = 0;
+    metrics.decodeFailures = 0;
+    metrics.decodeSkipped = targets.filter(card => card.cellUrl).length;
     return metrics;
 }
 
@@ -509,6 +508,7 @@ async function init() {
                 pageUrlHits: initialImageMetrics.pageUrlHits,
                 decodedImages: initialImageMetrics.decodedImages,
                 decodeFailures: initialImageMetrics.decodeFailures,
+                decodeSkipped: initialImageMetrics.decodeSkipped,
             },
             render: lastRenderMetrics,
             imageStats: initialImageStats,
