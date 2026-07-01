@@ -20,6 +20,9 @@ const CIQSupabaseAPI = {
         cropPromiseHits: 0,
         cropMisses: 0,
         cropErrors: 0,
+        cropWorkerSuccesses: 0,
+        cropWorkerFallbacks: 0,
+        cropMainThreadCrops: 0,
     },
     _answerCellUrlLookupEnabled: true,
     _answerCellVersion: 'answer-cell-v1',
@@ -92,6 +95,9 @@ const CIQSupabaseAPI = {
             cropPromiseHits: current.cropPromiseHits - (previous.cropPromiseHits || 0),
             cropMisses: current.cropMisses - (previous.cropMisses || 0),
             cropErrors: current.cropErrors - (previous.cropErrors || 0),
+            cropWorkerSuccesses: current.cropWorkerSuccesses - (previous.cropWorkerSuccesses || 0),
+            cropWorkerFallbacks: current.cropWorkerFallbacks - (previous.cropWorkerFallbacks || 0),
+            cropMainThreadCrops: current.cropMainThreadCrops - (previous.cropMainThreadCrops || 0),
             cropUrlCacheSize: current.cropUrlCacheSize,
             cropPromiseCacheSize: current.cropPromiseCacheSize,
             pageImageCacheSize: current.pageImageCacheSize,
@@ -1164,11 +1170,17 @@ const CIQSupabaseAPI = {
         const workerCrop = this.cropImageRegionBlobInWorker(imageUrl, region, sourceWidth, quality);
         if (workerCrop) {
             try {
-                return await workerCrop;
+                const blob = await workerCrop;
+                this._imagePerfStats.cropWorkerSuccesses++;
+                return blob;
             } catch (_) {
+                this._imagePerfStats.cropWorkerFallbacks++;
                 // Fall back to the main thread below.
             }
+        } else {
+            this._imagePerfStats.cropWorkerFallbacks++;
         }
+        this._imagePerfStats.cropMainThreadCrops++;
         return this.cropImageRegionBlobOnMainThread(imageUrl, region, sourceWidth, quality);
     },
 

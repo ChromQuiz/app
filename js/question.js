@@ -17,6 +17,7 @@ const fallbackImageQueue = new Map();
 const IMAGE_CROP_CONCURRENCY = 12;
 const BACKGROUND_PREWARM_BATCH = 24;
 let backgroundPrewarmToken = 0;
+let lastRenderMetrics = null;
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
@@ -33,6 +34,10 @@ function logPerf(label, details = {}) {
     console.info('[CIQ perf]', label, details);
 }
 
+function roundMs(value) {
+    return Math.round(Number(value || 0));
+}
+
 function runWhenIdle(task, timeout = 2500) {
     if ('requestIdleCallback' in window) {
         window.requestIdleCallback(task, { timeout });
@@ -42,26 +47,32 @@ function runWhenIdle(task, timeout = 2500) {
 }
 
 function preloadImageUrl(url) {
-    if (!url) return Promise.resolve();
+    if (!url) return Promise.resolve(false);
     return new Promise((resolve) => {
         const image = new Image();
         image.decoding = 'async';
         image.onload = () => {
             if (image.decode) {
-                image.decode().then(resolve).catch(resolve);
+                image.decode().then(() => resolve(true)).catch(() => resolve(false));
                 return;
             }
-            resolve();
+            resolve(true);
         };
-        image.onerror = resolve;
+        image.onerror = () => resolve(false);
         image.src = url;
     });
 }
 
 async function preloadImageUrls(urls, limit = IMAGE_CROP_CONCURRENCY) {
     const uniqueUrls = Array.from(new Set(urls.filter(Boolean)));
-    if (!uniqueUrls.length) return;
-    await runLimited(uniqueUrls, limit, preloadImageUrl);
+    if (!uniqueUrls.length) return { requested: 0, decoded: 0, failed: 0 };
+    const results = await runLimited(uniqueUrls, limit, preloadImageUrl);
+    const decoded = results.filter(Boolean).length;
+    return {
+        requested: uniqueUrls.length,
+        decoded,
+        failed: uniqueUrls.length - decoded,
+    };
 }
 
 function nextFrame() {
@@ -289,41 +300,78 @@ async function applyFallbackImageResult(result) {
 }
 
 async function prewarmInitialImages(cards, limit) {
+    const metrics = {
+        requested: 0,
+        readyCandidates: 0,
+        answerCellHits: 0,
+        answerCellMisses: 0,
+        cropCandidates: 0,
+        cropSuccesses: 0,
+        cropFailures: 0,
+        pageUrlRequests: 0,
+        pageUrlHits: 0,
+        decodedImages: 0,
+        decodeFailures: 0,
+        answerCellUrlMs: 0,
+        pageUrlMs: 0,
+        cropMs: 0,
+        decodeMs: 0,
+    };
     const targets = cards
         .slice(0, limit)
         .filter(card => !card.cellUrl && card.storagePath && card.cellRegion);
+    metrics.requested = targets.length;
     const readyTargets = targets.filter(card => card.cellStatus === 'ready');
+    metrics.readyCandidates = readyTargets.length;
+    let stepStartedAt = performance.now();
     const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, readyTargets.map(card => ({
         key: String(card.entryId),
         entryNumber: card.entryNumber,
         questionNumber: currentQ,
         cellPath: card.cellPath,
     }))).catch(() => ({}));
+    metrics.answerCellUrlMs = roundMs(performance.now() - stepStartedAt);
     const cropTargets = [];
     for (const card of targets) {
         const cellUrl = cellUrls[String(card.entryId)] || '';
         if (cellUrl) {
             card.cellUrl = cellUrl;
             card.cellUrlSource = 'answer-cell';
+            metrics.answerCellHits++;
         } else {
             cropTargets.push(card);
+            if (card.cellStatus === 'ready') metrics.answerCellMisses++;
         }
     }
+    metrics.cropCandidates = cropTargets.length;
+    metrics.pageUrlRequests = cropTargets.filter(card => card.storagePath).length;
+    stepStartedAt = performance.now();
     const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, cropTargets.map(card => ({
         key: String(card.entryId),
         storagePath: card.storagePath,
     }))).catch(() => ({}));
+    metrics.pageUrlMs = roundMs(performance.now() - stepStartedAt);
+    metrics.pageUrlHits = Object.keys(pageUrls).length;
+    stepStartedAt = performance.now();
     await runLimited(cropTargets, IMAGE_CROP_CONCURRENCY, async (card) => {
         try {
             card.pageUrl = pageUrls[String(card.entryId)] || card.pageUrl || '';
             if (!card.pageUrl) throw new Error('Missing page URL');
             card.cellUrl = await CIQSupabaseAPI.cropImageRegion(card.pageUrl, card.cellRegion, card.pageWidth);
             card.cellUrlSource = 'crop';
+            metrics.cropSuccesses++;
         } catch (_) {
             card.cellUrl = null;
+            metrics.cropFailures++;
         }
     });
-    await preloadImageUrls(targets.map(card => card.cellUrl));
+    metrics.cropMs = roundMs(performance.now() - stepStartedAt);
+    stepStartedAt = performance.now();
+    const decodeStats = await preloadImageUrls(targets.map(card => card.cellUrl));
+    metrics.decodeMs = roundMs(performance.now() - stepStartedAt);
+    metrics.decodedImages = decodeStats.decoded;
+    metrics.decodeFailures = decodeStats.failed;
+    return metrics;
 }
 
 function scheduleBackgroundImagePrewarm(cards, startIndex) {
@@ -383,16 +431,26 @@ function scheduleBackgroundImagePrewarm(cards, startIndex) {
 async function init() {
     try {
         const startedAt = performance.now();
+        let stepStartedAt = performance.now();
         const joined = await CIQSupabaseAPI.joinQuestionScorer(projectId, currentQ);
+        const joinMs = roundMs(performance.now() - stepStartedAt);
         currentMemberId = joined.scorer_member_id;
         isCompleted = Boolean(joined.completed_at);
 
-        const dataStartedAt = performance.now();
-        const [answerText, cards] = await Promise.all([
-            CIQSupabaseAPI.getModelAnswer(projectId, currentQ),
-            CIQSupabaseAPI.getQuestionAnswerCards(projectId, currentQ),
-        ]);
-        const dataMs = Math.round(performance.now() - dataStartedAt);
+        const answerTextPromise = (async () => {
+            const started = performance.now();
+            const value = await CIQSupabaseAPI.getModelAnswer(projectId, currentQ);
+            return { value, ms: roundMs(performance.now() - started) };
+        })();
+        const cardsPromise = (async () => {
+            const started = performance.now();
+            const value = await CIQSupabaseAPI.getQuestionAnswerCards(projectId, currentQ);
+            return { value, ms: roundMs(performance.now() - started) };
+        })();
+        const [answerResult, cardsResult] = await Promise.all([answerTextPromise, cardsPromise]);
+        const answerText = answerResult.value;
+        const cards = cardsResult.value;
+        const dataMs = Math.max(answerResult.ms, cardsResult.ms);
 
         document.getElementById('answer-badge').textContent = answerText || '未設定';
         answerCards = cards;
@@ -409,11 +467,47 @@ async function init() {
         const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
         const prewarmStartedAt = performance.now();
         const initialImageLimit = getInitialImageLimit(answerCards);
-        await prewarmInitialImages(answerCards, initialImageLimit);
-        const prewarmMs = Math.round(performance.now() - prewarmStartedAt);
+        const initialImageMetrics = await prewarmInitialImages(answerCards, initialImageLimit);
+        const prewarmMs = roundMs(performance.now() - prewarmStartedAt);
         const initialImageStats = CIQSupabaseAPI.takeImagePerfStats(imageStatsBefore);
+        stepStartedAt = performance.now();
         await refreshVotes();
+        const votesAndRenderMs = roundMs(performance.now() - stepStartedAt);
         scheduleBackgroundImagePrewarm(answerCards, initialImageLimit);
+        logPerf('questionInitialProfile', {
+            questionNumber: currentQ,
+            cards: answerCards.length,
+            initialImageLimit,
+            timings: {
+                joinMs,
+                modelAnswerRpcMs: answerResult.ms,
+                cardsRpcMs: cardsResult.ms,
+                dataMs,
+                answerCellUrlMs: initialImageMetrics.answerCellUrlMs,
+                pageUrlMs: initialImageMetrics.pageUrlMs,
+                cropMs: initialImageMetrics.cropMs,
+                decodeMs: initialImageMetrics.decodeMs,
+                initialImageMs: prewarmMs,
+                votesAndRenderMs,
+                domRenderMs: lastRenderMetrics?.renderMs || 0,
+                totalMs: roundMs(performance.now() - startedAt),
+            },
+            imageCounts: {
+                requested: initialImageMetrics.requested,
+                readyCandidates: initialImageMetrics.readyCandidates,
+                answerCellHits: initialImageMetrics.answerCellHits,
+                answerCellMisses: initialImageMetrics.answerCellMisses,
+                cropCandidates: initialImageMetrics.cropCandidates,
+                cropSuccesses: initialImageMetrics.cropSuccesses,
+                cropFailures: initialImageMetrics.cropFailures,
+                pageUrlRequests: initialImageMetrics.pageUrlRequests,
+                pageUrlHits: initialImageMetrics.pageUrlHits,
+                decodedImages: initialImageMetrics.decodedImages,
+                decodeFailures: initialImageMetrics.decodeFailures,
+            },
+            render: lastRenderMetrics,
+            imageStats: initialImageStats,
+        });
         logPerf('questionInitialLoad', {
             questionNumber: currentQ,
             cards: answerCards.length,
@@ -421,7 +515,7 @@ async function init() {
             dataMs,
             initialImageMs: prewarmMs,
             imageStats: initialImageStats,
-            totalMs: Math.round(performance.now() - startedAt),
+            totalMs: roundMs(performance.now() - startedAt),
         });
     } catch (e) {
         setAnswerGridMessage(e.message || '採点データを読み込めませんでした', 'fa-solid fa-triangle-exclamation');
@@ -453,6 +547,7 @@ async function refreshVotes() {
 }
 
 function renderGrid() {
+    const renderStartedAt = performance.now();
     const grid = document.getElementById('answer-grid');
     if (selectedIndex >= answerCards.length) selectedIndex = Math.max(0, answerCards.length - 1);
 
@@ -481,6 +576,12 @@ function renderGrid() {
     }
 
     if (createdCards) scrollToSelected();
+    lastRenderMetrics = {
+        renderMs: roundMs(performance.now() - renderStartedAt),
+        createdCards,
+        cardCount: answerCards.length,
+        domChildren: grid.children.length,
+    };
 }
 
 async function mark(entryId, result) {
