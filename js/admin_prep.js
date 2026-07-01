@@ -11,7 +11,7 @@
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-07-01-answer-upload-v4';
+        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-07-01-answer-upload-v5';
         const ANSWER_UPLOAD_DEBUG = localStorage.getItem('ciqUploadDebug') === '1';
         if (ANSWER_UPLOAD_DEBUG) console.info('[CIQ upload debug] admin_prep loaded', { version: ANSWER_UPLOAD_DEBUG_VERSION });
         const ANSWER_SCAN_RENDER_SCALE = 1.9;
@@ -289,12 +289,13 @@
             let uploadedEntryNumbers = new Set();
             let uploadedPagePaths = new Set();
             let inFlightUploads = [];
+            let pdfDoc = null;
 
             try {
                 const perfStats = createPerfStats();
                 let stepStartedAt = performance.now();
                 const arrayBuffer = await file.arrayBuffer();
-                let pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 addMs(perfStats, 'pdfLoadMs', stepStartedAt);
                 const total = pdfDoc.numPages; scanAnswers = [];
                 logUploadDebug('loadAnswers:pdfLoaded', { totalPages: total });
@@ -446,6 +447,7 @@
                     const answer = { page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageBlob, pageWidth: workCanvas.width };
                     scanAnswers.push({ page: i, entryNumber, tomboError: detectedResult.error });
                     await enqueueUpload(answer);
+                    page.cleanup?.();
                 }
 
                 logUploadDebug('loadAnswers:scanComplete', {
@@ -502,6 +504,9 @@
                 showAdminToast('処理エラー: ' + e.message);
             } finally {
                 releaseScanAnswerCanvases();
+                workCanvas.width = 0;
+                workCanvas.height = 0;
+                await pdfDoc?.destroy?.();
                 clearPdfFileSelection(fileInput);
             }
         }
