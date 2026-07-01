@@ -131,18 +131,35 @@ async function flushFallbackImages() {
     fallbackImageQueue.clear();
     if (!batch.length) return;
 
-    const needsPageUrl = batch
+    const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, batch.map(item => ({
+        key: String(item.cardData.entryId),
+        entryNumber: item.cardData.entryNumber,
+        questionNumber: currentQ,
+    }))).catch(() => ({}));
+    const directResults = [];
+    const cropBatch = [];
+    batch.forEach((item) => {
+        const cellUrl = cellUrls[String(item.cardData.entryId)] || '';
+        if (cellUrl) {
+            item.image.dataset.fallbackPending = 'loading';
+            directResults.push({ image: item.image, card: item.card, cellUrl });
+            return;
+        }
+        cropBatch.push(item);
+    });
+
+    const needsPageUrl = cropBatch
         .filter(item => !item.cardData.pageUrl && item.cardData.storagePath)
         .map(item => ({
             key: String(item.cardData.entryId),
             storagePath: item.cardData.storagePath,
         }));
     const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, needsPageUrl).catch(() => ({}));
-    batch.forEach((item) => {
+    cropBatch.forEach((item) => {
         item.cardData.pageUrl = item.cardData.pageUrl || pageUrls[String(item.cardData.entryId)] || '';
     });
-    const results = await runLimited(batch, IMAGE_CROP_CONCURRENCY, ({ image, cardData, card }) => resolveFallbackImage(image, cardData, card));
-    await Promise.all(results.map(applyFallbackImageResult));
+    const cropResults = await runLimited(cropBatch, IMAGE_CROP_CONCURRENCY, ({ image, cardData, card }) => resolveFallbackImage(image, cardData, card));
+    await Promise.all([...directResults, ...cropResults].map(applyFallbackImageResult));
 }
 
 async function resolveFallbackImage(image, cardData, card) {
@@ -187,11 +204,25 @@ async function prewarmInitialImages(cards, limit = INITIAL_IMAGE_PREWARM_LIMIT) 
     const targets = cards
         .slice(0, limit)
         .filter(card => !card.cellUrl && card.storagePath && card.cellRegion);
-    const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, targets.map(card => ({
+    const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, targets.map(card => ({
+        key: String(card.entryId),
+        entryNumber: card.entryNumber,
+        questionNumber: currentQ,
+    }))).catch(() => ({}));
+    const cropTargets = [];
+    for (const card of targets) {
+        const cellUrl = cellUrls[String(card.entryId)] || '';
+        if (cellUrl) {
+            card.cellUrl = cellUrl;
+        } else {
+            cropTargets.push(card);
+        }
+    }
+    const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, cropTargets.map(card => ({
         key: String(card.entryId),
         storagePath: card.storagePath,
     }))).catch(() => ({}));
-    await runLimited(targets, IMAGE_CROP_CONCURRENCY, async (card) => {
+    await runLimited(cropTargets, IMAGE_CROP_CONCURRENCY, async (card) => {
         try {
             card.pageUrl = pageUrls[String(card.entryId)] || card.pageUrl || '';
             if (!card.pageUrl) throw new Error('Missing page URL');
@@ -216,12 +247,27 @@ function scheduleBackgroundImagePrewarm(cards, startIndex = INITIAL_IMAGE_PREWAR
         offset += BACKGROUND_PREWARM_BATCH;
         if (!batch.length) return;
 
-        const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, batch.map(card => ({
+        const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, batch.map(card => ({
+            key: String(card.entryId),
+            entryNumber: card.entryNumber,
+            questionNumber: currentQ,
+        }))).catch(() => ({}));
+        const cropBatch = [];
+        for (const card of batch) {
+            const cellUrl = cellUrls[String(card.entryId)] || '';
+            if (cellUrl) {
+                card.cellUrl = cellUrl;
+            } else {
+                cropBatch.push(card);
+            }
+        }
+
+        const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, cropBatch.map(card => ({
             key: String(card.entryId),
             storagePath: card.storagePath,
         }))).catch(() => ({}));
 
-        await runLimited(batch, IMAGE_CROP_CONCURRENCY, async (card) => {
+        await runLimited(cropBatch, IMAGE_CROP_CONCURRENCY, async (card) => {
             try {
                 card.pageUrl = pageUrls[String(card.entryId)] || card.pageUrl || '';
                 if (!card.pageUrl) throw new Error('Missing page URL');

@@ -24,6 +24,8 @@ const BACKGROUND_CONFLICT_IMAGE_BATCH = 24;
 let conflictBackgroundPreloadToken = 0;
 let lastConflictRenderSignature = '';
 let scoreConflictRpcAvailable = true;
+let conflictRefreshTimer = null;
+let conflictRefreshPromise = null;
 
 async function runLimited(items, limit, task) {
     const results = [];
@@ -67,7 +69,7 @@ function setConflictGridMessage(message, options = {}) {
 async function init() {
     try {
         await refreshData();
-        setInterval(refreshData, 5000);
+        startConflictRefreshTimer();
     } catch (e) {
         setConflictGridMessage(e.message || '要確認データを読み込めませんでした', { icon: 'fa-solid fa-triangle-exclamation' });
         const counter = document.getElementById('counter');
@@ -76,7 +78,26 @@ async function init() {
     }
 }
 
+function startConflictRefreshTimer() {
+    if (conflictRefreshTimer || document.hidden) return;
+    conflictRefreshTimer = setInterval(refreshData, 5000);
+}
+
+function stopConflictRefreshTimer() {
+    if (!conflictRefreshTimer) return;
+    clearInterval(conflictRefreshTimer);
+    conflictRefreshTimer = null;
+}
+
 async function refreshData() {
+    if (conflictRefreshPromise) return conflictRefreshPromise;
+    conflictRefreshPromise = refreshDataInternal().finally(() => {
+        conflictRefreshPromise = null;
+    });
+    return conflictRefreshPromise;
+}
+
+async function refreshDataInternal() {
     const startedAt = performance.now();
     if (scoreConflictRpcAvailable) {
         try {
@@ -458,7 +479,19 @@ async function ensureConflictCellUrls(missing) {
     for (const request of missing) cellUrlCache[request.key] = null;
 
     try {
-        const fallbackRequests = missing.filter(request => request.storagePath && request.cellRegion);
+        const cellUrls = await CIQSupabaseAPI.getAnswerCellUrls(projectId, missing.map(request => ({
+            key: request.key,
+            entryNumber: request.entryNumber,
+            questionNumber: request.questionNumber,
+        }))).catch(() => ({}));
+        const fallbackRequests = missing.filter((request) => {
+            const cellUrl = cellUrls[request.key] || '';
+            if (cellUrl) {
+                cellUrlCache[request.key] = cellUrl;
+                return false;
+            }
+            return request.storagePath && request.cellRegion;
+        });
         const pageUrls = await CIQSupabaseAPI.getAnswerPageUrls(projectId, fallbackRequests.map(request => ({
             key: request.key,
             storagePath: request.storagePath,
@@ -554,6 +587,15 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         selectConflictCard(selectedIndex - getConflictGridCols());
     }
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        stopConflictRefreshTimer();
+        return;
+    }
+    refreshData().catch(err => showToast(err.message, 'error'));
+    startConflictRefreshTimer();
 });
 
 document.getElementById('conflict-back-btn')?.addEventListener('click', () => {

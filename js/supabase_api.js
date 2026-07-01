@@ -707,6 +707,7 @@ const CIQSupabaseAPI = {
         (data || []).forEach((item, index) => {
             const request = missing[index];
             if (!request) return;
+            if (item?.error) return;
             const signedUrl = item?.signedUrl || item?.signed_url || '';
             signedUrls[request.key] = signedUrl;
             if (signedUrl && ttlMs > 0) this.setCachedValue(request.cacheKey, signedUrl, ttlMs);
@@ -757,6 +758,7 @@ const CIQSupabaseAPI = {
         (data || []).forEach((item, index) => {
             const request = missing[index];
             if (!request) return;
+            if (item?.error) return;
             const signedUrl = item?.signedUrl || item?.signed_url || '';
             signedUrls[request.key] = signedUrl;
             if (signedUrl && ttlMs > 0) this.setCachedValue(request.cacheKey, signedUrl, ttlMs);
