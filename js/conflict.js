@@ -71,6 +71,10 @@ async function preloadImageUrls(urls, limit = CONFLICT_IMAGE_CROP_CONCURRENCY) {
     await runLimited(uniqueUrls, limit, preloadImageUrl);
 }
 
+function nextFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
 function setConflictGridMessage(message, options = {}) {
     const grid = document.getElementById('conflict-grid');
     grid.textContent = '';
@@ -466,6 +470,7 @@ async function flushConflictImages() {
     if (!batch.length) return;
     await ensureConflictCellUrls(batch);
     await preloadImageUrls(batch.map(request => cellUrlCache[request.key]));
+    await nextFrame();
     updateVisibleConflictImages(batch);
 }
 

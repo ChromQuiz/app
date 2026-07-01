@@ -65,6 +65,10 @@ async function preloadImageUrls(urls, limit = IMAGE_CROP_CONCURRENCY) {
     await runLimited(uniqueUrls, limit, preloadImageUrl);
 }
 
+function nextFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
 function setAnswerGridMessage(message, iconClass = '') {
     const grid = document.getElementById('answer-grid');
     grid.textContent = '';
@@ -184,6 +188,7 @@ async function flushFallbackImages() {
     const cropResults = await runLimited(cropBatch, IMAGE_CROP_CONCURRENCY, ({ image, cardData, card }) => resolveFallbackImage(image, cardData, card));
     const results = [...directResults, ...cropResults];
     await preloadImageUrls(results.map(result => result.cellUrl));
+    await nextFrame();
     await Promise.all(results.map(applyFallbackImageResult));
 }
 
