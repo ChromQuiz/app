@@ -7,6 +7,7 @@ const CIQSupabaseAPI = {
     _imageCache: new Map(),
     _imageBitmapCache: new Map(),
     _cropUrlCache: new Map(),
+    _cropPromiseCache: new Map(),
     _imageCacheLimit: 80,
     _imageBitmapCacheLimit: 50,
     _cropUrlCacheLimit: 400,
@@ -44,6 +45,7 @@ const CIQSupabaseAPI = {
             if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url);
         });
         this._cropUrlCache.clear();
+        this._cropPromiseCache.clear();
     },
 
     getConfigStatus() {
@@ -853,23 +855,23 @@ const CIQSupabaseAPI = {
     },
 
     cropImageRegion(imageUrl, region, sourceWidth, quality = 0.64) {
-        return new Promise(async (resolve, reject) => {
+        if (!imageUrl || !region) return Promise.reject(new Error('Missing image region'));
+        const cropKey = [
+            imageUrl,
+            Number(region.x || 0),
+            Number(region.y || 0),
+            Number(region.w || 1),
+            Number(region.h || 1),
+            Number(sourceWidth || 0),
+            quality,
+        ].join(':');
+        const cachedUrl = this._cropUrlCache.get(cropKey);
+        if (cachedUrl) return Promise.resolve(cachedUrl);
+        const pending = this._cropPromiseCache.get(cropKey);
+        if (pending) return pending;
+
+        const promise = new Promise(async (resolve, reject) => {
             try {
-                if (!imageUrl || !region) throw new Error('Missing image region');
-                const cropKey = [
-                    imageUrl,
-                    Number(region.x || 0),
-                    Number(region.y || 0),
-                    Number(region.w || 1),
-                    Number(region.h || 1),
-                    Number(sourceWidth || 0),
-                    quality,
-                ].join(':');
-                const cachedUrl = this._cropUrlCache.get(cropKey);
-                if (cachedUrl) {
-                    resolve(cachedUrl);
-                    return;
-                }
                 let image = null;
                 try {
                     image = await (this.loadCachedImageBitmap(imageUrl) || Promise.reject(new Error('ImageBitmap unavailable')));
@@ -902,6 +904,9 @@ const CIQSupabaseAPI = {
                 reject(error);
             }
         });
+        this._cropPromiseCache.set(cropKey, promise);
+        promise.finally(() => this._cropPromiseCache.delete(cropKey));
+        return promise;
     },
 
     async getModelAnswer(projectId, questionNumber) {
