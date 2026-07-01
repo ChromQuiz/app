@@ -11,10 +11,10 @@
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-06-29-answer-upload-v2';
+        const ANSWER_UPLOAD_DEBUG_VERSION = '2026-07-01-answer-upload-v3';
         const ANSWER_UPLOAD_DEBUG = localStorage.getItem('ciqUploadDebug') === '1';
         if (ANSWER_UPLOAD_DEBUG) console.info('[CIQ upload debug] admin_prep loaded', { version: ANSWER_UPLOAD_DEBUG_VERSION });
-        const ANSWER_SCAN_RENDER_SCALE = 2.2;
+        const ANSWER_SCAN_RENDER_SCALE = 1.9;
 
         function summarizeNumbers(numbers) {
             const clean = (numbers || [])
