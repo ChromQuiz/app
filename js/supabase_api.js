@@ -741,8 +741,36 @@ const CIQSupabaseAPI = {
     },
 
     async getQuestionAnswerCards(projectId, questionNumber) {
+        try {
+            const { data, error } = await this.client()
+                .rpc('list_question_answer_cards', {
+                    p_project_id: projectId,
+                    p_question_number: questionNumber,
+                });
+            if (error) throw error;
+            return (data || [])
+                .map((row) => {
+                    const entryNumber = Number(row.entry_number);
+                    return {
+                        entryId: row.entry_id,
+                        entryNumber,
+                        displayName: row.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
+                        affiliation: row.affiliation || '',
+                        grade: row.grade || '',
+                        pageUrl: null,
+                        cellUrl: null,
+                        storagePath: row.storage_path || null,
+                        pageWidth: Number(row.page_width || 0) || null,
+                        cellRegion: row.cell_region || null,
+                    };
+                })
+                .filter(card => card.entryId && card.entryNumber);
+        } catch (error) {
+            console.warn('Question answer card RPC unavailable; falling back to answer_pages list.', error);
+        }
+
         const pages = await this.listAnswerPages(projectId);
-        const cards = await Promise.all(pages.map(async (page) => {
+        const cards = pages.map((page) => {
             const entry = page.entries || {};
             const entryNumber = Number(entry.entry_number);
             const cellRegion = page.cells?.regions?.[`q${questionNumber}`] || null;
@@ -758,7 +786,7 @@ const CIQSupabaseAPI = {
                 pageWidth: Number(page.cells?.pageWidth || 0) || null,
                 cellRegion,
             };
-        }));
+        });
         return cards.filter(card => card.entryId && card.entryNumber).sort((a, b) => a.entryNumber - b.entryNumber);
     },
 
