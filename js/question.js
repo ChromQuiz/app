@@ -314,6 +314,7 @@ function renderGrid() {
     }
     document.getElementById('progress-text').textContent = `${done} / ${total} 件`;
 
+    let createdCards = false;
     if (grid.children.length === answerCards.length && grid.children[0]?.className?.includes('answer-card')) {
         answerCards.forEach((cardData, idx) => {
             const myScore = myScores[cardData.entryId];
@@ -321,6 +322,7 @@ function renderGrid() {
             updateAnswerCardClass(card, myScore, idx === selectedIndex);
         });
     } else {
+        createdCards = true;
         grid.textContent = '';
         const fragment = document.createDocumentFragment();
         answerCards.forEach((cardData, idx) => {
@@ -329,7 +331,7 @@ function renderGrid() {
         grid.appendChild(fragment);
     }
 
-    scrollToSelected();
+    if (createdCards) scrollToSelected();
 }
 
 async function mark(entryId, result) {
