@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
     <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=30">
+    <link rel="stylesheet" href="css/pages.css?v=31">
 </head>
 
 <body class="page-admin">
@@ -476,23 +476,23 @@
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-envelope"></i> 連絡先・メール設定</h2>
                 <p class="desc-text mb-md">参加者操作後の控えメールを設定します。</p>
-                <div class="name-input-flex u-stack-stretch">
-                    <div class="config-panel public-config-group mb-md">
-                        <div class="config-row">
+                <div class="email-settings-layout">
+                    <div class="email-notification-grid">
+                        <div class="config-row email-notification-card">
                             <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-edit" checked><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
                                 <div class="toggle-info-title">編集完了通知</div>
                                 <div class="toggle-info-desc">エントリー内容を変更した参加者へ控えを送信</div>
                             </div>
                         </div>
-                        <div class="config-row">
+                        <div class="config-row email-notification-card">
                             <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-cancel" checked><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
                                 <div class="toggle-info-title">キャンセル完了通知</div>
                                 <div class="toggle-info-desc">エントリーをキャンセルした参加者へ控えを送信</div>
                             </div>
                         </div>
-                        <div class="config-row">
+                        <div class="config-row email-notification-card">
                             <label class="toggle-switch"><input type="checkbox" id="setting-notify-late-notice" checked><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
                                 <div class="toggle-info-title">遅刻連絡受付通知</div>
