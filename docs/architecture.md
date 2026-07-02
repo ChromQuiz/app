@@ -18,7 +18,7 @@ Supabase provides:
 - RLS and column grants for access control.
 - Storage for answer pages and cropped answer cells.
 - Realtime for public entry lists and live workflow updates.
-- Edge Functions for public participant flows and SES email.
+- Edge Functions for public participant flows and provider-switchable email.
 
 ## Data Flow Summary
 

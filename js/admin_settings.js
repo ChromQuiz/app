@@ -180,7 +180,12 @@
 
         window.updateEmailSettings = async function() {
             const replyTo = document.getElementById('setting-reply-to').value.trim();
-            await CIQSupabaseAPI.updateProject(projectId, { reply_to: replyTo || null });
+            await CIQSupabaseAPI.updateProject(projectId, {
+                reply_to: replyTo || null,
+                notify_entry_edit: document.getElementById('setting-notify-entry-edit')?.checked !== false,
+                notify_entry_cancel: document.getElementById('setting-notify-entry-cancel')?.checked !== false,
+                notify_late_notice: document.getElementById('setting-notify-late-notice')?.checked !== false,
+            });
             adminReplyTo = replyTo || null;
             showAdminToast('メール設定を更新しました', 'success');
         };

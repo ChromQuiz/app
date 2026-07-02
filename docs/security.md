@@ -8,7 +8,7 @@ CIQ handles participant PII, private answer images, scoring decisions, and resul
 - Use `textContent` or DOM builders for user-visible dynamic content.
 - Avoid `innerHTML`, inline scripts, inline styles, and unsafe CSP relaxations.
 - Keep private Supabase buckets private.
-- Never expose service-role keys, SES secrets, or private project keys in committed browser files.
+- Never expose service-role keys, email provider secrets, or private project keys in committed browser files.
 - Keep browser config limited to publishable Supabase keys.
 - Validate uploads before parsing or storage writes.
 - Preserve RLS, grants, Edge Function checks, and encrypted PII assumptions.

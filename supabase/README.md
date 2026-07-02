@@ -41,10 +41,24 @@ window.CIQ_SUPABASE_CONFIG = {
 pnpm dlx supabase functions deploy send-email --project-ref YOUR_PROJECT_REF --no-verify-jwt
 ```
 
-7. Set SES Edge Function secrets when SES is ready:
+7. Set email Edge Function secrets. Brevo is the current default provider; SES remains available as a fallback by changing `CIQ_EMAIL_PROVIDER`.
+
+Brevo:
 
 ```bash
 pnpm dlx supabase secrets set \
+  CIQ_EMAIL_PROVIDER=brevo \
+  BREVO_API_KEY=... \
+  BREVO_FROM_EMAIL=... \
+  BREVO_FROM_NAME=CIQ \
+  CIQ_EMAIL_SIGNING_SECRET=...
+```
+
+SES:
+
+```bash
+pnpm dlx supabase secrets set \
+  CIQ_EMAIL_PROVIDER=ses \
   AWS_REGION=ap-northeast-1 \
   AWS_ACCESS_KEY_ID=... \
   AWS_SECRET_ACCESS_KEY=... \
@@ -65,11 +79,11 @@ Use a long random value for `CIQ_EMAIL_SIGNING_SECRET`. It signs verification co
 - Admin/scorer pages should use Supabase Auth + RLS.
 - `score_events` is append-only from the client perspective and should be used as the audit trail for scoring changes.
 - `email_events` stores delivery metadata only. Never store raw recipient addresses there; use `recipient_hash`.
-- Keep `SUPABASE_SERVICE_ROLE_KEY` and AWS secrets only in Supabase Edge Function secrets.
-- `send-email` is browser-callable with the publishable key, but SES credentials and verification-code signing stay inside Edge Function secrets.
+- Keep `SUPABASE_SERVICE_ROLE_KEY`, Brevo API keys, and AWS secrets only in Supabase Edge Function secrets.
+- `send-email` is browser-callable with the publishable key, but email provider credentials and verification-code signing stay inside Edge Function secrets.
 - `send-email` rejects verification mail unless the project exists and entry reception is currently open.
-- Entry confirmation, cancellation, and waitlist promotion mails require a matching `projectId`, `entryId`, recipient address, and `emailHash`.
-- The browser never sends SES credentials or a service role key.
+- Entry confirmation, edit, cancellation, late notice, and waitlist promotion mails require a matching `projectId`, `entryId`, recipient address, and `emailHash`.
+- The browser never sends email provider credentials or a service role key.
 
 ## Current Status
 
@@ -77,7 +91,7 @@ Implemented:
 - Initial Postgres schema.
 - RLS policies.
 - Atomic entry-number allocation via `create_entry_atomic`.
-- SES-backed `send-email` Edge Function.
+- Provider-switchable `send-email` Edge Function with Brevo as the default and SES as fallback.
 - Public-flow Edge Functions for create, cancel, edit, late report, check-in, and result disclosure.
 - Sanitized realtime `public_entry_list`.
 - Atomic cancel + waitlist promotion via `cancel_entry_atomic`.
@@ -96,4 +110,4 @@ Implemented:
 - Admin stats, CSV export, graded PDF export, and project reset have Supabase-mode wiring.
 
 Not wired yet:
-- Email delivery still needs SES secrets and final provider verification.
+- Email delivery still needs Brevo or SES secrets and final provider verification.

@@ -10,7 +10,7 @@ The application is a static frontend backed by Supabase. It is security-sensitiv
 
 - Frontend: static HTML, vanilla JavaScript, and CSS.
 - Backend: Supabase Database, Auth, Storage, Realtime, and Edge Functions.
-- Email: Supabase Edge Functions and SES integration.
+- Email: Supabase Edge Functions with Brevo by default and SES fallback support.
 - Tests: Vitest in `tests/*.test.mjs`.
 
 No Node/Express server exists. Do not introduce one. Business logic currently lives in browser JavaScript and Supabase SQL/Edge Functions.
@@ -41,7 +41,7 @@ Never:
 - replace Supabase
 - introduce React, TypeScript, bundlers, or a build system
 - add a Node server
-- expose service-role keys, SES secrets, or private keys in browser code
+- expose service-role keys, email provider secrets, or private keys in browser code
 - weaken CSP, RLS, Storage privacy, or encrypted PII handling
 - change database behavior without a migration
 - rewrite unrelated files or perform broad refactors inside narrow tasks

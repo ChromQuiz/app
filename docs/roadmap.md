@@ -7,7 +7,7 @@ Done:
 - Supabase migration from Firebase-era flow is underway and mostly active.
 - Google login for admins/scorers.
 - Public participant entry flow.
-- Email verification path integrated with SES-oriented Edge Function flow.
+- Email verification path integrated with provider-switchable Edge Function flow.
 - Admin dashboard, entry management, answer sheet generation, answer upload, judging, conflict resolution, CSV/PDF exports, check-in, and score disclosure.
 - CSP hardening for inline script and style removal.
 - Answer upload validation and bounded upload concurrency.

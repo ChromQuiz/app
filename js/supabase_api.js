@@ -262,7 +262,7 @@ const CIQSupabaseAPI = {
     async getPublicSettings(projectId) {
         const { data, error } = await this.client()
             .from('public_project_settings')
-            .select('project_id, project_name, rsa_public_key, entry_open, period_start, period_end, max_entries, disclosure_enabled, disclosure_period_start, disclosure_period_end, terms')
+            .select('project_id, project_name, rsa_public_key, entry_open, period_start, period_end, max_entries, disclosure_enabled, disclosure_period_start, disclosure_period_end, terms, notify_entry_edit, notify_entry_cancel, notify_late_notice')
             .eq('project_id', projectId)
             .single();
 
@@ -280,6 +280,9 @@ const CIQSupabaseAPI = {
             disclosurePeriodStart: data.disclosure_period_start,
             disclosurePeriodEnd: data.disclosure_period_end,
             terms: data.terms,
+            notifyEntryEdit: data.notify_entry_edit !== false,
+            notifyEntryCancel: data.notify_entry_cancel !== false,
+            notifyLateNotice: data.notify_late_notice !== false,
         };
     },
 

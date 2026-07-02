@@ -34,4 +34,4 @@
 ## External Services
 
 - Supabase Database/Auth/Storage/Realtime/Edge Functions.
-- SES-oriented email delivery through Edge Functions.
+- Brevo-first email delivery through Edge Functions, with SES fallback support.

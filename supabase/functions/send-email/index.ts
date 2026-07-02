@@ -1,6 +1,6 @@
 import { handleOptions, jsonResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { sendSesEmail } from '../_shared/ses.ts';
+import { emailProviderName, sendProviderEmail } from '../_shared/email_provider.ts';
 
 type EmailTemplate = {
   subject: string;
@@ -120,6 +120,44 @@ function cancellation(data: Record<string, unknown>): EmailTemplate {
   };
 }
 
+function entryEdited(data: Record<string, unknown>): EmailTemplate {
+  const name = projectName(data);
+  const entryNumber = String(data.entryNumber || '');
+  const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
+  return {
+    subject: `【${name}】エントリー編集完了（No.${entryNumber}）`,
+    html: shell('エントリー編集完了', name, `
+      <p>${escapeHtml(person || '参加者')} 様</p>
+      <p>エントリー内容の変更を受け付けました。</p>
+      <p><strong>受付番号: ${escapeHtml(entryNumber)}</strong></p>
+    `),
+    text: [
+      `${person || '参加者'} 様`,
+      `${name} のエントリー内容の変更を受け付けました。`,
+      `受付番号: ${entryNumber}`,
+    ].join('\n'),
+  };
+}
+
+function lateNotice(data: Record<string, unknown>): EmailTemplate {
+  const name = projectName(data);
+  const entryNumber = String(data.entryNumber || '');
+  const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
+  return {
+    subject: `【${name}】遅刻連絡受付（No.${entryNumber}）`,
+    html: shell('遅刻連絡受付', name, `
+      <p>${escapeHtml(person || '参加者')} 様</p>
+      <p>遅刻の届け出を受け付けました。</p>
+      <p><strong>受付番号: ${escapeHtml(entryNumber)}</strong></p>
+    `),
+    text: [
+      `${person || '参加者'} 様`,
+      `${name} の遅刻の届け出を受け付けました。`,
+      `受付番号: ${entryNumber}`,
+    ].join('\n'),
+  };
+}
+
 function waitlistPromoted(data: Record<string, unknown>): EmailTemplate {
   const name = projectName(data);
   const entryNumber = String(data.entryNumber || '');
@@ -155,7 +193,9 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
 
 const templates: Record<string, (data: Record<string, unknown>) => EmailTemplate> = {
   entry_confirmation: entryConfirmation,
+  entry_edited: entryEdited,
   entry_cancelled: cancellation,
+  late_notice: lateNotice,
   waitlist_promoted: waitlistPromoted,
 };
 
@@ -175,11 +215,18 @@ async function enforceRateLimit(supabase: ReturnType<typeof createServiceClient>
 async function getProjectForMail(supabase: ReturnType<typeof createServiceClient>, projectId: string) {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, name, entry_open, period_start, period_end, reply_to')
+    .select('id, name, entry_open, period_start, period_end, reply_to, notify_entry_edit, notify_entry_cancel, notify_late_notice')
     .eq('id', projectId)
     .single();
   if (error || !data) throw new Error('Project not found');
   return data;
+}
+
+function isNotificationEnabled(project: Record<string, unknown>, template: string) {
+  if (template === 'entry_edited') return project.notify_entry_edit !== false;
+  if (template === 'entry_cancelled') return project.notify_entry_cancel !== false;
+  if (template === 'late_notice') return project.notify_late_notice !== false;
+  return true;
 }
 
 function assertEntryOpen(project: { entry_open: boolean; period_start: string | null; period_end: string | null }) {
@@ -228,7 +275,7 @@ async function recordAndSend(args: {
       entry_id: args.entryId || null,
       recipient_hash: args.recipientHash,
       template: args.template,
-      provider: 'ses',
+      provider: emailProviderName(),
       status: 'queued',
     })
     .select('id')
@@ -237,7 +284,7 @@ async function recordAndSend(args: {
   if (queueError) throw queueError;
 
   try {
-    const sesResult = await sendSesEmail({
+    const providerResult = await sendProviderEmail({
       to: args.to,
       subject: args.message.subject,
       html: args.message.html,
@@ -248,11 +295,12 @@ async function recordAndSend(args: {
       .from('email_events')
       .update({
         status: 'sent',
-        provider_message_id: sesResult?.MessageId || null,
+        provider: providerResult.provider,
+        provider_message_id: providerResult.providerMessageId,
         sent_at: new Date().toISOString(),
       })
       .eq('id', queued.id);
-    return { ok: true, id: queued.id, providerMessageId: sesResult?.MessageId || null };
+    return { ok: true, id: queued.id, provider: providerResult.provider, providerMessageId: providerResult.providerMessageId };
   } catch (error) {
     await supabase
       .from('email_events')
@@ -322,6 +370,9 @@ Deno.serve(async (req) => {
     const supabase = createServiceClient();
     const project = await getProjectForMail(supabase, effectiveProjectId);
     await assertEntryRecipient(supabase, effectiveProjectId, effectiveEntryId, recipientHash, expectedEmailHash);
+    if (!isNotificationEnabled(project, type)) {
+      return jsonResponse({ success: true, skipped: true, reason: 'notification_disabled' });
+    }
 
     const result = await recordAndSend({
       projectId: effectiveProjectId,

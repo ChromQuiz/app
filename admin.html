@@ -15,7 +15,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=24"></script>
+    <script defer src="js/supabase_api.js?v=25"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/ui.js?v=2"></script>
     <script defer src="js/custom-select.js"></script>
@@ -475,11 +475,34 @@
 
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-envelope"></i> 連絡先・メール設定</h2>
-                <p class="desc-text mb-md">参加者へ自動送信される各種メールの「送信者名」と「返信先」を設定します。</p>
+                <p class="desc-text mb-md">参加者への返信先と、参加者操作後の控えメールを設定します。</p>
                 <div class="name-input-flex u-stack-stretch">
                     <div class="mb-md">
                         <label class="u-label-compact">返信先（お問い合わせ）メールアドレス</label>
                         <input type="email" id="setting-reply-to" class="name-input u-mt-xs" placeholder="例: contact@example.com" />
+                    </div>
+                    <div class="config-panel public-config-group mb-md">
+                        <div class="config-row">
+                            <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-edit" checked><span class="toggle-slider"></span></label>
+                            <div class="toggle-info">
+                                <div class="toggle-info-title">編集完了通知</div>
+                                <div class="toggle-info-desc">エントリー内容を変更した参加者へ控えを送信</div>
+                            </div>
+                        </div>
+                        <div class="config-row">
+                            <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-cancel" checked><span class="toggle-slider"></span></label>
+                            <div class="toggle-info">
+                                <div class="toggle-info-title">キャンセル完了通知</div>
+                                <div class="toggle-info-desc">エントリーをキャンセルした参加者へ控えを送信</div>
+                            </div>
+                        </div>
+                        <div class="config-row">
+                            <label class="toggle-switch"><input type="checkbox" id="setting-notify-late-notice" checked><span class="toggle-slider"></span></label>
+                            <div class="toggle-info">
+                                <div class="toggle-info-title">遅刻連絡受付通知</div>
+                                <div class="toggle-info-desc">遅刻を届け出た参加者へ控えを送信</div>
+                            </div>
+                        </div>
                     </div>
                     <button class="btn u-full-width" data-action="update-email-settings"><i class="fa-solid fa-arrows-rotate"></i> メール設定を更新</button>
                 </div>
@@ -536,6 +559,6 @@
     <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
     <script defer src="js/admin_graded_pdf.js?v=8"></script>
-    <script defer src="js/admin_settings.js?v=18"></script>
+    <script defer src="js/admin_settings.js?v=19"></script>
 </body>
 </html>

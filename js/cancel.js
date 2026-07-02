@@ -3,6 +3,7 @@
 const params = new URLSearchParams(location.search);
 const projectId = params.get('pid');
 let projectName = '';
+let notifyEntryCancel = true;
 
 function cancelIcon(className) {
     const icon = document.createElement('i');
@@ -49,6 +50,7 @@ async function init() {
         requireSupabasePublicApi();
         const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
         projectName = settings?.projectName || projectId;
+        notifyEntryCancel = settings?.notifyEntryCancel !== false;
         document.getElementById('cancel-title').textContent = projectName;
         document.title = projectName + ' - キャンセルフォーム';
     } catch (e) {
@@ -83,7 +85,7 @@ async function processCancel() {
         });
 
         const entryNum = result.canceledEntry?.entryNumber;
-        CIQEmail.sendCancellation(email, {
+        if (notifyEntryCancel) CIQEmail.sendCancellation(email, {
             projectName: projectName || projectId,
             entryNumber: String(entryNum).padStart(3, '0'),
             entryId: result.canceledEntry?.id,
@@ -93,7 +95,7 @@ async function processCancel() {
             senderName: (projectName || projectId) + ' 実行委員会'
         }).catch(e => console.warn('キャンセルメール送信スキップ:', e));
 
-        showCancelComplete(entryNum, result.promotedEntry?.entryNumber);
+        showCancelComplete(entryNum, result.promotedEntry?.entryNumber, notifyEntryCancel);
     } catch (err) {
         showStatus(err?.message || 'システムエラーが発生しました。', 'error');
         btn.disabled = false;
@@ -101,7 +103,7 @@ async function processCancel() {
     }
 }
 
-function showCancelComplete(entryNum, promotedEntryNumber) {
+function showCancelComplete(entryNum, promotedEntryNumber, notificationSent) {
     const card = document.getElementById('form-card');
     card.textContent = '';
     const wrap = document.createElement('div');
@@ -111,9 +113,8 @@ function showCancelComplete(entryNum, promotedEntryNumber) {
     const detail = document.createElement('p');
     detail.append(
         `受付番号 ${entryNum} のエントリーキャンセルを受け付けました。`,
-        document.createElement('br'),
-        '確認メールを送信しました。'
     );
+    if (notificationSent) detail.append(document.createElement('br'), '確認メールを送信しました。');
     if (promotedEntryNumber) {
         detail.append(
             document.createElement('br'),

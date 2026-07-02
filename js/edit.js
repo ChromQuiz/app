@@ -7,6 +7,8 @@ let authEmail = '';
 let authEmailHash = '';
 let authPasswordHash = '';
 let publicKeyJwk = null;
+let projectName = '';
+let notifyEntryEdit = true;
 
 function showEl(el) {
     el?.classList.remove('u-hidden');
@@ -50,10 +52,13 @@ if (!projectId) {
             }
             const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
             let pName = settings?.projectName || projectId;
+            projectName = pName;
+            notifyEntryEdit = settings?.notifyEntryEdit !== false;
             publicKeyJwk = settings?.publicKey || null;
             document.getElementById('edit-title').textContent = pName || projectId;
             document.title = (pName || projectId) + ' - エントリー編集';
         } catch(e) {
+            projectName = projectId;
             document.getElementById('edit-title').textContent = projectId;
         }
     })();
@@ -155,7 +160,7 @@ if (!projectId) {
             };
             const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
 
-            await CIQSupabaseAPI.editEntry({
+            const result = await CIQSupabaseAPI.editEntry({
                 projectId,
                 emailHash: authEmailHash,
                 disclosurePasswordHash: authPasswordHash,
@@ -169,6 +174,18 @@ if (!projectId) {
                     isChubu,
                 },
             });
+
+            if (notifyEntryEdit && window.CIQEmail?.sendEntryEdited) {
+                CIQEmail.sendEntryEdited(authEmail, {
+                    projectName: projectName || projectId,
+                    entryNumber: String(result.entry?.entryNumber || targetData?.entryNumber || '').padStart(3, '0'),
+                    entryId: result.entry?.id || targetData?.id,
+                    emailHash: authEmailHash,
+                    familyName,
+                    firstName,
+                    senderName: (projectName || projectId) + ' 実行委員会',
+                }).catch(e => console.warn('編集完了メール送信スキップ:', e));
+            }
 
             hideEl(document.getElementById('edit-card'));
             showEl(document.getElementById('done-card'));

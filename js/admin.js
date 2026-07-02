@@ -380,6 +380,12 @@
 
             document.getElementById('setting-terms').value = project.terms || '';
             document.getElementById('setting-reply-to').value = project.reply_to || '';
+            const notifyEdit = document.getElementById('setting-notify-entry-edit');
+            const notifyCancel = document.getElementById('setting-notify-entry-cancel');
+            const notifyLate = document.getElementById('setting-notify-late-notice');
+            if (notifyEdit) notifyEdit.checked = project.notify_entry_edit !== false;
+            if (notifyCancel) notifyCancel.checked = project.notify_entry_cancel !== false;
+            if (notifyLate) notifyLate.checked = project.notify_late_notice !== false;
             const disclosureToggle = document.getElementById('disclosure-open-toggle');
             if (disclosureToggle) disclosureToggle.checked = project.disclosure_enabled === true;
             if (project.disclosure_period_start) {

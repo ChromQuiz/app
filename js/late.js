@@ -2,6 +2,8 @@
 
 const params = new URLSearchParams(location.search);
 let projectId = params.get('pid');
+let projectName = '';
+let notifyLateNotice = true;
 
 function showEl(el) {
     el?.classList.remove('u-hidden');
@@ -46,9 +48,12 @@ if (!projectId) {
             }
             const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
             let pName = settings?.projectName || projectId;
+            projectName = pName;
+            notifyLateNotice = settings?.notifyLateNotice !== false;
             document.getElementById('late-title').textContent = pName || projectId;
             document.title = (pName || projectId) + ' - 遅刻フォーム';
         } catch(e) {
+            projectName = projectId;
             document.getElementById('late-title').textContent = projectId;
         }
     })();
@@ -77,11 +82,23 @@ if (!projectId) {
         try {
             const emailHash = await AppCrypto.hashPassword(email.toLowerCase());
             const pwHash = await AppCrypto.hashPassword(pw);
-            await CIQSupabaseAPI.markLate({
+            const result = await CIQSupabaseAPI.markLate({
                 projectId,
                 emailHash,
                 disclosurePasswordHash: pwHash,
             });
+
+            if (notifyLateNotice && window.CIQEmail?.sendLateNotice) {
+                CIQEmail.sendLateNotice(email, {
+                    projectName: projectName || projectId,
+                    entryNumber: String(result.entry?.entryNumber || '').padStart(3, '0'),
+                    entryId: result.entry?.id,
+                    emailHash,
+                    familyName: '',
+                    firstName: '',
+                    senderName: (projectName || projectId) + ' 実行委員会',
+                }).catch(e => console.warn('遅刻連絡メール送信スキップ:', e));
+            }
 
             hideEl(document.getElementById('form-card'));
             showEl(document.getElementById('done-card'));

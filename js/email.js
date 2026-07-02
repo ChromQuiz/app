@@ -59,6 +59,20 @@ const CIQEmail = (() => {
         return Boolean(result?.success);
     }
 
+    async function sendEntryEdited(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
+        const result = await request('entry_edited', to, {
+            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
+        });
+        return Boolean(result?.success);
+    }
+
+    async function sendLateNotice(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
+        const result = await request('late_notice', to, {
+            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
+        });
+        return Boolean(result?.success);
+    }
+
     async function sendWaitlistPromotion(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
         const result = await request('waitlist_promoted', to, {
             projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
@@ -77,5 +91,5 @@ const CIQEmail = (() => {
         return result?.verified === true;
     }
 
-    return { configure, sendEntryConfirmation, sendCancellation, sendWaitlistPromotion, sendVerificationCode, verifyCode };
+    return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendWaitlistPromotion, sendVerificationCode, verifyCode };
 })();
