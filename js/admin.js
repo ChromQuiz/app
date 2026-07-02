@@ -192,7 +192,6 @@
                 'export-analytics-csv': exportAnalyticsCSV,
                 'load-project-members': loadProjectMembers,
                 'update-terms': updateTerms,
-                'update-email-settings': updateEmailSettings,
                 'reset-project': resetProject,
             };
             document.querySelectorAll('[data-action]').forEach((el) => {
@@ -486,6 +485,7 @@
             setupAdminEventHandlers();
             setupPublicLinks();
             registerAdminShortcuts();
+            if (typeof bindEmailSettingsAutosave === 'function') bindEmailSettingsAutosave();
 
             if (!isSupabaseMode) throw new Error('Supabase設定が必要です。');
 

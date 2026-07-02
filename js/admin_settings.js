@@ -178,14 +178,40 @@
             showAdminToast('参加規約を更新しました', 'success');
         }
 
-        window.updateEmailSettings = async function() {
+        async function updateEmailSettings() {
             await CIQSupabaseAPI.updateProject(projectId, {
                 notify_entry_edit: document.getElementById('setting-notify-entry-edit')?.checked !== false,
                 notify_entry_cancel: document.getElementById('setting-notify-entry-cancel')?.checked !== false,
                 notify_late_notice: document.getElementById('setting-notify-late-notice')?.checked !== false,
             });
             showAdminToast('メール設定を更新しました', 'success');
-        };
+        }
+
+        function bindEmailSettingsAutosave() {
+            const ids = ['setting-notify-entry-edit', 'setting-notify-entry-cancel', 'setting-notify-late-notice'];
+            ids.forEach((id) => {
+                const input = document.getElementById(id);
+                if (!input) return;
+                input.addEventListener('change', async () => {
+                    const previous = !input.checked;
+                    ids.forEach((targetId) => {
+                        const target = document.getElementById(targetId);
+                        if (target) target.disabled = true;
+                    });
+                    try {
+                        await updateEmailSettings();
+                    } catch (e) {
+                        input.checked = previous;
+                        showAdminToast(e.message || 'メール設定の更新に失敗しました', 'error');
+                    } finally {
+                        ids.forEach((targetId) => {
+                            const target = document.getElementById(targetId);
+                            if (target) target.disabled = false;
+                        });
+                    }
+                });
+            });
+        }
 
         function toggleMaxEntries() {
             const isOn = document.getElementById('max-entries-toggle').checked;

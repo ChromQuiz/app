@@ -2232,12 +2232,6 @@ body.page-admin {
   margin-top: 2px;
 }
 
-.page-admin .email-settings-layout > .btn {
-  justify-self: end;
-  width: auto;
-  min-width: 180px;
-}
-
 @media (max-width: 860px) {
   .page-admin .email-notification-grid {
     grid-template-columns: 1fr;
@@ -2247,10 +2241,6 @@ body.page-admin {
     min-height: 0;
   }
 
-  .page-admin .email-settings-layout > .btn {
-    justify-self: stretch;
-    width: 100%;
-  }
 }
 
 .page-admin .section h2,
