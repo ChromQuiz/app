@@ -13,7 +13,7 @@
 - Tightened page CSP by removing `script-src 'unsafe-inline'`.
 - Tightened page CSP by removing `style-src 'unsafe-inline'`.
 - Restricted sensitive `entries` columns so encrypted PII, email hashes, and disclosure password hashes are only available through admin-only RPC access.
-- Removed organizer `reply_to` addresses from anonymous public settings; mail functions now read Reply-To server-side.
+- Removed project-specific reply-to settings; participant emails use the configured provider sender address.
 - Added PDF upload validation for file type, magic signature, size, and page count before answer scan processing.
 - Added cleanup for retained scan canvases after answer upload errors and completion.
 

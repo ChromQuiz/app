@@ -215,7 +215,7 @@ async function enforceRateLimit(supabase: ReturnType<typeof createServiceClient>
 async function getProjectForMail(supabase: ReturnType<typeof createServiceClient>, projectId: string) {
   const { data, error } = await supabase
     .from('projects')
-    .select('id, name, entry_open, period_start, period_end, reply_to, notify_entry_edit, notify_entry_cancel, notify_late_notice')
+    .select('id, name, entry_open, period_start, period_end, notify_entry_edit, notify_entry_cancel, notify_late_notice')
     .eq('id', projectId)
     .single();
   if (error || !data) throw new Error('Project not found');
@@ -262,7 +262,6 @@ async function recordAndSend(args: {
   template: string;
   to: string;
   message: EmailTemplate;
-  replyTo?: string | null;
 }) {
   const supabase = createServiceClient();
   if (!args.projectId) throw new Error('Project is required');
@@ -289,7 +288,6 @@ async function recordAndSend(args: {
       subject: args.message.subject,
       html: args.message.html,
       text: args.message.text,
-      replyTo: args.replyTo || undefined,
     });
     await supabase
       .from('email_events')
@@ -352,7 +350,6 @@ Deno.serve(async (req) => {
         template: type,
         to: normalizedEmail,
         message: verificationEmail(name, code),
-        replyTo: project.reply_to ? String(project.reply_to) : null,
       });
       return jsonResponse({ success: true, signature, expiresAt, emailEventId: result.id });
     }
@@ -381,7 +378,6 @@ Deno.serve(async (req) => {
       template: type,
       to: normalizedEmail,
       message: template(data),
-      replyTo: project.reply_to ? String(project.reply_to) : null,
     });
     return jsonResponse({ success: true, ...result });
   } catch (error) {

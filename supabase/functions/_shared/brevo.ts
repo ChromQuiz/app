@@ -3,7 +3,6 @@ export type BrevoMessage = {
   subject: string;
   html: string;
   text?: string;
-  replyTo?: string;
 };
 
 function env(name: string) {
@@ -26,7 +25,6 @@ export async function sendBrevoEmail(message: BrevoMessage) {
     subject: message.subject,
     htmlContent: message.html,
     textContent: message.text ?? message.subject,
-    replyTo: message.replyTo ? { email: message.replyTo } : undefined,
   };
 
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {

@@ -3,7 +3,6 @@ type SesMessage = {
   subject: string;
   html: string;
   text?: string;
-  replyTo?: string;
 };
 
 const encoder = new TextEncoder();
@@ -58,7 +57,6 @@ export async function sendSesEmail(message: SesMessage) {
   const payload = JSON.stringify({
     FromEmailAddress: from,
     Destination: { ToAddresses: [message.to] },
-    ReplyToAddresses: message.replyTo ? [message.replyTo] : undefined,
     Content: {
       Simple: {
         Subject: { Data: message.subject, Charset: 'UTF-8' },

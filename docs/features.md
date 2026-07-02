@@ -6,7 +6,7 @@
 - Entry period and disclosure period controls.
 - Participant list management.
 - Waitlist promotion handling.
-- Terms and email reply-to settings.
+- Terms and participant email notification settings.
 - Project reset.
 
 ## Participant Flow

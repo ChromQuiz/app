@@ -6,7 +6,6 @@ export type ProviderEmailMessage = {
   subject: string;
   html: string;
   text?: string;
-  replyTo?: string;
 };
 
 export type ProviderEmailResult = {

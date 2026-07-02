@@ -277,7 +277,6 @@
         let modelAnswers = [];
         let adminEntriesCount = 0;
         let adminProjectName = '';
-        let adminReplyTo = null;
         let requiredScorers = 3;
         let modelAnswersLoaded = false;
 
@@ -346,7 +345,6 @@
             totalQuestions = project.question_count || 100;
             requiredScorers = project.required_scorers || 3;
             adminProjectName = project.name || projectId;
-            adminReplyTo = project.reply_to || null;
 
             window._adminPrivateKeyReadyPromise = ensureProjectPrivateKeyAvailable();
 
@@ -379,7 +377,6 @@
             updateEntryOpenStatus();
 
             document.getElementById('setting-terms').value = project.terms || '';
-            document.getElementById('setting-reply-to').value = project.reply_to || '';
             const notifyEdit = document.getElementById('setting-notify-entry-edit');
             const notifyCancel = document.getElementById('setting-notify-entry-cancel');
             const notifyLate = document.getElementById('setting-notify-late-notice');
