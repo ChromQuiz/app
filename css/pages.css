@@ -855,7 +855,14 @@ body.page-conflict { padding: 0; }
     width: 46px;
     min-height: 52px;
     height: auto;
-    display: inline-flex;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+  .entry-priority-badge {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-sm);

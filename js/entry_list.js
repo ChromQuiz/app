@@ -137,7 +137,10 @@ const params = new URLSearchParams(location.search);
             const priorityTd = document.createElement('td');
             priorityTd.className = 'entry-priority-cell';
             priorityTd.dataset.label = '優先順位';
-            priorityTd.textContent = e._priority;
+            const priorityBadge = document.createElement('span');
+            priorityBadge.className = 'entry-priority-badge';
+            priorityBadge.textContent = e._priority;
+            priorityTd.appendChild(priorityBadge);
 
             const timeTd = document.createElement('td');
             timeTd.className = 'c-time';
