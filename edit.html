@@ -35,7 +35,7 @@
         <form class="page-card" id="auth-card" novalidate>
             <div class="form-group">
                 <label><i class="fa-solid fa-envelope"></i> メールアドレス</label>
-                <input type="email" class="page-input" id="f-email" required placeholder="name@example.com">
+                <input type="email" class="page-input" id="f-email" required placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
             </div>
             <div class="form-group">
                 <label><i class="fa-solid fa-key"></i> パスワード</label>
@@ -77,6 +77,7 @@
                     <div class="form-group u-flex-2">
                         <label class="required"><i class="fa-solid fa-school"></i> 所属教育機関</label>
                         <input type="text" id="e-affiliation" required placeholder="○○高">
+                        <div class="hint"><i class="fa-solid fa-circle-info"></i> 非公開を希望する場合は「非公開」と入力してください。</div>
                     </div>
                     <div class="form-group u-flex-1">
                         <label class="required"><i class="fa-solid fa-graduation-cap"></i> 学年</label>
@@ -110,6 +111,22 @@
             </div>
 
             <div class="form-group">
+                <fieldset class="choice-fieldset">
+                    <legend class="required"><i class="fa-solid fa-book-open"></i> 記録集での本名使用</legend>
+                    <div class="choice-row">
+                        <label class="choice-option">
+                            <input type="radio" name="e-record-name-permission" value="allow" required>
+                            <span>許可する</span>
+                        </label>
+                        <label class="choice-option">
+                            <input type="radio" name="e-record-name-permission" value="deny" required>
+                            <span>許可しない</span>
+                        </label>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="form-group">
                 <label><i class="fa-solid fa-comment"></i> 意気込み</label>
                 <input type="text" id="e-message" placeholder="大会への意気込みをどうぞ！(公開されます)">
             </div>
@@ -133,6 +150,6 @@
     </div>
 
     <script defer src="js/email.js?v=2"></script>
-    <script defer src="js/edit.js?v=5"></script>
+    <script defer src="js/edit.js?v=7"></script>
 </body>
 </html>

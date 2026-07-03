@@ -49,7 +49,7 @@
                 <div id="email-verify-section">
                     <div class="form-group">
                         <label class="required"><i class="fa-solid fa-envelope"></i> メールアドレス</label>
-                        <input type="email" id="f-email" required placeholder="name@example.com">
+                        <input type="email" id="f-email" required placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
                         <div class="hint"><i class="fa-solid fa-circle-info"></i> 認証コードを送信して本人確認を行います。</div>
                     </div>
                     <button type="button" class="page-btn mb-lg" id="send-code-btn">
@@ -106,6 +106,7 @@
                         <div class="form-group u-flex-2">
                             <label class="required"><i class="fa-solid fa-school"></i> 所属教育機関</label>
                             <input type="text" id="f-affiliation" required placeholder="○○高">
+                            <div class="hint"><i class="fa-solid fa-circle-info"></i> 非公開を希望する場合は「非公開」と入力してください。</div>
                         </div>
                         <div class="form-group u-flex-1">
                             <label class="required"><i class="fa-solid fa-graduation-cap"></i> 学年</label>
@@ -139,6 +140,22 @@
                     <div id="entry-name-pref-area" class="mt-sm">
                         <div class="u-danger-note"><i class="fa-solid fa-circle-exclamation"></i> 当日は本名（姓名）での表示となります。</div>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <fieldset class="choice-fieldset">
+                        <legend class="required"><i class="fa-solid fa-book-open"></i> 記録集での本名使用</legend>
+                        <div class="choice-row">
+                            <label class="choice-option">
+                                <input type="radio" name="f-record-name-permission" value="allow" required>
+                                <span>許可する</span>
+                            </label>
+                            <label class="choice-option">
+                                <input type="radio" name="f-record-name-permission" value="deny" required>
+                                <span>許可しない</span>
+                            </label>
+                        </div>
+                    </fieldset>
                 </div>
 
                 <div class="form-group">
@@ -188,7 +205,7 @@
     </div>
 
     <script defer src="js/email.js?v=3"></script>
-    <script defer src="js/entry.js?v=8"></script>
+    <script defer src="js/entry.js?v=10"></script>
 </body>
 
 </html>

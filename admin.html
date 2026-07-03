@@ -283,11 +283,12 @@
                                 <th><i class="fa-solid fa-school"></i> 所属</th>
                                 <th><i class="fa-solid fa-graduation-cap"></i> 学年</th>
                                 <th><i class="fa-solid fa-envelope"></i> メール</th>
+                                <th><i class="fa-solid fa-book-open"></i> 本名使用</th>
                                 <th><i class="fa-solid fa-circle-info"></i> 状態</th>
                             </tr>
                         </thead>
                         <tbody id="admin-entries-tbody">
-                            <tr><td colspan="7" class="loading-state">読み込み中...</td></tr>
+                            <tr><td colspan="8" class="loading-state">読み込み中...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -594,12 +595,13 @@
                 </div>
                 <div class="form-group">
                     <label class="required"><i class="fa-solid fa-envelope"></i> メールアドレス</label>
-                    <input type="email" id="admin-entry-email" autocomplete="email" required>
+                    <input type="email" id="admin-entry-email" autocomplete="email" required inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
                 </div>
                 <div class="form-row">
                     <div class="form-group u-flex-2">
                         <label class="required"><i class="fa-solid fa-school"></i> 所属教育機関</label>
                         <input type="text" id="admin-entry-affiliation" required>
+                        <div class="hint"><i class="fa-solid fa-circle-info"></i> 非公開を希望する場合は「非公開」と入力してください。</div>
                     </div>
                     <div class="form-group u-flex-1">
                         <label class="required"><i class="fa-solid fa-graduation-cap"></i> 学年</label>
@@ -627,6 +629,21 @@
                 <div class="form-group">
                     <label class="required"><i class="fa-solid fa-id-badge"></i> エントリーネーム</label>
                     <input type="text" id="admin-entry-entry-name" required>
+                </div>
+                <div class="form-group">
+                    <fieldset class="choice-fieldset">
+                        <legend class="required"><i class="fa-solid fa-book-open"></i> 記録集での本名使用</legend>
+                        <div class="choice-row">
+                            <label class="choice-option">
+                                <input type="radio" name="admin-entry-record-name-permission" value="allow" required>
+                                <span>許可する</span>
+                            </label>
+                            <label class="choice-option">
+                                <input type="radio" name="admin-entry-record-name-permission" value="deny" required>
+                                <span>許可しない</span>
+                            </label>
+                        </div>
+                    </fieldset>
                 </div>
                 <div class="form-group">
                     <label><i class="fa-solid fa-comment"></i> 意気込み</label>
@@ -668,6 +685,6 @@
     <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
     <script defer src="js/admin_graded_pdf.js?v=8"></script>
-    <script defer src="js/admin_settings.js?v=22"></script>
+    <script defer src="js/admin_settings.js?v=23"></script>
 </body>
 </html>

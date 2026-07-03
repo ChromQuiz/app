@@ -130,6 +130,11 @@ if (!projectId) {
             document.getElementById('e-grade').value = targetData.grade || '';
             document.getElementById('e-chubu').checked = targetData.isChubu === true;
             document.getElementById('e-entry-name').value = targetData.entryName || '';
+            if (targetData.allowRealNameInRecord === true || targetData.allowRealNameInRecord === false) {
+                const permissionValue = targetData.allowRealNameInRecord ? 'allow' : 'deny';
+                const permissionInput = document.querySelector(`input[name="e-record-name-permission"][value="${permissionValue}"]`);
+                if (permissionInput) permissionInput.checked = true;
+            }
             document.getElementById('e-message').value = targetData.message || '';
             document.getElementById('e-inquiry').value = targetData.inquiry || '';
 
@@ -160,10 +165,11 @@ if (!projectId) {
         const grade = document.getElementById('e-grade').value;
         const isChubu = document.getElementById('e-chubu').checked;
         const entryName = document.getElementById('e-entry-name').value.trim();
+        const recordNamePermission = document.querySelector('input[name="e-record-name-permission"]:checked')?.value || '';
         const message = document.getElementById('e-message').value.trim();
         const inquiry = document.getElementById('e-inquiry').value.trim();
 
-        if (!familyName || !firstName || !familyNameKana || !firstNameKana || !affiliation || !grade || !entryName) {
+        if (!familyName || !firstName || !familyNameKana || !firstNameKana || !affiliation || !grade || !entryName || !recordNamePermission) {
             showEditMsg('必須項目を入力してください。', 'error');
             return;
         }
@@ -182,10 +188,11 @@ if (!projectId) {
             if (!publicKeyJwk) throw new Error('セキュリティキーが取得できません');
 
             const useEntryName = false;
+            const allowRealNameInRecord = recordNamePermission === 'allow';
             const piiData = {
                 email: authEmail,
                 familyName, firstName, familyNameKana, firstNameKana,
-                affiliation, grade, entryName, useEntryName, isChubu,
+                affiliation, grade, entryName, useEntryName, allowRealNameInRecord, isChubu,
                 message, inquiry
             };
             const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
@@ -202,6 +209,7 @@ if (!projectId) {
                     message,
                     inquiry,
                     isChubu,
+                    allowRealNameInRecord,
                 },
             });
 

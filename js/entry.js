@@ -262,12 +262,13 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     const affiliation = document.getElementById('f-affiliation').value.trim();
     const grade = document.getElementById('f-grade').value;
     const entryName = document.getElementById('f-entry-name').value.trim();
+    const recordNamePermission = document.querySelector('input[name="f-record-name-permission"]:checked')?.value || '';
     const message = document.getElementById('f-message').value.trim();
     const inquiry = document.getElementById('f-inquiry').value.trim();
     const isChubu = document.getElementById('f-chubu').checked;
     const tosAccepted = document.getElementById('f-tos').checked;
 
-    if (!familyName || !firstName || !familyNameKana || !firstNameKana || !affiliation || !grade || !entryName || !tosAccepted) {
+    if (!familyName || !firstName || !familyNameKana || !firstNameKana || !affiliation || !grade || !entryName || !recordNamePermission || !tosAccepted) {
         showStatus('必須項目を入力してください。', 'error');
         return;
     }
@@ -298,7 +299,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         const emailHash = await AppCrypto.hashPassword(email.toLowerCase());
         const pwHash = await AppCrypto.hashPassword(pw);
         const useEntryName = false;
-        const piiData = { email, familyName, firstName, familyNameKana, firstNameKana, affiliation, grade, entryName, useEntryName, isChubu, message, inquiry };
+        const allowRealNameInRecord = recordNamePermission === 'allow';
+        const piiData = { email, familyName, firstName, familyNameKana, firstNameKana, affiliation, grade, entryName, useEntryName, allowRealNameInRecord, isChubu, message, inquiry };
         const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
 
         const entry = await CIQSupabaseAPI.createEntry({

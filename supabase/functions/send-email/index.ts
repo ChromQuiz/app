@@ -114,7 +114,7 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     ` : ''}
     <p style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;color:#1e3a8a;font-weight:700;">当日受付には、このメールに表示されたQRコードが必要です。</p>
     ${actionButtons}
-    <p style="color:#64748b;font-size:13px;">このメールは大会当日まで保管してください。QRコードが表示できない場合は受付番号を提示してください。</p>
+    <p style="color:#64748b;font-size:13px;">このメールは大会当日まで保管してください。</p>
   `;
   return {
     subject: `【${name}】エントリー受付完了（No.${entryNumber}）`,
