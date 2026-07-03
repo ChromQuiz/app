@@ -103,7 +103,7 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     <p>エントリーを受け付けました。</p>
     <table style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #dbeafe;border-radius:8px;overflow:hidden;">
       <tr><td style="padding:8px;color:#64748b;">受付番号</td><td style="padding:8px;text-align:right;font-weight:700;">${escapeHtml(entryNumber)}</td></tr>
-      <tr><td style="padding:8px;color:#64748b;">照会パスワード</td><td style="padding:8px;text-align:right;font-weight:700;">${escapeHtml(password)}</td></tr>
+      <tr><td style="padding:8px;color:#64748b;">パスワード</td><td style="padding:8px;text-align:right;font-weight:700;">${escapeHtml(password)}</td></tr>
     </table>
     ${waitlistNotice}
     ${qrImageUrl ? `
@@ -112,7 +112,7 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
         <div style="color:#64748b;font-size:12px;margin-top:8px;">当日受付用QRコード</div>
       </div>
     ` : ''}
-    <p style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;color:#1e3a8a;font-weight:700;">当日受付には、このメールに表示されたQRコードまたは受付番号が必要です。</p>
+    <p style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;color:#1e3a8a;font-weight:700;">当日受付には、このメールに表示されたQRコードが必要です。</p>
     ${actionButtons}
     <p style="color:#64748b;font-size:13px;">このメールは大会当日まで保管してください。QRコードが表示できない場合は受付番号を提示してください。</p>
   `;
@@ -124,8 +124,8 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
       `${name} のエントリーを受け付けました。`,
       `受付番号: ${entryNumber}`,
       data.status === 'waitlist' ? `状態: ${status}` : '',
-      `照会パスワード: ${password}`,
-      `当日受付には、このメールに表示されたQRコードまたは受付番号が必要です。`,
+      `パスワード: ${password}`,
+      `当日受付には、このメールに表示されたQRコードが必要です。`,
       editUrl ? `編集: ${editUrl}` : '',
       entryListUrl ? `エントリーリスト: ${entryListUrl}` : '',
     ].filter(Boolean).join('\n'),
