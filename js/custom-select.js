@@ -65,6 +65,7 @@ class CustomSelect {
             const div = document.createElement('div');
             div.className = 'cd-option';
             div.dataset.value = opt.value;
+            div.tabIndex = -1;
             div.textContent = opt.text;
             div.addEventListener('click', () => this._selectOption(div));
             this.menu.appendChild(div);
@@ -96,14 +97,14 @@ class CustomSelect {
 
         this.trigger.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this._toggle(); }
-            if (e.key === 'Escape') this._close();
+            if (e.key === 'Escape') this._close({ restoreFocus: true });
             if (e.key === 'ArrowDown') { e.preventDefault(); this._open(); this._focusOption(0); }
         });
 
         if (this.searchInput) {
             this.searchInput.addEventListener('input', () => this._filter());
             this.searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') this._close();
+                if (e.key === 'Escape') this._close({ restoreFocus: true });
                 if (e.key === 'ArrowDown') { e.preventDefault(); this._focusOption(0); }
             });
         }
@@ -115,7 +116,7 @@ class CustomSelect {
 
     _toggle() {
         if (this.wrapper.classList.contains('open')) {
-            this._close();
+            this._close({ restoreFocus: false });
         } else {
             this._open();
         }
@@ -133,9 +134,9 @@ class CustomSelect {
         }
     }
 
-    _close() {
+    _close({ restoreFocus = false } = {}) {
         this.wrapper.classList.remove('open');
-        this.trigger.focus();
+        if (restoreFocus) this.trigger.focus();
     }
 
     _selectOption(optEl, silent = false) {
