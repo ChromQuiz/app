@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
     <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=33">
+    <link rel="stylesheet" href="css/pages.css?v=38">
 </head>
 
 <body class="page-wrapper">
@@ -66,6 +66,7 @@
                         <button type="button" class="entry-resend-btn u-hidden" id="resend-code-btn" title="認証コードを再送信">
                             <i class="fa-solid fa-rotate-right"></i><span>再送信</span>
                         </button>
+                        <div class="entry-verify-help u-hidden" id="verify-help-msg"></div>
                     </div>
                     <div class="page-msg" id="verify-msg"></div>
                 </div>
@@ -155,7 +156,7 @@
                         <input type="checkbox" id="f-tos" required>
                         <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
                         <div class="u-flex-1">
-                            <span id="tos-text">私は<a id="terms-link" class="terms-link" href="terms.html" target="_blank">参加規約</a>に同意し、入力した情報が正確であることを確認しました。</span>
+                            <span id="tos-text" class="required">私は<a id="terms-link" class="terms-link" href="terms.html" target="_blank">参加規約</a>に同意し、入力した情報が正確であることを確認しました。</span>
                         </div>
                     </label>
                 </div>
@@ -187,7 +188,7 @@
     </div>
 
     <script defer src="js/email.js?v=3"></script>
-    <script defer src="js/entry.js?v=7"></script>
+    <script defer src="js/entry.js?v=8"></script>
 </body>
 
 </html>

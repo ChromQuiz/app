@@ -320,6 +320,12 @@ body.page-admin { padding: 0; }
 }
 .required::after { content: " *"; color: var(--danger); }
 .hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.entry-verify-help {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
 input[type="email"], .page-entry textarea {
   background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border);
   color: var(--text-main); padding: 12px 14px; border-radius: var(--radius-md);

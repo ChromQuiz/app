@@ -66,6 +66,20 @@ function clearVerifyMsg() {
     el.classList.remove('is-visible');
 }
 
+function showVerifyHelp(msg) {
+    const el = document.getElementById('verify-help-msg');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.remove('u-hidden');
+}
+
+function clearVerifyHelp() {
+    const el = document.getElementById('verify-help-msg');
+    if (!el) return;
+    el.textContent = '';
+    el.classList.add('u-hidden');
+}
+
 function showStatus(msg, type) {
     const sm = document.getElementById('status-msg');
     sm.textContent = msg;
@@ -134,7 +148,8 @@ async function resendVerification() {
     verifySignature = result.signature;
     verifyExpiresAt = result.expiresAt;
     document.getElementById('f-verify-code').value = '';
-    showVerifyMsg(`${email} に認証コードを再送信しました。届かない場合は迷惑メールフォルダも確認してください。`, 'success');
+    showVerifyMsg(`${email} に認証コードを再送信しました。`, 'success');
+    showVerifyHelp('届かない場合は迷惑メールフォルダも確認してください。');
     startResendCooldown();
 }
 
@@ -170,7 +185,8 @@ async function sendVerification() {
     document.getElementById('f-email').disabled = true;
     showEl(document.getElementById('code-input-area'));
     hideEl(btn);
-    showVerifyMsg(`${email} に6桁の認証コードを送信しました。届かない場合は迷惑メールフォルダも確認してください。`, 'success');
+    showVerifyMsg(`${email} に6桁の認証コードを送信しました。`, 'success');
+    showVerifyHelp('届かない場合は迷惑メールフォルダも確認してください。');
     document.getElementById('f-verify-code').focus();
     startResendCooldown();
 }
@@ -205,6 +221,7 @@ async function verifyEmailCode() {
     verifiedEmail = email;
     clearInterval(resendCooldown);
     clearVerifyMsg();
+    clearVerifyHelp();
     clearStatus();
     hideEl(document.getElementById('email-verify-section'));
     showEl(document.getElementById('form-body'));
