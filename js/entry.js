@@ -80,6 +80,10 @@ function clearVerifyHelp() {
     el.classList.add('u-hidden');
 }
 
+function showVerificationMailboxHelp() {
+    showVerifyHelp('届かない場合は迷惑メールフォルダも確認してください。');
+}
+
 function showStatus(msg, type) {
     const sm = document.getElementById('status-msg');
     sm.textContent = msg;
@@ -149,7 +153,7 @@ async function resendVerification() {
     verifyExpiresAt = result.expiresAt;
     document.getElementById('f-verify-code').value = '';
     showVerifyMsg(`${email} に認証コードを再送信しました。`, 'success');
-    showVerifyHelp('届かない場合は迷惑メールフォルダも確認してください。');
+    showVerificationMailboxHelp();
     startResendCooldown();
 }
 
@@ -186,7 +190,7 @@ async function sendVerification() {
     showEl(document.getElementById('code-input-area'));
     hideEl(btn);
     showVerifyMsg(`${email} に6桁の認証コードを送信しました。`, 'success');
-    showVerifyHelp('届かない場合は迷惑メールフォルダも確認してください。');
+    showVerificationMailboxHelp();
     document.getElementById('f-verify-code').focus();
     startResendCooldown();
 }
@@ -198,10 +202,12 @@ async function verifyEmailCode() {
 
     if (!code) {
         showVerifyMsg('認証コードを入力してください。', 'error');
+        showVerificationMailboxHelp();
         return;
     }
     if (code.length !== 6) {
         showVerifyMsg('6桁の認証コードを入力してください。', 'error');
+        showVerificationMailboxHelp();
         return;
     }
 
@@ -212,6 +218,7 @@ async function verifyEmailCode() {
     const verified = await CIQEmail.verifyCode(email, code, verifySignature, verifyExpiresAt);
     if (!verified) {
         showVerifyMsg('認証コードが正しくないか、有効期限が切れています。', 'error');
+        showVerificationMailboxHelp();
         btn.disabled = false;
         setEntryButton(btn, '認証する', 'fa-solid fa-check-circle');
         return;
