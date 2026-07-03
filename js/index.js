@@ -187,9 +187,10 @@ function openSupabaseProject(projectId, projectName, role, displayName) {
     session.set('projectId', projectId);
     session.set('projectName', projectName);
     session.set('scorer_name', displayName || supabaseSession?.user?.email || '');
-    session.set('scorer_role', role === 'scorer' ? 'scorer' : 'admin');
+    const normalizedRole = role === 'scorer' ? 'scorer' : 'admin';
+    session.set('scorer_role', normalizedRole);
     session.set('supabaseMode', 'true');
-    location.href = 'admin.html';
+    location.href = normalizedRole === 'scorer' ? 'judge.html' : 'admin.html';
 }
 
 async function joinProjectAsScorer() {

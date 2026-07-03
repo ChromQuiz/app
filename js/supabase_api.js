@@ -255,7 +255,12 @@ const CIQSupabaseAPI = {
             body: JSON.stringify(payload),
         });
         const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.error || `${name} failed`);
+        if (!res.ok) {
+            const error = new Error(data?.error || `${name} failed`);
+            error.status = res.status;
+            error.functionName = name;
+            throw error;
+        }
         return data;
     },
 
