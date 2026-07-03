@@ -70,7 +70,8 @@ function clearVerifyMsg() {
 function showVerifyHelp(msg) {
     const el = document.getElementById('verify-help-msg');
     if (!el) return;
-    el.textContent = msg;
+    el.textContent = '';
+    el.append(entryIcon('fa-solid fa-triangle-exclamation'), document.createTextNode(msg));
     el.classList.remove('u-hidden');
 }
 
@@ -82,7 +83,7 @@ function clearVerifyHelp() {
 }
 
 function showVerificationMailboxHelp() {
-    showVerifyHelp('届かない場合は迷惑メールフォルダも確認してください。');
+    showVerifyHelp('メールが届かない場合は、迷惑メールフォルダを必ず確認してください。');
 }
 
 function shouldShowVerificationMailboxHelp() {

@@ -362,10 +362,23 @@ body.page-admin { padding: 0; }
   transform: translateY(-1px);
 }
 .entry-verify-help {
+  align-items: flex-start;
+  background: var(--warning-soft);
+  border: 1px solid rgba(183, 121, 31, 0.30);
+  border-radius: var(--radius-md);
+  color: var(--warning);
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
   margin-top: 10px;
-  color: var(--text-muted);
-  font-size: 12px;
-  line-height: 1.5;
+  padding: 10px 12px;
+}
+.entry-verify-help i {
+  flex: 0 0 auto;
+  font-size: 14px;
+  margin-top: 3px;
 }
 input[type="email"], .page-entry textarea {
   background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border);
