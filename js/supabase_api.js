@@ -365,6 +365,18 @@ const CIQSupabaseAPI = {
         return data.entry;
     },
 
+    async adminCreateEntry(payload) {
+        const data = await this.invokeAuthedFunction('admin-create-entry', payload);
+        if (!data?.ok) throw new Error(data?.error || 'Entry failed');
+        return data.entry;
+    },
+
+    async getAdminEntryQrSvg(projectId, entryId) {
+        const data = await this.invokeAuthedFunction('admin-entry-qr', { projectId, entryId });
+        if (!data?.ok || !data.svg) throw new Error(data?.error || 'QR code failed');
+        return data.svg;
+    },
+
     async cancelEntry(payload) {
         const data = await this.invokePublicFunction('cancel-entry', payload);
         if (!data?.ok) throw new Error(data?.error || 'Cancel failed');

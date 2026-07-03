@@ -121,6 +121,388 @@
             return new Promise(resolve => setTimeout(resolve, 0));
         }
 
+        function generateAdminEntryPassword() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+            return AppCrypto.randomString(8, chars);
+        }
+
+        let lastAdminEntryReceipt = null;
+        let lastAdminEntryReceiptUrl = '';
+
+        function getAdminEntryModal() {
+            return document.getElementById('admin-entry-modal');
+        }
+
+        function setAdminEntryStatus(message, type = '') {
+            const el = document.getElementById('admin-entry-status');
+            if (!el) return;
+            el.textContent = message || '';
+            el.className = `page-msg ${type || ''}`.trim();
+            el.classList.toggle('is-visible', Boolean(message));
+        }
+
+        function setAdminEntrySubmitting(isSubmitting) {
+            const submit = document.getElementById('admin-entry-submit');
+            if (!submit) return;
+            submit.disabled = isSubmitting;
+            submit.textContent = '';
+            const icon = document.createElement('i');
+            icon.className = isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-plus';
+            submit.append(icon, document.createTextNode(isSubmitting ? ' 追加中...' : ' 追加する'));
+        }
+
+        function resetAdminEntryForm() {
+            document.getElementById('admin-entry-form')?.reset();
+            document.getElementById('admin-entry-form')?.classList.remove('u-hidden');
+            document.getElementById('admin-entry-result')?.classList.add('u-hidden');
+            document.getElementById('admin-entry-receipt-image')?.setAttribute('hidden', '');
+            if (lastAdminEntryReceiptUrl) URL.revokeObjectURL(lastAdminEntryReceiptUrl);
+            lastAdminEntryReceipt = null;
+            lastAdminEntryReceiptUrl = '';
+            ['admin-entry-result-number', 'admin-entry-result-status', 'admin-entry-result-password'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '';
+            });
+            const receiptStatus = document.getElementById('admin-entry-receipt-status');
+            if (receiptStatus) {
+                receiptStatus.textContent = 'QRコード入り控え画像を生成しています...';
+                receiptStatus.className = 'page-msg info is-visible';
+            }
+            setAdminEntryStatus('');
+            setAdminEntrySubmitting(false);
+        }
+
+        function openAdminEntryModal() {
+            const modal = getAdminEntryModal();
+            if (!modal) return;
+            resetAdminEntryForm();
+            modal.hidden = false;
+            requestAnimationFrame(() => modal.classList.add('visible'));
+            document.getElementById('admin-entry-family-name')?.focus();
+        }
+
+        function closeAdminEntryModal() {
+            const modal = getAdminEntryModal();
+            if (!modal) return;
+            modal.classList.remove('visible');
+            setTimeout(() => {
+                modal.hidden = true;
+                resetAdminEntryForm();
+            }, 160);
+        }
+
+        function finishAdminEntryFlow() {
+            closeAdminEntryModal();
+        }
+
+        async function copyAdminEntryPassword() {
+            const password = document.getElementById('admin-entry-result-password')?.textContent || '';
+            if (!password) return;
+            await navigator.clipboard.writeText(password);
+            showAdminToast('パスワードをコピーしました', 'success');
+        }
+
+        function buildAdminEntryLinks() {
+            const baseUrl = new URL('.', window.location.href);
+            return {
+                editUrl: new URL(`edit.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href,
+                entryListUrl: new URL(`entry_list.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href,
+            };
+        }
+
+        function buildAdminEntryTemplateText(receipt = lastAdminEntryReceipt) {
+            if (!receipt) return '';
+            return [
+                `${receipt.familyName} ${receipt.firstName} 様`,
+                '',
+                `${receipt.projectName} のエントリーを代理で登録しました。`,
+                `受付番号: ${receipt.entryNumber}`,
+                ...(receipt.status === 'waitlist' ? ['状態: キャンセル待ち'] : []),
+                `パスワード: ${receipt.password}`,
+                '',
+                '当日受付には、別途送付するQRコード画像が必要です。',
+                'この画像とパスワードは大会当日まで保管してください。',
+                '',
+                `編集: ${receipt.editUrl}`,
+                `エントリーリスト: ${receipt.entryListUrl}`,
+            ].join('\n');
+        }
+
+        async function copyAdminEntryTemplate() {
+            const text = buildAdminEntryTemplateText();
+            if (!text) return;
+            await navigator.clipboard.writeText(text);
+            showAdminToast('定型文をコピーしました', 'success');
+        }
+
+        function drawRoundedRect(ctx, x, y, w, h, r) {
+            const radius = Math.min(r, w / 2, h / 2);
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + w, y, x + w, y + h, radius);
+            ctx.arcTo(x + w, y + h, x, y + h, radius);
+            ctx.arcTo(x, y + h, x, y, radius);
+            ctx.arcTo(x, y, x + w, y, radius);
+            ctx.closePath();
+        }
+
+        function drawReceiptText(ctx, text, x, y, maxWidth, lineHeight) {
+            const chars = String(text || '').split('');
+            let line = '';
+            let currentY = y;
+            for (const char of chars) {
+                const next = line + char;
+                if (ctx.measureText(next).width > maxWidth && line) {
+                    ctx.fillText(line, x, currentY);
+                    line = char;
+                    currentY += lineHeight;
+                } else {
+                    line = next;
+                }
+            }
+            if (line) ctx.fillText(line, x, currentY);
+            return currentY;
+        }
+
+        function loadImageFromBlob(blob) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(blob);
+                const image = new Image();
+                image.onload = () => {
+                    URL.revokeObjectURL(url);
+                    resolve(image);
+                };
+                image.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('QRコード画像を読み込めませんでした。'));
+                };
+                image.src = url;
+            });
+        }
+
+        async function renderAdminEntryReceiptImage(receipt, qrSvg) {
+            const qrImage = await loadImageFromBlob(new Blob([qrSvg], { type: 'image/svg+xml;charset=utf-8' }));
+            const canvas = document.createElement('canvas');
+            canvas.width = 900;
+            canvas.height = 1180;
+            const ctx = canvas.getContext('2d');
+
+            try { await document.fonts.ready; } catch (_) {}
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(0, 0, canvas.width, 170);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 38px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.fillText('エントリー受付完了', canvas.width / 2, 72);
+            ctx.fillStyle = '#dbeafe';
+            ctx.font = '600 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.fillText(receipt.projectName, canvas.width / 2, 116);
+
+            ctx.fillStyle = '#ffffff';
+            drawRoundedRect(ctx, 70, 215, 760, 820, 24);
+            ctx.fill();
+            ctx.strokeStyle = '#dbeafe';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#334155';
+            ctx.font = '600 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            drawReceiptText(ctx, `${receipt.familyName} ${receipt.firstName} 様`, 110, 270, 680, 36);
+
+            ctx.fillStyle = '#eff6ff';
+            drawRoundedRect(ctx, 110, 315, 680, 150, 16);
+            ctx.fill();
+            ctx.fillStyle = '#64748b';
+            ctx.font = '700 22px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.fillText('受付番号', 145, 370);
+            ctx.fillText('パスワード', 145, 430);
+            ctx.fillStyle = '#0f172a';
+            ctx.textAlign = 'right';
+            ctx.font = '800 34px "Inter", "Noto Sans JP", sans-serif';
+            ctx.fillText(receipt.entryNumber, 750, 374);
+            ctx.fillText(receipt.password, 750, 434);
+
+            if (receipt.status === 'waitlist') {
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#fffbeb';
+                drawRoundedRect(ctx, 110, 490, 680, 62, 14);
+                ctx.fill();
+                ctx.fillStyle = '#92400e';
+                ctx.font = '800 22px "Noto Sans JP", "Hiragino Sans", sans-serif';
+                ctx.fillText('現在はキャンセル待ちです', canvas.width / 2, 530);
+            }
+
+            ctx.drawImage(qrImage, 285, 585, 330, 330);
+            ctx.strokeStyle = '#bfdbfe';
+            ctx.lineWidth = 2;
+            drawRoundedRect(ctx, 275, 575, 350, 350, 20);
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#1e3a8a';
+            ctx.font = '800 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.fillText('当日受付にはこのQRコードが必要です', canvas.width / 2, 970);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 18px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.fillText('この画像とパスワードを大会当日まで保管してください', canvas.width / 2, 1005);
+
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fillRect(0, 1080, canvas.width, 100);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '600 18px "Inter", "Noto Sans JP", sans-serif';
+            ctx.fillText('CIQ', canvas.width / 2, 1138);
+
+            return new Promise((resolve, reject) => {
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else reject(new Error('控え画像を生成できませんでした。'));
+                }, 'image/png');
+            });
+        }
+
+        function setAdminEntryReceiptStatus(message, type = 'info') {
+            const status = document.getElementById('admin-entry-receipt-status');
+            if (!status) return;
+            status.textContent = message;
+            status.className = `page-msg ${type} is-visible`;
+        }
+
+        async function prepareAdminEntryReceipt(receipt) {
+            const image = document.getElementById('admin-entry-receipt-image');
+            try {
+                const qrSvg = await CIQSupabaseAPI.getAdminEntryQrSvg(projectId, receipt.entryId);
+                const blob = await renderAdminEntryReceiptImage(receipt, qrSvg);
+                if (lastAdminEntryReceiptUrl) URL.revokeObjectURL(lastAdminEntryReceiptUrl);
+                lastAdminEntryReceiptUrl = URL.createObjectURL(blob);
+                receipt.imageBlob = blob;
+                lastAdminEntryReceipt = receipt;
+                if (image) {
+                    image.src = lastAdminEntryReceiptUrl;
+                    image.hidden = false;
+                }
+                setAdminEntryReceiptStatus('QRコード入り控え画像を生成しました。', 'success');
+            } catch (e) {
+                setAdminEntryReceiptStatus(e.message || 'QRコード入り控え画像を生成できませんでした。', 'error');
+            }
+        }
+
+        function downloadAdminEntryReceipt() {
+            if (!lastAdminEntryReceipt?.imageBlob) {
+                showAdminToast('控え画像がまだ生成されていません', 'error');
+                return;
+            }
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(lastAdminEntryReceipt.imageBlob);
+            a.download = `ciq-entry-${lastAdminEntryReceipt.entryNumber}.png`;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+
+        function getAdminEntryValue(id) {
+            return document.getElementById(id)?.value?.trim() || '';
+        }
+
+        function validateAdminEntryForm(values) {
+            if (!values.email || !values.familyName || !values.firstName || !values.familyNameKana || !values.firstNameKana || !values.affiliation || !values.grade || !values.entryName) {
+                return '必須項目を入力してください。';
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+                return '正しいメールアドレスを入力してください。';
+            }
+            if (!/^[ァ-ヴー]+$/.test(values.familyNameKana) || !/^[ァ-ヴー]+$/.test(values.firstNameKana)) {
+                return 'カナは全角カタカナで入力してください。';
+            }
+            return '';
+        }
+
+        function readAdminEntryForm() {
+            return {
+                email: getAdminEntryValue('admin-entry-email'),
+                familyName: getAdminEntryValue('admin-entry-family-name'),
+                firstName: getAdminEntryValue('admin-entry-first-name'),
+                familyNameKana: getAdminEntryValue('admin-entry-family-kana'),
+                firstNameKana: getAdminEntryValue('admin-entry-first-kana'),
+                affiliation: getAdminEntryValue('admin-entry-affiliation'),
+                grade: getAdminEntryValue('admin-entry-grade'),
+                entryName: getAdminEntryValue('admin-entry-entry-name'),
+                message: getAdminEntryValue('admin-entry-public-message'),
+                inquiry: getAdminEntryValue('admin-entry-inquiry'),
+                isChubu: document.getElementById('admin-entry-chubu')?.checked === true,
+            };
+        }
+
+        async function submitAdminEntryForm(event) {
+            event?.preventDefault();
+            const values = readAdminEntryForm();
+            const validationMessage = validateAdminEntryForm(values);
+            if (validationMessage) {
+                setAdminEntryStatus(validationMessage, 'error');
+                return;
+            }
+
+            setAdminEntrySubmitting(true);
+            setAdminEntryStatus('参加者を追加しています...', 'info');
+            const password = generateAdminEntryPassword();
+            try {
+                const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
+                const publicKeyJwk = settings?.publicKey;
+                if (!publicKeyJwk) throw new Error('セキュリティキーが取得できません。');
+
+                const emailHash = await AppCrypto.hashPassword(values.email.toLowerCase());
+                const passwordHash = await AppCrypto.hashPassword(password);
+                const piiData = { ...values, useEntryName: false };
+                const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
+                const entry = await CIQSupabaseAPI.adminCreateEntry({
+                    projectId,
+                    encryptedPii: encryptedPII,
+                    emailHash,
+                    disclosurePasswordHash: passwordHash,
+                    publicProfile: {
+                        entryName: values.entryName,
+                        affiliation: values.affiliation,
+                        grade: values.grade,
+                        message: values.message,
+                        inquiry: values.inquiry,
+                        isChubu: values.isChubu,
+                    },
+                });
+
+                document.getElementById('admin-entry-form')?.classList.add('u-hidden');
+                document.getElementById('admin-entry-result')?.classList.remove('u-hidden');
+                document.getElementById('admin-entry-result-number').textContent = padNum(entry.entry_number || entry.entryNumber);
+                document.getElementById('admin-entry-result-status').textContent = entry.status === 'waitlist' ? 'キャンセル待ち' : '登録済み';
+                document.getElementById('admin-entry-result-password').textContent = password;
+                const { editUrl, entryListUrl } = buildAdminEntryLinks();
+                const receipt = {
+                    projectName: adminProjectName || projectId,
+                    entryId: entry.id,
+                    entryNumber: padNum(entry.entry_number || entry.entryNumber),
+                    status: entry.status,
+                    password,
+                    familyName: values.familyName,
+                    firstName: values.firstName,
+                    editUrl,
+                    entryListUrl,
+                    imageBlob: null,
+                };
+                lastAdminEntryReceipt = receipt;
+                prepareAdminEntryReceipt(receipt);
+                setAdminEntryStatus('');
+                window._entriesRaw = null;
+                await loadAdminEntries();
+                updateAdminOverview();
+                showAdminToast('参加者を追加しました', 'success');
+            } catch (e) {
+                setAdminEntryStatus(e.message || '参加者の追加に失敗しました。', 'error');
+            } finally {
+                setAdminEntrySubmitting(false);
+            }
+        }
+
         async function loadProjectMembers() {
             const tbody = document.getElementById('project-members-tbody');
             if (!tbody) return;
@@ -745,5 +1127,7 @@
                 showAdminToast('リセットエラー: ' + e.message, 'error');
             }
         }
+
+        document.getElementById('admin-entry-form')?.addEventListener('submit', submitAdminEntryForm);
 
         init();

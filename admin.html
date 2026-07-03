@@ -15,7 +15,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=25"></script>
+    <script defer src="js/supabase_api.js?v=26"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/ui.js?v=2"></script>
     <script defer src="js/custom-select.js"></script>
@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
     <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=32">
+    <link rel="stylesheet" href="css/pages.css?v=33">
 </head>
 
 <body class="page-admin">
@@ -256,7 +256,10 @@
                 </div>
             </div>
             <div class="section glass-panel">
-                <h2><i class="fa-solid fa-address-book"></i> 参加者一覧</h2>
+                <div class="section-header-row">
+                    <h2><i class="fa-solid fa-address-book"></i> 参加者一覧</h2>
+                    <button class="btn secondary" data-action="open-admin-entry-modal"><i class="fa-solid fa-user-plus"></i> 参加者を追加</button>
+                </div>
                 <div class="table-container u-table-scroll-md">
                     <table>
                         <thead>
@@ -549,11 +552,109 @@
     <canvas id="work-canvas" class="hidden-canvas"></canvas>
     <canvas id="transform-canvas" class="hidden-canvas"></canvas>
 
-    <script defer src="js/admin.js?v=25"></script>
+    <div class="modal-backdrop admin-entry-modal-backdrop" id="admin-entry-modal" hidden>
+        <div class="admin-entry-modal" role="dialog" aria-modal="true" aria-labelledby="admin-entry-modal-title">
+            <div class="admin-entry-modal-head">
+                <h2 id="admin-entry-modal-title"><i class="fa-solid fa-user-plus"></i> 参加者を追加</h2>
+                <button type="button" class="icon-button" data-action="close-admin-entry-modal" aria-label="閉じる"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="admin-entry-form" novalidate>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="required">姓</label>
+                        <input type="text" id="admin-entry-family-name" autocomplete="family-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">名</label>
+                        <input type="text" id="admin-entry-first-name" autocomplete="given-name" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="required">セイ</label>
+                        <input type="text" id="admin-entry-family-kana" pattern="^[ァ-ヴー]+$" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">メイ</label>
+                        <input type="text" id="admin-entry-first-kana" pattern="^[ァ-ヴー]+$" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="required"><i class="fa-solid fa-envelope"></i> メールアドレス</label>
+                    <input type="email" id="admin-entry-email" autocomplete="email" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group u-flex-2">
+                        <label class="required"><i class="fa-solid fa-school"></i> 所属教育機関</label>
+                        <input type="text" id="admin-entry-affiliation" required>
+                    </div>
+                    <div class="form-group u-flex-1">
+                        <label class="required"><i class="fa-solid fa-graduation-cap"></i> 学年</label>
+                        <select id="admin-entry-grade" class="custom-select" required>
+                            <option value="">選択</option>
+                            <option value="１年">１年</option>
+                            <option value="２年">２年</option>
+                            <option value="３年">３年</option>
+                            <option value="４年">４年</option>
+                            <option value="５年">５年</option>
+                            <option value="６年">６年</option>
+                            <option value="非表示">非表示</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="admin-entry-chubu">
+                        <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
+                        <div class="u-flex-1">
+                            <span>所属教育機関は中部地方にあります</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="required"><i class="fa-solid fa-id-badge"></i> エントリーネーム</label>
+                    <input type="text" id="admin-entry-entry-name" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-comment"></i> 意気込み</label>
+                    <input type="text" id="admin-entry-public-message">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-message"></i> 運営への連絡</label>
+                    <textarea id="admin-entry-inquiry"></textarea>
+                </div>
+                <div class="admin-entry-modal-actions">
+                    <button type="button" class="btn secondary" data-action="close-admin-entry-modal">キャンセル</button>
+                    <button type="submit" class="btn" id="admin-entry-submit"><i class="fa-solid fa-plus"></i> 追加する</button>
+                </div>
+                <div class="page-msg" id="admin-entry-status" aria-live="polite"></div>
+            </form>
+            <div class="admin-entry-result u-hidden" id="admin-entry-result" aria-live="polite">
+                <div class="u-danger-note"><i class="fa-solid fa-triangle-exclamation"></i> このパスワードは閉じると再表示できません。参加者本人に安全な方法で伝えてください。</div>
+                <dl class="admin-entry-result-grid">
+                    <div><dt>受付番号</dt><dd id="admin-entry-result-number"></dd></div>
+                    <div><dt>状態</dt><dd id="admin-entry-result-status"></dd></div>
+                    <div><dt>パスワード</dt><dd><code id="admin-entry-result-password"></code></dd></div>
+                </dl>
+                <div class="admin-entry-receipt">
+                    <img id="admin-entry-receipt-image" alt="代理エントリー控え画像" hidden>
+                    <div class="page-msg info is-visible" id="admin-entry-receipt-status">QRコード入り控え画像を生成しています...</div>
+                </div>
+                <div class="admin-entry-result-actions">
+                    <button type="button" class="btn secondary" data-action="copy-admin-entry-password"><i class="fa-solid fa-copy"></i> パスワードをコピー</button>
+                    <button type="button" class="btn secondary" data-action="copy-admin-entry-template"><i class="fa-solid fa-file-lines"></i> 定型文をコピー</button>
+                    <button type="button" class="btn secondary" data-action="download-admin-entry-receipt"><i class="fa-solid fa-download"></i> 画像をダウンロード</button>
+                    <button type="button" class="btn" data-action="finish-admin-entry"><i class="fa-solid fa-check"></i> 閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="js/admin.js?v=26"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
     <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
     <script defer src="js/admin_graded_pdf.js?v=8"></script>
-    <script defer src="js/admin_settings.js?v=19"></script>
+    <script defer src="js/admin_settings.js?v=20"></script>
 </body>
 </html>
