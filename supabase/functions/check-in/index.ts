@@ -87,9 +87,12 @@ Deno.serve(async (req) => {
       .update({ checked_in: true })
       .eq('id', entry.id)
       .eq('checked_in', false)
+      .in('status', ['registered', 'late'])
       .select('id, entry_number, entry_name, affiliation, grade, status, checked_in')
       .single();
-    if (updateError || !updated) throw updateError || new Error('Check-in failed');
+    if (updateError || !updated) {
+      return jsonResponse({ error: '受付対象外になりました。最新の状態を確認してください。' }, 409);
+    }
 
     return jsonResponse({
       ok: true,

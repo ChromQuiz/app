@@ -24,7 +24,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=20">
+    <link rel="stylesheet" href="css/design_system.css?v=21">
     <link rel="stylesheet" href="css/pages.css?v=33">
 </head>
 
@@ -208,6 +208,19 @@
                                 <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="1"><i class="fa-solid fa-plus"></i></button>
                             </div>
                             <div class="u-tiny-muted u-mt-xs"><i class="fa-solid fa-circle-info"></i> 1人単位で増減</div>
+                        </div>
+                        <div class="public-config-subpanel mt-md">
+                            <div class="period-heading"><i class="fa-solid fa-user-clock"></i>キャンセル繰り上げ期限<span class="period-hint">（空欄＝エントリー終了と同じ）</span></div>
+                            <div class="period-grid period-grid-single">
+                                <div>
+                                    <label class="period-label"><i class="fa-solid fa-stop icon-end"></i>終了</label>
+                                    <div class="dt-trigger" id="dt-waitlist-end-trigger" data-dt-scope="waitlist" data-dt-target="end">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="dt-waitlist-end-display">エントリー終了と同じ</span>
+                                    </div>
+                                    <input type="hidden" id="waitlist-period-end" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -650,11 +663,11 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=26"></script>
+    <script defer src="js/admin.js?v=27"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
     <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
     <script defer src="js/admin_graded_pdf.js?v=8"></script>
-    <script defer src="js/admin_settings.js?v=20"></script>
+    <script defer src="js/admin_settings.js?v=21"></script>
 </body>
 </html>

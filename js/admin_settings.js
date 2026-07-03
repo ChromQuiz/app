@@ -667,11 +667,13 @@
         async function saveEntryPeriod() {
             const start = document.getElementById('entry-period-start').value || null;
             const end = document.getElementById('entry-period-end').value || null;
+            const waitlistEnd = document.getElementById('waitlist-period-end')?.value || null;
             const hasLimit = document.getElementById('max-entries-toggle').checked;
             const maxEntries = hasLimit ? (parseInt(document.getElementById('setting-max-entries').value) || 100) : 0;
             await CIQSupabaseAPI.updateProject(projectId, {
                 period_start: start ? new Date(start).toISOString() : null,
                 period_end: end ? new Date(end).toISOString() : null,
+                waitlist_promotion_period_end: waitlistEnd ? new Date(waitlistEnd).toISOString() : null,
                 max_entries: maxEntries
             });
             // トグルONなら人数バッジも更新
@@ -679,6 +681,13 @@
                 document.getElementById('max-entries-status').textContent = maxEntries + '人';
             }
             showAdminToast('エントリー期間・定員を保存しました', 'success');
+        }
+
+        function updateWaitlistPromotionDeadlineDisplay() {
+            const value = document.getElementById('waitlist-period-end')?.value || '';
+            const display = document.getElementById('dt-waitlist-end-display');
+            if (!display) return;
+            display.textContent = value ? formatDtDisplay(value) : 'エントリー終了と同じ';
         }
 
         async function toggleDisclosureOpen() {
@@ -747,7 +756,7 @@
         // ============================
         // Custom DateTime Picker
         // ============================
-        let dtScope = 'entry'; // 'entry' or 'disclosure'
+        let dtScope = 'entry'; // 'entry', 'disclosure', or 'waitlist'
         let dtTarget = null; // 'start' or 'end'
         let dtYear, dtMonth, dtDay, dtHour = 0, dtMin = 0;
 
@@ -761,10 +770,12 @@
         }
 
         function getPeriodPrefix(scope = dtScope) {
+            if (scope === 'waitlist') return 'waitlist';
             return scope === 'disclosure' ? 'disclosure' : 'entry';
         }
 
         function getDtDisplayId(scope, target) {
+            if (scope === 'waitlist') return `dt-waitlist-${target}-display`;
             return scope === 'disclosure' ? `dt-disclosure-${target}-display` : `dt-${target}-display`;
         }
 
@@ -876,6 +887,9 @@
             closeDatePicker();
             if (dtScope === 'disclosure') {
                 saveDisclosurePeriod();
+            } else if (dtScope === 'waitlist') {
+                updateWaitlistPromotionDeadlineDisplay();
+                saveEntryPeriod();
             } else {
                 saveEntryPeriod();
                 updateEntryOpenStatus();
@@ -889,6 +903,9 @@
             closeDatePicker();
             if (dtScope === 'disclosure') {
                 saveDisclosurePeriod();
+            } else if (dtScope === 'waitlist') {
+                updateWaitlistPromotionDeadlineDisplay();
+                saveEntryPeriod();
             } else {
                 saveEntryPeriod();
                 updateEntryOpenStatus();

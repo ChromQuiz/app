@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     const supabase = createServiceClient();
     const { data: entry, error: entryError } = await supabase
       .from('entries')
-      .select('id, entry_number, status')
+      .select('id, entry_number, status, checked_in')
       .eq('project_id', projectId)
       .eq('email_hash', emailHash)
       .eq('disclosure_password_hash', disclosurePasswordHash)
@@ -27,6 +27,9 @@ Deno.serve(async (req) => {
     if (entry.status === 'late') {
       return jsonResponse({ error: '既に遅刻が届け出済みです。' }, 409);
     }
+    if (entry.checked_in) {
+      return jsonResponse({ error: '当日受付済みのため、遅刻届け出はできません。変更が必要な場合は運営へ連絡してください。' }, 409);
+    }
     if (entry.status !== 'registered') {
       return jsonResponse({ error: 'このエントリーは遅刻届け出の対象ではありません。' }, 409);
     }
@@ -36,6 +39,7 @@ Deno.serve(async (req) => {
       .update({ status: 'late' })
       .eq('id', entry.id)
       .eq('status', 'registered')
+      .eq('checked_in', false)
       .select('id, entry_number, status')
       .single();
 

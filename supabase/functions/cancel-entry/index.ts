@@ -22,7 +22,14 @@ Deno.serve(async (req) => {
       })
       .single();
 
-    if (error || !data) return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
+    if (error) {
+      const message = error.message || '';
+      if (message.includes('Entry already checked in')) {
+        return jsonResponse({ error: '当日受付済みのため、キャンセルできません。変更が必要な場合は運営へ連絡してください。' }, 409);
+      }
+      return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
+    }
+    if (!data) return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
     return jsonResponse({
       ok: true,
       canceledEntry: {
@@ -35,6 +42,10 @@ Deno.serve(async (req) => {
       } : null,
     });
   } catch (error) {
-    return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes('Entry already checked in')) {
+      return jsonResponse({ error: '当日受付済みのため、キャンセルできません。変更が必要な場合は運営へ連絡してください。' }, 409);
+    }
+    return jsonResponse({ error: message }, 500);
   }
 });

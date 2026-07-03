@@ -367,6 +367,13 @@
                 document.getElementById('entry-period-end').value = val;
                 document.getElementById('dt-end-display').textContent = formatDtDisplay(val);
             }
+            if (project.waitlist_promotion_period_end) {
+                const val = toLocalInputValue(project.waitlist_promotion_period_end);
+                document.getElementById('waitlist-period-end').value = val;
+                document.getElementById('dt-waitlist-end-display').textContent = formatDtDisplay(val);
+            } else if (typeof updateWaitlistPromotionDeadlineDisplay === 'function') {
+                updateWaitlistPromotionDeadlineDisplay();
+            }
             if (project.max_entries && project.max_entries > 0) {
                 document.getElementById('max-entries-toggle').checked = true;
                 document.getElementById('max-entries-status').textContent = `${project.max_entries}人`;

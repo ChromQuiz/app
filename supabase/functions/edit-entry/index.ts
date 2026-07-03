@@ -10,6 +10,18 @@ type PublicProfile = {
   isChubu?: boolean;
 };
 
+function isEntryEditOpen(project: {
+  entry_open: boolean;
+  period_start: string | null;
+  period_end: string | null;
+}) {
+  if (project.entry_open !== true) return false;
+  const now = Date.now();
+  if (project.period_start && new Date(project.period_start).getTime() > now) return false;
+  if (project.period_end && new Date(project.period_end).getTime() < now) return false;
+  return true;
+}
+
 Deno.serve(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
@@ -35,9 +47,19 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createServiceClient();
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('entry_open, period_start, period_end')
+      .eq('id', projectId)
+      .single();
+    if (projectError || !project) return jsonResponse({ error: 'Project not found' }, 404);
+    if (!isEntryEditOpen(project)) {
+      return jsonResponse({ error: '現在エントリー内容の編集はできません。' }, 403);
+    }
+
     const { data: entry, error: entryError } = await supabase
       .from('entries')
-      .select('id, entry_number, entry_name, affiliation, grade, message, inquiry, is_chubu, status')
+      .select('id, entry_number, entry_name, affiliation, grade, message, inquiry, is_chubu, status, checked_in')
       .eq('project_id', projectId)
       .eq('email_hash', emailHash)
       .eq('disclosure_password_hash', disclosurePasswordHash)
@@ -48,6 +70,9 @@ Deno.serve(async (req) => {
     }
     if (entry.status === 'canceled') {
       return jsonResponse({ error: 'このエントリーはキャンセルされています。' }, 409);
+    }
+    if (entry.checked_in) {
+      return jsonResponse({ error: '当日受付済みのため、エントリー内容は編集できません。変更が必要な場合は運営へ連絡してください。' }, 409);
     }
 
     if (!encryptedPii) {
@@ -81,6 +106,7 @@ Deno.serve(async (req) => {
       })
       .eq('id', entry.id)
       .neq('status', 'canceled')
+      .eq('checked_in', false)
       .select('id, entry_number, status')
       .single();
 

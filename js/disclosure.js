@@ -136,6 +136,8 @@ if (!projectId) {
         } catch(e) {
             if (e.message?.includes('Entry not found')) {
                 errEl.textContent = 'メールアドレスまたはパスワードが正しくありません。';
+            } else if (e.message?.includes('成績照会の対象外')) {
+                errEl.textContent = 'このエントリーは成績照会の対象外です。';
             } else if (e.message?.includes('Disclosure')) {
                 errEl.textContent = '成績照会は現在利用できません。';
             } else {

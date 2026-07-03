@@ -1482,6 +1482,9 @@ textarea::placeholder { color: var(--text-faint); }
   display: grid; grid-template-columns: 1fr auto 1fr;
   gap: 8px; align-items: end;
 }
+.period-grid-single {
+  grid-template-columns: 1fr;
+}
 .period-label {
   font-size: 11px; color: var(--text-muted);
   display: block; margin-bottom: 4px;

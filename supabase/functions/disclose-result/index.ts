@@ -9,6 +9,10 @@ type EntryRow = {
   grade: string | null;
 };
 
+type AuthEntryRow = EntryRow & {
+  status: string;
+};
+
 type FinalResultRow = {
   entry_id: string;
   question_number: number;
@@ -90,12 +94,16 @@ Deno.serve(async (req) => {
 
     const { data: entry, error: entryError } = await supabase
       .from('entries')
-      .select('id, entry_number, entry_name, affiliation, grade')
+      .select('id, entry_number, entry_name, affiliation, grade, status')
       .eq('project_id', projectId)
       .eq('email_hash', emailHash)
       .eq('disclosure_password_hash', disclosurePasswordHash)
       .single();
     if (entryError || !entry) return jsonResponse({ error: 'Entry not found' }, 404);
+    const authEntry = entry as AuthEntryRow;
+    if (authEntry.status !== 'registered' && authEntry.status !== 'late') {
+      return jsonResponse({ error: 'このエントリーは成績照会の対象外です。' }, 409);
+    }
 
     const { data: entries, error: entriesError } = await supabase
       .from('entries')
@@ -139,12 +147,12 @@ Deno.serve(async (req) => {
       ranked[i].rank = currentRank;
     }
 
-    const own = ranked.find((row) => row.entry.id === entry.id);
+    const own = ranked.find((row) => row.entry.id === authEntry.id);
     if (!own) return jsonResponse({ error: 'Entry is not eligible for disclosure' }, 404);
 
     return jsonResponse({
       ok: true,
-      displayName: entry.entry_name,
+      displayName: authEntry.entry_name,
       rank: ordinal(own.rank),
       rankNumber: own.rank,
       score: own.score,

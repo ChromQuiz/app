@@ -44,6 +44,16 @@ if (!projectId) {
     showEditCardMessage('プロジェクトIDが不明です。正しいURLからアクセスしてください。');
 }
 
+    function getEditClosedReason(settings) {
+        if (settings.entryOpen !== true) return '現在エントリー内容の編集はできません。';
+        const now = new Date();
+        const start = settings.periodStart ? new Date(settings.periodStart) : null;
+        const end = settings.periodEnd ? new Date(settings.periodEnd) : null;
+        if (start && start > now) return 'エントリー受付開始前のため、編集できません。';
+        if (end && end < now) return 'エントリー受付終了後のため、編集できません。';
+        return '';
+    }
+
     (async () => {
         if (!projectId) return;
         try {
@@ -57,6 +67,8 @@ if (!projectId) {
             publicKeyJwk = settings?.publicKey || null;
             document.getElementById('edit-title').textContent = pName || projectId;
             document.title = (pName || projectId) + ' - エントリー編集';
+            const closedReason = getEditClosedReason(settings || {});
+            if (closedReason) showEditCardMessage(closedReason);
         } catch(e) {
             projectName = projectId;
             document.getElementById('edit-title').textContent = projectId;
