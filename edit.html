@@ -32,7 +32,7 @@
         </div>
 
         <!-- 認証フォーム -->
-        <div class="page-card" id="auth-card">
+        <form class="page-card" id="auth-card" novalidate>
             <div class="form-group">
                 <label><i class="fa-solid fa-envelope"></i> メールアドレス</label>
                 <input type="email" class="page-input" id="f-email" required placeholder="name@example.com">
@@ -41,12 +41,12 @@
                 <label><i class="fa-solid fa-key"></i> パスワード</label>
                 <input type="text" class="page-input" id="f-password" required placeholder="------">
             </div>
-            <button class="page-btn" id="auth-btn"><i class="fa-solid fa-right-to-bracket"></i> 認証してエントリーを編集</button>
+            <button type="submit" class="page-btn" id="auth-btn"><i class="fa-solid fa-right-to-bracket"></i> 認証してエントリーを編集</button>
             <div class="page-msg" id="auth-msg"></div>
-        </div>
+        </form>
 
         <!-- 編集フォーム -->
-        <div class="page-card u-hidden" id="edit-card">
+        <form class="page-card u-hidden" id="edit-card" novalidate>
             <div class="entry-number-summary">
                 <i class="fa-solid fa-hashtag"></i> 受付番号: <strong id="edit-entry-number"></strong>
             </div>
@@ -119,9 +119,9 @@
                 <textarea id="e-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
             </div>
 
-            <button class="page-btn" id="save-btn"><i class="fa-solid fa-floppy-disk"></i> 変更を保存する</button>
+            <button type="submit" class="page-btn" id="save-btn"><i class="fa-solid fa-floppy-disk"></i> 変更を保存する</button>
             <div class="page-msg" id="edit-msg"></div>
-        </div>
+        </form>
 
         <!-- 完了 -->
         <div class="page-card u-hidden u-text-center" id="done-card">
@@ -133,6 +133,6 @@
     </div>
 
     <script defer src="js/email.js?v=2"></script>
-    <script defer src="js/edit.js?v=4"></script>
+    <script defer src="js/edit.js?v=5"></script>
 </body>
 </html>

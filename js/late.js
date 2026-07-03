@@ -65,7 +65,14 @@ if (!projectId) {
         sm.classList.add('is-visible');
     }
 
-    async function processLate() {
+    async function processLate(event) {
+        event?.preventDefault();
+        const form = document.getElementById('form-card');
+        if (!form.reportValidity()) {
+            showStatus('メールアドレスとパスワードを入力してください。', 'error');
+            return;
+        }
+
         const email = document.getElementById('f-email').value.trim();
         const pw = document.getElementById('f-password').value.trim();
 
@@ -110,11 +117,4 @@ if (!projectId) {
         }
     }
 
-    // Enterキーで送信
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !document.getElementById('form-card').classList.contains('u-hidden')) {
-            processLate();
-        }
-    });
-
-    document.getElementById('submit-btn')?.addEventListener('click', processLate);
+    document.getElementById('form-card')?.addEventListener('submit', processLate);

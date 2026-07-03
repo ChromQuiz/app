@@ -35,7 +35,7 @@
             <div class="logo-sub" id="cancel-subtitle">キャンセルフォーム</div>
         </div>
 
-        <div class="page-card" id="form-card">
+        <form class="page-card" id="form-card" novalidate>
             <div class="form-group">
                 <label><i class="fa-solid fa-envelope"></i> メールアドレス</label>
                 <input type="email" class="page-input" id="f-email" required placeholder="name@example.com">
@@ -50,14 +50,14 @@
                 <i class="fa-solid fa-triangle-exclamation"></i> キャンセルは取り消せません。
             </div>
 
-            <button class="page-btn danger" id="submit-btn"><i class="fa-solid fa-trash"></i> キャンセルを確定する</button>
+            <button type="submit" class="page-btn danger" id="submit-btn"><i class="fa-solid fa-trash"></i> キャンセルを確定する</button>
             <div class="page-msg" id="status-msg"></div>
-        </div>
+        </form>
 
         <div class="page-footer">Powered by CIQ</div>
     </div>
 
     <script defer src="js/email.js?v=2"></script>
-    <script defer src="js/cancel.js?v=3"></script>
+    <script defer src="js/cancel.js?v=4"></script>
 </body>
 </html>

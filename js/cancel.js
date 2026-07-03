@@ -60,7 +60,14 @@ async function init() {
     }
 }
 
-async function processCancel() {
+async function processCancel(event) {
+    event?.preventDefault();
+    const form = document.getElementById('form-card');
+    if (!form.reportValidity()) {
+        showStatus('メールアドレスとパスワードを入力してください。', 'error');
+        return;
+    }
+
     const email = document.getElementById('f-email').value.trim();
     const pw = document.getElementById('f-password').value.trim();
 
@@ -126,6 +133,6 @@ function showCancelComplete(entryNum, promotedEntryNumber, notificationSent) {
     card.appendChild(wrap);
 }
 
-document.getElementById('submit-btn')?.addEventListener('click', processCancel);
+document.getElementById('form-card')?.addEventListener('submit', processCancel);
 
 init();

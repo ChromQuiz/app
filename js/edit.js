@@ -89,7 +89,14 @@ if (!projectId) {
         sm.classList.add('is-visible');
     }
 
-    async function authenticate() {
+    async function authenticate(event) {
+        event?.preventDefault();
+        const form = document.getElementById('auth-card');
+        if (!form.reportValidity()) {
+            showAuthMsg('メールアドレスとパスワードを入力してください。', 'error');
+            return;
+        }
+
         const email = document.getElementById('f-email').value.trim();
         const pw = document.getElementById('f-password').value.trim();
 
@@ -137,7 +144,14 @@ if (!projectId) {
         }
     }
 
-    async function saveEdit() {
+    async function saveEdit(event) {
+        event?.preventDefault();
+        const form = document.getElementById('edit-card');
+        if (!form.reportValidity()) {
+            showEditMsg('必須項目を入力してください。', 'error');
+            return;
+        }
+
         const familyName = document.getElementById('e-family-name').value.trim();
         const firstName = document.getElementById('e-first-name').value.trim();
         const familyNameKana = document.getElementById('e-family-kana').value.trim();
@@ -149,8 +163,12 @@ if (!projectId) {
         const message = document.getElementById('e-message').value.trim();
         const inquiry = document.getElementById('e-inquiry').value.trim();
 
-        if (!familyName || !firstName) {
-            showEditMsg('姓名は必須項目です。', 'error');
+        if (!familyName || !firstName || !familyNameKana || !firstNameKana || !affiliation || !grade || !entryName) {
+            showEditMsg('必須項目を入力してください。', 'error');
+            return;
+        }
+        if (!/^[ァ-ヴー]+$/.test(familyNameKana) || !/^[ァ-ヴー]+$/.test(firstNameKana)) {
+            showEditMsg('カナは全角カタカナで入力してください。', 'error');
             return;
         }
 
@@ -209,14 +227,5 @@ if (!projectId) {
         }
     }
 
-    // Enterキーで認証
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-            if (!document.getElementById('auth-card').classList.contains('u-hidden')) {
-                authenticate();
-            }
-        }
-    });
-
-    document.getElementById('auth-btn')?.addEventListener('click', authenticate);
-    document.getElementById('save-btn')?.addEventListener('click', saveEdit);
+    document.getElementById('auth-card')?.addEventListener('submit', authenticate);
+    document.getElementById('edit-card')?.addEventListener('submit', saveEdit);

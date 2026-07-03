@@ -31,7 +31,7 @@
             <div class="logo-sub" id="late-subtitle">遅刻フォーム</div>
         </div>
 
-        <div class="page-card" id="form-card">
+        <form class="page-card" id="form-card" novalidate>
             <div class="form-group">
                 <label><i class="fa-solid fa-envelope"></i> メールアドレス</label>
                 <input type="email" class="page-input" id="f-email" required placeholder="name@example.com">
@@ -42,9 +42,9 @@
                 <input type="text" class="page-input" id="f-password" required placeholder="------">
             </div>
 
-            <button class="page-btn" id="submit-btn"><i class="fa-solid fa-clock-rotate-left"></i> 遅刻を届け出る</button>
+            <button type="submit" class="page-btn" id="submit-btn"><i class="fa-solid fa-clock-rotate-left"></i> 遅刻を届け出る</button>
             <div class="page-msg" id="status-msg"></div>
-        </div>
+        </form>
 
         <div class="page-card u-hidden u-text-center" id="done-card">
             <i class="fa-solid fa-circle-check u-success-icon"></i>
@@ -55,6 +55,6 @@
     </div>
 
     <script defer src="js/email.js?v=2"></script>
-    <script defer src="js/late.js?v=3"></script>
+    <script defer src="js/late.js?v=4"></script>
 </body>
 </html>

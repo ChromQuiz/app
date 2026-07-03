@@ -35,18 +35,18 @@
             <div class="logo-sub" id="logo-subtitle">成績照会</div>
         </div>
 
-        <div class="page-card" id="login-card">
+        <form class="page-card" id="login-card" novalidate>
             <div class="form-group">
                 <label><i class="fa-solid fa-envelope"></i> メールアドレス</label>
-                <input type="email" class="page-input" id="f-email" placeholder="name@example.com" autocomplete="off">
+                <input type="email" class="page-input" id="f-email" required placeholder="name@example.com" autocomplete="off">
             </div>
             <div class="form-group">
                 <label><i class="fa-solid fa-key"></i> パスワード</label>
-                <input type="text" class="page-input" id="pw-input" maxlength="6" placeholder="------" autocomplete="off">
+                <input type="text" class="page-input" id="pw-input" maxlength="6" required placeholder="------" autocomplete="off">
             </div>
-            <button class="page-btn" id="submit-btn"><i class="fa-solid fa-unlock"></i> 成績を確認する</button>
+            <button type="submit" class="page-btn" id="submit-btn"><i class="fa-solid fa-unlock"></i> 成績を確認する</button>
             <div class="page-msg error" id="error-msg"></div>
-        </div>
+        </form>
 
         <div class="page-card page-disabled u-hidden" id="disabled-card">
             <i class="fa-solid fa-lock"></i>
@@ -78,6 +78,6 @@
     </div>
 
     <script defer src="js/share_card.js"></script>
-    <script defer src="js/disclosure.js?v=5"></script>
+    <script defer src="js/disclosure.js?v=6"></script>
 </body>
 </html>

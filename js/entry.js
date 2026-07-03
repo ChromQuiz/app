@@ -59,11 +59,35 @@ function showVerifyMsg(msg, type) {
     el.classList.add('is-visible');
 }
 
+function clearVerifyMsg() {
+    const el = document.getElementById('verify-msg');
+    el.textContent = '';
+    el.className = 'page-msg';
+    el.classList.remove('is-visible');
+}
+
 function showStatus(msg, type) {
     const sm = document.getElementById('status-msg');
     sm.textContent = msg;
     sm.className = `page-msg ${type}`;
     sm.classList.add('is-visible');
+}
+
+function clearStatus() {
+    const sm = document.getElementById('status-msg');
+    sm.textContent = '';
+    sm.className = 'page-msg';
+    sm.classList.remove('is-visible');
+}
+
+function getPreVerificationSubmitMessage() {
+    const email = document.getElementById('f-email').value.trim();
+    const codeAreaVisible = !document.getElementById('code-input-area').classList.contains('u-hidden');
+    const code = document.getElementById('f-verify-code').value.trim();
+    if (!email) return 'メールアドレスを入力してください。';
+    if (codeAreaVisible && !code) return '認証コードを入力してください。';
+    if (codeAreaVisible) return '認証コードを確認してください。';
+    return '認証コードを送信してメール認証を完了してください。';
 }
 
 function generatePW() {
@@ -116,8 +140,13 @@ async function resendVerification() {
 
 async function sendVerification() {
     const email = document.getElementById('f-email').value.trim();
-    if (!email || !email.includes('@')) {
-        showVerifyMsg('有効なメールアドレスを入力してください。', 'error');
+    clearStatus();
+    if (!email) {
+        showVerifyMsg('メールアドレスを入力してください。', 'error');
+        return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showVerifyMsg('正しいメールアドレスを入力してください。', 'error');
         return;
     }
 
@@ -149,8 +178,13 @@ async function sendVerification() {
 async function verifyEmailCode() {
     const code = document.getElementById('f-verify-code').value.trim();
     const email = document.getElementById('f-email').value.trim();
+    clearStatus();
 
-    if (!code || code.length !== 6) {
+    if (!code) {
+        showVerifyMsg('認証コードを入力してください。', 'error');
+        return;
+    }
+    if (code.length !== 6) {
         showVerifyMsg('6桁の認証コードを入力してください。', 'error');
         return;
     }
@@ -170,6 +204,8 @@ async function verifyEmailCode() {
     emailVerified = true;
     verifiedEmail = email;
     clearInterval(resendCooldown);
+    clearVerifyMsg();
+    clearStatus();
     hideEl(document.getElementById('email-verify-section'));
     showEl(document.getElementById('form-body'));
     document.getElementById('verified-email').textContent = email;
@@ -196,7 +232,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
     const btn = document.getElementById('submit-btn');
     if (!emailVerified || !verifiedEmail) {
-        showStatus('メールアドレスの認証を先に完了してください。', 'error');
+        showVerifyMsg(getPreVerificationSubmitMessage(), 'error');
+        clearStatus();
         return;
     }
 
@@ -211,9 +248,19 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     const message = document.getElementById('f-message').value.trim();
     const inquiry = document.getElementById('f-inquiry').value.trim();
     const isChubu = document.getElementById('f-chubu').checked;
+    const tosAccepted = document.getElementById('f-tos').checked;
 
-    if (!email || !familyName || !firstName) {
-        showStatus('メールアドレス・姓名は必須項目です。', 'error');
+    if (!familyName || !firstName || !familyNameKana || !firstNameKana || !affiliation || !grade || !entryName || !tosAccepted) {
+        showStatus('必須項目を入力してください。', 'error');
+        return;
+    }
+    const form = e.currentTarget;
+    if (!form.reportValidity()) {
+        showStatus('必須項目を入力してください。', 'error');
+        return;
+    }
+    if (!/^[ァ-ヴー]+$/.test(familyNameKana) || !/^[ァ-ヴー]+$/.test(firstNameKana)) {
+        showStatus('カナは全角カタカナで入力してください。', 'error');
         return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

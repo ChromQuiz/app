@@ -107,13 +107,20 @@ if (!projectId) {
         return null;
     }
 
-    async function checkDisclosure() {
+    async function checkDisclosure(event) {
+        event?.preventDefault();
+        const form = document.getElementById('login-card');
+        const errEl = document.getElementById('error-msg');
+        errEl.classList.remove('is-visible');
+        if (!form.reportValidity()) {
+            errEl.textContent = 'メールアドレスとパスワードを入力してください。';
+            errEl.classList.add('is-visible');
+            return;
+        }
+
         const email = document.getElementById('f-email').value.trim();
         const pw = document.getElementById('pw-input').value.trim();
-        const errEl = document.getElementById('error-msg');
         const btn = document.getElementById('submit-btn');
-
-        errEl.classList.remove('is-visible');
 
         if (!email || !pw) {
             errEl.textContent = 'メールアドレスとパスワードを入力してください。';
@@ -264,18 +271,11 @@ if (!projectId) {
     }
 
     function setupDisclosureEvents() {
-        document.getElementById('submit-btn')?.addEventListener('click', checkDisclosure);
+        document.getElementById('login-card')?.addEventListener('submit', checkDisclosure);
         document.getElementById('share-main-btn')?.addEventListener('click', shareResult);
         document.getElementById('share-download-btn')?.addEventListener('click', downloadShareImage);
         document.getElementById('disclosure-back-btn')?.addEventListener('click', showLogin);
     }
-
-    // Enterキーで送信
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !document.getElementById('login-card').classList.contains('u-hidden')) {
-            checkDisclosure();
-        }
-    });
 
     setupDisclosureEvents();
     init();

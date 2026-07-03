@@ -437,6 +437,11 @@
 
         async function submitAdminEntryForm(event) {
             event?.preventDefault();
+            const form = document.getElementById('admin-entry-form');
+            if (form && !form.reportValidity()) {
+                setAdminEntryStatus('必須項目を入力してください。', 'error');
+                return;
+            }
             const values = readAdminEntryForm();
             const validationMessage = validateAdminEntryForm(values);
             if (validationMessage) {
