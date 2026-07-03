@@ -819,13 +819,13 @@ body.page-conflict { padding: 0; }
   .list-container tbody tr {
     position: relative;
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
     grid-template-areas:
       "priority name chubu"
-      "affiliation affiliation affiliation"
-      "time grade grade"
+      "priority affiliation grade"
+      "priority time time"
       "message message message";
-    gap: 8px 10px;
+    gap: 6px 10px;
     padding: 12px;
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
@@ -841,8 +841,8 @@ body.page-conflict { padding: 0; }
   }
   .entry-priority-cell {
     grid-area: priority;
-    min-width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 52px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -852,25 +852,37 @@ body.page-conflict { padding: 0; }
     font-family: var(--font-numeric, var(--font-family));
     font-size: 18px;
     font-weight: 800;
+    line-height: 1;
   }
   .entry-list-name-cell {
     grid-area: name;
     align-self: center;
     min-width: 0;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 800;
     color: var(--text-main);
     overflow-wrap: anywhere;
+    line-height: 1.35;
   }
   .entry-center-cell {
     grid-area: chubu;
     align-self: center;
     justify-self: end;
-    min-width: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: auto;
+    min-width: 0;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--primary-soft);
     color: var(--primary);
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
   }
-  .entry-center-cell:empty::after {
-    content: "";
+  .entry-center-cell:empty {
+    display: none;
   }
   .c-time,
   .list-container td[data-label="所属"],
@@ -886,15 +898,17 @@ body.page-conflict { padding: 0; }
   }
   .c-time {
     grid-area: time;
+    color: var(--text-faint);
   }
-  .list-container td[data-label="所属"] {
+  .entry-list-affiliation-cell {
     grid-area: affiliation;
     margin-top: 2px;
     overflow-wrap: anywhere;
   }
-  .list-container td[data-label="学年"] {
+  .entry-list-grade-cell {
     grid-area: grade;
-    justify-self: end;
+    justify-self: start;
+    white-space: nowrap;
   }
   .c-time::before,
   .list-container td[data-label="所属"]::before,
@@ -908,6 +922,9 @@ body.page-conflict { padding: 0; }
   }
   .entry-list-message-cell {
     grid-area: message;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(23, 32, 42, 0.09);
     color: var(--text-main);
     font-size: 13px;
     line-height: 1.55;

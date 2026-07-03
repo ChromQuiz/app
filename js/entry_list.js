@@ -155,9 +155,11 @@ const params = new URLSearchParams(location.search);
             timeTd.appendChild(numberSpan);
 
             const affiliationTd = document.createElement('td');
+            affiliationTd.className = 'entry-list-affiliation-cell';
             affiliationTd.dataset.label = '所属';
             affiliationTd.textContent = e.affiliation || '';
             const gradeTd = document.createElement('td');
+            gradeTd.className = 'entry-list-grade-cell';
             gradeTd.dataset.label = '学年';
             gradeTd.textContent = grade;
             const nameTd = document.createElement('td');
@@ -176,7 +178,7 @@ const params = new URLSearchParams(location.search);
                 const chubuMark = document.createElement('i');
                 chubuMark.className = 'fa-solid fa-check entry-chubu-mark';
                 chubuMark.title = '中部地方';
-                chubuTd.appendChild(chubuMark);
+                chubuTd.append(chubuMark, document.createTextNode(' 中部'));
             }
 
             tr.append(priorityTd, timeTd, affiliationTd, gradeTd, nameTd, messageTd, chubuTd);
