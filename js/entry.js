@@ -76,16 +76,16 @@ function startResendCooldown() {
     const resendBtn = document.getElementById('resend-code-btn');
     showEl(resendBtn);
     resendBtn.disabled = true;
-    setEntryButton(resendBtn, `再送信（${sec}秒）`, 'fa-solid fa-clock');
+    setEntryButton(resendBtn, `${sec}秒`, 'fa-solid fa-clock');
     clearInterval(resendCooldown);
     resendCooldown = setInterval(() => {
         sec--;
         if (sec <= 0) {
             clearInterval(resendCooldown);
             resendBtn.disabled = false;
-            setEntryButton(resendBtn, '認証コードを再送信', 'fa-solid fa-rotate-right');
+            setEntryButton(resendBtn, '再送信', 'fa-solid fa-rotate-right');
         } else {
-            setEntryButton(resendBtn, `再送信（${sec}秒）`, 'fa-solid fa-clock');
+            setEntryButton(resendBtn, `${sec}秒`, 'fa-solid fa-clock');
         }
     }, 1000);
 }
@@ -103,14 +103,14 @@ async function resendVerification() {
     if (!result || !result.success) {
         showVerifyMsg('再送信に失敗しました。', 'error');
         resendBtn.disabled = false;
-        setEntryButton(resendBtn, '認証コードを再送信', 'fa-solid fa-rotate-right');
+        setEntryButton(resendBtn, '再送信', 'fa-solid fa-rotate-right');
         return;
     }
 
     verifySignature = result.signature;
     verifyExpiresAt = result.expiresAt;
     document.getElementById('f-verify-code').value = '';
-    showVerifyMsg(`${email} に認証コードを再送信しました。`, 'success');
+    showVerifyMsg(`${email} に認証コードを再送信しました。届かない場合は迷惑メールフォルダも確認してください。`, 'success');
     startResendCooldown();
 }
 
@@ -141,7 +141,7 @@ async function sendVerification() {
     document.getElementById('f-email').disabled = true;
     showEl(document.getElementById('code-input-area'));
     hideEl(btn);
-    showVerifyMsg(`${email} に6桁の認証コードを送信しました。`, 'success');
+    showVerifyMsg(`${email} に6桁の認証コードを送信しました。届かない場合は迷惑メールフォルダも確認してください。`, 'success');
     document.getElementById('f-verify-code').focus();
     startResendCooldown();
 }
@@ -248,7 +248,9 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         const entryNumber = entry.entry_number || entry.entryNumber;
         const entryStatus = entry.status;
         const pName = document.getElementById('project-title').textContent || projectId;
-        const editUrl = `${window.location.origin}${window.location.pathname.replace('entry.html', '')}edit.html?pid=${projectId}`;
+        const baseUrl = new URL('.', window.location.href);
+        const editUrl = new URL(`edit.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href;
+        const entryListUrl = new URL(`entry_list.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href;
 
         CIQEmail.sendEntryConfirmation(email, {
             projectName: pName,
@@ -260,6 +262,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             firstName,
             status: entryStatus,
             editUrl,
+            entryListUrl,
+            qrData: entry.id,
             senderName: pName + ' 実行委員会'
         }).catch(err => console.warn('メール送信スキップ:', err));
 
@@ -291,7 +295,6 @@ function showWaitlistMessage() {
 document.getElementById('send-code-btn')?.addEventListener('click', sendVerification);
 document.getElementById('verify-code-btn')?.addEventListener('click', verifyEmailCode);
 document.getElementById('resend-code-btn')?.addEventListener('click', resendVerification);
-document.getElementById('new-entry-btn')?.addEventListener('click', () => location.reload());
 
 async function init() {
     if (!projectId) {

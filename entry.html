@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
     <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=30">
+    <link rel="stylesheet" href="css/pages.css?v=33">
 </head>
 
 <body class="page-wrapper">
@@ -63,8 +63,8 @@
                         <button type="button" class="page-btn" id="verify-code-btn">
                             <i class="fa-solid fa-check-circle"></i> 認証する
                         </button>
-                        <button type="button" class="page-btn entry-resend-btn u-hidden" id="resend-code-btn">
-                            <i class="fa-solid fa-rotate-right"></i> 認証コードを再送信
+                        <button type="button" class="entry-resend-btn u-hidden" id="resend-code-btn" title="認証コードを再送信">
+                            <i class="fa-solid fa-rotate-right"></i><span>再送信</span>
                         </button>
                     </div>
                     <div class="page-msg" id="verify-msg"></div>
@@ -168,7 +168,7 @@
 
         <div class="page-card result-card u-hidden" id="result-card">
             <h2 class="result-title"><i class="fa-solid fa-circle-check"></i> エントリー完了！</h2>
-            <p class="result-desc">エントリーが完了しました。</p>
+            <p class="result-desc">当日受付に必要な情報をメールで送信しました。</p>
 
             <div class="result-info-box">
                 <div class="info-label"><i class="fa-solid fa-hashtag"></i> あなたの受付番号</div>
@@ -177,18 +177,17 @@
 
             <div class="entry-mail-notice">
                 <i class="fa-solid fa-envelope"></i>
-                <strong>エントリー情報をメールで送信しました</strong>
-                <div>パスワード・当日受付用QRコードはメールをご確認ください</div>
+                <strong>メールを必ず保存してください</strong>
+                <div>当日受付では、メール本文のQRコードまたは受付番号が必要です。メールが見つからない場合は迷惑メールフォルダも確認してください。</div>
             </div>
 
-            <button class="btn secondary" id="new-entry-btn"><i class="fa-solid fa-rotate-right"></i> 新しいエントリーを行う</button>
         </div>
 
         <div class="page-footer">Powered by CIQ</div>
     </div>
 
-    <script defer src="js/email.js?v=2"></script>
-    <script defer src="js/entry.js?v=3"></script>
+    <script defer src="js/email.js?v=3"></script>
+    <script defer src="js/entry.js?v=5"></script>
 </body>
 
 </html>

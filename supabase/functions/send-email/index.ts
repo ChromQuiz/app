@@ -54,6 +54,17 @@ function projectName(data: Record<string, unknown>) {
   return String(data.projectName || 'CIQ');
 }
 
+async function signedQrUrl(value: string) {
+  if (!value) return '';
+  const signature = await hmacHex(signingSecret(), value);
+  const baseUrl = Deno.env.get('SUPABASE_URL') || '';
+  if (!baseUrl) return '';
+  const url = new URL('/functions/v1/checkin-qr', baseUrl);
+  url.searchParams.set('d', value);
+  url.searchParams.set('s', signature);
+  return url.href;
+}
+
 function shell(title: string, subtitle: string, body: string) {
   return `
     <div style="font-family:Arial,'Hiragino Sans','Yu Gothic',sans-serif;max-width:520px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
@@ -75,17 +86,35 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
   const status = data.status === 'waitlist' ? 'キャンセル待ち' : '登録完了';
   const password = String(data.password || '');
   const editUrl = String(data.editUrl || '');
+  const entryListUrl = String(data.entryListUrl || '');
+  const qrImageUrl = String(data.qrImageUrl || '');
   const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
+  const waitlistNotice = data.status === 'waitlist'
+    ? '<p style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px;color:#92400e;font-weight:700;">現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。</p>'
+    : '';
+  const actionButtons = `
+    <div style="display:flex;gap:10px;margin:18px 0;flex-wrap:wrap;">
+      ${editUrl ? `<a href="${escapeHtml(editUrl)}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;border-radius:8px;padding:10px 18px;">編集</a>` : ''}
+      ${entryListUrl ? `<a href="${escapeHtml(entryListUrl)}" style="display:inline-block;background:#ffffff;color:#2563eb;text-decoration:none;font-weight:700;border:1px solid #bfdbfe;border-radius:8px;padding:10px 18px;">エントリーリスト</a>` : ''}
+    </div>
+  `;
   const body = `
     <p>${escapeHtml(person || '参加者')} 様</p>
     <p>エントリーを受け付けました。</p>
     <table style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #dbeafe;border-radius:8px;overflow:hidden;">
       <tr><td style="padding:8px;color:#64748b;">受付番号</td><td style="padding:8px;text-align:right;font-weight:700;">${escapeHtml(entryNumber)}</td></tr>
-      <tr><td style="padding:8px;color:#64748b;">状態</td><td style="padding:8px;text-align:right;font-weight:700;">${escapeHtml(status)}</td></tr>
       <tr><td style="padding:8px;color:#64748b;">照会パスワード</td><td style="padding:8px;text-align:right;font-weight:700;">${escapeHtml(password)}</td></tr>
     </table>
-    ${editUrl ? `<p style="margin-top:16px;">編集・確認ページ: <a href="${escapeHtml(editUrl)}">${escapeHtml(editUrl)}</a></p>` : ''}
-    <p style="color:#64748b;font-size:13px;">このメールは控えとして保管してください。</p>
+    ${waitlistNotice}
+    ${qrImageUrl ? `
+      <div style="margin:18px 0;text-align:center;">
+        <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="180" height="180" style="display:block;margin:0 auto;border:1px solid #bfdbfe;border-radius:12px;padding:10px;background:#ffffff;">
+        <div style="color:#64748b;font-size:12px;margin-top:8px;">当日受付用QRコード</div>
+      </div>
+    ` : ''}
+    <p style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;color:#1e3a8a;font-weight:700;">当日受付には、このメールに表示されたQRコードまたは受付番号が必要です。</p>
+    ${actionButtons}
+    <p style="color:#64748b;font-size:13px;">このメールは大会当日まで保管してください。QRコードが表示できない場合は受付番号を提示してください。</p>
   `;
   return {
     subject: `【${name}】エントリー受付完了（No.${entryNumber}）`,
@@ -94,9 +123,11 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
       `${person || '参加者'} 様`,
       `${name} のエントリーを受け付けました。`,
       `受付番号: ${entryNumber}`,
-      `状態: ${status}`,
+      data.status === 'waitlist' ? `状態: ${status}` : '',
       `照会パスワード: ${password}`,
-      editUrl ? `編集・確認ページ: ${editUrl}` : '',
+      `当日受付には、このメールに表示されたQRコードまたは受付番号が必要です。`,
+      editUrl ? `編集: ${editUrl}` : '',
+      entryListUrl ? `エントリーリスト: ${entryListUrl}` : '',
     ].filter(Boolean).join('\n'),
   };
 }
@@ -370,14 +401,29 @@ Deno.serve(async (req) => {
     if (!isNotificationEnabled(project, type)) {
       return jsonResponse({ success: true, skipped: true, reason: 'notification_disabled' });
     }
+    if (type === 'entry_confirmation') {
+      const qrData = String(data.qrData || effectiveEntryId);
+      data.qrImageUrl = await signedQrUrl(qrData);
+      const message = template(data);
+      const result = await recordAndSend({
+        projectId: effectiveProjectId,
+        entryId: effectiveEntryId,
+        recipientHash,
+        template: type,
+        to: normalizedEmail,
+        message,
+      });
+      return jsonResponse({ success: true, ...result });
+    }
 
+    const message = template(data);
     const result = await recordAndSend({
       projectId: effectiveProjectId,
       entryId: effectiveEntryId,
       recipientHash,
       template: type,
       to: normalizedEmail,
-      message: template(data),
+      message,
     });
     return jsonResponse({ success: true, ...result });
   } catch (error) {

@@ -44,9 +44,9 @@ const CIQEmail = (() => {
         return result;
     }
 
-    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, senderName }) {
+    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, entryListUrl, qrData, senderName }) {
         const result = await request('entry_confirmation', to, {
-            projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, senderName,
+            projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, entryListUrl, qrData, senderName,
             entryId: uuid,
         });
         return Boolean(result?.success);
