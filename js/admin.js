@@ -209,6 +209,9 @@
                 });
             });
             document.getElementById('admin-logout-btn')?.addEventListener('click', logout);
+
+            // ARIA tablist を初期化（キーボード操作 + aria 同期）
+            if (typeof initTablist === 'function') initTablist('#admin-tabs');
         }
 
         function setupPublicLinks() {
@@ -452,6 +455,12 @@
             setText('overview-scoring-count', `${done} / ${total} 問完了`);
             setText('overview-output-status', outputReady ? '出力可能' : '未確定');
             setText('overview-output-meta', outputReady ? 'CSV / PDF を出力できます' : '全問確定後に出力できます');
+
+            // タブの件数バッジを反映
+            setTabCount('entries', entryCount, false);
+            setTabCount('scan', entryCount, false);
+            const conflictNum = Number(conflict);
+            setTabCount('conflicts', Number.isFinite(conflictNum) ? conflictNum : '-', conflictNum > 0);
         }
 
         window.updateAdminOverview = updateAdminOverview;
@@ -464,12 +473,24 @@
         const tabLoaded = { 'tab-entries': false, 'tab-prep': false, 'tab-scan': false, 'tab-stats': false, 'tab-settings': false };
 
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => {
+                t.classList.remove('active');
+                t.hidden = true;
+            });
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+            const panel = document.getElementById(tabId);
+            panel.classList.add('active');
+            panel.hidden = false;
             const btns = document.querySelectorAll('.tab-btn');
             const tabs = ['tab-entries', 'tab-prep', 'tab-scan', 'tab-stats', 'tab-settings'];
-            btns[tabs.indexOf(tabId)]?.classList.add('active');
+            const activeBtn = btns[tabs.indexOf(tabId)];
+            activeBtn?.classList.add('active');
+            // ARIA 同期（initTablist が未初期化の場合のフォールバック込み）
+            btns.forEach(b => {
+                const isActive = b.classList.contains('active');
+                b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                b.tabIndex = isActive ? 0 : -1;
+            });
 
             // 遅延ロード: 初回表示時のみデータ取得
             if (!tabLoaded[tabId]) {
@@ -492,6 +513,17 @@
             // 集計タブは毎回更新
             if (tabId === 'tab-stats') updateStatsView();
             updateAdminOverview();
+            activeBtn?.focus?.();
+        }
+
+        // タブの件数バッジを更新（参加者数 / 答案数 / 要確認数）
+        function setTabCount(name, count, warn) {
+            document.querySelectorAll(`[data-tab-count="${name}"]`).forEach(el => {
+                const hasCount = Number.isFinite(Number(count)) && Number(count) >= 0;
+                el.textContent = hasCount ? count : '-';
+                el.classList.toggle('has-warn', Boolean(warn) && Number(count) > 0);
+                el.hidden = !hasCount || name === 'prep' || name === 'settings';
+            });
         }
 
         async function init() {

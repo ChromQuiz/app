@@ -337,3 +337,105 @@ function renderSkeletonCards(container, count = 6) {
         container.appendChild(card);
     });
 }
+
+/**
+ * タブリストを WAI-ARIA tablist パターンに準拠させる共有ヘルパ。
+ * .tabs[role="tablist"] > .tab-btn[role="tab"][data-tab-target]
+ * と .tab-content[role="tabpanel"] の組み合わせを想定。
+ * 矢印キー操作と aria-selected/aria-controls/tabindex の同期を行う。
+ */
+function initTablist(container) {
+    const tablist = typeof container === 'string'
+        ? document.querySelector(container)
+        : container;
+    if (!tablist || tablist.dataset.tablistReady === 'true') return;
+    tablist.dataset.tablistReady = 'true';
+    if (!tablist.getAttribute('role')) tablist.setAttribute('role', 'tablist');
+
+    const tabs = Array.from(tablist.querySelectorAll('[data-tab-target]'));
+    tabs.forEach((tab) => {
+        if (tab.tagName !== 'BUTTON') return;
+        tab.setAttribute('role', 'tab');
+        const targetId = tab.dataset.tabTarget;
+        const panel = document.getElementById(targetId);
+        if (panel) {
+            panel.setAttribute('role', 'tabpanel');
+            panel.setAttribute('aria-labelledby', tab.id || targetId + '-tab');
+            tab.setAttribute('aria-controls', targetId);
+            if (!tab.id) tab.id = targetId + '-tab';
+        }
+    });
+
+    const syncTab = (tab) => {
+        const isActive = tab.classList.contains('active');
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        tab.tabIndex = isActive ? 0 : -1;
+    };
+    tabs.forEach(syncTab);
+
+    tablist.addEventListener('keydown', (e) => {
+        const current = document.activeElement;
+        const idx = tabs.indexOf(current);
+        if (idx === -1) return;
+        let nextIdx = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextIdx = (idx + 1) % tabs.length;
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') nextIdx = (idx - 1 + tabs.length) % tabs.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = tabs.length - 1;
+        if (nextIdx === null) return;
+        e.preventDefault();
+        tabs[nextIdx].focus();
+        tabs[nextIdx].click();
+    });
+
+    // active クラスが切り替わった後に aria を再同期するための公開 API
+    tablist._syncTabAria = () => tabs.forEach(syncTab);
+}
+
+/**
+ * ボタンに送信中状態を設定する。
+ * - loading=true の場合、元のラベルを保存し、スピナー + "処理中..." を表示して disabled にする。
+ * - loading=false の場合、元のラベルを復元して disabled を解除する。
+ * 戻り値はPromiseの解決を待つための補助用（呼び出し側でawait不要）。
+ */
+function setButtonLoading(btn, loading, label) {
+    if (!btn) return;
+    if (loading) {
+        if (btn.dataset.loading !== 'true') {
+            btn.dataset.originalHtml = btn.innerHTML;
+        }
+        btn.dataset.loading = 'true';
+        btn.disabled = true;
+        btn.textContent = '';
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-circle-notch fa-spin';
+        const text = document.createElement('span');
+        text.textContent = label || '処理中...';
+        btn.append(icon, text);
+    } else {
+        btn.dataset.loading = 'false';
+        btn.disabled = false;
+        if (btn.dataset.originalHtml != null) {
+            btn.innerHTML = btn.dataset.originalHtml;
+            delete btn.dataset.originalHtml;
+        }
+    }
+}
+
+/**
+ * 動的ステータス要素に安全にテキストを設定する。
+ * 要素が aria-live を持たなければ付与し、textContent のみで更新（XSS 安全）。
+ * type='alert' でエラーを、それ以外は 'polite' で通常ステータスを通知。
+ */
+function announceStatus(el, message, type) {
+    if (!el) return;
+    if (!el.getAttribute('aria-live')) {
+        el.setAttribute('aria-live', type === 'alert' ? 'assertive' : 'polite');
+    }
+    if (type === 'alert' && !el.getAttribute('role')) {
+        el.setAttribute('role', 'alert');
+    } else if (type !== 'alert' && !el.getAttribute('role')) {
+        el.setAttribute('role', 'status');
+    }
+    el.textContent = message || '';
+}

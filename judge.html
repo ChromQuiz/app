@@ -18,24 +18,24 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=7"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/ui.js?v=2"></script>
+    <script defer src="js/ui.js?v=3"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=30">
+    <link rel="stylesheet" href="css/design_system.css?v=22">
+    <link rel="stylesheet" href="css/pages.css?v=35">
 </head>
 
 <body class="page-judge">
     <div class="header-bar">
         <div class="header-left">
-            <h1 id="project-title"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</h1>
+            <h1 id="project-title"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> 読み込み中...</h1>
         </div>
         <div class="header-right">
-            <button class="menu-trigger" data-toggle-menu>
+            <button class="menu-trigger" data-toggle-menu type="button" aria-label="メニューを開く">
                 <div class="trigger-icon"><span></span><span></span><span></span></div>
             </button>
         </div>
@@ -100,7 +100,7 @@
 
 
 
-    <div class="q-grid" id="q-grid"></div>
+    <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
 
     <script defer src="js/judge.js?v=2"></script>
 </body>

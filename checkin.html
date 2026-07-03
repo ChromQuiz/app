@@ -18,23 +18,23 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=7"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/ui.js?v=2"></script>
+    <script defer src="js/ui.js?v=3"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=34">
+    <link rel="stylesheet" href="css/design_system.css?v=22">
+    <link rel="stylesheet" href="css/pages.css?v=35">
 </head>
 <body>
     <div class="fixed-header">
         <div class="header-left">
-            <button class="back-nav-btn" id="checkin-back-btn"><i class="fa-solid fa-chevron-left"></i> 戻る</button>
+            <button type="button" class="back-nav-btn" id="checkin-back-btn"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i> 戻る</button>
         </div>
         <div class="header-center">
-            <h1 id="page-title"><i class="fa-solid fa-qrcode"></i> 当日受付</h1>
+            <h1 id="page-title"><i class="fa-solid fa-qrcode" aria-hidden="true"></i> 当日受付</h1>
         </div>
         <div class="header-right"></div>
     </div>
@@ -45,25 +45,25 @@
                 <video id="video" autoplay playsinline></video>
                 <canvas id="canvas"></canvas>
             </div>
-            <p id="scanning-text"><i class="fa-solid fa-camera"></i> QRコードをカメラにかざしてください</p>
-            <div id="result"></div>
+            <p id="scanning-text" role="status" aria-live="polite"><i class="fa-solid fa-camera" aria-hidden="true"></i> QRコードをカメラにかざしてください</p>
+            <div id="result" role="status" aria-live="assertive"></div>
         </div>
 
         <div class="right-col">
-            <div class="stats-bar glass-panel u-hidden mb-zero" id="stats-bar">
-                <h3><i class="fa-solid fa-chart-bar"></i> 受付状況</h3>
+            <div class="stats-bar glass-panel u-hidden mb-zero" id="stats-bar" role="region" aria-label="受付状況">
+                <h3><i class="fa-solid fa-chart-bar" aria-hidden="true"></i> 受付状況</h3>
                 <div class="stats-row u-flex-wrap">
                     <div class="stat-item glass-panel">
                         <div class="stat-num checkin-stat-primary" id="stat-total">-</div>
-                        <div class="stat-label"><i class="fa-solid fa-users"></i> エントリー</div>
+                        <div class="stat-label"><i class="fa-solid fa-users" aria-hidden="true"></i> エントリー</div>
                     </div>
                     <div class="stat-item glass-panel">
                         <div class="stat-num checkin-stat-success" id="stat-checked">-</div>
-                        <div class="stat-label"><i class="fa-solid fa-check"></i> 受付済み</div>
+                        <div class="stat-label"><i class="fa-solid fa-check" aria-hidden="true"></i> 受付済み</div>
                     </div>
                     <div class="stat-item glass-panel">
                         <div class="stat-num checkin-stat-warning" id="stat-remaining">-</div>
-                        <div class="stat-label"><i class="fa-solid fa-clock"></i> 未受付</div>
+                        <div class="stat-label"><i class="fa-solid fa-clock" aria-hidden="true"></i> 未受付</div>
                     </div>
                 </div>
             </div>

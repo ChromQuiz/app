@@ -20,8 +20,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=30">
+    <link rel="stylesheet" href="css/design_system.css?v=22">
+    <link rel="stylesheet" href="css/pages.css?v=35">
 </head>
 <body class="page-wrapper">
     <div class="page-container">
@@ -33,21 +33,21 @@
 
         <form class="page-card" id="form-card" novalidate>
             <div class="form-group">
-                <label><i class="fa-solid fa-envelope"></i> メールアドレス</label>
-                <input type="email" class="page-input" id="f-email" required placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
+                <label for="f-email"><i class="fa-solid fa-envelope" aria-hidden="true"></i> メールアドレス</label>
+                <input type="email" class="page-input" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
             </div>
 
             <div class="form-group">
-                <label><i class="fa-solid fa-key"></i> パスワード</label>
-                <input type="text" class="page-input" id="f-password" required placeholder="------">
+                <label for="f-password"><i class="fa-solid fa-key" aria-hidden="true"></i> パスワード</label>
+                <input type="text" class="page-input" id="f-password" name="password" required autocomplete="off" placeholder="------">
             </div>
 
-            <button type="submit" class="page-btn" id="submit-btn"><i class="fa-solid fa-clock-rotate-left"></i> 遅刻を届け出る</button>
-            <div class="page-msg" id="status-msg"></div>
+            <button type="submit" class="page-btn" id="submit-btn"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> 遅刻を届け出る</button>
+            <div class="page-msg" id="status-msg" role="status" aria-live="polite"></div>
         </form>
 
-        <div class="page-card u-hidden u-text-center" id="done-card">
-            <i class="fa-solid fa-circle-check u-success-icon"></i>
+        <div class="page-card is-success u-hidden u-text-center" id="done-card" role="status">
+            <i class="fa-solid fa-circle-check u-success-icon" aria-hidden="true"></i>
             <p class="u-complete-title">遅刻の届け出を受理しました</p>
         </div>
 

@@ -20,8 +20,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=20">
-    <link rel="stylesheet" href="css/pages.css?v=30">
+    <link rel="stylesheet" href="css/design_system.css?v=22">
+    <link rel="stylesheet" href="css/pages.css?v=35">
 </head>
 <body class="page-wrapper">
     <div class="page-container">
@@ -34,53 +34,53 @@
         <!-- 認証フォーム -->
         <form class="page-card" id="auth-card" novalidate>
             <div class="form-group">
-                <label><i class="fa-solid fa-envelope"></i> メールアドレス</label>
-                <input type="email" class="page-input" id="f-email" required placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
+                <label for="f-email"><i class="fa-solid fa-envelope" aria-hidden="true"></i> メールアドレス</label>
+                <input type="email" class="page-input" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
             </div>
             <div class="form-group">
-                <label><i class="fa-solid fa-key"></i> パスワード</label>
-                <input type="text" class="page-input" id="f-password" required placeholder="------">
+                <label for="f-password"><i class="fa-solid fa-key" aria-hidden="true"></i> パスワード</label>
+                <input type="text" class="page-input" id="f-password" name="password" required autocomplete="off" placeholder="------">
             </div>
-            <button type="submit" class="page-btn" id="auth-btn"><i class="fa-solid fa-right-to-bracket"></i> 認証してエントリーを編集</button>
-            <div class="page-msg" id="auth-msg"></div>
+            <button type="submit" class="page-btn" id="auth-btn"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> 認証してエントリーを編集</button>
+            <div class="page-msg" id="auth-msg" role="status" aria-live="polite"></div>
         </form>
 
         <!-- 編集フォーム -->
         <form class="page-card u-hidden" id="edit-card" novalidate>
             <div class="entry-number-summary">
-                <i class="fa-solid fa-hashtag"></i> 受付番号: <strong id="edit-entry-number"></strong>
+                <i class="fa-solid fa-hashtag" aria-hidden="true"></i> 受付番号: <strong id="edit-entry-number"></strong>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="required">姓</label>
-                    <input type="text" class="page-input" id="e-family-name" required placeholder="山田">
+                    <label class="required" for="e-family-name">姓</label>
+                    <input type="text" class="page-input" id="e-family-name" name="family-name" required autocomplete="family-name" placeholder="山田">
                 </div>
                 <div class="form-group">
-                    <label class="required">名</label>
-                    <input type="text" class="page-input" id="e-first-name" required placeholder="太郎">
+                    <label class="required" for="e-first-name">名</label>
+                    <input type="text" class="page-input" id="e-first-name" name="first-name" required autocomplete="given-name" placeholder="太郎">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="required">セイ (全角カタカナ)</label>
-                    <input type="text" id="e-family-kana" required placeholder="ヤマダ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
+                    <label class="required" for="e-family-kana">セイ (全角カタカナ)</label>
+                    <input type="text" class="page-input" id="e-family-kana" required placeholder="ヤマダ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
                 </div>
                 <div class="form-group">
-                    <label class="required">メイ (全角カタカナ)</label>
-                    <input type="text" id="e-first-kana" required placeholder="タロウ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
+                    <label class="required" for="e-first-kana">メイ (全角カタカナ)</label>
+                    <input type="text" class="page-input" id="e-first-kana" required placeholder="タロウ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
                 </div>
             </div>
 
             <div id="affiliation-section">
                 <div class="form-row">
                     <div class="form-group u-flex-2">
-                        <label class="required"><i class="fa-solid fa-school"></i> 所属教育機関</label>
-                        <input type="text" id="e-affiliation" required placeholder="○○高">
-                        <div class="hint"><i class="fa-solid fa-circle-info"></i> 非公開を希望する場合は「非公開」と入力してください。</div>
+                        <label class="required" for="e-affiliation"><i class="fa-solid fa-school" aria-hidden="true"></i> 所属教育機関</label>
+                        <input type="text" class="page-input" id="e-affiliation" name="organization" required autocomplete="organization" placeholder="○○高">
+                        <div class="hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> 非公開を希望する場合は「非公開」と入力してください。</div>
                     </div>
                     <div class="form-group u-flex-1">
-                        <label class="required"><i class="fa-solid fa-graduation-cap"></i> 学年</label>
+                        <label class="required" for="e-grade"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> 学年</label>
                         <select id="e-grade" class="custom-select" required>
                             <option value="">選択</option>
                             <option value="１年">１年</option>
@@ -96,9 +96,9 @@
             </div>
 
             <div class="form-group">
-                <label class="custom-checkbox">
+                <label class="custom-checkbox" for="e-chubu">
                     <input type="checkbox" id="e-chubu">
-                    <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
+                    <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
                     <div class="u-flex-1">
                         <span>所属教育機関は<strong>中部地方</strong>（愛知・岐阜・三重・静岡・長野・山梨・新潟・富山・石川・福井）にあります</span>
                     </div>
@@ -106,13 +106,13 @@
             </div>
 
             <div class="form-group">
-                <label class="required"><i class="fa-solid fa-id-badge"></i> エントリーネーム</label>
-                <input type="text" id="e-entry-name" required placeholder="エントリーシートでの表示名">
+                <label class="required" for="e-entry-name"><i class="fa-solid fa-id-badge" aria-hidden="true"></i> エントリーネーム</label>
+                <input type="text" class="page-input" id="e-entry-name" required placeholder="エントリーシートでの表示名">
             </div>
 
             <div class="form-group">
                 <fieldset class="choice-fieldset">
-                    <legend class="required"><i class="fa-solid fa-book-open"></i> 記録集での本名使用</legend>
+                    <legend class="required"><i class="fa-solid fa-book-open" aria-hidden="true"></i> 記録集での本名使用</legend>
                     <div class="choice-row">
                         <label class="choice-option">
                             <input type="radio" name="e-record-name-permission" value="allow" required>
@@ -127,22 +127,22 @@
             </div>
 
             <div class="form-group">
-                <label><i class="fa-solid fa-comment"></i> 意気込み</label>
-                <input type="text" id="e-message" placeholder="大会への意気込みをどうぞ！(公開されます)">
+                <label for="e-message"><i class="fa-solid fa-comment" aria-hidden="true"></i> 意気込み</label>
+                <input type="text" class="page-input" id="e-message" placeholder="大会への意気込みをどうぞ！(公開されます)">
             </div>
 
             <div class="form-group">
-                <label><i class="fa-solid fa-message"></i> 運営への連絡</label>
-                <textarea id="e-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
+                <label for="e-inquiry"><i class="fa-solid fa-message" aria-hidden="true"></i> 運営への連絡</label>
+                <textarea class="page-input" id="e-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
             </div>
 
-            <button type="submit" class="page-btn" id="save-btn"><i class="fa-solid fa-floppy-disk"></i> 変更を保存する</button>
-            <div class="page-msg" id="edit-msg"></div>
+            <button type="submit" class="page-btn" id="save-btn"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> 変更を保存する</button>
+            <div class="page-msg" id="edit-msg" role="status" aria-live="polite"></div>
         </form>
 
         <!-- 完了 -->
-        <div class="page-card u-hidden u-text-center" id="done-card">
-            <i class="fa-solid fa-circle-check u-success-icon"></i>
+        <div class="page-card is-success u-hidden u-text-center" id="done-card" role="status">
+            <i class="fa-solid fa-circle-check u-success-icon" aria-hidden="true"></i>
             <p class="u-complete-title">エントリー内容を更新しました</p>
         </div>
 

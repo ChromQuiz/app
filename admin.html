@@ -17,15 +17,15 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=27"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/ui.js?v=2"></script>
+    <script defer src="js/ui.js?v=3"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=21">
-    <link rel="stylesheet" href="css/pages.css?v=33">
+    <link rel="stylesheet" href="css/design_system.css?v=22">
+    <link rel="stylesheet" href="css/pages.css?v=35">
 </head>
 
 <body class="page-admin">
@@ -136,16 +136,16 @@
             </div>
         </div>
 
-        <div class="tabs">
-            <button class="tab-btn active" data-tab-target="tab-entries"><i class="fa-solid fa-users"></i> 参加者</button>
-            <button class="tab-btn" data-tab-target="tab-prep"><i class="fa-solid fa-file-lines"></i> 採点準備</button>
-            <button class="tab-btn" data-tab-target="tab-scan"><i class="fa-solid fa-camera"></i> 答案管理</button>
-            <button class="tab-btn" data-tab-target="tab-stats"><i class="fa-solid fa-chart-pie"></i> 集計</button>
-            <button class="tab-btn" data-tab-target="tab-settings"><i class="fa-solid fa-wrench"></i> 設定</button>
+        <div class="tabs" id="admin-tabs">
+            <button type="button" class="tab-btn active" id="tab-entries-tab" data-tab-target="tab-entries" aria-selected="true" aria-controls="tab-entries" role="tab" tabindex="0"><i class="fa-solid fa-users" aria-hidden="true"></i> <span>参加者</span> <span class="tab-count" data-tab-count="entries" aria-label="参加者数">-</span></button>
+            <button type="button" class="tab-btn" id="tab-prep-tab" data-tab-target="tab-prep" aria-selected="false" aria-controls="tab-prep" role="tab" tabindex="-1"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> <span>採点準備</span></button>
+            <button type="button" class="tab-btn" id="tab-scan-tab" data-tab-target="tab-scan" aria-selected="false" aria-controls="tab-scan" role="tab" tabindex="-1"><i class="fa-solid fa-camera" aria-hidden="true"></i> <span>答案管理</span> <span class="tab-count" data-tab-count="scan" aria-label="答案数">-</span></button>
+            <button type="button" class="tab-btn" id="tab-stats-tab" data-tab-target="tab-stats" aria-selected="false" aria-controls="tab-stats" role="tab" tabindex="-1"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> <span>集計</span> <span class="tab-count" data-tab-count="conflicts" aria-label="要確認数">-</span></button>
+            <button type="button" class="tab-btn" id="tab-settings-tab" data-tab-target="tab-settings" aria-selected="false" aria-controls="tab-settings" role="tab" tabindex="-1"><i class="fa-solid fa-wrench" aria-hidden="true"></i> <span>設定</span></button>
         </div>
 
         <!-- ==================== TAB 0: 参加者管理 ==================== -->
-        <div class="tab-content active" id="tab-entries">
+        <div class="tab-content active" id="tab-entries" role="tabpanel" aria-labelledby="tab-entries-tab">
             <div class="section glass-panel admin-public-section">
                 <h2><i class="fa-solid fa-tower-broadcast"></i> 公開管理</h2>
                 <div class="public-state-grid" aria-label="公開状態">
@@ -297,7 +297,7 @@
         </div>
 
         <!-- ==================== TAB 1: 採点準備（解答用紙＋模範解答） ==================== -->
-        <div class="tab-content" id="tab-prep">
+        <div class="tab-content" id="tab-prep" role="tabpanel" aria-labelledby="tab-prep-tab">
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-file-pdf"></i> 解答用紙の生成</h2>
                 <label><i class="fa-solid fa-list-ol"></i> 問題数</label>
@@ -331,7 +331,7 @@
         </div>
 
         <!-- ==================== TAB 2: 答案管理 ==================== -->
-        <div class="tab-content" id="tab-scan">
+        <div class="tab-content" id="tab-scan" role="tabpanel" aria-labelledby="tab-scan-tab">
             <div class="section glass-panel">
                 <div class="file-upload-zone u-dashed mt-zero mb-xl" id="pdf-upload-zone" data-file-trigger="pdf-file">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -364,7 +364,7 @@
 
 
         <!-- ==================== TAB 4: 集計 ==================== -->
-        <div class="tab-content" id="tab-stats">
+        <div class="tab-content" id="tab-stats" role="tabpanel" aria-labelledby="tab-stats-tab">
             <div class="section glass-panel">
                 <h2><i class="fa-solid fa-chart-bar"></i> 採点状況</h2>
                 <div class="stats">
@@ -454,7 +454,7 @@
         </div>
 
         <!-- ==================== TAB 5: 設定 ==================== -->
-        <div class="tab-content" id="tab-settings">
+        <div class="tab-content" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-tab">
 
 
             <div class="section glass-panel">
@@ -680,7 +680,7 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=27"></script>
+    <script defer src="js/admin.js?v=28"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
     <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
