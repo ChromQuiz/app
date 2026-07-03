@@ -57,6 +57,7 @@ function showVerifyMsg(msg, type) {
     el.textContent = msg;
     el.className = `page-msg ${type}`;
     el.classList.add('is-visible');
+    if (type === 'error' && shouldShowVerificationMailboxHelp()) showVerificationMailboxHelp();
 }
 
 function clearVerifyMsg() {
@@ -82,6 +83,11 @@ function clearVerifyHelp() {
 
 function showVerificationMailboxHelp() {
     showVerifyHelp('届かない場合は迷惑メールフォルダも確認してください。');
+}
+
+function shouldShowVerificationMailboxHelp() {
+    const codeArea = document.getElementById('code-input-area');
+    return Boolean(codeArea && !codeArea.classList.contains('u-hidden'));
 }
 
 function showStatus(msg, type) {
@@ -202,12 +208,10 @@ async function verifyEmailCode() {
 
     if (!code) {
         showVerifyMsg('認証コードを入力してください。', 'error');
-        showVerificationMailboxHelp();
         return;
     }
     if (code.length !== 6) {
         showVerifyMsg('6桁の認証コードを入力してください。', 'error');
-        showVerificationMailboxHelp();
         return;
     }
 
@@ -218,7 +222,6 @@ async function verifyEmailCode() {
     const verified = await CIQEmail.verifyCode(email, code, verifySignature, verifyExpiresAt);
     if (!verified) {
         showVerifyMsg('認証コードが正しくないか、有効期限が切れています。', 'error');
-        showVerificationMailboxHelp();
         btn.disabled = false;
         setEntryButton(btn, '認証する', 'fa-solid fa-check-circle');
         return;

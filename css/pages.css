@@ -327,17 +327,10 @@ body.page-admin { padding: 0; }
 }
 .choice-fieldset legend {
   display: block;
-  margin-bottom: 6px;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.3;
-  text-transform: none;
-  letter-spacing: 0;
+  margin: 0 0 6px;
+  padding: 0;
 }
 .choice-fieldset legend i {
-  color: var(--primary);
-  font-size: 12px;
   margin-right: 3px;
 }
 .choice-row {
@@ -2175,6 +2168,7 @@ body::before {
 }
 
 label,
+.choice-fieldset legend,
 .page-index label {
   color: var(--text-muted);
   font-size: 12px;
@@ -2994,6 +2988,7 @@ body.page-wrapper,
 h1, h2, h3, h4, h5, h6,
 p,
 label,
+.choice-fieldset legend,
 table td,
 .entry-card .entry-name,
 .model-cell .q-answer,

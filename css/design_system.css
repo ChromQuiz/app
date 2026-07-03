@@ -174,7 +174,8 @@ input:focus, select:focus {
 }
 input::placeholder { color: var(--text-faint); transition: color 0.25s, transform 0.25s; }
 input:focus::placeholder { color: #64748b; transform: translateX(4px); }
-label {
+label,
+.choice-fieldset legend {
   display: block;
   font-size: 12px;
   font-weight: 600;
@@ -184,7 +185,8 @@ label {
   letter-spacing: 0.05em;
   transition: color 0.25s;
 }
-label i { color: var(--primary); margin-right: 3px; }
+label i,
+.choice-fieldset legend i { color: var(--primary); margin-right: 3px; }
 
 /* Glassmorphic Panels / Cards */
 .glass-panel {
