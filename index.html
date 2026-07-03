@@ -18,15 +18,15 @@
   <script defer src="js/supabase_client.js"></script>
   <script defer src="js/supabase_api.js?v=8"></script>
   <script defer src="js/crypto.js"></script>
-  <script defer src="js/ui.js?v=3"></script>
+  <script defer src="js/icons.js?v=1"></script>
+    <script defer src="js/ui.js?v=4"></script>
   <script defer src="js/custom-select.js?v=2"></script>
   <script defer src="js/shared.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="css/design_system.css?v=22">
-  <link rel="stylesheet" href="css/pages.css?v=35">
+  <link rel="stylesheet" href="css/design_system.css?v=23">
+  <link rel="stylesheet" href="css/pages.css?v=37">
 </head>
 
 <body class="page-index">
@@ -56,12 +56,12 @@
       <div id="project-list" class="project-list">
       </div>
       <div class="scorer-join-panel">
-        <div class="scorer-join-title"><i class="fa-solid fa-user-check" aria-hidden="true"></i> 採点者参加</div>
+        <div class="scorer-join-title"><span data-icon="user-check" aria-hidden="true"></span> 採点者参加</div>
         <label for="join-project-id">プロジェクトID</label>
         <input type="text" id="join-project-id" autocomplete="off" placeholder="例: ciq13" />
         <label for="join-scorer-code">パスワード</label>
         <input type="password" id="join-scorer-code" autocomplete="off" placeholder="管理者から共有されたパスワード" />
-        <button type="button" class="btn secondary" id="join-scorer-btn">参加 <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
+        <button type="button" class="btn secondary" id="join-scorer-btn">参加 <span data-icon="arrow-right-to-bracket" aria-hidden="true"></span></button>
       </div>
     </div>
 
@@ -69,10 +69,10 @@
   </div>
   <div class="index-help-link-wrap">
     <a href="create.html" class="index-help-link">
-      <i class="fa-solid fa-circle-plus" aria-hidden="true"></i> 新規作成
+      <span data-icon="circle-plus" aria-hidden="true"></span> 新規作成
     </a>
     <a href="help.html" class="index-help-link">
-      <i class="fa-solid fa-circle-question" aria-hidden="true"></i> ヘルプ
+      <span data-icon="circle-question" aria-hidden="true"></span> ヘルプ
     </a>
   </div>
   <script defer src="js/index.js?v=7"></script>

@@ -15,8 +15,7 @@
         const adminHash = session.get('adminHash');
 
         function adminIcon(className) {
-            const icon = document.createElement('i');
-            icon.className = className;
+            const icon = createIcon(className);
             return icon;
         }
 
@@ -87,10 +86,18 @@
         function copyProjectId() {
             const el = document.getElementById('project-id-display');
             navigator.clipboard.writeText(projectId).then(() => {
-                el.querySelector('i').className = 'fa-solid fa-check';
+                const iconHolder = el.querySelector('[data-icon]');
+                if (iconHolder) {
+                    iconHolder.textContent = '';
+                    iconHolder.appendChild(createIcon('check'));
+                }
                 el.classList.add('copy-badge-success');
                 setTimeout(() => {
-                    el.querySelector('i').className = 'fa-solid fa-copy';
+                    const iconHolder2 = el.querySelector('[data-icon]');
+                    if (iconHolder2) {
+                        iconHolder2.textContent = '';
+                        iconHolder2.appendChild(createIcon('copy'));
+                    }
                     el.classList.remove('copy-badge-success');
                 }, 1500);
             });
@@ -456,10 +463,18 @@
             setText('overview-output-status', outputReady ? '出力可能' : '未確定');
             setText('overview-output-meta', outputReady ? 'CSV / PDF を出力できます' : '全問確定後に出力できます');
 
+            // 要確認ステータスタイル（危険度に応じて色切替）
+            const conflictNum = Number(conflict);
+            const conflictTile = document.getElementById('status-tile-conflict');
+            if (conflictTile) {
+                conflictTile.classList.toggle('is-danger', Number.isFinite(conflictNum) && conflictNum > 0);
+                conflictTile.classList.toggle('is-next', !(Number.isFinite(conflictNum) && conflictNum > 0) && disclosureStatus === '停止中');
+            }
+            setText('overview-conflict-count', Number.isFinite(conflictNum) ? (conflictNum > 0 ? `${conflictNum} 件` : '0') : '-');
+
             // タブの件数バッジを反映
             setTabCount('entries', entryCount, false);
             setTabCount('scan', entryCount, false);
-            const conflictNum = Number(conflict);
             setTabCount('conflicts', Number.isFinite(conflictNum) ? conflictNum : '-', conflictNum > 0);
         }
 

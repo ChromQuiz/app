@@ -17,39 +17,39 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=5"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/ui.js?v=3"></script>
+    <script defer src="js/icons.js?v=1"></script>
+    <script defer src="js/ui.js?v=4"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=22">
-    <link rel="stylesheet" href="css/pages.css?v=35">
+    <link rel="stylesheet" href="css/design_system.css?v=23">
+    <link rel="stylesheet" href="css/pages.css?v=37">
 </head>
 <body class="page-wrapper">
     <div class="page-container">
         <div class="page-logo">
-            <span class="logo-icon"><i class="fa-solid fa-chart-column"></i></span>
-            <h1 id="logo-title"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</h1>
+            <span class="logo-icon"><span data-icon="chart-column" aria-hidden="true"></span>
+            <h1 id="logo-title"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</h1>
             <div class="logo-sub" id="logo-subtitle">成績照会</div>
         </div>
 
         <form class="page-card" id="login-card" novalidate>
             <div class="form-group">
-                <label for="f-email"><i class="fa-solid fa-envelope" aria-hidden="true"></i> メールアドレス</label>
+                <label for="f-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
                 <input type="email" class="page-input" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
             </div>
             <div class="form-group">
-                <label for="pw-input"><i class="fa-solid fa-key" aria-hidden="true"></i> パスワード</label>
+                <label for="pw-input"><span data-icon="key" aria-hidden="true"></span> パスワード</label>
                 <input type="text" class="page-input" id="pw-input" name="password" maxlength="6" required autocomplete="off" placeholder="------">
             </div>
-            <button type="submit" class="page-btn" id="submit-btn"><i class="fa-solid fa-unlock" aria-hidden="true"></i> 成績を確認する</button>
+            <button type="submit" class="page-btn" id="submit-btn"><span data-icon="unlock" aria-hidden="true"></span> 成績を確認する</button>
             <div class="page-msg error" id="error-msg" role="alert" aria-live="assertive"></div>
         </form>
 
         <div class="page-card page-disabled is-disabled u-hidden" id="disabled-card" role="status">
-            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <span data-icon="lock" aria-hidden="true"></span>
             <h2 id="disabled-title">成績照会は現在停止中です</h2>
             <p id="disabled-detail" class="disclosure-disabled-detail">管理者が照会を開始するまでお待ちください。</p>
         </div>
@@ -66,12 +66,12 @@
             <div id="share-area" class="u-hidden">
                 <div id="share-preview"></div>
                 <div class="share-buttons">
-                    <button type="button" class="share-btn share-main" id="share-main-btn" title="シェア" aria-label="成績をシェア"><i class="fa-solid fa-share-from-square" aria-hidden="true"></i></button>
-                    <button type="button" class="share-btn share-download" id="share-download-btn" title="画像を保存" aria-label="成績画像をダウンロード"><i class="fa-solid fa-download" aria-hidden="true"></i></button>
+                    <button type="button" class="share-btn share-main" id="share-main-btn" title="シェア" aria-label="成績をシェア"><span data-icon="share-from-square" aria-hidden="true"></span></button>
+                    <button type="button" class="share-btn share-download" id="share-download-btn" title="画像を保存" aria-label="成績画像をダウンロード"><span data-icon="download" aria-hidden="true"></span></button>
                 </div>
             </div>
 
-            <button type="button" class="back-nav-btn disclosure-back-btn" id="disclosure-back-btn"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i> 戻る</button>
+            <button type="button" class="back-nav-btn disclosure-back-btn" id="disclosure-back-btn"><span data-icon="chevron-left" aria-hidden="true"></span> 戻る</button>
         </div>
 
         <div class="page-footer">Powered by CIQ</div>

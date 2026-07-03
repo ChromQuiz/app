@@ -14,8 +14,7 @@ function setRoleBadge(role) {
     roleEl.textContent = '';
     const badge = document.createElement('span');
     badge.className = role === 'admin' ? 'menu-role-badge admin' : 'menu-role-badge scorer';
-    const icon = document.createElement('i');
-    icon.className = role === 'admin' ? 'fa-solid fa-crown' : 'fa-solid fa-user-check';
+    const icon = createIcon(role === 'admin' ? 'fa-solid fa-crown' : 'fa-solid fa-user-check');
     badge.append(icon, role === 'admin' ? ' 管理者' : ' 採点者');
     roleEl.appendChild(badge);
 }
@@ -23,8 +22,7 @@ function setRoleBadge(role) {
 function setStatus(statusEl, className, iconClass, text) {
     statusEl.className = `q-status ${className}`;
     statusEl.textContent = '';
-    const icon = document.createElement('i');
-    icon.className = iconClass;
+    const icon = createIcon(iconClass);
     statusEl.append(icon, ` ${text}`);
 }
 

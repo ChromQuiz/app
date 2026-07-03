@@ -14,8 +14,7 @@ function hideEl(el) {
 }
 
 function lateIcon(className) {
-    const icon = document.createElement('i');
-    icon.className = className;
+    const icon = createIcon(className);
     return icon;
 }
 

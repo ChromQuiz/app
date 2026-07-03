@@ -13,42 +13,42 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=5"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/ui.js?v=2"></script>
+    <script defer src="js/icons.js?v=1"></script>
+    <script defer src="js/ui.js?v=4"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=22">
-    <link rel="stylesheet" href="css/pages.css?v=35">
+    <link rel="stylesheet" href="css/design_system.css?v=23">
+    <link rel="stylesheet" href="css/pages.css?v=37">
 </head>
 <body class="page-wrapper">
     <div class="page-container">
         <div class="page-logo">
-            <span class="logo-icon"><i class="fa-solid fa-pen-to-square"></i></span>
-            <h1 id="edit-title"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</h1>
+            <span class="logo-icon"><span data-icon="pen-to-square" aria-hidden="true"></span>
+            <h1 id="edit-title"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</h1>
             <div class="logo-sub" id="edit-subtitle">エントリー編集</div>
         </div>
 
         <!-- 認証フォーム -->
         <form class="page-card" id="auth-card" novalidate>
             <div class="form-group">
-                <label for="f-email"><i class="fa-solid fa-envelope" aria-hidden="true"></i> メールアドレス</label>
+                <label for="f-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
                 <input type="email" class="page-input" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
             </div>
             <div class="form-group">
-                <label for="f-password"><i class="fa-solid fa-key" aria-hidden="true"></i> パスワード</label>
+                <label for="f-password"><span data-icon="key" aria-hidden="true"></span> パスワード</label>
                 <input type="text" class="page-input" id="f-password" name="password" required autocomplete="off" placeholder="------">
             </div>
-            <button type="submit" class="page-btn" id="auth-btn"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> 認証してエントリーを編集</button>
+            <button type="submit" class="page-btn" id="auth-btn"><span data-icon="right-to-bracket" aria-hidden="true"></span> 認証してエントリーを編集</button>
             <div class="page-msg" id="auth-msg" role="status" aria-live="polite"></div>
         </form>
 
         <!-- 編集フォーム -->
         <form class="page-card u-hidden" id="edit-card" novalidate>
             <div class="entry-number-summary">
-                <i class="fa-solid fa-hashtag" aria-hidden="true"></i> 受付番号: <strong id="edit-entry-number"></strong>
+                <span data-icon="hashtag" aria-hidden="true"></span> 受付番号: <strong id="edit-entry-number"></strong>
             </div>
 
             <div class="form-row">
@@ -75,12 +75,12 @@
             <div id="affiliation-section">
                 <div class="form-row">
                     <div class="form-group u-flex-2">
-                        <label class="required" for="e-affiliation"><i class="fa-solid fa-school" aria-hidden="true"></i> 所属教育機関</label>
+                        <label class="required" for="e-affiliation"><span data-icon="school" aria-hidden="true"></span> 所属教育機関</label>
                         <input type="text" class="page-input" id="e-affiliation" name="organization" required autocomplete="organization" placeholder="○○高">
-                        <div class="hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> 非公開を希望する場合は「非公開」と入力してください。</div>
+                        <div class="hint"><span data-icon="circle-info" aria-hidden="true"></span> 非公開を希望する場合は「非公開」と入力してください。</div>
                     </div>
                     <div class="form-group u-flex-1">
-                        <label class="required" for="e-grade"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> 学年</label>
+                        <label class="required" for="e-grade"><span data-icon="graduation-cap" aria-hidden="true"></span> 学年</label>
                         <select id="e-grade" class="custom-select" required>
                             <option value="">選択</option>
                             <option value="１年">１年</option>
@@ -106,13 +106,13 @@
             </div>
 
             <div class="form-group">
-                <label class="required" for="e-entry-name"><i class="fa-solid fa-id-badge" aria-hidden="true"></i> エントリーネーム</label>
+                <label class="required" for="e-entry-name"><span data-icon="id-badge" aria-hidden="true"></span> エントリーネーム</label>
                 <input type="text" class="page-input" id="e-entry-name" required placeholder="エントリーシートでの表示名">
             </div>
 
             <div class="form-group">
                 <fieldset class="choice-fieldset">
-                    <legend class="required"><i class="fa-solid fa-book-open" aria-hidden="true"></i> 記録集での本名使用</legend>
+                    <legend class="required"><span data-icon="book-open" aria-hidden="true"></span> 記録集での本名使用</legend>
                     <div class="choice-row">
                         <label class="choice-option">
                             <input type="radio" name="e-record-name-permission" value="allow" required>
@@ -127,22 +127,22 @@
             </div>
 
             <div class="form-group">
-                <label for="e-message"><i class="fa-solid fa-comment" aria-hidden="true"></i> 意気込み</label>
+                <label for="e-message"><span data-icon="comment" aria-hidden="true"></span> 意気込み</label>
                 <input type="text" class="page-input" id="e-message" placeholder="大会への意気込みをどうぞ！(公開されます)">
             </div>
 
             <div class="form-group">
-                <label for="e-inquiry"><i class="fa-solid fa-message" aria-hidden="true"></i> 運営への連絡</label>
+                <label for="e-inquiry"><span data-icon="message" aria-hidden="true"></span> 運営への連絡</label>
                 <textarea class="page-input" id="e-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
             </div>
 
-            <button type="submit" class="page-btn" id="save-btn"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> 変更を保存する</button>
+            <button type="submit" class="page-btn" id="save-btn"><span data-icon="floppy-disk" aria-hidden="true"></span> 変更を保存する</button>
             <div class="page-msg" id="edit-msg" role="status" aria-live="polite"></div>
         </form>
 
         <!-- 完了 -->
         <div class="page-card is-success u-hidden u-text-center" id="done-card" role="status">
-            <i class="fa-solid fa-circle-check u-success-icon" aria-hidden="true"></i>
+            <span class="u-success-icon" data-icon="circle-check" aria-hidden="true"></span>
             <p class="u-complete-title">エントリー内容を更新しました</p>
         </div>
 

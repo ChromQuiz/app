@@ -39,8 +39,7 @@ function getGoogleDisplayName() {
 }
 
 function icon(className) {
-    const el = document.createElement('i');
-    el.className = className;
+    const el = createIcon(className);
     return el;
 }
 

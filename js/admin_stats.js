@@ -1,8 +1,7 @@
 // admin_stats.js — 集計・分析・成績照会
         // ============================
         function adminStatsIcon(className) {
-            const icon = document.createElement('i');
-            icon.className = className;
+            const icon = createIcon(className);
             return icon;
         }
 

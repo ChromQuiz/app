@@ -6,8 +6,7 @@
             const wrapper = document.createElement('div');
             wrapper.className = options.className || 'text-muted-center';
             if (options.icon) {
-                const icon = document.createElement('i');
-                icon.className = options.icon;
+                const icon = createIcon(options.icon);
                 wrapper.appendChild(icon);
             }
             wrapper.appendChild(document.createTextNode(message));
@@ -138,8 +137,7 @@
             header.className = 'preview-overlay-header';
             const title = document.createElement('h2');
             title.className = 'preview-overlay-title';
-            const titleIcon = document.createElement('i');
-            titleIcon.className = 'fa-solid fa-file-image';
+            const titleIcon = createIcon('fa-solid fa-file-image');
             title.append(titleIcon, ` ${name} の解答用紙`);
             const closeButton = document.createElement('button');
             closeButton.type = 'button';
@@ -189,8 +187,7 @@
                 item.dataset.idx = i;
                 const label = document.createElement('div');
                 label.className = 'q-label';
-                const icon = document.createElement('i');
-                icon.className = 'fa-solid fa-hashtag';
+                const icon = createIcon('fa-solid fa-hashtag');
                 label.append(icon, String(i + 1));
                 const answer = document.createElement('div');
                 answer.className = `q-answer${ans ? '' : ' model-answer-empty'}`;
@@ -202,16 +199,14 @@
                 prevBtn.className = 'model-move-btn';
                 prevBtn.title = '前へ移動';
                 prevBtn.disabled = i === 0;
-                const prevIcon = document.createElement('i');
-                prevIcon.className = 'fa-solid fa-chevron-left';
+                const prevIcon = createIcon('fa-solid fa-chevron-left');
                 prevBtn.appendChild(prevIcon);
                 const nextBtn = document.createElement('button');
                 nextBtn.type = 'button';
                 nextBtn.className = 'model-move-btn';
                 nextBtn.title = '後ろへ移動';
                 nextBtn.disabled = i === modelAnswers.length - 1;
-                const nextIcon = document.createElement('i');
-                nextIcon.className = 'fa-solid fa-chevron-right';
+                const nextIcon = createIcon('fa-solid fa-chevron-right');
                 nextBtn.appendChild(nextIcon);
                 prevBtn.addEventListener('click', (e) => {
                     e.stopPropagation();

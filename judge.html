@@ -18,21 +18,21 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=7"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/ui.js?v=3"></script>
+    <script defer src="js/icons.js?v=1"></script>
+    <script defer src="js/ui.js?v=4"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=22">
-    <link rel="stylesheet" href="css/pages.css?v=35">
+    <link rel="stylesheet" href="css/design_system.css?v=23">
+    <link rel="stylesheet" href="css/pages.css?v=37">
 </head>
 
 <body class="page-judge">
     <div class="header-bar">
         <div class="header-left">
-            <h1 id="project-title"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> 読み込み中...</h1>
+            <h1 id="project-title"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</h1>
         </div>
         <div class="header-right">
             <button class="menu-trigger" data-toggle-menu type="button" aria-label="メニューを開く">
@@ -44,10 +44,10 @@
     <!-- Slide Panel Menu -->
     <div class="menu-backdrop" id="menu-backdrop" data-toggle-menu></div>
     <div class="menu-panel" id="menu-panel">
-        <button class="menu-panel-close" data-toggle-menu><i class="fa-solid fa-xmark"></i></button>
+        <button class="menu-panel-close" data-toggle-menu><span data-icon="xmark" aria-hidden="true"></span></button>
 
         <div class="menu-profile">
-            <div class="menu-avatar"><i class="fa-solid fa-user"></i></div>
+            <div class="menu-avatar"><span data-icon="user" aria-hidden="true"></span></div>
             <div class="menu-profile-name" id="menu-scorer-name"></div>
             <div id="menu-scorer-role"></div>
         </div>
@@ -56,10 +56,10 @@
             <div class="menu-section">
                 <div class="menu-section-label">管理</div>
                 <button class="menu-item" data-nav-target="admin.html">
-                    <i class="fa-solid fa-gauge"></i> 管理画面
+                    <span data-icon="gauge" aria-hidden="true"></span> 管理画面
                 </button>
                 <button class="menu-item warn" data-nav-target="conflict.html">
-                    <i class="fa-solid fa-triangle-exclamation"></i> 要確認
+                    <span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認
                 </button>
             </div>
             <div class="menu-divider"></div>
@@ -68,32 +68,32 @@
         <div class="menu-section">
             <div class="menu-section-label">ツール</div>
             <button class="menu-item" data-nav-target="checkin.html">
-                <i class="fa-solid fa-qrcode"></i> 当日受付
+                <span data-icon="qrcode" aria-hidden="true"></span> 当日受付
             </button>
             <button class="menu-item" data-open-page="entry.html">
-                <i class="fa-solid fa-pen-to-square"></i> エントリーフォーム
+                <span data-icon="pen-to-square" aria-hidden="true"></span> エントリーフォーム
             </button>
             <button class="menu-item" data-open-page="entry_list.html">
-                <i class="fa-solid fa-list"></i> エントリーリスト
+                <span data-icon="list" aria-hidden="true"></span> エントリーリスト
             </button>
             <button class="menu-item" data-open-page="cancel.html">
-                <i class="fa-solid fa-user-xmark"></i> キャンセルフォーム
+                <span data-icon="user-xmark" aria-hidden="true"></span> キャンセルフォーム
             </button>
             <button class="menu-item" data-open-page="disclosure.html">
-                <i class="fa-solid fa-chart-column"></i> 成績照会
+                <span data-icon="chart-column" aria-hidden="true"></span> 成績照会
             </button>
             <button class="menu-item" data-open-page="terms.html">
-                <i class="fa-solid fa-scroll"></i> 参加規約
+                <span data-icon="scroll" aria-hidden="true"></span> 参加規約
             </button>
         </div>
 
         <div class="menu-footer">
             <button class="menu-item" data-open-static="help.html">
-                <i class="fa-solid fa-circle-question"></i> ヘルプ
+                <span data-icon="circle-question" aria-hidden="true"></span> ヘルプ
             </button>
 
             <button class="menu-item danger" id="judge-logout-btn">
-                <i class="fa-solid fa-right-from-bracket"></i> プロジェクトから退出
+                <span data-icon="right-from-bracket" aria-hidden="true"></span> プロジェクトから退出
             </button>
         </div>
     </div>

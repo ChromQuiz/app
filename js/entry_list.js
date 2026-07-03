@@ -14,8 +14,7 @@ const params = new URLSearchParams(location.search);
     if (!projectId) {
         const disabledMsg = document.getElementById('disabled-msg');
         disabledMsg.textContent = '';
-        const icon = document.createElement('i');
-        icon.className = 'fa-solid fa-ban';
+        const icon = createIcon('fa-solid fa-ban');
         disabledMsg.append(icon, 'プロジェクトが指定されていません。正しいURLへアクセスしてください。');
     }
 
@@ -146,8 +145,7 @@ const params = new URLSearchParams(location.search);
             timeTd.className = 'c-time';
             timeTd.dataset.label = '日時';
             if (isWaitlist) {
-                const waitIcon = document.createElement('i');
-                waitIcon.className = 'fa-solid fa-clock entry-wait-icon';
+                const waitIcon = createIcon('fa-solid fa-clock entry-wait-icon');
                 waitIcon.title = 'キャンセル待ち';
                 timeTd.appendChild(waitIcon);
             }
@@ -178,8 +176,7 @@ const params = new URLSearchParams(location.search);
             chubuTd.className = 'entry-center-cell';
             chubuTd.dataset.label = '中部';
             if (e.isChubu) {
-                const chubuMark = document.createElement('i');
-                chubuMark.className = 'fa-solid fa-check entry-chubu-mark';
+                const chubuMark = createIcon('fa-solid fa-check entry-chubu-mark');
                 chubuMark.title = '中部地方';
                 chubuTd.append(chubuMark, document.createTextNode(' 中部'));
             }
@@ -222,8 +219,7 @@ const params = new URLSearchParams(location.search);
         divider.className = `entry-list-divider entry-list-message-row ${toneClass}`;
         const td = document.createElement('td');
         td.colSpan = 7;
-        const icon = document.createElement('i');
-        icon.className = iconClass;
+        const icon = createIcon(iconClass);
         td.append(icon, ` ${label}`);
         divider.appendChild(td);
         body.appendChild(divider);

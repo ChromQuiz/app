@@ -18,27 +18,27 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=5"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/ui.js?v=3"></script>
+    <script defer src="js/icons.js?v=1"></script>
+    <script defer src="js/ui.js?v=4"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=22">
-    <link rel="stylesheet" href="css/pages.css?v=41">
+    <link rel="stylesheet" href="css/design_system.css?v=23">
+    <link rel="stylesheet" href="css/pages.css?v=37">
 </head>
 
 <body class="page-wrapper">
     <div class="page-container">
         <div class="page-logo">
-            <span class="logo-icon"><i class="fa-solid fa-pen-to-square"></i></span>
-            <h1 id="project-title"><i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...</h1>
+            <span class="logo-icon"><span data-icon="pen-to-square" aria-hidden="true"></span>
+            <h1 id="project-title"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</h1>
             <div class="logo-sub" id="project-subtitle">エントリーフォーム</div>
         </div>
 
         <div class="page-card page-disabled is-disabled u-hidden" id="disabled-card" role="status">
-            <i class="fa-solid fa-door-closed" aria-hidden="true"></i>
+            <span data-icon="door-closed" aria-hidden="true"></span>
             <h2 id="disabled-title">エントリーは現在停止中です</h2>
             <p id="disabled-detail">管理者がエントリーを再開するまでお待ちください。</p>
         </div>
@@ -48,23 +48,23 @@
                 <!-- メール認証ステップ -->
                 <div id="email-verify-section">
                     <div class="form-group">
-                        <label class="required" for="f-email"><i class="fa-solid fa-envelope" aria-hidden="true"></i> メールアドレス</label>
+                        <label class="required" for="f-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
                         <input type="email" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください" aria-describedby="email-hint">
-                        <div class="hint" id="email-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> 認証コードを送信して本人確認を行います。</div>
+                        <div class="hint" id="email-hint"><span data-icon="circle-info" aria-hidden="true"></span> 認証コードを送信して本人確認を行います。</div>
                     </div>
                     <button type="button" class="page-btn mb-lg" id="send-code-btn">
-                        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> 認証コードを送信
+                        <span data-icon="paper-plane" aria-hidden="true"></span> 認証コードを送信
                     </button>
                     <div id="code-input-area" class="u-hidden">
                         <div class="form-group">
-                            <label class="required" for="f-verify-code"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> 認証コード（6桁）</label>
+                            <label class="required" for="f-verify-code"><span data-icon="shield-halved" aria-hidden="true"></span> 認証コード（6桁）</label>
                             <input type="text" id="f-verify-code" name="otp" class="verify-code-input" maxlength="6" pattern="[0-9]{6}" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
                         </div>
                         <button type="button" class="page-btn" id="verify-code-btn">
-                            <i class="fa-solid fa-check-circle" aria-hidden="true"></i> 認証する
+                            <span data-icon="check-circle" aria-hidden="true"></span> 認証する
                         </button>
                         <button type="button" class="entry-resend-btn u-hidden" id="resend-code-btn" title="認証コードを再送信">
-                            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span>再送信</span>
+                            <span data-icon="rotate-right" aria-hidden="true"></span><span>再送信</span>
                         </button>
                         <div class="entry-verify-help u-hidden" id="verify-help-msg" role="alert"></div>
                     </div>
@@ -74,12 +74,12 @@
                 <!-- 認証完了後に表示されるフォーム本体 -->
                 <div id="form-body" class="u-hidden">
                     <div class="entry-verified-box">
-                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i> メール認証済: <strong id="verified-email"></strong>
+                        <span data-icon="circle-check" aria-hidden="true"></span> メール認証済: <strong id="verified-email"></strong>
                     </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="required" for="f-family-name"><i class="fa-solid fa-user" aria-hidden="true"></i> 姓 (全角)</label>
+                        <label class="required" for="f-family-name"><span data-icon="user" aria-hidden="true"></span> 姓 (全角)</label>
                         <input type="text" id="f-family-name" name="family-name" required autocomplete="family-name" placeholder="山田">
                     </div>
                     <div class="form-group">
@@ -104,12 +104,12 @@
                 <div id="affiliation-section">
                     <div class="form-row" id="school-mode-fields">
                         <div class="form-group u-flex-2">
-                            <label class="required" for="f-affiliation"><i class="fa-solid fa-school" aria-hidden="true"></i> 所属教育機関</label>
+                            <label class="required" for="f-affiliation"><span data-icon="school" aria-hidden="true"></span> 所属教育機関</label>
                             <input type="text" id="f-affiliation" name="organization" required autocomplete="organization" placeholder="○○高">
-                            <div class="hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> 非公開を希望する場合は「非公開」と入力してください。</div>
+                            <div class="hint"><span data-icon="circle-info" aria-hidden="true"></span> 非公開を希望する場合は「非公開」と入力してください。</div>
                         </div>
                         <div class="form-group u-flex-1">
-                            <label class="required" for="f-grade"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> 学年</label>
+                            <label class="required" for="f-grade"><span data-icon="graduation-cap" aria-hidden="true"></span> 学年</label>
                             <select id="f-grade" class="custom-select" required>
                                 <option value="">選択</option>
                                 <option value="１年">１年</option>
@@ -135,16 +135,16 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="required" for="f-entry-name"><i class="fa-solid fa-id-badge" aria-hidden="true"></i> エントリーネーム</label>
+                    <label class="required" for="f-entry-name"><span data-icon="id-badge" aria-hidden="true"></span> エントリーネーム</label>
                     <input type="text" id="f-entry-name" required placeholder="エントリーシートでの表示名">
                     <div id="entry-name-pref-area" class="mt-sm">
-                        <div class="u-danger-note"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> 当日は本名（姓名）での表示となります。</div>
+                        <div class="u-danger-note"><span data-icon="circle-exclamation" aria-hidden="true"></span> 当日は本名（姓名）での表示となります。</div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <fieldset class="choice-fieldset">
-                        <legend class="required"><i class="fa-solid fa-book-open" aria-hidden="true"></i> 記録集での本名使用</legend>
+                        <legend class="required"><span data-icon="book-open" aria-hidden="true"></span> 記録集での本名使用</legend>
                         <div class="choice-row">
                             <label class="choice-option">
                                 <input type="radio" name="f-record-name-permission" value="allow" required>
@@ -159,12 +159,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="f-message"><i class="fa-solid fa-comment" aria-hidden="true"></i> 意気込み</label>
+                    <label for="f-message"><span data-icon="comment" aria-hidden="true"></span> 意気込み</label>
                     <input type="text" id="f-message" placeholder="大会への意気込みをどうぞ！(公開されます)">
                 </div>
 
                 <div class="form-group">
-                    <label for="f-inquiry"><i class="fa-solid fa-message" aria-hidden="true"></i> 運営への連絡</label>
+                    <label for="f-inquiry"><span data-icon="message" aria-hidden="true"></span> 運営への連絡</label>
                     <textarea id="f-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
                 </div>
 
@@ -178,23 +178,23 @@
                     </label>
                 </div>
 
-                <button type="submit" class="page-btn" id="submit-btn"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> エントリーを確定する</button>
+                <button type="submit" class="page-btn" id="submit-btn"><span data-icon="paper-plane" aria-hidden="true"></span> エントリーを確定する</button>
                 </div><!-- /form-body -->
             </form>
             <div class="page-msg" id="status-msg" role="status" aria-live="polite"></div>
         </div>
 
         <div class="page-card result-card is-success u-hidden" id="result-card" role="status">
-            <h2 class="result-title"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> エントリー完了！</h2>
+            <h2 class="result-title"><span data-icon="circle-check" aria-hidden="true"></span> エントリー完了！</h2>
             <p class="result-desc">当日受付に必要な情報をメールで送信しました。</p>
 
             <div class="result-info-box">
-                <div class="info-label"><i class="fa-solid fa-hashtag" aria-hidden="true"></i> あなたの受付番号</div>
+                <div class="info-label"><span data-icon="hashtag" aria-hidden="true"></span> あなたの受付番号</div>
                 <div class="info-value" id="r-entry-number">---</div>
             </div>
 
             <div class="entry-mail-notice">
-                <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                <span data-icon="envelope" aria-hidden="true"></span>
                 <strong>メールを必ず保存してください</strong>
                 <div>当日受付では、メール本文のQRコードが必要です。メールが見つからない場合は迷惑メールフォルダも確認してください。</div>
             </div>

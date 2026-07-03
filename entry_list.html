@@ -16,21 +16,21 @@
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=5"></script>
-    <script defer src="js/ui.js?v=3"></script>
+    <script defer src="js/icons.js?v=1"></script>
+    <script defer src="js/ui.js?v=4"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=22">
-    <link rel="stylesheet" href="css/pages.css?v=38">
+    <link rel="stylesheet" href="css/design_system.css?v=23">
+    <link rel="stylesheet" href="css/pages.css?v=37">
 </head>
 <body class="page-wrapper page-entry-list">
     <div class="page-container full">
         <div class="page-logo">
-            <span class="logo-icon"><i class="fa-solid fa-list" aria-hidden="true"></i></span>
-            <h1 id="page-title"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> 読み込み中...</h1>
+            <span class="logo-icon"><span data-icon="list" aria-hidden="true"></span>
+            <h1 id="page-title"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</h1>
             <div class="logo-sub" id="page-subtitle">エントリーリスト</div>
         </div>
 
@@ -38,7 +38,7 @@
             <div class="u-text-center">
                 <div class="stat-badge entry-count-badge glass-panel" role="status" aria-live="polite">
                     <span class="entry-count-main"><span class="stat-val" id="total-count">-</span><span class="entry-count-unit">名</span></span>
-                    <span class="stat-label"><i class="fa-solid fa-user-check" aria-hidden="true"></i> エントリー済</span>
+                    <span class="stat-label"><span data-icon="user-check" aria-hidden="true"></span> エントリー済</span>
                 </div>
             </div>
 
@@ -47,24 +47,24 @@
                     <caption class="u-hidden">エントリー一覧</caption>
                     <thead>
                         <tr>
-                            <th scope="col"><i class="fa-solid fa-trophy" aria-hidden="true"></i> 優先順位</th>
-                            <th scope="col"><i class="fa-regular fa-calendar" aria-hidden="true"></i> エントリー日時</th>
-                            <th scope="col"><i class="fa-solid fa-school" aria-hidden="true"></i> 所属</th>
-                            <th scope="col"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> 学年</th>
-                            <th scope="col"><i class="fa-solid fa-id-badge" aria-hidden="true"></i> エントリーネーム</th>
-                            <th scope="col"><i class="fa-solid fa-comment" aria-hidden="true"></i> 意気込み</th>
-                            <th scope="col"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> 中部</th>
+                            <th scope="col"><span data-icon="trophy" aria-hidden="true"></span> 優先順位</th>
+                            <th scope="col"><span data-icon="calendar" aria-hidden="true"></span> エントリー日時</th>
+                            <th scope="col"><span data-icon="school" aria-hidden="true"></span> 所属</th>
+                            <th scope="col"><span data-icon="graduation-cap" aria-hidden="true"></span> 学年</th>
+                            <th scope="col"><span data-icon="id-badge" aria-hidden="true"></span> エントリーネーム</th>
+                            <th scope="col"><span data-icon="comment" aria-hidden="true"></span> 意気込み</th>
+                            <th scope="col"><span data-icon="map-location-dot" aria-hidden="true"></span> 中部</th>
                         </tr>
                     </thead>
                     <tbody id="list-body">
-                        <tr><td colspan="7" class="entry-list-loading-cell"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> 読み込み中...</td></tr>
+                        <tr><td colspan="7" class="entry-list-loading-cell"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div class="page-card page-disabled is-disabled" id="disabled-msg" role="status">
-            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <span data-icon="lock" aria-hidden="true"></span>
             現在エントリーリストは非公開です。
         </div>
 

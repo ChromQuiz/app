@@ -21,8 +21,7 @@ function hideEl(el) {
 }
 
 function entryIcon(className) {
-    const icon = document.createElement('i');
-    icon.className = className;
+    const icon = createIcon(className);
     return icon;
 }
 

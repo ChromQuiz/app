@@ -114,8 +114,7 @@ function setConflictGridMessage(message, options = {}) {
     const messageEl = document.createElement('div');
     messageEl.className = options.className || 'loading-state';
     if (options.icon) {
-        const icon = document.createElement('i');
-        icon.className = options.icon;
+        const icon = createIcon(options.icon);
         if (options.iconSize) {
             icon.classList.add('message-icon-large');
         }
@@ -441,8 +440,7 @@ function createConflictCard(conflict, idx) {
     } else {
         const expired = document.createElement('div');
         expired.className = 'img-expired';
-        const icon = document.createElement('i');
-        icon.className = 'fa-solid fa-clock';
+        const icon = createIcon('fa-solid fa-clock');
         expired.append(icon, hasTriedImage ? ' 画像がありません' : ' 画像を読み込み中');
         card.appendChild(expired);
         if (!hasTriedImage && conflict.storagePath && (conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`])) {
@@ -488,8 +486,7 @@ function attachConflictImageErrorFallback(image, conflict) {
         delete cellUrlCache[key];
         const placeholder = document.createElement('div');
         placeholder.className = 'img-expired';
-        const icon = document.createElement('i');
-        icon.className = 'fa-solid fa-clock';
+        const icon = createIcon('fa-solid fa-clock');
         placeholder.append(icon, ' 画像を読み込み中');
         image.replaceWith(placeholder);
         queueConflictImage(conflict);
@@ -555,8 +552,7 @@ function updateVisibleConflictImages(requests) {
         if (!imageSlot) return;
         if (!cellUrl) {
             imageSlot.textContent = '';
-            const icon = document.createElement('i');
-            icon.className = 'fa-solid fa-clock';
+            const icon = createIcon('fa-solid fa-clock');
             imageSlot.append(icon, ' 画像がありません');
             return;
         }

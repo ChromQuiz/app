@@ -123,8 +123,7 @@ function setAnswerGridMessage(message, iconClass = '') {
     const messageEl = document.createElement('div');
     messageEl.className = 'loading-state';
     if (iconClass) {
-        const icon = document.createElement('i');
-        icon.className = iconClass;
+        const icon = createIcon(iconClass);
         messageEl.append(icon, ' ');
     }
     messageEl.appendChild(document.createTextNode(message));
@@ -159,8 +158,7 @@ function createAnswerCard(cardData, idx) {
     } else {
         const expired = document.createElement('div');
         expired.className = 'img-expired';
-        const icon = document.createElement('i');
-        icon.className = 'fa-solid fa-clock';
+        const icon = createIcon('fa-solid fa-clock');
         expired.append(icon, ' 画像がありません');
         card.appendChild(expired);
     }
@@ -298,8 +296,7 @@ async function applyFallbackImageResult(result) {
     image.remove();
     const expired = document.createElement('div');
     expired.className = 'img-expired';
-    const icon = document.createElement('i');
-    icon.className = 'fa-solid fa-clock';
+    const icon = createIcon('fa-solid fa-clock');
     expired.append(icon, ' 画像がありません');
     card.prepend(expired);
 }

@@ -46,8 +46,7 @@
             button.className = `btn ${options.variant || 'secondary'} member-action-btn`;
             button.disabled = Boolean(options.disabled);
             if (options.icon) {
-                const icon = document.createElement('i');
-                icon.className = options.icon;
+                const icon = createIcon(options.icon);
                 button.appendChild(icon);
                 button.appendChild(document.createTextNode(' '));
             }
@@ -146,8 +145,7 @@
             if (!submit) return;
             submit.disabled = isSubmitting;
             submit.textContent = '';
-            const icon = document.createElement('i');
-            icon.className = isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-plus';
+            const icon = createIcon(isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-plus');
             submit.append(icon, document.createTextNode(isSubmitting ? ' 追加中...' : ' 追加する'));
         }
 
@@ -979,8 +977,7 @@
             badge.className = className;
             badge.title = title;
             Object.assign(badge.style, styles);
-            const icon = document.createElement('i');
-            icon.className = iconClass;
+            const icon = createIcon(iconClass);
             badge.appendChild(icon);
             return badge;
         }

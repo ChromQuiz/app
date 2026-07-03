@@ -1,6 +1,8 @@
 /**
  * CIQ 共通 UI ユーティリティ (ui.js)
  * db.js の後に読み込むこと。
+ * 注意: createIcon は js/icons.js で定義される local SVG アイコン生成関数。
+ *       旧 FA class 文字列（例: 'fa-solid fa-check'）も互換のため icon name に変換する。
  */
 
 function padNum(n) { return String(n).padStart(3, '0'); }
@@ -10,11 +12,81 @@ function escapeHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function createIcon(className) {
-    const icon = document.createElement('i');
-    icon.className = className;
-    return icon;
+// FA class 文字列 → icon name の互換マッピング（旧コード資産保護）
+const FA_NAME_MAP = {
+  'fa-arrow-left': 'arrow-left', 'fa-arrow-right': 'arrow-right',
+  'fa-arrow-right-to-bracket': 'arrow-right-to-bracket',
+  'fa-arrow-up-right-from-square': 'share-from-square',
+  'fa-arrows-rotate': 'arrows-rotate',
+  'fa-address-book': 'address-book',
+  'fa-ban': 'ban', 'fa-book-open': 'book-open', 'fa-box-open': 'box-open',
+  'fa-calendar': 'calendar', 'fa-calendar-days': 'calendar-days',
+  'fa-camera': 'camera', 'fa-chart-bar': 'chart-bar',
+  'fa-chart-column': 'chart-column', 'fa-chart-pie': 'chart-pie',
+  'fa-check': 'check', 'fa-check-circle': 'check-circle',
+  'fa-check-double': 'check-double',
+  'fa-circle-check': 'circle-check', 'fa-circle-exclamation': 'circle-exclamation',
+  'fa-circle-info': 'circle-info', 'fa-circle-notch': 'circle-notch',
+  'fa-circle-plus': 'circle-plus', 'fa-circle-question': 'circle-question',
+  'fa-circle-xmark': 'circle-xmark', 'fa-clock': 'clock',
+  'fa-clock-rotate-left': 'clock-rotate-left', 'fa-cloud-arrow-up': 'cloud-arrow-up',
+  'fa-comment': 'comment', 'fa-copy': 'copy', 'fa-crown': 'crown',
+  'fa-door-closed': 'door-closed', 'fa-door-open': 'door-open',
+  'fa-download': 'download', 'fa-envelope': 'envelope',
+  'fa-envelope-circle-check': 'envelope-circle-check',
+  'fa-envelope-circle-xmark': 'envelope-circle-xmark',
+  'fa-file-csv': 'file-csv', 'fa-file-image': 'file-image',
+  'fa-file-lines': 'file-lines', 'fa-file-pdf': 'file-pdf',
+  'fa-file-pen': 'file-pen', 'fa-file-export': 'file-export',
+  'fa-fingerprint': 'fingerprint', 'fa-flag-checkered': 'flag-checkered',
+  'fa-floppy-disk': 'floppy-disk', 'fa-folder-open': 'folder-open',
+  'fa-gauge': 'gauge', 'fa-gear': 'gear', 'fa-ghost': 'ghost',
+  'fa-graduation-cap': 'graduation-cap', 'fa-hashtag': 'hashtag',
+  'fa-history': 'history', 'fa-home': 'home', 'fa-hourglass': 'hourglass',
+  'fa-id-badge': 'id-badge', 'fa-inbox': 'inbox',
+  'fa-key': 'key', 'fa-keyboard': 'keyboard', 'fa-list': 'list',
+  'fa-list-check': 'list-check', 'fa-list-ol': 'list-ol',
+  'fa-lock': 'lock', 'fa-magnifying-glass-chart': 'magnifying-glass-chart',
+  'fa-map-location-dot': 'map-location-dot', 'fa-map-pin': 'map-pin',
+  'fa-message': 'message', 'fa-minus': 'minus', 'fa-paper-plane': 'paper-plane',
+  'fa-paperclip': 'paperclip', 'fa-pen': 'pen', 'fa-pen-to-square': 'pen-to-square',
+  'fa-percent': 'percent', 'fa-play': 'play', 'fa-plus': 'plus',
+  'fa-qrcode': 'qrcode', 'fa-ranking-star': 'ranking-star',
+  'fa-right-from-bracket': 'right-from-bracket',
+  'fa-right-to-bracket': 'right-to-bracket',
+  'fa-rotate': 'rotate', 'fa-rotate-left': 'rotate-left',
+  'fa-rotate-right': 'rotate-right',
+  'fa-school': 'school', 'fa-scroll': 'scroll',
+  'fa-send': 'send', 'fa-share-from-square': 'share-from-square',
+  'fa-shield-halved': 'shield-halved', 'fa-sliders': 'sliders',
+  'fa-spinner': 'spinner', 'fa-spell-check': 'spell-check',
+  'fa-stop': 'stop', 'fa-table-cells-large': 'table-cells-large',
+  'fa-th': 'th', 'fa-tower-broadcast': 'tower-broadcast',
+  'fa-trash': 'trash', 'fa-trophy': 'trophy',
+  'fa-triangle-exclamation': 'triangle-exclamation',
+  'fa-unlock': 'unlock', 'fa-user': 'user', 'fa-user-check': 'user-check',
+  'fa-user-clock': 'user-clock', 'fa-user-plus': 'user-plus',
+  'fa-user-shield': 'user-shield', 'fa-user-slash': 'user-slash',
+  'fa-user-xmark': 'user-xmark', 'fa-users': 'users',
+  'fa-users-gear': 'users-gear', 'fa-wifi': 'wifi', 'fa-wrench': 'wrench',
+  'fa-xmark': 'xmark',
+};
+
+/**
+ * 旧 createIcon(className) 互換ブリッジ。
+ * 'fa-solid fa-check' 形式 → 'check' に変換して SVG アイコンを返す。
+ * 'check' 形式はそのまま icons.js の createIcon へ委譲。
+ * icons.js 未読み込み時は i 要素フォールバック（後方互換）。
+ */
+function createIconLegacyBridge(nameOrClass, opts) {
+  // icons.js が読み込まれていればそちらの createIcon を使用
+  if (typeof window.__createSvgIcon === 'function') {
+    return window.__createSvgIcon(nameOrClass, opts);
+  }
+  const icon = createIcon(nameOrClass);
+  return icon;
 }
+window.createIcon = createIconLegacyBridge;
 
 function logout() {
     session.clear();
@@ -146,8 +218,7 @@ function showToast(msg, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
-    const icon = document.createElement('i');
-    icon.className = `fa-solid ${icons[type] || icons.info}`;
+    const icon = createIcon(`fa-solid ${icons[type] || icons.info}`);
     const text = document.createElement('span');
     text.textContent = String(msg || '');
     toast.append(icon, text);
@@ -167,8 +238,7 @@ function showConfirm(message, confirmText = '削除する') {
 
         const dialog = document.createElement('div');
         dialog.className = 'confirm-dialog glass-panel';
-        const icon = document.createElement('i');
-        icon.className = 'fa-solid fa-triangle-exclamation confirm-icon';
+        const icon = createIcon('fa-solid fa-triangle-exclamation confirm-icon');
         const messageEl = document.createElement('div');
         messageEl.className = 'confirm-message';
         messageEl.textContent = String(message || '');
@@ -266,8 +336,7 @@ const KeyboardShortcuts = {
         const modal = document.createElement('div');
         modal.className = 'kbd-modal';
         const title = document.createElement('h3');
-        const titleIcon = document.createElement('i');
-        titleIcon.className = 'fa-solid fa-keyboard';
+        const titleIcon = createIcon('fa-solid fa-keyboard');
         title.append(titleIcon, ' キーボードショートカット');
         modal.appendChild(title);
 
@@ -407,8 +476,7 @@ function setButtonLoading(btn, loading, label) {
         btn.dataset.loading = 'true';
         btn.disabled = true;
         btn.textContent = '';
-        const icon = document.createElement('i');
-        icon.className = 'fa-solid fa-circle-notch fa-spin';
+        const icon = createIcon('fa-solid fa-circle-notch fa-spin');
         const text = document.createElement('span');
         text.textContent = label || '処理中...';
         btn.append(icon, text);
@@ -438,4 +506,147 @@ function announceStatus(el, message, type) {
         el.setAttribute('role', 'status');
     }
     el.textContent = message || '';
+}
+
+/**
+ * 複合状態バッジを生成する（色 + アイコン + テキスト）。
+ * 状態は色だけでなくテキスト・アイコンでも伝える（WCAG・色のみ禁止）。
+ * @param {{status: string, label: string, icon?: string}} opts
+ *   status: 'success'|'warning'|'danger'|'info'|'neutral'
+ * @returns {HTMLSpanElement} .status-pill 要素
+ */
+function renderStatusBadge({ status = 'neutral', label = '', icon }) {
+    const pill = document.createElement('span');
+    pill.className = `status-pill ${status}`;
+    const iconName = icon || (
+        status === 'success' ? 'circle-check' :
+        status === 'warning' ? 'triangle-exclamation' :
+        status === 'danger' ? 'circle-xmark' :
+        status === 'info' ? 'circle-info' :
+        'circle-info'
+    );
+    const iconEl = createIcon(iconName);
+    iconEl.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('span');
+    text.textContent = label;
+    pill.append(iconEl, text);
+    return pill;
+}
+
+/**
+ * 空状態をレンダリングする。説明だけでなく「次の行動」を提示。
+ * @param {{icon?: string, title: string, hint?: string, action?: {label: string, onClick?: Function, href?: string}}} opts
+ * @returns {HTMLDivElement} .empty-state 要素
+ */
+function renderEmptyState({ icon = 'inbox', title, hint, action }) {
+    const wrap = document.createElement('div');
+    wrap.className = 'empty-state';
+    const iconEl = createIcon(icon);
+    iconEl.setAttribute('data-icon-size', 'lg');
+    iconEl.setAttribute('aria-hidden', 'true');
+    wrap.appendChild(iconEl);
+    const titleEl = document.createElement('div');
+    titleEl.className = 'empty-state-title';
+    titleEl.textContent = title || 'データがありません';
+    wrap.appendChild(titleEl);
+    if (hint) {
+        const hintEl = document.createElement('div');
+        hintEl.className = 'empty-state-hint';
+        hintEl.textContent = hint;
+        wrap.appendChild(hintEl);
+    }
+    if (action) {
+        const actionWrap = document.createElement('div');
+        actionWrap.className = 'empty-state-action';
+        let btn;
+        if (action.href) {
+            btn = document.createElement('a');
+            btn.href = action.href;
+            btn.className = 'btn cta';
+        } else {
+            btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn cta';
+        }
+        btn.textContent = action.label || '操作する';
+        if (action.onClick && btn.tagName === 'BUTTON') {
+            btn.addEventListener('click', action.onClick);
+        }
+        actionWrap.appendChild(btn);
+        wrap.appendChild(actionWrap);
+    }
+    return wrap;
+}
+
+/**
+ * エラー状態をレンダリングする。「何が起きたか」「次に何をするか」を書く。
+ * @param {{title?: string, detail: string, recovery?: string, retry?: {label: string, onClick: Function}}} opts
+ * @returns {HTMLDivElement} .error-state 要素
+ */
+function renderErrorState({ title, detail, recovery, retry }) {
+    const wrap = document.createElement('div');
+    wrap.className = 'error-state';
+    wrap.setAttribute('role', 'alert');
+    const iconEl = createIcon('circle-xmark');
+    iconEl.setAttribute('data-icon-size', 'lg');
+    iconEl.setAttribute('aria-hidden', 'true');
+    wrap.appendChild(iconEl);
+    const titleEl = document.createElement('div');
+    titleEl.className = 'error-state-title';
+    titleEl.textContent = title || 'エラーが発生しました';
+    wrap.appendChild(titleEl);
+    if (detail) {
+        const detailEl = document.createElement('div');
+        detailEl.className = 'error-state-detail';
+        detailEl.textContent = detail;
+        wrap.appendChild(detailEl);
+    }
+    if (recovery) {
+        const recoveryEl = document.createElement('div');
+        recoveryEl.className = 'error-state-recovery';
+        recoveryEl.textContent = recovery;
+        wrap.appendChild(recoveryEl);
+    }
+    if (retry) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn cta mt-md';
+        btn.textContent = retry.label || '再試行';
+        if (retry.onClick) btn.addEventListener('click', retry.onClick);
+        wrap.appendChild(btn);
+    }
+    return wrap;
+}
+
+/**
+ * Readiness チェックリストをレンダリングする（フェーズ毎の必須項目）。
+ * @param {{items: Array<{label: string, done: boolean, hint?: string}>}} opts
+ * @returns {HTMLDivElement} .checklist 要素
+ */
+function renderChecklist({ items = [] }) {
+    const wrap = document.createElement('div');
+    wrap.className = 'checklist';
+    const list = document.createElement('ul');
+    list.className = 'checklist-items';
+    items.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = `checklist-item ${item.done ? 'is-done' : 'is-pending'}`;
+        const mark = document.createElement('span');
+        mark.className = 'checklist-mark';
+        mark.appendChild(createIcon(item.done ? 'circle-check' : 'circle'));
+        mark.setAttribute('aria-hidden', 'true');
+        const text = document.createElement('span');
+        text.className = 'checklist-label';
+        text.textContent = item.label;
+        li.append(mark, text);
+        if (item.hint) {
+            const hint = document.createElement('span');
+            hint.className = 'checklist-hint';
+            hint.textContent = item.hint;
+            li.appendChild(hint);
+        }
+        list.appendChild(li);
+    });
+    wrap.appendChild(list);
+    return wrap;
 }
