@@ -793,8 +793,8 @@ body.page-conflict { padding: 0; }
   }
   .list-container {
     overflow: visible;
-    border: 0;
-    background: transparent;
+    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
     backdrop-filter: none;
   }
   .list-container table,
@@ -814,7 +814,7 @@ body.page-conflict { padding: 0; }
   }
   .list-container tbody {
     display: grid;
-    gap: 10px;
+    gap: 0;
   }
   .list-container tbody tr {
     position: relative;
@@ -827,10 +827,20 @@ body.page-conflict { padding: 0; }
       "message message message";
     gap: 6px 10px;
     padding: 12px;
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
+    border: 0;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(23, 32, 42, 0.09);
     background: var(--surface-1);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
+  }
+  .list-container tbody tr:first-child {
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+  }
+  .list-container tbody tr:last-child {
+    border-bottom: 0;
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
   }
   .list-container tbody tr:hover {
     background: var(--surface-1);
