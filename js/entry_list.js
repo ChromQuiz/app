@@ -136,10 +136,12 @@ const params = new URLSearchParams(location.search);
             if (isWaitlist) tr.classList.add('entry-row-waitlist');
             const priorityTd = document.createElement('td');
             priorityTd.className = 'entry-priority-cell';
+            priorityTd.dataset.label = '優先順位';
             priorityTd.textContent = e._priority;
 
             const timeTd = document.createElement('td');
             timeTd.className = 'c-time';
+            timeTd.dataset.label = '日時';
             if (isWaitlist) {
                 const waitIcon = document.createElement('i');
                 waitIcon.className = 'fa-solid fa-clock entry-wait-icon';
@@ -153,16 +155,23 @@ const params = new URLSearchParams(location.search);
             timeTd.appendChild(numberSpan);
 
             const affiliationTd = document.createElement('td');
+            affiliationTd.dataset.label = '所属';
             affiliationTd.textContent = e.affiliation || '';
             const gradeTd = document.createElement('td');
+            gradeTd.dataset.label = '学年';
             gradeTd.textContent = grade;
             const nameTd = document.createElement('td');
+            nameTd.className = 'entry-list-name-cell';
+            nameTd.dataset.label = 'エントリーネーム';
             nameTd.textContent = e.entryName || '';
             const messageTd = document.createElement('td');
+            messageTd.className = 'entry-list-message-cell';
+            messageTd.dataset.label = '意気込み';
             messageTd.textContent = e.message || '';
 
             const chubuTd = document.createElement('td');
             chubuTd.className = 'entry-center-cell';
+            chubuTd.dataset.label = '中部';
             if (e.isChubu) {
                 const chubuMark = document.createElement('i');
                 chubuMark.className = 'fa-solid fa-check entry-chubu-mark';
@@ -194,6 +203,7 @@ const params = new URLSearchParams(location.search);
 
     function appendTableMessage(body, message) {
         const tr = document.createElement('tr');
+        tr.className = 'entry-list-message-row';
         const td = document.createElement('td');
         td.colSpan = 7;
         td.className = 'entry-table-message';
@@ -204,7 +214,7 @@ const params = new URLSearchParams(location.search);
 
     function appendDivider(body, iconClass, label, toneClass) {
         const divider = document.createElement('tr');
-        divider.className = `entry-list-divider ${toneClass}`;
+        divider.className = `entry-list-divider entry-list-message-row ${toneClass}`;
         const td = document.createElement('td');
         td.colSpan = 7;
         const icon = document.createElement('i');

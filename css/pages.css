@@ -776,7 +776,7 @@ body.page-conflict { padding: 0; }
 }
 .list-container { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--glass-border); background: rgba(15, 23, 42, 0.35); backdrop-filter: blur(8px); }
 .list-container table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-.list-container th { background: var(--primary); color: var(--text-muted); font-weight: 600; padding: 14px 16px; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px; border-bottom: 1px solid rgba(59, 130, 246, 0.1); }
+.list-container th { background: var(--primary); color: var(--text-muted); font-weight: 600; padding: 14px 16px; text-transform: none; letter-spacing: 0; font-size: 12px; border-bottom: 1px solid rgba(59, 130, 246, 0.1); white-space: nowrap; }
 .list-container td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
 .list-container tbody tr { transition: background 0.25s var(--smooth); }
 .list-container tbody tr:hover { background: rgba(59, 130, 246, 0.06); }
@@ -785,8 +785,153 @@ body.page-conflict { padding: 0; }
 .c-affil { color: var(--primary); }
 .c-msg { font-size: 14px; color: var(--text-main); line-height: 1.4; word-break: break-word; }
 @media (max-width: 600px) {
-  .list-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .list-container table { min-width: 600px; }
+  .page-entry-list .page-container.full {
+    padding-inline: 12px;
+  }
+  .entry-count-badge {
+    margin-bottom: 16px;
+  }
+  .list-container {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+  .list-container table,
+  .list-container tbody,
+  .list-container tr,
+  .list-container td {
+    display: block;
+    width: 100%;
+  }
+  .list-container table {
+    min-width: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .list-container thead {
+    display: none;
+  }
+  .list-container tbody {
+    display: grid;
+    gap: 10px;
+  }
+  .list-container tbody tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "priority name chubu"
+      "affiliation affiliation affiliation"
+      "time grade grade"
+      "message message message";
+    gap: 8px 10px;
+    padding: 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-sm);
+  }
+  .list-container tbody tr:hover {
+    background: var(--surface-1);
+  }
+  .list-container td {
+    padding: 0;
+    border-bottom: 0;
+  }
+  .entry-priority-cell {
+    grid-area: priority;
+    min-width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-family: var(--font-numeric, var(--font-family));
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .entry-list-name-cell {
+    grid-area: name;
+    align-self: center;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+    overflow-wrap: anywhere;
+  }
+  .entry-center-cell {
+    grid-area: chubu;
+    align-self: center;
+    justify-self: end;
+    min-width: 28px;
+    color: var(--primary);
+  }
+  .entry-center-cell:empty::after {
+    content: "";
+  }
+  .c-time,
+  .list-container td[data-label="所属"],
+  .list-container td[data-label="学年"] {
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .c-time {
+    grid-area: time;
+  }
+  .list-container td[data-label="所属"] {
+    grid-area: affiliation;
+    margin-top: 2px;
+    overflow-wrap: anywhere;
+  }
+  .list-container td[data-label="学年"] {
+    grid-area: grade;
+    justify-self: end;
+  }
+  .c-time::before,
+  .list-container td[data-label="所属"]::before,
+  .list-container td[data-label="学年"]::before,
+  .entry-list-message-cell::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--text-faint);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .entry-list-message-cell {
+    grid-area: message;
+    color: var(--text-main);
+    font-size: 13px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+  .entry-list-message-cell:empty {
+    display: none;
+  }
+  .entry-list-message-cell::before {
+    display: block;
+    margin-bottom: 2px;
+  }
+  .entry-list-divider,
+  .entry-list-message-row {
+    display: block;
+  }
+  .entry-list-message-row td {
+    display: block;
+    width: 100%;
+    padding: 12px;
+  }
+  .entry-list-divider td {
+    border-radius: var(--radius-md);
+  }
 }
 
 /* ──────────────────────────────────────────
@@ -4004,6 +4149,14 @@ table tbody tr:hover,
   .table-container table,
   .list-container table {
     min-width: 680px;
+  }
+
+  .page-entry-list .list-container {
+    overflow: visible;
+  }
+
+  .page-entry-list .list-container table {
+    min-width: 0;
   }
 
   .preview-overlay {
