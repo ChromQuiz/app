@@ -841,8 +841,10 @@ body.page-conflict { padding: 0; }
   }
   .entry-priority-cell {
     grid-area: priority;
+    place-self: stretch;
     width: 46px;
-    height: 52px;
+    min-height: 52px;
+    height: auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -853,6 +855,7 @@ body.page-conflict { padding: 0; }
     font-size: 18px;
     font-weight: 800;
     line-height: 1;
+    box-sizing: border-box;
   }
   .entry-list-name-cell {
     grid-area: name;
