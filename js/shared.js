@@ -6,9 +6,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    ConnectionMonitor.init();
-    KeyboardShortcuts.init();
-    CustomSelect.initAll();
+    if (typeof ConnectionMonitor !== 'undefined') ConnectionMonitor.init();
+    if (typeof KeyboardShortcuts !== 'undefined') KeyboardShortcuts.init();
+    if (typeof CustomSelect !== 'undefined') CustomSelect.initAll();
 
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
         navigator.serviceWorker.register('sw.js').catch(() => {});

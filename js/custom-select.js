@@ -182,3 +182,7 @@ class CustomSelect {
 }
 
 window.CustomSelect = CustomSelect;
+
+document.addEventListener('DOMContentLoaded', () => {
+    CustomSelect.initAll();
+});
