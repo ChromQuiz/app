@@ -65,54 +65,89 @@ async function signedQrUrl(value: string) {
   return url.href;
 }
 
+/* ------------------------------------------------------------
+ * HTMLメール — CIQ Design System "Calm Command" と同一トークン
+ * design-system/MASTER.md 準拠:
+ *   ink #191827 / paper #f6f6fa / iris #483ed1 (#5a50e8) /
+ *   ok #187a41 / warn #a05a00 / bad #c22945 / gold #9a6a00
+ * メールクライアント互換のため 600px テーブルレイアウト +
+ * インラインCSS のみを使用（Outlook/Gmail/Apple Mail）。
+ * ------------------------------------------------------------ */
+const MAIL_FONT = "'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif";
+const MAIL_MONO = "'SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
+
 function shell(title: string, subtitle: string, body: string) {
   return `
-    <div style="font-family:Inter,'Noto Sans JP','Hiragino Sans','Yu Gothic',Arial,sans-serif;max-width:560px;margin:0 auto;background:#f8fafc;color:#020617;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px -8px rgba(2,6,23,0.16);">
-      <div style="background:#0f172a;padding:24px 24px 22px;text-align:left;border-bottom:4px solid #0369a1;">
-        <div style="color:#93c5fd;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;">CIQ Notification</div>
-        <h1 style="color:#ffffff;font-size:22px;line-height:1.35;margin:0;font-weight:800;letter-spacing:-.02em;">${escapeHtml(title)}</h1>
-        <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:8px 0 0;">${escapeHtml(subtitle)}</p>
-      </div>
-      <div style="padding:24px;color:#334155;font-size:14px;line-height:1.75;background:#ffffff;">${body}</div>
-      <div style="background:#f1f5f9;padding:14px 24px;text-align:center;font-size:12px;line-height:1.6;color:#64748b;border-top:1px solid #e2e8f0;">
-        CIQ - このメールは自動送信されています。心当たりがない場合は大会運営へお問い合わせください。
-      </div>
-    </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f6f6fa;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;">
+          <tr>
+            <td style="font-family:${MAIL_MONO};font-size:15px;font-weight:700;letter-spacing:.3em;color:#55536b;padding:0 8px 12px;" align="left">
+              C I Q
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#191827;border-radius:16px 16px 0 0;padding:28px 28px 24px;border-bottom:3px solid #5a50e8;" align="left">
+              <div style="font-family:${MAIL_FONT};color:#a9a3f6;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">${escapeHtml(subtitle)}</div>
+              <div style="font-family:${MAIL_FONT};color:#ffffff;font-size:22px;line-height:1.35;font-weight:700;letter-spacing:-.01em;">${escapeHtml(title)}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#ffffff;padding:28px;font-family:${MAIL_FONT};color:#191827;font-size:14px;line-height:1.8;" align="left">${body}</td>
+          </tr>
+          <tr>
+            <td style="background:#f1f0f7;border-radius:0 0 16px 16px;padding:16px 28px;font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:#8b89a3;border-top:1px solid #e5e4f0;">
+              このメールは CIQ から自動送信されています。<br>心当たりがない場合は大会運営へお問い合わせください。
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
   `;
 }
 
 function panel(body: string, tone = 'info') {
-  const styles: Record<string, string> = {
-    info: 'background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;',
-    success: 'background:#ecfdf3;border:1px solid #abefc6;color:#067647;',
-    warning: 'background:#fffbeb;border:1px solid #fcd34d;color:#92400e;',
-    danger: 'background:#fef3f2;border:1px solid #fecdca;color:#b42318;',
+  const styles: Record<string, { bg: string; border: string; color: string }> = {
+    info: { bg: '#efeefd', border: '#c5c1f5', color: '#3a31ac' },
+    success: { bg: '#dff5e8', border: '#9adcb8', color: '#187a41' },
+    warning: { bg: '#fdeed3', border: '#f0cd93', color: '#a05a00' },
+    danger: { bg: '#fce7eb', border: '#f2b2c0', color: '#c22945' },
   };
-  return `<div style="${styles[tone] || styles.info}border-radius:12px;padding:14px 16px;margin:18px 0;font-weight:700;">${body}</div>`;
+  const s = styles[tone] || styles.info;
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
+    <tr>
+      <td style="background:${s.bg};border:1px solid ${s.border};border-radius:12px;padding:14px 16px;font-family:${MAIL_FONT};color:${s.color};font-size:14px;line-height:1.7;font-weight:700;">${body}</td>
+    </tr>
+  </table>
+  `;
 }
 
 function detailsTable(rows: Array<[string, unknown]>) {
-  const tableRows = rows.map(([label, value]) => `
+  const last = rows.length - 1;
+  const tableRows = rows.map(([label, value], i) => `
     <tr>
-      <td style="padding:12px 14px;color:#64748b;border-bottom:1px solid #e2e8f0;">${escapeHtml(label)}</td>
-      <td style="padding:12px 14px;text-align:right;font-weight:800;color:#020617;border-bottom:1px solid #e2e8f0;">${escapeHtml(value)}</td>
+      <td style="padding:13px 16px;font-family:${MAIL_FONT};font-size:13px;font-weight:600;color:#8b89a3;${i === last ? '' : 'border-bottom:1px solid #e5e4f0;'}">${escapeHtml(label)}</td>
+      <td align="right" style="padding:13px 16px;font-family:${MAIL_MONO};font-size:15px;font-weight:700;color:#191827;letter-spacing:.04em;${i === last ? '' : 'border-bottom:1px solid #e5e4f0;'}">${escapeHtml(value)}</td>
     </tr>
   `).join('');
   return `
-    <table style="width:100%;border-collapse:separate;border-spacing:0;background:#ffffff;border:1px solid #cbd5e1;border-radius:12px;overflow:hidden;margin:18px 0;">
-      ${tableRows}
-    </table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e4f0;border-radius:12px;margin:18px 0;background:#ffffff;">
+    ${tableRows}
+  </table>
   `;
 }
 
 function primaryButton(label: string, href: string) {
   if (!href) return '';
-  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#0369a1;color:#ffffff;text-decoration:none;font-weight:800;border-radius:9999px;padding:11px 18px;margin:4px 8px 4px 0;">${escapeHtml(label)}</a>`;
+  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#483ed1;color:#ffffff;text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;border-radius:12px;padding:12px 22px;margin:4px 8px 4px 0;">${escapeHtml(label)}</a>`;
 }
 
 function secondaryButton(label: string, href: string) {
   if (!href) return '';
-  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#ffffff;color:#0369a1;text-decoration:none;font-weight:800;border:1px solid #94a3b8;border-radius:9999px;padding:10px 17px;margin:4px 8px 4px 0;">${escapeHtml(label)}</a>`;
+  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#ffffff;color:#483ed1;text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;border:1px solid #c9c7dc;border-radius:12px;padding:11px 21px;margin:4px 8px 4px 0;">${escapeHtml(label)}</a>`;
 }
 
 function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
@@ -138,10 +173,14 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     ${waitlistNotice}
     ${detailsTable([['受付番号', entryNumber], ['パスワード', password], ['状態', status]])}
     ${qrImageUrl ? `
-      <div style="margin:18px 0;text-align:center;">
-        <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="184" height="184" style="display:block;margin:0 auto;border:1px solid #cbd5e1;border-radius:16px;padding:12px;background:#ffffff;">
-        <div style="color:#475569;font-size:12px;font-weight:700;margin-top:10px;">当日受付用QRコード</div>
-      </div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
+        <tr>
+          <td align="center" style="background:#f6f6fa;border:1px solid #e5e4f0;border-radius:16px;padding:20px;">
+            <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="184" height="184" style="display:block;margin:0 auto;border:1px solid #c9c7dc;border-radius:12px;padding:12px;background:#ffffff;">
+            <div style="font-family:${MAIL_FONT};color:#55536b;font-size:12px;font-weight:700;margin-top:12px;letter-spacing:.04em;">当日受付用QRコード</div>
+          </td>
+        </tr>
+      </table>
     ` : ''}
     ${panel('当日受付には、このメールに表示されたQRコードが必要です。', 'info')}
     ${actionButtons}
@@ -244,10 +283,14 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
     subject: `【${projectNameValue}】メール認証コード`,
     html: shell('メール認証コード', projectNameValue, `
       ${panel('エントリーフォームに以下のコードを入力してください。', 'info')}
-      <div style="background:#ffffff;border:2px solid #0369a1;border-radius:16px;padding:20px;text-align:center;margin:18px 0;">
-        <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#020617;font-family:'Fira Code','SFMono-Regular','Roboto Mono',monospace;">${escapeHtml(code)}</span>
-      </div>
-      <p style="color:#64748b;font-size:13px;margin:0;">このコードは10分間有効です。</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
+        <tr>
+          <td align="center" style="background:#ffffff;border:2px solid #5a50e8;border-radius:16px;padding:22px;">
+            <span style="font-family:${MAIL_MONO};font-size:36px;font-weight:700;letter-spacing:10px;color:#191827;">${escapeHtml(code)}</span>
+          </td>
+        </tr>
+      </table>
+      <p style="font-family:${MAIL_FONT};color:#8b89a3;font-size:13px;margin:0;">このコードは10分間有効です。</p>
     `),
     text: `認証コード: ${code}\nこのコードは10分間有効です。`,
   };

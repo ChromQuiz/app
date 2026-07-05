@@ -103,14 +103,14 @@
                         if (isCorrect) {
                             // ○ 緑（半透明）
                             ctx.globalAlpha = 0.45;
-                            ctx.strokeStyle = '#15803d';
+                            ctx.strokeStyle = '#187a41';
                             ctx.beginPath();
                             ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                             ctx.stroke();
                         } else {
                             // × 赤（半透明）
                             ctx.globalAlpha = 0.45;
-                            ctx.strokeStyle = '#dc2626';
+                            ctx.strokeStyle = '#c22945';
                             const d = radius * 0.75;
                             ctx.beginPath();
                             ctx.moveTo(cx - d, cy - d);
@@ -125,8 +125,8 @@
                     // スコア情報をマークシート上部に描画（赤文字）
                     const fontSize = Math.round(canvas.width * 0.022);
                     ctx.save();
-                    ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
-                    ctx.fillStyle = '#dc2626';
+                    ctx.font = `bold ${fontSize}px "IBM Plex Sans JP", sans-serif`;
+                    ctx.fillStyle = '#c22945';
                     ctx.globalAlpha = 0.9;
 
                     // 最後の問題セルの下
