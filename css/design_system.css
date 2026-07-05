@@ -1049,6 +1049,8 @@ select.custom-select {
 
 .cd-arrow {
   flex: none;
+  width: 18px;
+  height: 18px;
   color: var(--ink-3);
   transition: transform var(--t-micro) var(--ease);
 }
