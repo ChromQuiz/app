@@ -169,7 +169,7 @@ document.addEventListener('keydown', e => {
         const o = document.getElementById('preview-overlay');
         if (o) o.classList.remove('show');
         const panel = document.getElementById('menu-panel');
-        if (panel && panel.classList.contains('open')) toggleMenu();
+        if (panel && panel.classList.contains('active')) toggleMenu();
     }
 });
 
@@ -177,8 +177,8 @@ function toggleMenu() {
     const panel = document.getElementById('menu-panel');
     const backdrop = document.getElementById('menu-backdrop');
     if (!panel || !backdrop) return;
-    const isOpen = panel.classList.contains('open');
-    panel.classList.toggle('open', !isOpen);
+    const isOpen = panel.classList.contains('active');
+    panel.classList.toggle('active', !isOpen);
     backdrop.classList.toggle('active', !isOpen);
     document.body.classList.toggle('body-scroll-locked', !isOpen);
 }
