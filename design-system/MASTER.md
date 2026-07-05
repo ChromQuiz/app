@@ -149,6 +149,7 @@ CIQ
 
 ## 16-17. 共通コンポーネント / UI設計
 実装は `css/design_system.css` を正とする。アイコンは自作SVGシステム(`js/icons.js`)のみ。絵文字アイコン禁止。
+アイコンは Lucide 風の24px線アイコンに統一し、外部アイコンフォントには依存しない。既存の `fa-solid fa-check` 形式は互換変換で受けるが、新規追加時は `data-icon="circle-check"` 形式または `createIcon('circle-check')` を使い、未登録アイコンは必ず `js/icons.js` に追加する。
 
 ## 18. レスポンシブ設計
 - 375px を最低保証。表: 参加者リストは768px未満でカード化、adminテーブルは横スクロール+スクロールヒント。

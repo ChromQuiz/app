@@ -130,6 +130,42 @@ const ICON_PATHS = {
   'scroll': 'M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4M19 17V5a2 2 0 0 0-2-2H4',
   'id-badge': ['M6 4h12v16H6z', 'M9 8h6M12 14a2 2 0 1 1 0-4 2 2 0 0 1 0 4z'],
   'check-badge': 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+  'circle': 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+};
+
+const FA_STYLE_TOKENS = new Set([
+  'fa',
+  'fas',
+  'far',
+  'fal',
+  'fad',
+  'fab',
+  'fa-solid',
+  'fa-regular',
+  'fa-light',
+  'fa-thin',
+  'fa-duotone',
+  'fa-brands',
+  'fa-spin',
+  'fa-pulse',
+  'fa-fw',
+  'fa-lg',
+  'fa-xl',
+  'fa-2x',
+]);
+
+const ICON_ALIASES = {
+  'arrow-up-right-from-square': 'arrow-up-right-from-square',
+  'check-circle': 'check-circle',
+  'circle-check': 'circle-check',
+  'circle-xmark': 'circle-xmark',
+  'circle-exclamation': 'circle-exclamation',
+  'circle-info': 'circle-info',
+  'circle-question': 'circle-question',
+  'circle-notch': 'spinner',
+  'spinner-border': 'spinner',
+  'spinner': 'spinner',
+  'xmark': 'xmark',
 };
 
 /**
@@ -138,16 +174,17 @@ const ICON_PATHS = {
 function createIcon(nameOrClass, opts = {}) {
   const name = normalizeIconName(nameOrClass);
   const { size = 24, className = '', title } = opts;
+  const combinedClassName = [extractExtraIconClasses(nameOrClass), className].filter(Boolean).join(' ');
   if (name === 'spinner' || name === 'circle-notch' || name === 'spinner-border') {
     const wrap = document.createElement('span');
     wrap.className = 'spinner';
     wrap.setAttribute('role', 'status');
     wrap.setAttribute('aria-label', title || '読み込み中');
-    if (className) wrap.classList.add(...className.split(/\s+/).filter(Boolean));
+    if (combinedClassName) wrap.classList.add(...combinedClassName.split(/\s+/).filter(Boolean));
     return wrap;
   }
 
-  const data = ICON_PATHS[name];
+  const data = ICON_PATHS[name] || ICON_PATHS['circle-question'];
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('fill', 'none');
@@ -157,37 +194,43 @@ function createIcon(nameOrClass, opts = {}) {
   svg.setAttribute('stroke-linejoin', 'round');
   svg.setAttribute('width', size);
   svg.setAttribute('height', size);
+  svg.setAttribute('focusable', 'false');
   svg.setAttribute('aria-hidden', title ? 'false' : 'true');
+  svg.setAttribute('data-ciq-icon', name);
   if (title) {
     const t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
     t.textContent = title;
     svg.appendChild(t);
   }
-  if (className) svg.setAttribute('class', className);
+  if (combinedClassName) svg.setAttribute('class', combinedClassName);
 
-  if (data == null) {
-    const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    r.setAttribute('x', '2'); r.setAttribute('y', '2');
-    r.setAttribute('width', '20'); r.setAttribute('height', '20');
-    r.setAttribute('rx', '2');
-    svg.appendChild(r);
-  } else {
-    const paths = Array.isArray(data) ? data : [data];
-    paths.forEach((d) => {
-      if (!d) return;
-      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      p.setAttribute('d', d);
-      svg.appendChild(p);
-    });
-  }
+  if (!ICON_PATHS[name]) svg.setAttribute('data-missing-icon', String(nameOrClass || ''));
+  const paths = Array.isArray(data) ? data : [data];
+  paths.forEach((d) => {
+    if (!d) return;
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d);
+    svg.appendChild(p);
+  });
   return svg;
 }
 
 function normalizeIconName(nameOrClass) {
   if (!nameOrClass) return '';
-  const faMatch = String(nameOrClass).match(/fa-([a-z0-9-]+)/);
-  if (faMatch) return faMatch[1];
-  return String(nameOrClass);
+  const raw = String(nameOrClass).trim();
+  const tokens = raw.split(/\s+/).filter(Boolean);
+  const faToken = tokens.find((token) => token.startsWith('fa-') && !FA_STYLE_TOKENS.has(token));
+  const name = faToken ? faToken.replace(/^fa-/, '') : raw;
+  return ICON_ALIASES[name] || name;
+}
+
+function extractExtraIconClasses(nameOrClass) {
+  if (!nameOrClass) return '';
+  const tokens = String(nameOrClass).trim().split(/\s+/).filter(Boolean);
+  const faToken = tokens.find((token) => token.startsWith('fa-') && !FA_STYLE_TOKENS.has(token));
+  return tokens
+    .filter((token) => token !== faToken && !FA_STYLE_TOKENS.has(token))
+    .join(' ');
 }
 
 window.__createSvgIcon = createIcon;
