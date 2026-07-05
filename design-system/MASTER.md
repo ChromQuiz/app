@@ -94,7 +94,7 @@ CIQ
 運営には管制室の静かな正確さを、参加者には競技の高揚を。同一トークンの2つの声色で表現する。
 
 - 旧デザイン(ネイビー+スカイブルー+Inter/Noto)は全廃。
-- 新ブランドカラーは **Iris(青紫)** — 知性・集中・公正の色。採点の正誤(緑/赤)や警告(琥珀)と決して衝突しない。
+- 新ブランドカラーは **Regatta Blue(青紺)** — 競技運営・採点基盤らしい信頼感と集中を持つ色。採点の正誤(緑/赤)や警告(琥珀)と決して衝突しない。
 - スコア・受付番号・ID・コードは **IBM Plex Mono** で「計測された正確な数字」として表現。これがCIQの視覚署名。
 
 ## 13-15. デザインシステム / CSS設計方針 / デザイントークン
@@ -111,8 +111,8 @@ CIQ
 --surface-2 #F1F0F7 / #232338  --ink #191827 / #EDEDF6
 --ink-2 #55536B / #A7A5C0      --ink-3 #8B89A3 / #6F6D8A
 --line #E5E4F0 / #2C2B44       --line-strong #C9C7DC / #3E3D5C
---brand-50 #EFEEFD  --brand-100 #E0DEFB  --brand-500 #5A50E8
---brand-600 #483ED1 --brand-700 #3A31AC  (dark: text用 --brand-300 #A9A3F6)
+--brand-50 #EFF6FF  --brand-100 #DBEAFE  --brand-500 #2563EB
+--brand-600 #1D4ED8 --brand-700 #1E3A8A  (dark: text用 --brand-600 #93C5FD)
 --ok-600 #187A41  --ok-100 #DFF5E8   (dark #2FBF6B / #12301F)
 --warn-600 #A05A00 --warn-100 #FDEED3 (dark #F0A73E / #33260F)
 --bad-600 #C22945 --bad-100 #FCE7EB  (dark #F26D85 / #3A1520)
@@ -160,7 +160,7 @@ CIQ
 - 状態=色+アイコン+テキスト。キーボード: 採点(M/X/H/←→)ヒント表示。`prefers-reduced-motion` / `prefers-color-scheme` 対応。
 
 ## 20. HTMLメール設計
-- サイトと同一トークン(Iris/インク/紙色、状態色)。**600px テーブルレイアウト+インラインCSS**、Outlook対応(MSOフォールバック)、ダークモード(`color-scheme: light dark` + 暗所でも破綻しない配色)。
+- サイトと同一トークン(Regatta Blue/インク/紙色、状態色)。**600px テーブルレイアウト+インラインCSS**、Outlook対応(MSOフォールバック)、ダークモード(`color-scheme: light dark` + 暗所でも破綻しない配色)。
 - 構造: ブランドバー(ロゴタイプ「CIQ」+大会名) → タイトル → 状態パネル → 詳細テーブル(受付番号はPlex Mono系フォールバックで大きく) → QR → CTAボタン(ブランド色) → フッター(自動送信注記)。
 - 件名は既存を維持(【大会名】…)。text版も併送(既存機構)。
 

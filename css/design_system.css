@@ -25,14 +25,14 @@
   --line-strong: #c9c7dc;
   --scrim: rgba(20, 19, 35, 0.55);
 
-  /* --- Color: brand "Iris" --- */
-  --brand-50: #efeefd;
-  --brand-100: #e0defb;
-  --brand-200: #c5c1f5;
-  --brand-300: #a9a3f6;
-  --brand-500: #5a50e8;
-  --brand-600: #483ed1;
-  --brand-700: #3a31ac;
+  /* --- Color: brand "Regatta Blue" --- */
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-500: #2563eb;
+  --brand-600: #1d4ed8;
+  --brand-700: #1e3a8a;
   --brand-ink: #ffffff;
 
   /* --- Color: semantic --- */
@@ -133,12 +133,12 @@
     --line-strong: #3e3d5c;
     --scrim: rgba(5, 5, 12, 0.68);
 
-    --brand-50: #232043;
-    --brand-100: #2c2857;
-    --brand-200: #3a3475;
-    --brand-500: #7d74f2;
-    --brand-600: #948cf5;
-    --brand-700: #a9a3f6;
+    --brand-50: #0f2147;
+    --brand-100: #17305f;
+    --brand-200: #1e407b;
+    --brand-500: #60a5fa;
+    --brand-600: #93c5fd;
+    --brand-700: #bfdbfe;
     --brand-ink: #12121d;
 
     --ok-600: #4fce85;
