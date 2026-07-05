@@ -10,6 +10,7 @@ const ICON_PATHS = {
   'chevron-right': 'M9 18l6-6-6-6',
   'arrow-left': 'M19 12H5M12 19l-7-7 7-7',
   'arrow-right': 'M5 12h14M12 5l7 7-7 7',
+  'arrow-up-right-from-square': ['M7 7h10v10', 'M7 17 17 7', 'M9 7h8v8', 'M5 5h6M5 5v14h14v-6'],
   'arrow-right-to-bracket': 'M10 12H3M9 5l7 7-7 7M21 5v14',
   'right-from-bracket': 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
   'right-to-bracket': 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3',

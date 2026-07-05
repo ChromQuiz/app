@@ -17,15 +17,15 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=27"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/icons.js?v=1"></script>
+    <script defer src="js/icons.js?v=2"></script>
     <script defer src="js/ui.js?v=4"></script>
     <script defer src="js/custom-select.js?v=2"></script>
     <script defer src="js/shared.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Sans+JP:wght@400;500;600;800&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=23">
-    <link rel="stylesheet" href="css/pages.css?v=37">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="css/design_system.css?v=24">
+    <link rel="stylesheet" href="css/pages.css?v=38">
 </head>
 
 <body class="page-admin">
@@ -109,11 +109,11 @@
                 <h2>大会運営</h2>
             </div>
             <ul class="admin-phase-nav tabs" id="admin-tabs" role="tablist">
-                <li style="list-style:none;flex:1;display:flex"><button type="button" class="tab-btn active" id="tab-entries-tab" data-tab-target="tab-entries" aria-selected="true" aria-controls="tab-entries" role="tab" tabindex="0"><span data-icon="users" aria-hidden="true"></span> <span>参加者</span> <span class="tab-count" data-tab-count="entries" aria-label="参加者数">-</span></button></li>
-                <li style="list-style:none;flex:1;display:flex"><button type="button" class="tab-btn" id="tab-prep-tab" data-tab-target="tab-prep" aria-selected="false" aria-controls="tab-prep" role="tab" tabindex="-1"><span data-icon="file-lines" aria-hidden="true"></span> <span>採点準備</span></button></li>
-                <li style="list-style:none;flex:1;display:flex"><button type="button" class="tab-btn" id="tab-scan-tab" data-tab-target="tab-scan" aria-selected="false" aria-controls="tab-scan" role="tab" tabindex="-1"><span data-icon="camera" aria-hidden="true"></span> <span>答案管理</span> <span class="tab-count" data-tab-count="scan" aria-label="答案数">-</span></button></li>
-                <li style="list-style:none;flex:1;display:flex"><button type="button" class="tab-btn" id="tab-stats-tab" data-tab-target="tab-stats" aria-selected="false" aria-controls="tab-stats" role="tab" tabindex="-1"><span data-icon="chart-pie" aria-hidden="true"></span> <span>集計</span> <span class="tab-count" data-tab-count="conflicts" aria-label="要確認数">-</span></button></li>
-                <li style="list-style:none;flex:1;display:flex"><button type="button" class="tab-btn" id="tab-settings-tab" data-tab-target="tab-settings" aria-selected="false" aria-controls="tab-settings" role="tab" tabindex="-1"><span data-icon="wrench" aria-hidden="true"></span> <span>設定</span></button></li>
+                <li><button type="button" class="tab-btn active" id="tab-entries-tab" data-tab-target="tab-entries" aria-selected="true" aria-controls="tab-entries" role="tab" tabindex="0"><span data-icon="users" aria-hidden="true"></span> <span>参加者</span> <span class="tab-count" data-tab-count="entries" aria-label="参加者数">-</span></button></li>
+                <li><button type="button" class="tab-btn" id="tab-prep-tab" data-tab-target="tab-prep" aria-selected="false" aria-controls="tab-prep" role="tab" tabindex="-1"><span data-icon="file-lines" aria-hidden="true"></span> <span>採点準備</span></button></li>
+                <li><button type="button" class="tab-btn" id="tab-scan-tab" data-tab-target="tab-scan" aria-selected="false" aria-controls="tab-scan" role="tab" tabindex="-1"><span data-icon="camera" aria-hidden="true"></span> <span>答案管理</span> <span class="tab-count" data-tab-count="scan" aria-label="答案数">-</span></button></li>
+                <li><button type="button" class="tab-btn" id="tab-stats-tab" data-tab-target="tab-stats" aria-selected="false" aria-controls="tab-stats" role="tab" tabindex="-1"><span data-icon="chart-pie" aria-hidden="true"></span> <span>集計</span> <span class="tab-count" data-tab-count="conflicts" aria-label="要確認数">-</span></button></li>
+                <li><button type="button" class="tab-btn" id="tab-settings-tab" data-tab-target="tab-settings" aria-selected="false" aria-controls="tab-settings" role="tab" tabindex="-1"><span data-icon="wrench" aria-hidden="true"></span> <span>設定</span></button></li>
             </ul>
             <div class="admin-sidebar-foot">
                 <button class="btn secondary u-full-width" data-nav-target="judge.html"><span data-icon="table-cells-large" aria-hidden="true"></span> 問題一覧</button>
@@ -152,7 +152,7 @@
 
         <div class="admin-body">
 
-        <div class="admin-quick-actions" aria-label="主要操作" style="margin-bottom:var(--space-4)">
+        <div class="admin-quick-actions mb-md" aria-label="主要操作">
             <button class="btn cta" data-nav-target="judge.html"><span data-icon="table-cells-large" aria-hidden="true"></span> 問題一覧へ</button>
             <button class="btn secondary" data-nav-target="conflict.html"><span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認</button>
             <button class="btn secondary" data-nav-target="checkin.html"><span data-icon="qrcode" aria-hidden="true"></span> 当日受付</button>
@@ -703,7 +703,7 @@
     <script defer src="js/upload_validation.js?v=3"></script>
     <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
-    <script defer src="js/admin_graded_pdf.js?v=8"></script>
+    <script defer src="js/admin_graded_pdf.js?v=9"></script>
     <script defer src="js/admin_settings.js?v=23"></script>
 </body>
 </html>
