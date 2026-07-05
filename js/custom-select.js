@@ -180,3 +180,5 @@ class CustomSelect {
         this.select.value = '';
     }
 }
+
+window.CustomSelect = CustomSelect;
