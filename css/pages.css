@@ -16,10 +16,7 @@ body.page-index {
   justify-content: center;
   gap: var(--sp-5);
   padding: var(--sp-6) var(--sp-4);
-  background:
-    radial-gradient(640px 320px at 12% -4%, color-mix(in srgb, var(--brand-500) 14%, transparent), transparent 70%),
-    radial-gradient(520px 300px at 96% 108%, color-mix(in srgb, var(--gold-400) 10%, transparent), transparent 70%),
-    var(--canvas);
+  background: var(--canvas);
 }
 
 /* ロゴタイプ — CIQ の視覚署名 */
@@ -33,13 +30,8 @@ body.page-index > h1 {
 }
 
 body.page-index > h1::after {
-  content: "_";
+  content: "";
   color: var(--brand-500);
-  animation: caret-blink 1.4s steps(1) infinite;
-}
-
-@keyframes caret-blink {
-  50% { opacity: 0; }
 }
 
 body.page-index .card {
@@ -252,18 +244,7 @@ body.page-index .card {
 
 /* 段階表示アニメーション */
 [data-stagger] > * {
-  animation: stagger-in 0.4s var(--ease) backwards;
-}
-
-[data-stagger] > *:nth-child(2) { animation-delay: 60ms; }
-[data-stagger] > *:nth-child(3) { animation-delay: 120ms; }
-[data-stagger] > *:nth-child(4) { animation-delay: 180ms; }
-
-@keyframes stagger-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
+  animation: none;
 }
 
 /* ============================================================
@@ -273,9 +254,7 @@ body.page-index .card {
 body.page-wrapper {
   min-height: 100dvh;
   padding: var(--sp-8) var(--sp-4) var(--sp-6);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--brand-500) 7%, transparent), transparent 320px),
-    var(--canvas);
+  background: var(--canvas);
 }
 
 .page-container {
@@ -300,14 +279,15 @@ body.page-wrapper {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: var(--r-lg);
-  background: var(--brand-600);
-  color: var(--brand-ink);
-  font-size: var(--fs-21);
-  margin-bottom: var(--sp-3);
-  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--brand-600) 60%, transparent);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--brand-600);
+  font-size: var(--fs-18);
+  margin-bottom: var(--sp-2);
+  box-shadow: none;
 }
 
 .page-logo h1 {
@@ -331,9 +311,9 @@ body.page-wrapper {
 .page-card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  box-shadow: var(--sh-2);
-  padding: var(--sp-7);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-1);
+  padding: var(--sp-6);
 }
 
 @media (max-width: 480px) {
@@ -343,7 +323,7 @@ body.page-wrapper {
 
   .page-card {
     padding: var(--sp-5);
-    border-radius: var(--r-lg);
+    border-radius: var(--r-md);
   }
 }
 
@@ -390,7 +370,7 @@ body.page-wrapper {
   cursor: pointer;
   transition: background var(--t-micro) var(--ease), transform var(--t-micro) var(--ease),
     box-shadow var(--t-micro) var(--ease);
-  box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--brand-600) 55%, transparent);
+  box-shadow: none;
 }
 
 .page-btn:hover {
@@ -410,7 +390,7 @@ body.page-wrapper {
 .page-btn.danger {
   background: var(--bad-600);
   color: #fff;
-  box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--bad-600) 55%, transparent);
+  box-shadow: none;
 }
 
 .page-btn.danger:hover {

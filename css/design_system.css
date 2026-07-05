@@ -552,9 +552,9 @@ svg[width="24"][stroke="currentColor"] {
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-2);
-  padding: var(--sp-7);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-1);
+  padding: var(--sp-6);
 }
 
 /* Ops 画面のセクション面。旧 glass-panel はフラット面として再定義 */
@@ -562,13 +562,13 @@ svg[width="24"][stroke="currentColor"] {
 .glass-panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-md);
 }
 
 .section {
   padding: var(--sp-6);
   margin-bottom: var(--sp-6);
-  box-shadow: var(--sh-1);
+  box-shadow: none;
 }
 
 .section > h2 {
