@@ -1062,6 +1062,7 @@ select.custom-select {
   top: calc(100% + var(--sp-1));
   left: 0;
   right: 0;
+  display: none;
   max-height: 280px;
   overflow: auto;
   background: var(--surface);
@@ -1070,6 +1071,10 @@ select.custom-select {
   box-shadow: var(--sh-3);
   z-index: var(--z-dropdown);
   padding: var(--sp-1);
+}
+
+.custom-dropdown.open .cd-menu {
+  display: block;
 }
 
 .cd-search {
