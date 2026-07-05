@@ -6,7 +6,7 @@ CIQ の UI/UX/CX を「今どこにいるか・何が安全か・次に何をす
 ## 設計主軸（再掲）
 
 - **デザインシステムの正典は `design-system/MASTER.md`**（2026-07 全面再設計 "Calm Command"）。トークン・コンポーネント・タイポグラフィ・メール設計はそちらを参照。
-- **色**: Canvas `#F6F6FA` / Surface `#FFFFFF` / Ink `#191827` / Brand(Iris) `#483ED1`(`#5A50E8`) / Success `#187A41` / Warning `#A05A00` / Danger `#C22945` / Gold(スコア) `#9A6A00`。ライト/ダーク両対応。
+- **色**: Canvas `#F8FAFC` / Surface `#FFFFFF` / Ink `#0F172A` / Brand(Regatta Blue) `#1D4ED8`(`#2563EB`) / Success `#187A41` / Warning `#A05A00` / Danger `#C22945` / Gold(スコア) `#9A6A00`。ライト/ダーク両対応。
 - **タイポ**: IBM Plex Sans JP + IBM Plex Mono（数値・受付番号・ID は mono が視覚署名）
 - **状態は色だけで伝えない**: 色 + アイコン + テキスト + 配置の複合。44px touch / focus ring 3px / prefers-reduced-motion 対応。
 

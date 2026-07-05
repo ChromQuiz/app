@@ -5,14 +5,14 @@ const ShareCard = (() => {
 
     // design-system/MASTER.md "Calm Command" トークンと同期
     const C = {
-        bg: '#f6f6fa',
-        bgLine: '#e5e4f0',
+        bg: '#f8fafc',
+        bgLine: '#e2e8f0',
         accent: '#5a50e8',
-        dark: '#191827',
-        darkSub: '#2c2b44',
+        dark: '#0f172a',
+        darkSub: '#334155',
         white: '#ffffff',
-        textMain: '#191827',
-        textSub: '#8b89a3',
+        textMain: '#0f172a',
+        textSub: '#64748b',
     };
 
     // 平行四辺形の頂点計算（skew = 左方向オフセット）

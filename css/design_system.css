@@ -14,16 +14,16 @@
   color-scheme: light dark;
 
   /* --- Color: neutral (ink & paper) --- */
-  --canvas: #f6f6fa;
+  --canvas: #f8fafc;
   --surface: #ffffff;
-  --surface-2: #f1f0f7;
-  --surface-3: #e9e8f2;
-  --ink: #191827;
-  --ink-2: #55536b;
-  --ink-3: #8b89a3;
-  --line: #e5e4f0;
-  --line-strong: #c9c7dc;
-  --scrim: rgba(20, 19, 35, 0.55);
+  --surface-2: #f1f5f9;
+  --surface-3: #e2e8f0;
+  --ink: #0f172a;
+  --ink-2: #475569;
+  --ink-3: #64748b;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --scrim: rgba(15, 23, 42, 0.55);
 
   /* --- Color: brand "Regatta Blue" --- */
   --brand-50: #eff6ff;
@@ -122,16 +122,16 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas: #12121d;
-    --surface: #1b1b2c;
-    --surface-2: #232338;
-    --surface-3: #2b2b43;
-    --ink: #ededf6;
-    --ink-2: #a7a5c0;
-    --ink-3: #6f6d8a;
-    --line: #2c2b44;
-    --line-strong: #3e3d5c;
-    --scrim: rgba(5, 5, 12, 0.68);
+    --canvas: #0f172a;
+    --surface: #111827;
+    --surface-2: #1e293b;
+    --surface-3: #334155;
+    --ink: #f8fafc;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --line: #334155;
+    --line-strong: #475569;
+    --scrim: rgba(2, 6, 23, 0.68);
 
     --brand-50: #0f2147;
     --brand-100: #17305f;
@@ -139,7 +139,7 @@
     --brand-500: #60a5fa;
     --brand-600: #93c5fd;
     --brand-700: #bfdbfe;
-    --brand-ink: #12121d;
+    --brand-ink: #0f172a;
 
     --ok-600: #4fce85;
     --ok-500: #37b96f;
@@ -423,7 +423,7 @@ svg[width="24"][stroke="currentColor"] {
 
 @media (prefers-color-scheme: dark) {
   .btn.danger {
-    color: #12121d;
+    color: var(--brand-ink);
   }
 }
 

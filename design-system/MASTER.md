@@ -107,10 +107,10 @@ CIQ
 
 ### Color Tokens（light / dark 両対応、`prefers-color-scheme`）
 ```
---canvas #F6F6FA / #12121D     --surface #FFFFFF / #1B1B2C
---surface-2 #F1F0F7 / #232338  --ink #191827 / #EDEDF6
---ink-2 #55536B / #A7A5C0      --ink-3 #8B89A3 / #6F6D8A
---line #E5E4F0 / #2C2B44       --line-strong #C9C7DC / #3E3D5C
+--canvas #F8FAFC / #0F172A     --surface #FFFFFF / #111827
+--surface-2 #F1F5F9 / #1E293B  --ink #0F172A / #F8FAFC
+--ink-2 #475569 / #CBD5E1      --ink-3 #64748B / #94A3B8
+--line #E2E8F0 / #334155       --line-strong #CBD5E1 / #475569
 --brand-50 #EFF6FF  --brand-100 #DBEAFE  --brand-500 #2563EB
 --brand-600 #1D4ED8 --brand-700 #1E3A8A  (dark: text用 --brand-600 #93C5FD)
 --ok-600 #187A41  --ok-100 #DFF5E8   (dark #2FBF6B / #12301F)

@@ -399,7 +399,7 @@ body.page-wrapper {
 
 @media (prefers-color-scheme: dark) {
   .page-btn.danger {
-    color: #12121d;
+    color: var(--brand-ink);
   }
 }
 
@@ -1344,7 +1344,7 @@ body.page-judge {
 @media (prefers-color-scheme: dark) {
   .btn.score-correct,
   .btn.score-wrong {
-    color: #12121d;
+    color: var(--brand-ink);
   }
 }
 
