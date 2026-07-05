@@ -67,17 +67,52 @@ async function signedQrUrl(value: string) {
 
 function shell(title: string, subtitle: string, body: string) {
   return `
-    <div style="font-family:Arial,'Hiragino Sans','Yu Gothic',sans-serif;max-width:520px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
-      <div style="background:#2563eb;padding:22px;text-align:center;">
-        <h1 style="color:#ffffff;font-size:20px;line-height:1.4;margin:0;">${escapeHtml(title)}</h1>
-        <p style="color:#dbeafe;font-size:13px;margin:8px 0 0;">${escapeHtml(subtitle)}</p>
+    <div style="font-family:Inter,'Noto Sans JP','Hiragino Sans','Yu Gothic',Arial,sans-serif;max-width:560px;margin:0 auto;background:#f8fafc;color:#020617;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px -8px rgba(2,6,23,0.16);">
+      <div style="background:#0f172a;padding:24px 24px 22px;text-align:left;border-bottom:4px solid #0369a1;">
+        <div style="color:#93c5fd;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;">CIQ Notification</div>
+        <h1 style="color:#ffffff;font-size:22px;line-height:1.35;margin:0;font-weight:800;letter-spacing:-.02em;">${escapeHtml(title)}</h1>
+        <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:8px 0 0;">${escapeHtml(subtitle)}</p>
       </div>
-      <div style="padding:24px;color:#334155;font-size:14px;line-height:1.75;">${body}</div>
-      <div style="background:#f1f5f9;padding:12px;text-align:center;font-size:11px;color:#64748b;">
-        CIQ - このメールは自動送信されています
+      <div style="padding:24px;color:#334155;font-size:14px;line-height:1.75;background:#ffffff;">${body}</div>
+      <div style="background:#f1f5f9;padding:14px 24px;text-align:center;font-size:12px;line-height:1.6;color:#64748b;border-top:1px solid #e2e8f0;">
+        CIQ - このメールは自動送信されています。心当たりがない場合は大会運営へお問い合わせください。
       </div>
     </div>
   `;
+}
+
+function panel(body: string, tone = 'info') {
+  const styles: Record<string, string> = {
+    info: 'background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;',
+    success: 'background:#ecfdf3;border:1px solid #abefc6;color:#067647;',
+    warning: 'background:#fffbeb;border:1px solid #fcd34d;color:#92400e;',
+    danger: 'background:#fef3f2;border:1px solid #fecdca;color:#b42318;',
+  };
+  return `<div style="${styles[tone] || styles.info}border-radius:12px;padding:14px 16px;margin:18px 0;font-weight:700;">${body}</div>`;
+}
+
+function detailsTable(rows: Array<[string, unknown]>) {
+  const tableRows = rows.map(([label, value]) => `
+    <tr>
+      <td style="padding:12px 14px;color:#64748b;border-bottom:1px solid #e2e8f0;">${escapeHtml(label)}</td>
+      <td style="padding:12px 14px;text-align:right;font-weight:800;color:#020617;border-bottom:1px solid #e2e8f0;">${escapeHtml(value)}</td>
+    </tr>
+  `).join('');
+  return `
+    <table style="width:100%;border-collapse:separate;border-spacing:0;background:#ffffff;border:1px solid #cbd5e1;border-radius:12px;overflow:hidden;margin:18px 0;">
+      ${tableRows}
+    </table>
+  `;
+}
+
+function primaryButton(label: string, href: string) {
+  if (!href) return '';
+  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#0369a1;color:#ffffff;text-decoration:none;font-weight:800;border-radius:9999px;padding:11px 18px;margin:4px 8px 4px 0;">${escapeHtml(label)}</a>`;
+}
+
+function secondaryButton(label: string, href: string) {
+  if (!href) return '';
+  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#ffffff;color:#0369a1;text-decoration:none;font-weight:800;border:1px solid #94a3b8;border-radius:9999px;padding:10px 17px;margin:4px 8px 4px 0;">${escapeHtml(label)}</a>`;
 }
 
 function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
@@ -90,29 +125,25 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
   const qrImageUrl = String(data.qrImageUrl || '');
   const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
   const waitlistNotice = data.status === 'waitlist'
-    ? '<p style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px;color:#92400e;font-weight:700;">現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。</p>'
-    : '';
+    ? panel('現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。', 'warning')
+    : panel('エントリーを受け付けました。大会当日までこのメールを保管してください。', 'success');
   const actionButtons = `
-    <div style="display:flex;gap:10px;margin:18px 0;flex-wrap:wrap;">
-      ${editUrl ? `<a href="${escapeHtml(editUrl)}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;border-radius:8px;padding:10px 18px;">編集</a>` : ''}
-      ${entryListUrl ? `<a href="${escapeHtml(entryListUrl)}" style="display:inline-block;background:#ffffff;color:#2563eb;text-decoration:none;font-weight:700;border:1px solid #bfdbfe;border-radius:8px;padding:10px 18px;">エントリーリスト</a>` : ''}
+    <div style="margin:18px 0;">
+      ${primaryButton('エントリーを編集', editUrl)}
+      ${secondaryButton('エントリーリストを見る', entryListUrl)}
     </div>
   `;
   const body = `
     <p>${escapeHtml(person || '参加者')} 様</p>
-    <p>エントリーを受け付けました。</p>
-    <table style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #dbeafe;border-radius:8px;overflow:hidden;">
-      <tr><td style="padding:8px;color:#64748b;">受付番号</td><td style="padding:8px;text-align:right;font-weight:700;">${escapeHtml(entryNumber)}</td></tr>
-      <tr><td style="padding:8px;color:#64748b;">パスワード</td><td style="padding:8px;text-align:right;font-weight:700;">${escapeHtml(password)}</td></tr>
-    </table>
     ${waitlistNotice}
+    ${detailsTable([['受付番号', entryNumber], ['パスワード', password], ['状態', status]])}
     ${qrImageUrl ? `
       <div style="margin:18px 0;text-align:center;">
-        <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="180" height="180" style="display:block;margin:0 auto;border:1px solid #bfdbfe;border-radius:12px;padding:10px;background:#ffffff;">
-        <div style="color:#64748b;font-size:12px;margin-top:8px;">当日受付用QRコード</div>
+        <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="184" height="184" style="display:block;margin:0 auto;border:1px solid #cbd5e1;border-radius:16px;padding:12px;background:#ffffff;">
+        <div style="color:#475569;font-size:12px;font-weight:700;margin-top:10px;">当日受付用QRコード</div>
       </div>
     ` : ''}
-    <p style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;color:#1e3a8a;font-weight:700;">当日受付には、このメールに表示されたQRコードが必要です。</p>
+    ${panel('当日受付には、このメールに表示されたQRコードが必要です。', 'info')}
     ${actionButtons}
     <p style="color:#64748b;font-size:13px;">このメールは大会当日まで保管してください。</p>
   `;
@@ -140,8 +171,8 @@ function cancellation(data: Record<string, unknown>): EmailTemplate {
     subject: `【${name}】エントリーキャンセル完了（No.${entryNumber}）`,
     html: shell('キャンセル完了', name, `
       <p>${escapeHtml(person || '参加者')} 様</p>
-      <p>エントリーをキャンセルしました。</p>
-      <p><strong>受付番号: ${escapeHtml(entryNumber)}</strong></p>
+      ${panel('エントリーをキャンセルしました。', 'danger')}
+      ${detailsTable([['受付番号', entryNumber]])}
     `),
     text: [
       `${person || '参加者'} 様`,
@@ -159,8 +190,8 @@ function entryEdited(data: Record<string, unknown>): EmailTemplate {
     subject: `【${name}】エントリー編集完了（No.${entryNumber}）`,
     html: shell('エントリー編集完了', name, `
       <p>${escapeHtml(person || '参加者')} 様</p>
-      <p>エントリー内容の変更を受け付けました。</p>
-      <p><strong>受付番号: ${escapeHtml(entryNumber)}</strong></p>
+      ${panel('エントリー内容の変更を受け付けました。', 'success')}
+      ${detailsTable([['受付番号', entryNumber]])}
     `),
     text: [
       `${person || '参加者'} 様`,
@@ -178,8 +209,8 @@ function lateNotice(data: Record<string, unknown>): EmailTemplate {
     subject: `【${name}】遅刻連絡受付（No.${entryNumber}）`,
     html: shell('遅刻連絡受付', name, `
       <p>${escapeHtml(person || '参加者')} 様</p>
-      <p>遅刻の届け出を受け付けました。</p>
-      <p><strong>受付番号: ${escapeHtml(entryNumber)}</strong></p>
+      ${panel('遅刻の届け出を受け付けました。', 'warning')}
+      ${detailsTable([['受付番号', entryNumber]])}
     `),
     text: [
       `${person || '参加者'} 様`,
@@ -197,8 +228,8 @@ function waitlistPromoted(data: Record<string, unknown>): EmailTemplate {
     subject: `【${name}】キャンセル待ち繰り上げのお知らせ（No.${entryNumber}）`,
     html: shell('キャンセル待ち繰り上げ', name, `
       <p>${escapeHtml(person || '参加者')} 様</p>
-      <p>キャンセル待ちから通常エントリーへ繰り上がりました。</p>
-      <p><strong>受付番号: ${escapeHtml(entryNumber)}</strong></p>
+      ${panel('キャンセル待ちから通常エントリーへ繰り上がりました。', 'success')}
+      ${detailsTable([['受付番号', entryNumber]])}
     `),
     text: [
       `${person || '参加者'} 様`,
@@ -212,11 +243,11 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
   return {
     subject: `【${projectNameValue}】メール認証コード`,
     html: shell('メール認証コード', projectNameValue, `
-      <p>エントリーフォームに以下のコードを入力してください。</p>
-      <div style="background:#ffffff;border:2px solid #2563eb;border-radius:12px;padding:18px;text-align:center;margin:16px 0;">
-        <span style="font-size:34px;font-weight:800;letter-spacing:8px;color:#1e293b;font-family:monospace;">${escapeHtml(code)}</span>
+      ${panel('エントリーフォームに以下のコードを入力してください。', 'info')}
+      <div style="background:#ffffff;border:2px solid #0369a1;border-radius:16px;padding:20px;text-align:center;margin:18px 0;">
+        <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#020617;font-family:'Fira Code','SFMono-Regular','Roboto Mono',monospace;">${escapeHtml(code)}</span>
       </div>
-      <p style="color:#64748b;font-size:13px;">このコードは10分間有効です。</p>
+      <p style="color:#64748b;font-size:13px;margin:0;">このコードは10分間有効です。</p>
     `),
     text: `認証コード: ${code}\nこのコードは10分間有効です。`,
   };
