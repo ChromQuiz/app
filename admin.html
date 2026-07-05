@@ -24,7 +24,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=29">
+    <link rel="stylesheet" href="css/design_system.css?v=30">
     <link rel="stylesheet" href="css/pages.css?v=40">
 </head>
 
@@ -433,8 +433,10 @@
                         <span data-icon="circle-info" aria-hidden="true"></span> 文字数固定: 姓名の合計が指定文字数未満の場合、姓と名の間にスペースを挿入して揃えます。
                     </div>
                 </div>
-                <button class="btn secondary" id="csv-btn" disabled data-action="export-csv"><span data-icon="download" aria-hidden="true"></span> 採点結果CSV出力</button>
-                <button class="btn secondary" id="graded-pdf-btn" disabled data-action="export-graded-pdf"><span data-icon="file-pdf" aria-hidden="true"></span> 採点済みPDF出力</button>
+                <div class="section-action-row">
+                    <button class="btn secondary" id="csv-btn" disabled data-action="export-csv"><span data-icon="download" aria-hidden="true"></span> 採点結果CSV出力</button>
+                    <button class="btn secondary" id="graded-pdf-btn" disabled data-action="export-graded-pdf"><span data-icon="file-pdf" aria-hidden="true"></span> 採点済みPDF出力</button>
+                </div>
             </div>
             <div class="section glass-panel">
                 <h2><span data-icon="magnifying-glass-chart" aria-hidden="true"></span> 問題アナリティクス</h2>
@@ -451,7 +453,9 @@
                     <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked data-action="render-analytics"><span class="toggle-slider"></span></label>
                     <span class="u-muted-note">エントリーネームで表示</span>
                 </div>
-                <button class="btn secondary" data-action="export-analytics-csv"><span data-icon="download" aria-hidden="true"></span> 正答率分析CSV</button>
+                <div class="section-action-row">
+                    <button class="btn secondary" data-action="export-analytics-csv"><span data-icon="download" aria-hidden="true"></span> 正答率分析CSV</button>
+                </div>
                 <div class="table-container mt-md u-table-scroll-md">
                     <table id="analytics-table">
                         <thead>

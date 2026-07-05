@@ -610,6 +610,18 @@ svg[width="24"][stroke="currentColor"] {
   margin-bottom: 0;
 }
 
+.section-action-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-top: var(--sp-4);
+}
+
+.section-action-row + .table-container {
+  margin-top: var(--sp-4);
+}
+
 /* 設定パネル（枠内グループ） */
 .config-panel {
   background: var(--surface-2);
