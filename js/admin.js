@@ -13,6 +13,7 @@
         const { projectId, secretHash } = auth;
         const isSupabaseMode = auth.supabaseMode === true;
         const adminHash = session.get('adminHash');
+        let adminScanCount = null;
 
         function adminIcon(className) {
             const icon = createIcon(className);
@@ -488,13 +489,17 @@
 
             // タブの件数バッジを反映
             setTabCount('entries', entryCount, false);
-            setTabCount('scan', entryCount, false);
+            setTabCount('scan', adminScanCount, false);
             setTabCount('conflicts', Number.isFinite(conflictNum) ? conflictNum : '-', conflictNum > 0);
         }
 
         window.updateAdminOverview = updateAdminOverview;
         window.setAdminEntriesCount = function(count) {
             adminEntriesCount = count || 0;
+            updateAdminOverview();
+        };
+        window.setAdminScanCount = function(count) {
+            adminScanCount = Number.isFinite(Number(count)) ? Number(count) : null;
             updateAdminOverview();
         };
 

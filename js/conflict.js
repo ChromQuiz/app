@@ -112,7 +112,7 @@ function setConflictGridMessage(message, options = {}) {
     const grid = document.getElementById('conflict-grid');
     grid.textContent = '';
     const messageEl = document.createElement('div');
-    messageEl.className = options.className || 'loading-state';
+    messageEl.className = `${options.className || 'loading-state'} grid-message`;
     if (options.icon) {
         const icon = createIcon(options.icon);
         if (options.iconSize) {

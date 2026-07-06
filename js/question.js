@@ -121,7 +121,7 @@ function setAnswerGridMessage(message, iconClass = '') {
     const grid = document.getElementById('answer-grid');
     grid.textContent = '';
     const messageEl = document.createElement('div');
-    messageEl.className = 'loading-state';
+    messageEl.className = 'loading-state grid-message';
     if (iconClass) {
         const icon = createIcon(iconClass);
         messageEl.append(icon, ' ');

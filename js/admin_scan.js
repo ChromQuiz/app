@@ -21,6 +21,7 @@
                 entryListData = pages.map(page => Number(page.entries?.entry_number)).filter(Boolean).sort((a, b) => a - b);
                 entryNumbers = [...entryListData];
                 document.getElementById('entry-count-badge').textContent = `${entryListData.length}件`;
+                window.setAdminScanCount?.(entryListData.length);
                 if (entryListData.length === 0) {
                     setScanMessage(el, '保存済み答案はありません', { icon: 'fa-solid fa-box-open icon-empty' });
                     document.getElementById('select-all-label').hidden = true;

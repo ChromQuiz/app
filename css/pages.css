@@ -1225,6 +1225,13 @@ body.page-judge {
   margin: 0 auto;
 }
 
+.answer-grid .grid-message,
+.conflict-grid .grid-message {
+  grid-column: 1 / -1;
+  min-height: min(42vh, 360px);
+  align-self: center;
+}
+
 .answer-card {
   position: relative;
   background: var(--surface);
