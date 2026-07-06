@@ -1,7 +1,8 @@
 # CIQ
 
-マルチテナント対応のリアルタイム採点プラットフォーム。  
-ペーパーテスト（クイズ大会等）の **回答用紙PDF生成 → スキャン → 自動採点 → 成績照会** をブラウザだけで完結させます。
+クイズ大会の「紙に関わる運営業務」を一気通貫で支援するプラットフォーム。
+
+**エントリー受付 → 当日受付(QR) → 解答用紙PDF生成 → 答案スキャン → 採点 → 成績照会** をブラウザだけで完結させます。
 
 ## 🏗 アーキテクチャ
 
@@ -18,41 +19,25 @@ Browser (静的HTML/JS)  ──── Supabase
 
 ```
 app/
-├── index.html          # ログイン・プロジェクト作成
-├── judge.html          # 問題一覧（採点者メインページ）
+├── index.html          # 入室(採点者参加/プロジェクト選択)・#create でプロジェクト作成
+├── admin.html          # 運営ホーム(フェーズタイムライン)
+├── judge.html          # 採点ボード(採点者メインページ)
 ├── question.html       # 個別問題の採点画面
 ├── conflict.html       # 採点不一致の確認・確定
-├── admin.html          # 管理画面（5タブ構成）
 ├── checkin.html        # QRコード当日受付
 ├── entry.html          # エントリーフォーム（公開）
+├── my.html             # マイエントリー（公開・確認/QR/編集/遅刻/成績/キャンセル）
 ├── entry_list.html     # エントリーリスト（公開）
-├── cancel.html         # キャンセルフォーム（公開）
-├── disclosure.html     # 成績照会（公開）
+├── terms.html          # 参加規約（大会ごと・公開）
+├── help.html / 404.html
 ├── css/
-│   └── design_system.css   # 全ページ共通デザインシステム
-├── js/
-│   ├── config.js       # セッション管理・共通初期化
-│   ├── supabase_config.js # Supabase接続設定（Project URL / publishable key）
-│   ├── supabase_client.js # Supabaseクライアント初期化
-│   ├── supabase_api.js # Supabase APIアダプタ
-│   ├── shared.js       # 共通ユーティリティ (認証, Toast, Menu)
-│   ├── crypto.js       # RSA暗号化 (個人情報保護)
-│   ├── index.js        # ログイン処理
-│   ├── judge.js        # 問題一覧ロジック
-│   ├── question.js     # 採点ロジック
-│   ├── conflict.js     # 不一致解決ロジック  
-│   ├── admin.js        # 管理画面ロジック
-│   ├── checkin.js      # QR受付ロジック
-│   ├── entry.js        # エントリー送信
-│   ├── entry_list.js   # エントリーリスト表示
-│   ├── cancel.js       # キャンセル処理
-│   ├── disclosure.js   # 成績照会表示
-│   ├── cv.js           # OpenCV.js ラッパー（答案スキャン用）
-│   └── aruco.js        # ArUcoマーカー検出
-├── fonts/
-│   └── BIZUDGothic-Subset.ttf  # PDF日本語フォント（サブセット済み）
+│   ├── design_system.css   # デザイントークン+共通コンポーネント
+│   └── pages.css           # シェル+ページ固有
+├── js/                 # ページスクリプトと共有モジュール(my.js など)
+├── fonts/              # PDF生成用フォント（Web表示はシステムフォント）
 ├── aruco_markers/      # 回答用紙用マーカー画像 (4枚)
-└── supabase/           # DB migrations / Edge Functions
+├── design-system/      # デザインシステム文書(MASTER.md)
+└── supabase/           # DB migrations / Edge Functions(my-entry ほか)
 ```
 
 ## 🚀 ローカル起動
@@ -85,13 +70,12 @@ git diff --check
 
 ## 📋 運用フロー
 
-1. **プロジェクト作成**: `index.html` → 「新規作成」→ プロジェクト名・管理者名入力
-2. **回答用紙発行**: 管理画面 → 採点準備タブ → 問題数設定 → PDF生成
-3. **エントリー受付**: 管理画面 → 参加者タブ → 受付ON/期間設定
-4. **当日受付**: `checkin.html` → QRコードスキャンで出欠管理
-5. **答案スキャン**: 管理画面 → 答案管理タブ → 複合機スキャン画像アップロード
-6. **採点**: `judge.html` → 各問題をタップ → 3名で独立採点 → 不一致は確認画面で確定
-7. **成績照会**: 管理画面 → 集計タブ → CSV出力 / 成績照会ON
+1. **プロジェクト作成**: `index.html#create` → 回数入力 → ID/採点者用パスワード発行
+2. **準備**: 運営ホーム「準備」→ 問題数設定 → 解答用紙PDF生成・模範解答登録
+3. **公開**: 運営ホーム「公開」→ エントリー受付ON/期間・定員 → 共有リンク4本を配布
+4. **当日**: `checkin.html` → 参加者が画面にQRをかざして受付
+5. **採点**: 運営ホーム「採点」→ 答案PDF取込 → `judge.html` で3名独立採点 → 不一致は要確認で確定
+6. **結果**: 運営ホーム「結果」→ 全問確定 → 成績照会を公開(参加者はマイエントリーから確認) / CSV・PDF出力
 
 ## 📄 ライセンス
 

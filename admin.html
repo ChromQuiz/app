@@ -5,86 +5,69 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; worker-src 'self' blob:; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://unpkg.com https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob: https://*.supabase.co;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="favicon.png">
-    <meta name="description" content="CIQ - クイズ大会の解答採点を支援するウェブプラットフォーム">
-    <meta property="og:title" content="CIQ - 解答採点プラットフォーム">
-    <meta property="og:description" content="クイズ大会の解答採点を支援するウェブプラットフォーム">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="og-image.png">
-    <title>CIQ - 管理画面</title>
+    <meta name="description" content="CIQ - クイズ大会のペーパー運営を支援するプラットフォーム">
+    <title>運営 - CIQ</title>
     <script defer src="js/config.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=27"></script>
+    <script defer src="js/supabase_api.js?v=28"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=3"></script>
     <script defer src="js/ui.js?v=5"></script>
     <script defer src="js/custom-select.js?v=4"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=32">
-    <link rel="stylesheet" href="css/pages.css?v=47">
+    <link rel="stylesheet" href="css/design_system.css?v=33">
+    <link rel="stylesheet" href="css/pages.css?v=48">
 </head>
 
 <body class="page-admin">
+    <!-- 運営共通シェル: アプリバー -->
     <div class="fixed-header">
-        <div class="header-left">
-            <button class="back-nav-btn" data-nav-target="judge.html"><span data-icon="chevron-left" aria-hidden="true"></span> 戻る</button>
-        </div>
+        <div class="header-left"></div>
         <div class="header-center">
-            <h1><span data-icon="gear" aria-hidden="true"></span> 管理画面</h1>
+            <h1>運営</h1>
         </div>
         <div class="header-right">
             <div class="id-copy-badge" id="project-id-display" title="クリックでコピー"></div>
-            <button class="menu-trigger ml-sm" data-toggle-menu>
+            <button class="menu-trigger ml-sm" data-toggle-menu type="button" aria-label="メニューを開く">
                 <div class="trigger-icon"><span></span><span></span><span></span></div>
             </button>
         </div>
     </div>
 
-    <!-- Slide Panel Menu -->
+    <!-- 運営共通シェル: ドロワー -->
     <div class="menu-backdrop" id="menu-backdrop" data-toggle-menu></div>
     <div class="menu-panel" id="menu-panel">
         <button class="menu-panel-close" data-toggle-menu><span data-icon="xmark" aria-hidden="true"></span></button>
         <div class="menu-profile">
             <div class="menu-avatar"><span data-icon="crown" aria-hidden="true"></span></div>
             <div class="menu-profile-name" id="menu-scorer-name"></div>
-            <div><span class="menu-role-badge admin"><span data-icon="crown" aria-hidden="true"></span> 管理者</span></div>
+            <div><span class="menu-role-badge admin">管理者</span></div>
         </div>
         <div class="menu-section">
-            <div class="menu-section-label">ナビゲーション</div>
+            <div class="menu-section-label">運営</div>
             <button class="menu-item" data-nav-target="judge.html">
-                <span data-icon="th" aria-hidden="true"></span> 問題一覧
+                <span data-icon="table-cells-large" aria-hidden="true"></span> 採点ボード
             </button>
             <button class="menu-item warn" data-nav-target="conflict.html">
                 <span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認
             </button>
-        </div>
-        <div class="menu-divider"></div>
-        <div class="menu-section">
-            <div class="menu-section-label">ツール</div>
             <button class="menu-item" data-nav-target="checkin.html">
                 <span data-icon="qrcode" aria-hidden="true"></span> 当日受付
             </button>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-section">
+            <div class="menu-section-label">参加者ページ</div>
             <button class="menu-item" data-open-page="entry.html">
                 <span data-icon="pen-to-square" aria-hidden="true"></span> エントリーフォーム
             </button>
             <button class="menu-item" data-open-page="entry_list.html">
                 <span data-icon="list" aria-hidden="true"></span> エントリーリスト
             </button>
-            <button class="menu-item" data-open-page="edit.html">
-                <span data-icon="pen-to-square" aria-hidden="true"></span> エントリー編集
-            </button>
-            <button class="menu-item" data-open-page="cancel.html">
-                <span data-icon="user-xmark" aria-hidden="true"></span> キャンセルフォーム
-            </button>
-            <button class="menu-item" data-open-page="late.html">
-                <span data-icon="clock-rotate-left" aria-hidden="true"></span> 遅刻フォーム
-            </button>
-            <button class="menu-item" data-open-page="disclosure.html">
-                <span data-icon="chart-column" aria-hidden="true"></span> 成績照会
+            <button class="menu-item" data-open-page="my.html">
+                <span data-icon="user-check" aria-hidden="true"></span> マイエントリー
             </button>
             <button class="menu-item" data-open-page="terms.html">
                 <span data-icon="scroll" aria-hidden="true"></span> 参加規約
@@ -94,7 +77,6 @@
             <button class="menu-item" data-open-static="help.html">
                 <span data-icon="circle-question" aria-hidden="true"></span> ヘルプ
             </button>
-
             <button class="menu-item danger" id="admin-logout-btn">
                 <span data-icon="right-from-bracket" aria-hidden="true"></span> プロジェクトから退出
             </button>
@@ -102,446 +84,439 @@
     </div>
 
     <div class="admin-container">
-      <div class="admin-shell">
+        <!-- フェーズタイムライン: 大会運営の流れそのものがナビゲーション -->
+        <ol class="phase-list" id="admin-tabs" aria-label="運営フェーズ">
 
-        <aside class="admin-sidebar" aria-label="作業フェーズ">
-            <div class="admin-sidebar-head">
-                <h2>大会運営</h2>
-            </div>
-            <ul class="admin-phase-nav tabs" id="admin-tabs" role="tablist">
-                <li><button type="button" class="tab-btn active" id="tab-entries-tab" data-tab-target="tab-entries" aria-selected="true" aria-controls="tab-entries" role="tab" tabindex="0"><span data-icon="users" aria-hidden="true"></span> <span>参加者</span> <span class="tab-count" data-tab-count="entries" aria-label="参加者数">-</span></button></li>
-                <li><button type="button" class="tab-btn" id="tab-prep-tab" data-tab-target="tab-prep" aria-selected="false" aria-controls="tab-prep" role="tab" tabindex="-1"><span data-icon="file-lines" aria-hidden="true"></span> <span>採点準備</span></button></li>
-                <li><button type="button" class="tab-btn" id="tab-scan-tab" data-tab-target="tab-scan" aria-selected="false" aria-controls="tab-scan" role="tab" tabindex="-1"><span data-icon="camera" aria-hidden="true"></span> <span>答案管理</span> <span class="tab-count" data-tab-count="scan" aria-label="答案数">-</span></button></li>
-                <li><button type="button" class="tab-btn" id="tab-stats-tab" data-tab-target="tab-stats" aria-selected="false" aria-controls="tab-stats" role="tab" tabindex="-1"><span data-icon="chart-pie" aria-hidden="true"></span> <span>集計</span> <span class="tab-count" data-tab-count="conflicts" aria-label="要確認数">-</span></button></li>
-                <li><button type="button" class="tab-btn" id="tab-settings-tab" data-tab-target="tab-settings" aria-selected="false" aria-controls="tab-settings" role="tab" tabindex="-1"><span data-icon="wrench" aria-hidden="true"></span> <span>設定</span></button></li>
-            </ul>
-            <div class="admin-sidebar-foot">
-                <button class="btn secondary u-full-width" data-nav-target="judge.html"><span data-icon="table-cells-large" aria-hidden="true"></span> 問題一覧</button>
-                <button class="btn secondary u-full-width" data-nav-target="checkin.html"><span data-icon="qrcode" aria-hidden="true"></span> 当日受付</button>
-            </div>
-        </aside>
-
-        <div class="admin-main">
-            <div class="admin-statusbar" aria-label="大会状態サマリー">
-                <div class="status-tile is-next">
-                    <div class="status-tile-label"><span data-icon="door-open" aria-hidden="true"></span> エントリー</div>
-                    <div class="status-tile-value" id="overview-entry-status">確認中</div>
-                    <div class="status-tile-meta" id="overview-entry-count">参加者 -</div>
-                </div>
-                <div class="status-tile">
-                    <div class="status-tile-label"><span data-icon="list-check" aria-hidden="true"></span> 採点進捗</div>
-                    <div class="status-tile-value" id="overview-scoring-status">未集計</div>
-                    <div class="status-tile-meta" id="overview-scoring-count">0 / 0 問</div>
-                </div>
-                <div class="status-tile" id="status-tile-conflict">
-                    <div class="status-tile-label"><span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認</div>
-                    <div class="status-tile-value" id="overview-conflict-count">-</div>
-                    <div class="status-tile-meta">衝突解決</div>
-                </div>
-                <div class="status-tile">
-                    <div class="status-tile-label"><span data-icon="chart-column" aria-hidden="true"></span> 成績照会</div>
-                    <div class="status-tile-value" id="overview-disclosure-status">確認中</div>
-                    <div class="status-tile-meta" id="overview-disclosure-meta">成績照会ページ</div>
-                </div>
-                <div class="status-tile">
-                    <div class="status-tile-label"><span data-icon="file-export" aria-hidden="true"></span> 出力</div>
-                    <div class="status-tile-value" id="overview-output-status">確認中</div>
-                    <div class="status-tile-meta" id="overview-output-meta">CSV / PDF</div>
-                </div>
-            </div>
-
-        <div class="admin-body">
-
-        <!-- ==================== TAB 0: 参加者管理 ==================== -->
-        <div class="tab-content active" id="tab-entries" role="tabpanel" aria-labelledby="tab-entries-tab">
-            <div class="section glass-panel admin-public-section">
-                <h2><span data-icon="tower-broadcast" aria-hidden="true"></span> 公開管理</h2>
-                <div class="public-state-grid" aria-label="公開状態">
-                    <div class="public-state-card">
-                        <div class="public-state-label"><span data-icon="pen-to-square" aria-hidden="true"></span> エントリー</div>
-                        <div class="public-state-value" id="entry-state-summary">確認中</div>
-                        <div class="public-state-meta" id="entry-state-meta">エントリーフォーム</div>
-                    </div>
-                    <div class="public-state-card">
-                        <div class="public-state-label"><span data-icon="chart-column" aria-hidden="true"></span> 成績照会</div>
-                        <div class="public-state-value" id="disclosure-state-summary">確認中</div>
-                        <div class="public-state-meta" id="disclosure-state-meta">成績照会ページ</div>
-                    </div>
-                </div>
-
-                <div class="config-panel public-config-group">
-                    <div class="config-row">
-                        <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked data-action="toggle-entry-open"><span class="toggle-slider"></span></label>
-                        <div class="toggle-info">
-                            <div class="toggle-info-title">エントリー</div>
-                            <div class="toggle-info-desc">OFFにすると期間に関わらず即時停止</div>
-                        </div>
-                        <span id="entry-open-status" class="status-badge status-open">エントリー中</span>
-                    </div>
-                    <div class="public-config-subpanel">
-                        <div class="period-heading"><span data-icon="calendar-days" aria-hidden="true"></span>エントリー期間<span class="period-hint">（任意 — 空欄＝制限なし）</span></div>
-                        <div class="period-grid">
-                            <div>
-                                <label class="period-label"><span class="icon-start" data-icon="play" aria-hidden="true"></span>開始</label>
-                                <div class="dt-trigger" id="dt-start-trigger" data-dt-target="start">
-                                    <span data-icon="calendar" aria-hidden="true"></span>
-                                    <span id="dt-start-display">未設定</span>
-                                </div>
-                                <input type="hidden" id="entry-period-start" />
+            <!-- ① 準備 -->
+            <li class="phase">
+                <button type="button" class="tab-btn" id="tab-prep-tab" data-tab-target="tab-prep" aria-selected="false" aria-controls="tab-prep" role="tab" tabindex="-1">
+                    <span class="phase-num" aria-hidden="true">1</span>
+                    <span class="phase-label">
+                        <span class="phase-title">準備</span>
+                        <span class="phase-desc">解答用紙と模範解答</span>
+                    </span>
+                </button>
+                <div class="tab-content" id="tab-prep" role="tabpanel" aria-labelledby="tab-prep-tab" hidden>
+                    <div class="phase-block">
+                        <h2>解答用紙のPDF生成</h2>
+                        <div class="phase-control-row">
+                            <label class="u-label-compact" for="question-count">問題数</label>
+                            <div class="number-spinner-wrap">
+                                <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="-10" aria-label="10問減らす"><span data-icon="minus" aria-hidden="true"></span></button>
+                                <input type="number" id="question-count" value="100" min="10" max="200" step="10" />
+                                <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="10" aria-label="10問増やす"><span data-icon="plus" aria-hidden="true"></span></button>
                             </div>
-                            <div class="period-arrow">→</div>
-                            <div>
-                                <label class="period-label"><span class="icon-end" data-icon="stop" aria-hidden="true"></span>終了</label>
-                                <div class="dt-trigger" id="dt-end-trigger" data-dt-target="end">
-                                    <span data-icon="calendar" aria-hidden="true"></span>
-                                    <span id="dt-end-display">未設定</span>
-                                </div>
-                                <input type="hidden" id="entry-period-end" />
-                            </div>
+                            <span class="u-tiny-muted">10の倍数で指定</span>
                         </div>
+                        <button class="btn" data-action="generate-pdf"><span data-icon="download" aria-hidden="true"></span> 解答用紙をダウンロード</button>
                     </div>
-                    <div class="public-config-subpanel">
-                        <div class="config-row">
-                            <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked data-action="toggle-max-entries"><span class="toggle-slider"></span></label>
-                            <div class="toggle-info">
-                                <div class="toggle-info-title">定員制限</div>
-                                <div class="toggle-info-desc">ONにすると定員を超えたエントリーはキャンセル待ちになります</div>
-                            </div>
-                            <span id="max-entries-status" class="status-badge status-open">120人</span>
-                        </div>
-                        <div id="max-entries-input-area" class="mb-zero mt-md">
-                            <div class="number-spinner-wrap u-input-compact">
-                                <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-1"><span data-icon="minus" aria-hidden="true"></span></button>
-                                <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" />
-                                <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="1"><span data-icon="plus" aria-hidden="true"></span></button>
-                            </div>
-                            <div class="u-tiny-muted u-mt-xs"><span data-icon="circle-info" aria-hidden="true"></span> 1人単位で増減</div>
-                        </div>
-                        <div class="public-config-subpanel mt-md">
-                            <div class="period-heading"><span data-icon="user-clock" aria-hidden="true"></span>キャンセル繰り上げ期限<span class="period-hint">（空欄＝エントリー終了と同じ）</span></div>
-                            <div class="period-grid period-grid-single">
-                                <div>
-                                    <label class="period-label"><span class="icon-end" data-icon="stop" aria-hidden="true"></span>終了</label>
-                                    <div class="dt-trigger" id="dt-waitlist-end-trigger" data-dt-scope="waitlist" data-dt-target="end">
-                                        <span data-icon="calendar" aria-hidden="true"></span>
-                                        <span id="dt-waitlist-end-display">エントリー終了と同じ</span>
-                                    </div>
-                                    <input type="hidden" id="waitlist-period-end" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="config-panel public-config-group">
-                    <div class="config-row">
-                        <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" data-action="toggle-disclosure-open"><span class="toggle-slider"></span></label>
-                        <div class="toggle-info">
-                            <div class="toggle-info-title">成績照会</div>
-                            <div class="toggle-info-desc">OFFにすると期間に関わらず照会を停止</div>
-                        </div>
-                        <span id="disclosure-open-status" class="status-badge status-closed">停止中</span>
-                    </div>
-                    <div class="public-config-subpanel">
-                        <div class="period-heading"><span data-icon="calendar-days" aria-hidden="true"></span>照会期間<span class="period-hint">（任意 — 空欄＝制限なし）</span></div>
-                        <div class="period-grid">
-                            <div>
-                                <label class="period-label"><span class="icon-start" data-icon="play" aria-hidden="true"></span>開始</label>
-                                <div class="dt-trigger" id="dt-disclosure-start-trigger" data-dt-scope="disclosure" data-dt-target="start">
-                                    <span data-icon="calendar" aria-hidden="true"></span>
-                                    <span id="dt-disclosure-start-display">未設定</span>
-                                </div>
-                                <input type="hidden" id="disclosure-period-start" />
-                            </div>
-                            <div class="period-arrow">→</div>
-                            <div>
-                                <label class="period-label"><span class="icon-end" data-icon="stop" aria-hidden="true"></span>終了</label>
-                                <div class="dt-trigger" id="dt-disclosure-end-trigger" data-dt-scope="disclosure" data-dt-target="end">
-                                    <span data-icon="calendar" aria-hidden="true"></span>
-                                    <span id="dt-disclosure-end-display">未設定</span>
-                                </div>
-                                <input type="hidden" id="disclosure-period-end" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="public-links">
-                    <div class="link-row"><span class="link-label"><span data-icon="pen-to-square" aria-hidden="true"></span> エントリー</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="registration-link" title="開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button><button class="btn secondary link-btn-sm" data-copy-link="registration-link" title="コピー"><span data-icon="copy" aria-hidden="true"></span></button></div>
-                    <div class="link-row"><span class="link-label"><span data-icon="list" aria-hidden="true"></span> リスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="entry-link" title="開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button><button class="btn secondary link-btn-sm" data-copy-link="entry-link" title="コピー"><span data-icon="copy" aria-hidden="true"></span></button></div>
-                    <div class="link-row"><span class="link-label"><span data-icon="pen-to-square" aria-hidden="true"></span> 編集</span><a id="edit-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="edit-link" title="開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button><button class="btn secondary link-btn-sm" data-copy-link="edit-link" title="コピー"><span data-icon="copy" aria-hidden="true"></span></button></div>
-                    <div class="link-row"><span class="link-label"><span data-icon="user-xmark" aria-hidden="true"></span> キャンセル</span><a id="cancel-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="cancel-link" title="開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button><button class="btn secondary link-btn-sm" data-copy-link="cancel-link" title="コピー"><span data-icon="copy" aria-hidden="true"></span></button></div>
-                    <div class="link-row"><span class="link-label"><span data-icon="clock-rotate-left" aria-hidden="true"></span> 遅刻</span><a id="late-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="late-link" title="開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button><button class="btn secondary link-btn-sm" data-copy-link="late-link" title="コピー"><span data-icon="copy" aria-hidden="true"></span></button></div>
-                    <div class="link-row"><span class="link-label"><span data-icon="chart-column" aria-hidden="true"></span> 成績照会</span><a id="disclosure-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="disclosure-link" title="開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button><button class="btn secondary link-btn-sm" data-copy-link="disclosure-link" title="コピー"><span data-icon="copy" aria-hidden="true"></span></button></div>
-                    <div class="link-row"><span class="link-label"><span data-icon="scroll" aria-hidden="true"></span> 参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-open-link="terms-link" title="開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button><button class="btn secondary link-btn-sm" data-copy-link="terms-link" title="コピー"><span data-icon="copy" aria-hidden="true"></span></button></div>
-                </div>
-            </div>
-            <div class="section glass-panel">
-                <div class="section-header-row">
-                    <h2><span data-icon="address-book" aria-hidden="true"></span> 参加者一覧</h2>
-                    <button class="btn secondary" data-action="open-admin-entry-modal"><span data-icon="user-plus" aria-hidden="true"></span> 参加者を追加</button>
-                </div>
-                <div class="table-container u-table-scroll-md">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th><span data-icon="hashtag" aria-hidden="true"></span> 番号</th>
-                                <th><span data-icon="user" aria-hidden="true"></span> 氏名・カナ</th>
-                                <th><span data-icon="id-badge" aria-hidden="true"></span> エントリーネーム</th>
-                                <th><span data-icon="school" aria-hidden="true"></span> 所属</th>
-                                <th><span data-icon="graduation-cap" aria-hidden="true"></span> 学年</th>
-                                <th><span data-icon="envelope" aria-hidden="true"></span> メール</th>
-                                <th><span data-icon="book-open" aria-hidden="true"></span> 本名使用</th>
-                                <th><span data-icon="circle-info" aria-hidden="true"></span> 状態</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-entries-tbody">
-                            <tr><td colspan="8" class="loading-state">読み込み中...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <button class="btn secondary mt-md" data-action="export-entries-csv"><span data-icon="download" aria-hidden="true"></span> 参加者名簿CSV</button>
-            </div>
-        </div>
-
-        <!-- ==================== TAB 1: 採点準備（解答用紙＋模範解答） ==================== -->
-        <div class="tab-content" id="tab-prep" role="tabpanel" aria-labelledby="tab-prep-tab">
-            <div class="section glass-panel">
-                <h2><span data-icon="file-pdf" aria-hidden="true"></span> 解答用紙の生成</h2>
-                <label><span data-icon="list-ol" aria-hidden="true"></span> 問題数</label>
-                <div class="number-spinner-wrap mt-sm">
-                    <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="-10"><span data-icon="minus" aria-hidden="true"></span></button>
-                    <input type="number" id="question-count" value="100" min="10" max="200" step="10" />
-                    <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="10"><span data-icon="plus" aria-hidden="true"></span></button>
-                </div>
-                <div class="info-hint"><span data-icon="circle-info" aria-hidden="true"></span> 10の倍数で指定</div>
-                <button class="btn secondary mt-lg" data-action="generate-pdf"><span data-icon="download" aria-hidden="true"></span> ダウンロード</button>
-            </div>
-
-            <div class="section glass-panel">
-                <h2><span data-icon="spell-check" aria-hidden="true"></span> 模範解答の登録</h2>
-                <div class="flex-col-row">
-                    <div class="flex-grow">
-                        <p class="desc-text-centered">
-                            <span data-icon="circle-info" aria-hidden="true"></span> CSVファイルをアップロードして模範解答を一括登録します。
-                        </p>
-
+                    <div class="phase-block">
+                        <h2>模範解答の登録</h2>
+                        <p class="desc-text mb-md">CSVファイルをアップロードして一括登録します。</p>
                         <div class="file-upload-zone" data-file-trigger="csv-file">
                             <span data-icon="file-csv" aria-hidden="true"></span>
                             <div class="file-label">CSVファイルを選択</div>
                             <div class="file-name" id="csv-file-name"></div>
                             <input type="file" id="csv-file" accept=".csv" />
                         </div>
+                        <div class="model-grid mt-md" id="model-answer-grid"></div>
                     </div>
                 </div>
-                <div class="model-grid mt-md" id="model-answer-grid"></div>
-            </div>
-        </div>
+            </li>
 
-        <!-- ==================== TAB 2: 答案管理 ==================== -->
-        <div class="tab-content" id="tab-scan" role="tabpanel" aria-labelledby="tab-scan-tab">
-            <div class="section glass-panel">
-                <div class="file-upload-zone u-dashed mt-zero mb-xl" id="pdf-upload-zone" data-file-trigger="pdf-file">
-                    <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
-                    <div class="file-label">PDFをアップロードして一括スキャン＆保存</div>
-                    <div class="file-name" id="pdf-file-name"></div>
-                    <input type="file" id="pdf-file" accept="application/pdf" />
-                </div>
-
-                <div class="flex-row-spread">
-                    <div class="flex-row">
-                        <h2 class="mb-zero"><span data-icon="folder-open" aria-hidden="true"></span> 保存済み答案</h2>
-                        <span id="entry-count-badge" class="count-badge">0件</span>
-                    </div>
-                    <div class="flex-row">
-                        <label class="custom-checkbox" id="select-all-label" hidden>
-                            <input type="checkbox" id="select-all-cb" data-action="toggle-select-all" />
-                            <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
-                            <span>全選択</span>
-                        </label>
-                        <button class="btn danger" id="batch-delete-btn" data-action="batch-delete" disabled hidden><span data-icon="trash" aria-hidden="true"></span> 選択削除</button>
-                    </div>
-                </div>
-
-                <div id="entry-list">
-                    <div class="loading-state"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</div>
-                </div>
-            </div>
-        </div>
-
-
-
-        <!-- ==================== TAB 4: 集計 ==================== -->
-        <div class="tab-content" id="tab-stats" role="tabpanel" aria-labelledby="tab-stats-tab">
-            <div class="section glass-panel">
-                <h2><span data-icon="chart-bar" aria-hidden="true"></span> 採点状況</h2>
-                <div class="stats">
-                    <div class="stat-card glass-panel">
-                        <div class="stat-num" id="stat-total">-</div>
-                        <div class="stat-label"><span data-icon="list-ol" aria-hidden="true"></span> 総問題数</div>
-                    </div>
-                    <div class="stat-card glass-panel">
-                        <div class="stat-num stat-done" id="stat-done">-</div>
-                        <div class="stat-label"><span data-icon="circle-check" aria-hidden="true"></span> 完了</div>
-                    </div>
-                    <div class="stat-card glass-panel">
-                        <div class="stat-num stat-conflict" id="stat-conflict">-</div>
-                        <div class="stat-label"><span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認</div>
-                    </div>
-                </div>
-                <div class="stats-bar-wrap" id="stats-bar"></div>
-                <div class="stats-legend">
-                    <div class="stats-legend-item"><div class="stats-legend-dot legend-done"></div>完了</div>
-                    <div class="stats-legend-item"><div class="stats-legend-dot legend-conflict"></div>要確認</div>
-                    <div class="stats-legend-item"><div class="stats-legend-dot legend-scoring"></div>採点中</div>
-                    <div class="stats-legend-item"><div class="stats-legend-dot legend-pending"></div>未着手</div>
-                </div>
-            </div>
-            <div class="section glass-panel u-relative-layer">
-                <h2><span data-icon="file-csv" aria-hidden="true"></span> 採点結果CSV</h2>
-                <div class="csv-status" id="csv-status"><span data-icon="spinner" aria-hidden="true"></span> 確認中...</div>
-                <div class="config-panel mb-md">
-                    <div class="u-grid-2">
-                        <div>
-                            <label class="u-label-compact">名前区切り</label>
-                            <select id="csv-name-sep" class="custom-select u-full-width">
-                                <option value="fullspace">全角スペース</option>
-                                <option value="halfspace">半角スペース</option>
-                                <option value="none">区切りなし</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="u-label-compact">文字数固定</label>
-                            <select id="csv-name-fixed" class="custom-select u-full-width">
-                                <option value="0">なし</option>
-                                <option value="4">4文字</option>
-                                <option value="5">5文字</option>
-                                <option value="6">6文字</option>
-                                <option value="7">7文字</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="u-tiny-muted mt-sm">
-                        <span data-icon="circle-info" aria-hidden="true"></span> 文字数固定: 姓名の合計が指定文字数未満の場合、姓と名の間にスペースを挿入して揃えます。
-                    </div>
-                </div>
-                <div class="section-action-row">
-                    <button class="btn secondary" id="csv-btn" disabled data-action="export-csv"><span data-icon="download" aria-hidden="true"></span> 採点結果CSV出力</button>
-                    <button class="btn secondary" id="graded-pdf-btn" disabled data-action="export-graded-pdf"><span data-icon="file-pdf" aria-hidden="true"></span> 採点済みPDF出力</button>
-                </div>
-            </div>
-            <div class="section glass-panel">
-                <h2><span data-icon="magnifying-glass-chart" aria-hidden="true"></span> 問題アナリティクス</h2>
-                <div class="analytics-threshold-row">
-                    <span>正答数</span>
-                    <div class="number-spinner-wrap">
-                        <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="-1"><span data-icon="minus" aria-hidden="true"></span></button>
-                        <input type="number" id="analytics-threshold" value="5" min="0" max="100" data-action="render-analytics" />
-                        <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="1"><span data-icon="plus" aria-hidden="true"></span></button>
-                    </div>
-                    <span>人以下をハイライト</span>
-                </div>
-                <div class="config-panel config-row mt-sm">
-                    <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked data-action="render-analytics"><span class="toggle-slider"></span></label>
-                    <span class="u-muted-note">エントリーネームで表示</span>
-                </div>
-                <div class="section-action-row">
-                    <button class="btn secondary" data-action="export-analytics-csv"><span data-icon="download" aria-hidden="true"></span> 正答率分析CSV</button>
-                </div>
-                <div class="table-container mt-md u-table-scroll-md">
-                    <table id="analytics-table">
-                        <thead>
-                            <tr>
-                                <th><span data-icon="hashtag" aria-hidden="true"></span> 問</th>
-                                <th><span data-icon="user-check" aria-hidden="true"></span> 正答数</th>
-                                <th><span data-icon="percent" aria-hidden="true"></span> 正答率</th>
-                                <th><span data-icon="circle-info" aria-hidden="true"></span> 状態</th>
-                                <th><span data-icon="users" aria-hidden="true"></span> 正解者</th>
-                            </tr>
-                        </thead>
-                        <tbody id="analytics-tbody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== TAB 5: 設定 ==================== -->
-        <div class="tab-content" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-tab">
-
-
-            <div class="section glass-panel">
-                <h2><span data-icon="user-shield" aria-hidden="true"></span> メンバー管理</h2>
-                <p class="desc-text mb-md">採点者はプロジェクトIDとパスワードで参加できます。管理者は参加済みメンバーの権限変更、キック、復帰ができます。</p>
-                <div class="member-management-toolbar">
-                    <button class="btn secondary" data-action="load-project-members"><span data-icon="rotate" aria-hidden="true"></span> 更新</button>
-                </div>
-                <div class="table-container mt-md">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>名前</th>
-                                <th>権限</th>
-                                <th>状態</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="project-members-tbody">
-                            <tr><td colspan="4" class="td-loading">読み込み中...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            
-            <div class="section glass-panel">
-                <h2><span data-icon="scroll" aria-hidden="true"></span> 参加規約</h2>
-                <p class="desc-text mb-md">大会の参加規約を入力します。設定するとエントリーフォームに同意チェックボックスが表示されます。（Markdown/テキスト）</p>
-                <div class="name-input-flex u-stack-stretch">
-                    <textarea id="setting-terms" class="u-min-h-120 mb-md" placeholder="規約を入力しない場合は空にしてください"></textarea>
-                    <button class="btn u-full-width" data-action="update-terms"><span data-icon="arrows-rotate" aria-hidden="true"></span> 参加規約を更新</button>
-                </div>
-            </div>
-
-            <div class="section glass-panel">
-                <h2><span data-icon="envelope" aria-hidden="true"></span> 連絡先・メール設定</h2>
-                <p class="desc-text mb-md">参加者操作後の控えメールを設定します。</p>
-                <div class="email-settings-layout">
-                    <div class="email-notification-grid">
-                        <div class="config-row email-notification-card">
-                            <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-edit" checked><span class="toggle-slider"></span></label>
+            <!-- ② 公開 -->
+            <li class="phase">
+                <button type="button" class="tab-btn active" id="tab-entries-tab" data-tab-target="tab-entries" aria-selected="true" aria-controls="tab-entries" role="tab" tabindex="0">
+                    <span class="phase-num" aria-hidden="true">2</span>
+                    <span class="phase-label">
+                        <span class="phase-title">公開</span>
+                        <span class="phase-desc"><span id="overview-entry-status">確認中</span> · <span id="overview-entry-count">参加者 -</span></span>
+                    </span>
+                    <span class="tab-count" data-tab-count="entries" aria-label="参加者数">-</span>
+                </button>
+                <div class="tab-content active" id="tab-entries" role="tabpanel" aria-labelledby="tab-entries-tab">
+                    <div class="phase-block">
+                        <h2>エントリー受付</h2>
+                        <div class="config-row">
+                            <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked data-action="toggle-entry-open"><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
-                                <div class="toggle-info-title">編集完了通知</div>
-                                <div class="toggle-info-desc">エントリー内容を変更した参加者へ控えを送信</div>
+                                <div class="toggle-info-title">エントリーを受け付ける</div>
+                                <div class="toggle-info-desc" id="entry-state-meta">OFFにすると期間に関わらず即時停止します</div>
+                            </div>
+                            <span id="entry-open-status" class="status-badge status-open">エントリー中</span>
+                        </div>
+                        <div class="phase-subblock">
+                            <div class="period-heading">エントリー期間 <span class="period-hint">任意 — 空欄は制限なし</span></div>
+                            <div class="period-grid">
+                                <div>
+                                    <label class="period-label">開始</label>
+                                    <div class="dt-trigger" id="dt-start-trigger" data-dt-target="start">
+                                        <span data-icon="calendar" aria-hidden="true"></span>
+                                        <span id="dt-start-display">未設定</span>
+                                    </div>
+                                    <input type="hidden" id="entry-period-start" />
+                                </div>
+                                <div class="period-arrow" aria-hidden="true">→</div>
+                                <div>
+                                    <label class="period-label">終了</label>
+                                    <div class="dt-trigger" id="dt-end-trigger" data-dt-target="end">
+                                        <span data-icon="calendar" aria-hidden="true"></span>
+                                        <span id="dt-end-display">未設定</span>
+                                    </div>
+                                    <input type="hidden" id="entry-period-end" />
+                                </div>
                             </div>
                         </div>
-                        <div class="config-row email-notification-card">
-                            <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-cancel" checked><span class="toggle-slider"></span></label>
-                            <div class="toggle-info">
-                                <div class="toggle-info-title">キャンセル完了通知</div>
-                                <div class="toggle-info-desc">エントリーをキャンセルした参加者へ控えを送信</div>
+                        <div class="phase-subblock">
+                            <div class="config-row">
+                                <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked data-action="toggle-max-entries"><span class="toggle-slider"></span></label>
+                                <div class="toggle-info">
+                                    <div class="toggle-info-title">定員制限</div>
+                                    <div class="toggle-info-desc">定員を超えたエントリーはキャンセル待ちになります</div>
+                                </div>
+                                <span id="max-entries-status" class="status-badge status-open">120人</span>
                             </div>
-                        </div>
-                        <div class="config-row email-notification-card">
-                            <label class="toggle-switch"><input type="checkbox" id="setting-notify-late-notice" checked><span class="toggle-slider"></span></label>
-                            <div class="toggle-info">
-                                <div class="toggle-info-title">遅刻連絡受付通知</div>
-                                <div class="toggle-info-desc">遅刻を届け出た参加者へ控えを送信</div>
+                            <div id="max-entries-input-area" class="mt-md mb-zero">
+                                <div class="number-spinner-wrap u-input-compact">
+                                    <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-1" aria-label="1人減らす"><span data-icon="minus" aria-hidden="true"></span></button>
+                                    <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" />
+                                    <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="1" aria-label="1人増やす"><span data-icon="plus" aria-hidden="true"></span></button>
+                                </div>
+                            </div>
+                            <div class="phase-subblock mt-md">
+                                <div class="period-heading">キャンセル繰り上げ期限 <span class="period-hint">空欄はエントリー終了と同じ</span></div>
+                                <div class="period-grid period-grid-single">
+                                    <div>
+                                        <label class="period-label">終了</label>
+                                        <div class="dt-trigger" id="dt-waitlist-end-trigger" data-dt-scope="waitlist" data-dt-target="end">
+                                            <span data-icon="calendar" aria-hidden="true"></span>
+                                            <span id="dt-waitlist-end-display">エントリー終了と同じ</span>
+                                        </div>
+                                        <input type="hidden" id="waitlist-period-end" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="phase-block">
+                        <h2>参加者に共有するリンク</h2>
+                        <div class="public-links">
+                            <div class="link-row"><span class="link-label">エントリーフォーム</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-copy-link="registration-link"><span data-icon="copy" aria-hidden="true"></span> コピー</button><button class="btn ghost link-btn-sm" data-open-link="registration-link" title="開く" aria-label="エントリーフォームを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">エントリーリスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-copy-link="entry-link"><span data-icon="copy" aria-hidden="true"></span> コピー</button><button class="btn ghost link-btn-sm" data-open-link="entry-link" title="開く" aria-label="エントリーリストを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">マイエントリー</span><a id="my-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-copy-link="my-link"><span data-icon="copy" aria-hidden="true"></span> コピー</button><button class="btn ghost link-btn-sm" data-open-link="my-link" title="開く" aria-label="マイエントリーを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-copy-link="terms-link"><span data-icon="copy" aria-hidden="true"></span> コピー</button><button class="btn ghost link-btn-sm" data-open-link="terms-link" title="開く" aria-label="参加規約を開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                        </div>
+                        <p class="u-tiny-muted mt-sm">編集・キャンセル・遅刻連絡・成績照会は、すべてマイエントリーから行えます。</p>
+                    </div>
+
+                    <div class="phase-block">
+                        <div class="section-header-row">
+                            <h2>参加者一覧</h2>
+                            <button class="btn secondary" data-action="open-admin-entry-modal"><span data-icon="user-plus" aria-hidden="true"></span> 参加者を追加</button>
+                        </div>
+                        <div class="table-container u-table-scroll-md">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>番号</th>
+                                        <th>氏名・カナ</th>
+                                        <th>エントリーネーム</th>
+                                        <th>所属</th>
+                                        <th>学年</th>
+                                        <th>メール</th>
+                                        <th>本名使用</th>
+                                        <th>状態</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-entries-tbody">
+                                    <tr><td colspan="8" class="loading-state">読み込み中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button class="btn secondary mt-md" data-action="export-entries-csv"><span data-icon="download" aria-hidden="true"></span> 参加者名簿CSV</button>
+                    </div>
                 </div>
-            </div>
+            </li>
 
-            <div class="section glass-panel danger-zone">
-                <h2 class="danger-title"><span data-icon="triangle-exclamation" aria-hidden="true"></span> 危険な操作</h2>
-                <p class="desc-text">エントリー・採点データなどプロジェクト内の全データを削除し、初期状態に戻します。プロジェクト自体は残ります。</p>
-                <button class="btn danger" data-action="reset-project"><span data-icon="rotate-left" aria-hidden="true"></span> プロジェクトリセット</button>
-            </div>
-        </div>
+            <!-- ③ 当日 -->
+            <li class="phase phase-jump">
+                <button type="button" class="phase-goto" data-nav-target="checkin.html">
+                    <span class="phase-num" aria-hidden="true">3</span>
+                    <span class="phase-label">
+                        <span class="phase-title">当日</span>
+                        <span class="phase-desc">QRコードで当日受付を行う</span>
+                    </span>
+                    <span class="phase-goto-arrow" aria-hidden="true"><span data-icon="arrow-right" aria-hidden="true"></span></span>
+                </button>
+            </li>
 
+            <!-- ④ 採点 -->
+            <li class="phase">
+                <button type="button" class="tab-btn" id="tab-scan-tab" data-tab-target="tab-scan" aria-selected="false" aria-controls="tab-scan" role="tab" tabindex="-1">
+                    <span class="phase-num" aria-hidden="true">4</span>
+                    <span class="phase-label">
+                        <span class="phase-title">採点</span>
+                        <span class="phase-desc"><span id="overview-scoring-count">- / - 問完了</span> · <span id="status-tile-conflict">要確認 <span id="overview-conflict-count">-</span></span></span>
+                    </span>
+                    <span class="tab-count" data-tab-count="scan" aria-label="答案数">-</span>
+                </button>
+                <div class="tab-content" id="tab-scan" role="tabpanel" aria-labelledby="tab-scan-tab" hidden>
+                    <div class="phase-block">
+                        <h2>答案の取り込み</h2>
+                        <div class="file-upload-zone u-dashed" id="pdf-upload-zone" data-file-trigger="pdf-file">
+                            <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
+                            <div class="file-label">スキャンした答案PDFをアップロード</div>
+                            <div class="file-name" id="pdf-file-name"></div>
+                            <input type="file" id="pdf-file" accept="application/pdf" />
+                        </div>
+                    </div>
+                    <div class="phase-block">
+                        <div class="flex-row-spread">
+                            <div class="flex-row">
+                                <h2 class="mb-zero">保存済み答案</h2>
+                                <span id="entry-count-badge" class="count-badge">0件</span>
+                            </div>
+                            <div class="flex-row">
+                                <label class="custom-checkbox" id="select-all-label" hidden>
+                                    <input type="checkbox" id="select-all-cb" data-action="toggle-select-all" />
+                                    <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
+                                    <span>全選択</span>
+                                </label>
+                                <button class="btn danger" id="batch-delete-btn" data-action="batch-delete" disabled hidden><span data-icon="trash" aria-hidden="true"></span> 選択削除</button>
+                            </div>
+                        </div>
+                        <div id="entry-list">
+                            <div class="loading-state"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</div>
+                        </div>
+                    </div>
+                    <div class="phase-block">
+                        <h2>採点の進行</h2>
+                        <p class="desc-text mb-md">採点は採点ボードから行います。判定が割れた解答は「要確認」で確定します。</p>
+                        <div class="phase-actions">
+                            <button class="btn" data-nav-target="judge.html"><span data-icon="table-cells-large" aria-hidden="true"></span> 採点ボードへ</button>
+                            <button class="btn secondary" data-nav-target="conflict.html"><span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認を解決する</button>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <!-- ⑤ 結果 -->
+            <li class="phase">
+                <button type="button" class="tab-btn" id="tab-stats-tab" data-tab-target="tab-stats" aria-selected="false" aria-controls="tab-stats" role="tab" tabindex="-1">
+                    <span class="phase-num" aria-hidden="true">5</span>
+                    <span class="phase-label">
+                        <span class="phase-title">結果</span>
+                        <span class="phase-desc"><span id="overview-disclosure-status">確認中</span> · <span id="overview-output-status">未確定</span></span>
+                    </span>
+                    <span class="tab-count" data-tab-count="conflicts" aria-label="要確認数">-</span>
+                </button>
+                <div class="tab-content" id="tab-stats" role="tabpanel" aria-labelledby="tab-stats-tab" hidden>
+                    <div class="phase-block">
+                        <h2>採点状況</h2>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-num" id="stat-total">-</div>
+                                <div class="stat-label">総問題数</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-num stat-done" id="stat-done">-</div>
+                                <div class="stat-label">完了</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-num stat-conflict" id="stat-conflict">-</div>
+                                <div class="stat-label">要確認</div>
+                            </div>
+                        </div>
+                        <div class="stats-bar-wrap" id="stats-bar"></div>
+                        <div class="stats-legend">
+                            <div class="stats-legend-item"><div class="stats-legend-dot legend-done"></div>完了</div>
+                            <div class="stats-legend-item"><div class="stats-legend-dot legend-conflict"></div>要確認</div>
+                            <div class="stats-legend-item"><div class="stats-legend-dot legend-scoring"></div>採点中</div>
+                            <div class="stats-legend-item"><div class="stats-legend-dot legend-pending"></div>未着手</div>
+                        </div>
+                    </div>
+
+                    <div class="phase-block">
+                        <h2>成績照会の公開</h2>
+                        <div class="config-row">
+                            <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" data-action="toggle-disclosure-open"><span class="toggle-slider"></span></label>
+                            <div class="toggle-info">
+                                <div class="toggle-info-title">成績照会を公開する</div>
+                                <div class="toggle-info-desc" id="disclosure-state-meta">参加者はマイエントリーから成績を確認できます</div>
+                            </div>
+                            <span id="disclosure-open-status" class="status-badge status-closed">停止中</span>
+                        </div>
+                        <div class="phase-subblock">
+                            <div class="period-heading">照会期間 <span class="period-hint">任意 — 空欄は制限なし</span></div>
+                            <div class="period-grid">
+                                <div>
+                                    <label class="period-label">開始</label>
+                                    <div class="dt-trigger" id="dt-disclosure-start-trigger" data-dt-scope="disclosure" data-dt-target="start">
+                                        <span data-icon="calendar" aria-hidden="true"></span>
+                                        <span id="dt-disclosure-start-display">未設定</span>
+                                    </div>
+                                    <input type="hidden" id="disclosure-period-start" />
+                                </div>
+                                <div class="period-arrow" aria-hidden="true">→</div>
+                                <div>
+                                    <label class="period-label">終了</label>
+                                    <div class="dt-trigger" id="dt-disclosure-end-trigger" data-dt-scope="disclosure" data-dt-target="end">
+                                        <span data-icon="calendar" aria-hidden="true"></span>
+                                        <span id="dt-disclosure-end-display">未設定</span>
+                                    </div>
+                                    <input type="hidden" id="disclosure-period-end" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="phase-block u-relative-layer">
+                        <h2>採点結果の出力</h2>
+                        <div class="csv-status" id="csv-status"><span data-icon="spinner" aria-hidden="true"></span> 確認中...</div>
+                        <div class="phase-subblock mb-md">
+                            <div class="u-grid-2">
+                                <div>
+                                    <label class="u-label-compact">名前区切り</label>
+                                    <select id="csv-name-sep" class="custom-select u-full-width">
+                                        <option value="fullspace">全角スペース</option>
+                                        <option value="halfspace">半角スペース</option>
+                                        <option value="none">区切りなし</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="u-label-compact">文字数固定</label>
+                                    <select id="csv-name-fixed" class="custom-select u-full-width">
+                                        <option value="0">なし</option>
+                                        <option value="4">4文字</option>
+                                        <option value="5">5文字</option>
+                                        <option value="6">6文字</option>
+                                        <option value="7">7文字</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="u-tiny-muted mt-sm">文字数固定: 姓名の合計が指定文字数未満の場合、姓と名の間にスペースを挿入して揃えます。</div>
+                        </div>
+                        <div class="phase-actions">
+                            <button class="btn secondary" id="csv-btn" disabled data-action="export-csv"><span data-icon="download" aria-hidden="true"></span> 採点結果CSV</button>
+                            <button class="btn secondary" id="graded-pdf-btn" disabled data-action="export-graded-pdf"><span data-icon="file-pdf" aria-hidden="true"></span> 採点済みPDF</button>
+                        </div>
+                    </div>
+
+                    <div class="phase-block">
+                        <h2>問題アナリティクス</h2>
+                        <div class="analytics-threshold-row">
+                            <span>正答数</span>
+                            <div class="number-spinner-wrap">
+                                <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="-1" aria-label="1減らす"><span data-icon="minus" aria-hidden="true"></span></button>
+                                <input type="number" id="analytics-threshold" value="5" min="0" max="100" data-action="render-analytics" />
+                                <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="1" aria-label="1増やす"><span data-icon="plus" aria-hidden="true"></span></button>
+                            </div>
+                            <span>人以下をハイライト</span>
+                        </div>
+                        <div class="config-row mt-sm">
+                            <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked data-action="render-analytics"><span class="toggle-slider"></span></label>
+                            <span class="u-muted-note">エントリーネームで表示</span>
+                        </div>
+                        <button class="btn secondary mt-md" data-action="export-analytics-csv"><span data-icon="download" aria-hidden="true"></span> 正答率分析CSV</button>
+                        <div class="table-container mt-md u-table-scroll-md">
+                            <table id="analytics-table">
+                                <thead>
+                                    <tr>
+                                        <th>問</th>
+                                        <th>正答数</th>
+                                        <th>正答率</th>
+                                        <th>状態</th>
+                                        <th>正解者</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analytics-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <!-- 設定 -->
+            <li class="phase phase-settings">
+                <button type="button" class="tab-btn" id="tab-settings-tab" data-tab-target="tab-settings" aria-selected="false" aria-controls="tab-settings" role="tab" tabindex="-1">
+                    <span class="phase-num" aria-hidden="true"><span data-icon="gear" aria-hidden="true"></span></span>
+                    <span class="phase-label">
+                        <span class="phase-title">設定</span>
+                        <span class="phase-desc">メンバー・規約・メール・リセット</span>
+                    </span>
+                </button>
+                <div class="tab-content" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-tab" hidden>
+                    <div class="phase-block">
+                        <h2>メンバー管理</h2>
+                        <p class="desc-text mb-md">採点者はプロジェクトIDとパスワードで参加できます。参加済みメンバーの権限変更、キック、復帰ができます。</p>
+                        <div class="member-management-toolbar">
+                            <button class="btn secondary" data-action="load-project-members"><span data-icon="rotate" aria-hidden="true"></span> 更新</button>
+                        </div>
+                        <div class="table-container mt-md">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>名前</th>
+                                        <th>権限</th>
+                                        <th>状態</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="project-members-tbody">
+                                    <tr><td colspan="4" class="td-loading">読み込み中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="phase-block">
+                        <h2>参加規約</h2>
+                        <p class="desc-text mb-md">大会の参加規約を入力します。設定するとエントリーフォームに同意チェックボックスが表示されます。（Markdown/テキスト）</p>
+                        <div class="name-input-flex u-stack-stretch">
+                            <textarea id="setting-terms" class="u-min-h-120 mb-md" placeholder="規約を入力しない場合は空にしてください"></textarea>
+                            <button class="btn secondary" data-action="update-terms"><span data-icon="arrows-rotate" aria-hidden="true"></span> 参加規約を更新</button>
+                        </div>
+                    </div>
+
+                    <div class="phase-block">
+                        <h2>メール通知</h2>
+                        <p class="desc-text mb-md">参加者の操作後に控えメールを送信します。</p>
+                        <div class="email-notification-grid">
+                            <div class="config-row email-notification-card">
+                                <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-edit" checked><span class="toggle-slider"></span></label>
+                                <div class="toggle-info">
+                                    <div class="toggle-info-title">編集完了通知</div>
+                                    <div class="toggle-info-desc">エントリー内容を変更した参加者へ控えを送信</div>
+                                </div>
+                            </div>
+                            <div class="config-row email-notification-card">
+                                <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-cancel" checked><span class="toggle-slider"></span></label>
+                                <div class="toggle-info">
+                                    <div class="toggle-info-title">キャンセル完了通知</div>
+                                    <div class="toggle-info-desc">エントリーをキャンセルした参加者へ控えを送信</div>
+                                </div>
+                            </div>
+                            <div class="config-row email-notification-card">
+                                <label class="toggle-switch"><input type="checkbox" id="setting-notify-late-notice" checked><span class="toggle-slider"></span></label>
+                                <div class="toggle-info">
+                                    <div class="toggle-info-title">遅刻連絡受付通知</div>
+                                    <div class="toggle-info-desc">遅刻を届け出た参加者へ控えを送信</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="phase-block danger-zone">
+                        <h2 class="danger-title">危険な操作</h2>
+                        <p class="desc-text mb-md">エントリー・採点データなどプロジェクト内の全データを削除し、初期状態に戻します。プロジェクト自体は残ります。</p>
+                        <button class="btn danger" data-action="reset-project"><span data-icon="rotate-left" aria-hidden="true"></span> プロジェクトリセット</button>
+                    </div>
+                </div>
+            </li>
+        </ol>
     </div>
-    </div>
-    
+
     <!-- 全画面保存オーバーレイ -->
     <div id="save-overlay" class="save-overlay">
         <span class="save-overlay-icon" data-icon="cloud-arrow-up" aria-hidden="true"></span>
@@ -556,9 +531,9 @@
     <div id="dt-picker-overlay" class="dt-overlay" data-dt-close></div>
     <div id="dt-picker" class="dt-picker" hidden>
         <div class="dt-picker-nav">
-            <button type="button" data-dt-nav="-1"><span data-icon="chevron-left" aria-hidden="true"></span></button>
+            <button type="button" data-dt-nav="-1" aria-label="前の月"><span data-icon="chevron-left" aria-hidden="true"></span></button>
             <span id="dt-picker-month"></span>
-            <button type="button" data-dt-nav="1"><span data-icon="chevron-right" aria-hidden="true"></span></button>
+            <button type="button" data-dt-nav="1" aria-label="次の月"><span data-icon="chevron-right" aria-hidden="true"></span></button>
         </div>
         <div class="dt-picker-weekdays">
             <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
@@ -566,8 +541,7 @@
         <div class="dt-picker-days" id="dt-picker-days"></div>
         <div class="dt-picker-time">
             <span class="time-icon" data-icon="clock" aria-hidden="true"></span>
-            <label class="dt-time-label" for="dt-picker-time-input">時刻</label>
-            <input type="text" id="dt-picker-time-input" class="dt-time-input" inputmode="numeric" autocomplete="off" placeholder="00:00" aria-label="時刻">
+            <input type="text" id="dt-picker-time-input" inputmode="numeric" autocomplete="off" placeholder="00:00" aria-label="時刻(時分4桁)">
         </div>
         <div class="dt-picker-actions">
             <button type="button" class="dt-clear" data-dt-clear><span data-icon="xmark" aria-hidden="true"></span> クリア</button>
@@ -577,10 +551,11 @@
     <canvas id="work-canvas" class="hidden-canvas"></canvas>
     <canvas id="transform-canvas" class="hidden-canvas"></canvas>
 
+    <!-- 代理エントリーモーダル -->
     <div class="modal-backdrop admin-entry-modal-backdrop" id="admin-entry-modal" hidden>
         <div class="admin-entry-modal" role="dialog" aria-modal="true" aria-labelledby="admin-entry-modal-title">
             <div class="admin-entry-modal-head">
-                <h2 id="admin-entry-modal-title"><span data-icon="user-plus" aria-hidden="true"></span> 参加者を追加</h2>
+                <h2 id="admin-entry-modal-title">参加者を追加</h2>
                 <button type="button" class="icon-button" data-action="close-admin-entry-modal" aria-label="閉じる"><span data-icon="xmark" aria-hidden="true"></span></button>
             </div>
             <form id="admin-entry-form" novalidate>
@@ -605,17 +580,17 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="required"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
+                    <label class="required">メールアドレス</label>
                     <input type="email" id="admin-entry-email" autocomplete="email" required inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
                 </div>
                 <div class="form-row">
                     <div class="form-group u-flex-2">
-                        <label class="required"><span data-icon="school" aria-hidden="true"></span> 所属教育機関</label>
+                        <label class="required">所属教育機関</label>
                         <input type="text" id="admin-entry-affiliation" required>
-                        <div class="hint"><span data-icon="circle-info" aria-hidden="true"></span> 非公開を希望する場合は「非公開」と入力してください。</div>
+                        <div class="hint">非公開を希望する場合は「非公開」と入力してください。</div>
                     </div>
                     <div class="form-group u-flex-1">
-                        <label class="required"><span data-icon="graduation-cap" aria-hidden="true"></span> 学年</label>
+                        <label class="required">学年</label>
                         <select id="admin-entry-grade" class="custom-select" required>
                             <option value="">選択</option>
                             <option value="１年">１年</option>
@@ -631,19 +606,19 @@
                 <div class="form-group">
                     <label class="custom-checkbox">
                         <input type="checkbox" id="admin-entry-chubu">
-                        <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
+                        <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
                         <div class="u-flex-1">
                             <span>所属教育機関は中部地方にあります</span>
                         </div>
                     </label>
                 </div>
                 <div class="form-group">
-                    <label class="required"><span data-icon="id-badge" aria-hidden="true"></span> エントリーネーム</label>
+                    <label class="required">エントリーネーム</label>
                     <input type="text" id="admin-entry-entry-name" required>
                 </div>
                 <div class="form-group">
                     <fieldset class="choice-fieldset">
-                        <legend class="required"><span data-icon="book-open" aria-hidden="true"></span> 記録集での本名使用</legend>
+                        <legend class="required">記録集での本名使用</legend>
                         <div class="choice-row">
                             <label class="choice-option">
                                 <input type="radio" name="admin-entry-record-name-permission" value="allow" required>
@@ -657,11 +632,11 @@
                     </fieldset>
                 </div>
                 <div class="form-group">
-                    <label><span data-icon="comment" aria-hidden="true"></span> 意気込み</label>
+                    <label>意気込み</label>
                     <input type="text" id="admin-entry-public-message">
                 </div>
                 <div class="form-group">
-                    <label><span data-icon="message" aria-hidden="true"></span> 運営への連絡</label>
+                    <label>運営への連絡</label>
                     <textarea id="admin-entry-inquiry"></textarea>
                 </div>
                 <div class="admin-entry-modal-actions">
@@ -689,14 +664,11 @@
                 </div>
             </div>
         </div>
-        </div><!-- /admin-body -->
-        </div><!-- /admin-main -->
-      </div><!-- /admin-shell -->
-    </div><!-- /admin-container -->
+    </div>
 
-    <script defer src="js/admin.js?v=31"></script>
+    <script defer src="js/admin.js?v=30"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
-    <script defer src="js/admin_scan.js?v=11"></script>
+    <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
     <script defer src="js/admin_graded_pdf.js?v=9"></script>
     <script defer src="js/admin_settings.js?v=24"></script>

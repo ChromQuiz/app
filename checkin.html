@@ -5,71 +5,67 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="favicon.png">
-    <meta name="description" content="CIQ - クイズ大会の解答採点を支援するウェブプラットフォーム">
-    <meta property="og:title" content="CIQ - 解答採点プラットフォーム">
-    <meta property="og:description" content="クイズ大会の解答採点を支援するウェブプラットフォーム">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="og-image.png">
-    <title>CIQ - 当日受付</title>
+    <meta name="description" content="CIQ - クイズ大会のペーパー運営を支援するプラットフォーム">
+    <title>当日受付 - CIQ</title>
     <script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script defer src="js/config.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=7"></script>
+    <script defer src="js/supabase_api.js?v=28"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=3"></script>
-    <script defer src="js/ui.js?v=4"></script>
+    <script defer src="js/ui.js?v=5"></script>
     <script defer src="js/custom-select.js?v=4"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=32">
+    <link rel="stylesheet" href="css/design_system.css?v=33">
     <link rel="stylesheet" href="css/pages.css?v=48">
 </head>
-<body>
-    <div class="fixed-header">
+<body class="page-checkin">
+    <!-- 集中モードシェル: 戻る + 現在位置 + 受付状況(控えめ) -->
+    <div class="fixed-header ops-focus-bar">
         <div class="header-left">
-            <button type="button" class="back-nav-btn" id="checkin-back-btn"><span data-icon="chevron-left" aria-hidden="true"></span> 戻る</button>
+            <button type="button" class="back-nav-btn" id="checkin-back-btn"><span data-icon="chevron-left" aria-hidden="true"></span></button>
         </div>
         <div class="header-center">
-            <h1 id="page-title"><span data-icon="qrcode" aria-hidden="true"></span> 当日受付</h1>
+            <h1 id="page-title">当日受付</h1>
         </div>
-        <div class="header-right"></div>
+        <div class="header-right">
+            <div class="checkin-tally u-hidden" id="stats-bar" role="status" aria-label="受付状況">
+                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-success" id="stat-checked">-</span> 済</span>
+                <span class="checkin-tally-sep" aria-hidden="true">/</span>
+                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-warning" id="stat-remaining">-</span> 未</span>
+                <span class="checkin-tally-sep" aria-hidden="true">/</span>
+                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-primary" id="stat-total">-</span> 計</span>
+            </div>
+        </div>
     </div>
 
+    <!-- 参加者が画面に向かってQRをかざす前提のレイアウト:
+         左=大きなカメラ(かざす場所) / 右=大きな判定結果(参加者と担当者の両方が読む) -->
     <div class="main-content">
         <div class="left-col">
             <div id="camera-container">
                 <video id="video" autoplay playsinline></video>
                 <canvas id="canvas"></canvas>
+                <div class="checkin-guide" aria-hidden="true">
+                    <div class="checkin-guide-frame"></div>
+                </div>
             </div>
-            <p id="scanning-text" role="status" aria-live="polite"><span data-icon="camera" aria-hidden="true"></span> QRコードをカメラにかざしてください</p>
-            <div id="result" role="status" aria-live="assertive"></div>
+            <p id="scanning-text" role="status" aria-live="polite">QRコードを枠の中にかざしてください</p>
         </div>
 
         <div class="right-col">
-            <div class="stats-bar glass-panel u-hidden mb-zero" id="stats-bar" role="region" aria-label="受付状況">
-                <h3><span data-icon="chart-bar" aria-hidden="true"></span> 受付状況</h3>
-                <div class="stats-row u-flex-wrap">
-                    <div class="stat-item glass-panel">
-                        <div class="stat-num checkin-stat-primary" id="stat-total">-</div>
-                        <div class="stat-label"><span data-icon="users" aria-hidden="true"></span> エントリー</div>
-                    </div>
-                    <div class="stat-item glass-panel">
-                        <div class="stat-num checkin-stat-success" id="stat-checked">-</div>
-                        <div class="stat-label"><span data-icon="check" aria-hidden="true"></span> 受付済み</div>
-                    </div>
-                    <div class="stat-item glass-panel">
-                        <div class="stat-num checkin-stat-warning" id="stat-remaining">-</div>
-                        <div class="stat-label"><span data-icon="clock" aria-hidden="true"></span> 未受付</div>
-                    </div>
+            <div class="checkin-result-panel">
+                <div class="checkin-result-idle" id="checkin-idle" aria-hidden="true">
+                    <span data-icon="qrcode" aria-hidden="true"></span>
+                    <p>読み取り待機中</p>
                 </div>
+                <div id="result" role="status" aria-live="assertive"></div>
             </div>
         </div>
     </div>
 
-    <script defer src="js/checkin.js?v=5"></script>
+    <script defer src="js/checkin.js?v=6"></script>
 </body>
 </html>

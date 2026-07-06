@@ -3,37 +3,36 @@
 
 <head>
   <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="favicon.png">
-    <meta name="description" content="CIQ - クイズ大会の解答採点を支援するウェブプラットフォーム">
-    <meta property="og:title" content="CIQ - 解答採点プラットフォーム">
-    <meta property="og:description" content="クイズ大会の解答採点を支援するウェブプラットフォーム">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="og-image.png">
-  <title>CIQ - サインイン</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="description" content="CIQ - クイズ大会のペーパー運営を、エントリーから成績返却まで。">
+  <meta property="og:title" content="CIQ">
+  <meta property="og:description" content="クイズ大会のペーパー運営を、エントリーから成績返却まで。">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="og-image.png">
+  <title>CIQ</title>
   <script defer src="js/config.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="js/supabase_config.js"></script>
   <script defer src="js/supabase_client.js"></script>
-  <script defer src="js/supabase_api.js?v=8"></script>
+  <script defer src="js/supabase_api.js?v=28"></script>
   <script defer src="js/crypto.js"></script>
   <script defer src="js/icons.js?v=3"></script>
-    <script defer src="js/ui.js?v=4"></script>
+  <script defer src="js/ui.js?v=5"></script>
   <script defer src="js/custom-select.js?v=4"></script>
   <script defer src="js/shared.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="css/design_system.css?v=32">
-  <link rel="stylesheet" href="css/pages.css?v=47">
+  <link rel="stylesheet" href="css/design_system.css?v=33">
+  <link rel="stylesheet" href="css/pages.css?v=48">
 </head>
 
 <body class="page-index">
   <h1>CIQ</h1>
+  <p class="index-tagline">クイズ大会のペーパー運営を、エントリーから成績返却まで。</p>
+
   <div class="card">
     <div class="auth-page-header">
-      <h2>ログイン</h2>
+      <h2 id="index-mode-title">ログイン</h2>
     </div>
 
     <div id="status-msg" class="status-msg-box" role="alert" aria-live="assertive"></div>
@@ -52,29 +51,53 @@
       </div>
     </div>
 
+    <!-- 参加(既定): 自分のプロジェクト / 採点者参加 -->
     <div id="section-join" hidden>
       <div id="project-list" class="project-list">
       </div>
       <div class="scorer-join-panel">
-        <div class="scorer-join-title"><span data-icon="user-check" aria-hidden="true"></span> 採点者参加</div>
+        <div class="scorer-join-title">採点者として参加</div>
         <label for="join-project-id">プロジェクトID</label>
         <input type="text" id="join-project-id" autocomplete="off" placeholder="例: ciq13" />
         <label for="join-scorer-code">パスワード</label>
         <input type="password" id="join-scorer-code" autocomplete="off" placeholder="管理者から共有されたパスワード" />
-        <button type="button" class="btn secondary" id="join-scorer-btn">参加 <span data-icon="arrow-right-to-bracket" aria-hidden="true"></span></button>
+        <button type="button" class="btn u-full-width" id="join-scorer-btn">参加する</button>
       </div>
     </div>
 
+    <!-- 作成(#create でのみ表示・主催者向け) -->
+    <div id="section-create" hidden>
+      <p class="desc-text mb-md">大会の回数を入力すると、プロジェクトID・採点者用パスワードが発行されます。</p>
+      <label for="create-edition">回数（例：第13回 → 13）</label>
+      <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
+      <button class="btn u-full-width mt-md" id="create-btn">プロジェクトを作成</button>
+    </div>
 
+    <div id="section-success" class="u-text-center" hidden>
+      <h3 class="success-title">作成しました</h3>
+      <p class="success-desc">以下の情報は採点者の入室に使います。安全に保管してください。</p>
+
+      <div class="credential-panel" data-stagger>
+        <label for="success-id">プロジェクトID</label>
+        <div class="credential-row">
+          <input type="text" id="success-id" readonly />
+          <button class="btn standard credential-copy-btn" data-copy-target="success-id" aria-label="プロジェクトIDをコピー"><span data-icon="copy" aria-hidden="true"></span></button>
+        </div>
+        <label for="success-pwd">採点者用パスワード</label>
+        <div class="credential-row">
+          <input type="text" id="success-pwd" readonly />
+          <button class="btn standard credential-copy-btn" data-copy-target="success-pwd" aria-label="パスワードをコピー"><span data-icon="copy" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <button class="btn u-full-width" id="admin-proceed-btn">運営をはじめる</button>
+    </div>
   </div>
+
   <div class="index-help-link-wrap">
-    <a href="create.html" class="index-help-link">
-      <span data-icon="circle-plus" aria-hidden="true"></span> 新規作成
-    </a>
-    <a href="help.html" class="index-help-link">
-      <span data-icon="circle-question" aria-hidden="true"></span> ヘルプ
-    </a>
+    <a href="#" class="index-help-link u-hidden" id="index-join-link">参加者・採点者の方はこちら</a>
+    <a href="#create" class="index-help-link" id="index-create-link">大会を主催する方へ</a>
+    <a href="help.html" class="index-help-link">ヘルプ</a>
   </div>
-  <script defer src="js/index.js?v=7"></script>
+  <script defer src="js/index.js?v=8"></script>
 </body>
 </html>

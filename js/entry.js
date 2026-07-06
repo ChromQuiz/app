@@ -270,6 +270,39 @@ async function verifyEmailCode() {
     }, SESSION_TIMEOUT);
 }
 
+// 確定前の確認サマリー — details を開いたときに入力内容を要約する
+function renderEntryConfirmSummary() {
+    const list = document.getElementById('entry-confirm-list');
+    if (!list) return;
+    const val = (id) => document.getElementById(id)?.value?.trim() || '';
+    const permission = document.querySelector('input[name="f-record-name-permission"]:checked');
+    const rows = [
+        ['氏名', `${val('f-family-name')} ${val('f-first-name')}`.trim()],
+        ['カナ', `${val('f-family-kana')} ${val('f-first-kana')}`.trim()],
+        ['所属 / 学年', [val('f-affiliation'), val('f-grade')].filter(Boolean).join(' / ')],
+        ['中部地方', document.getElementById('f-chubu')?.checked ? 'はい' : 'いいえ'],
+        ['エントリーネーム', val('f-entry-name')],
+        ['記録集での本名使用', permission ? (permission.value === 'allow' ? '許可する' : '許可しない') : ''],
+        ['意気込み', val('f-message')],
+        ['運営への連絡', val('f-inquiry')],
+    ];
+    list.textContent = '';
+    rows.forEach(([label, value]) => {
+        const row = document.createElement('div');
+        row.className = 'entry-confirm-row';
+        const dt = document.createElement('dt');
+        dt.textContent = label;
+        const dd = document.createElement('dd');
+        dd.textContent = value || '—';
+        row.append(dt, dd);
+        list.appendChild(row);
+    });
+}
+
+document.getElementById('entry-confirm')?.addEventListener('toggle', (event) => {
+    if (event.target.open) renderEntryConfirmSummary();
+});
+
 document.getElementById('entry-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -341,7 +374,6 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         const entryStatus = entry.status;
         const pName = document.getElementById('project-title').textContent || projectId;
         const baseUrl = new URL('.', window.location.href);
-        const editUrl = new URL(`edit.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href;
         const entryListUrl = new URL(`entry_list.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href;
 
         CIQEmail.sendEntryConfirmation(email, {
@@ -353,7 +385,6 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             familyName,
             firstName,
             status: entryStatus,
-            editUrl,
             entryListUrl,
             qrData: entry.id,
             senderName: pName + ' 実行委員会'
@@ -362,6 +393,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         hideEl(document.getElementById('form-card'));
         showEl(document.getElementById('result-card'));
         setEntryStepState('done');
+        const myLink = document.getElementById('r-my-link');
+        if (myLink) myLink.href = new URL(`my.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href;
         document.getElementById('r-entry-number').textContent = String(entryNumber).padStart(3, '0');
         hideEl(document.getElementById('status-msg'));
 

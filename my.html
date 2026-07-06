@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="description" content="マイエントリー - 登録内容の確認・編集・遅刻連絡・キャンセル・成績照会">
+    <title>マイエントリー</title>
+    <script defer src="js/config.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="js/supabase_config.js"></script>
+    <script defer src="js/supabase_client.js"></script>
+    <script defer src="js/supabase_api.js?v=28"></script>
+    <script defer src="js/crypto.js"></script>
+    <script defer src="js/icons.js?v=3"></script>
+    <script defer src="js/ui.js?v=5"></script>
+    <script defer src="js/custom-select.js?v=4"></script>
+    <script defer src="js/shared.js"></script>
+    <link rel="stylesheet" href="css/design_system.css?v=33">
+    <link rel="stylesheet" href="css/pages.css?v=48">
+</head>
+<body class="page-wrapper page-my">
+    <div class="page-container">
+        <header class="page-logo">
+            <h1 id="my-title">読み込み中...</h1>
+            <div class="logo-sub" id="my-subtitle">マイエントリー</div>
+        </header>
+
+        <!-- ログイン(1回だけ) -->
+        <form class="page-card" id="auth-card" novalidate>
+            <p class="my-auth-lead">エントリー時のメールアドレスと、完了メールに記載されたパスワードでログインします。</p>
+            <div class="form-group">
+                <label for="f-email">メールアドレス</label>
+                <input type="email" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
+            </div>
+            <div class="form-group">
+                <label for="f-password">パスワード</label>
+                <input type="text" id="f-password" name="password" required autocomplete="off" placeholder="完了メールに記載の6文字">
+            </div>
+            <button type="submit" class="page-btn" id="auth-btn">ログイン</button>
+            <div class="page-msg" id="auth-msg" role="status" aria-live="polite"></div>
+        </form>
+
+        <!-- ハブ本体 -->
+        <div id="hub" class="u-hidden">
+            <!-- 受付番号 + QR(主役) -->
+            <section class="page-card my-entry-card" aria-label="受付情報">
+                <div class="my-status-row" id="my-status" aria-live="polite"></div>
+                <div class="my-number-label">受付番号</div>
+                <div class="my-number" id="my-number">---</div>
+                <div class="my-qr" id="my-qr-wrap" hidden>
+                    <img id="my-qr" alt="当日受付用QRコード" width="200" height="200">
+                    <p class="my-qr-caption">当日受付でこのQRコードを提示してください。</p>
+                    <button type="button" class="btn secondary" id="qr-download-btn">
+                        <span data-icon="download" aria-hidden="true"></span> QR画像を保存
+                    </button>
+                </div>
+            </section>
+
+            <!-- 登録内容 -->
+            <section class="my-section" id="summary-section" aria-labelledby="summary-heading">
+                <div class="my-section-head">
+                    <h2 id="summary-heading">登録内容</h2>
+                    <button type="button" class="btn ghost" id="open-edit-btn" hidden>
+                        <span data-icon="pen" aria-hidden="true"></span> 編集
+                    </button>
+                </div>
+                <dl class="my-summary" id="my-summary"></dl>
+                <p class="my-note" id="summary-note" hidden></p>
+            </section>
+
+            <!-- 編集フォーム(開いたときだけ) -->
+            <section class="my-section u-hidden" id="edit-section" aria-labelledby="edit-heading">
+                <div class="my-section-head">
+                    <h2 id="edit-heading">登録内容の編集</h2>
+                </div>
+                <form id="edit-card" novalidate>
+                    <p class="my-note">確認のため、氏名は毎回入力してください。氏名とメールアドレスは公開されません。</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="required" for="e-family-name">姓</label>
+                            <input type="text" id="e-family-name" name="family-name" required autocomplete="family-name" placeholder="山田">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" for="e-first-name">名</label>
+                            <input type="text" id="e-first-name" name="first-name" required autocomplete="given-name" placeholder="太郎">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="required" for="e-family-kana">セイ</label>
+                            <input type="text" id="e-family-kana" required placeholder="ヤマダ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
+                        </div>
+                        <div class="form-group">
+                            <label class="required" for="e-first-kana">メイ</label>
+                            <input type="text" id="e-first-kana" required placeholder="タロウ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
+                        </div>
+                    </div>
+                    <div id="affiliation-section">
+                        <div class="form-row">
+                            <div class="form-group u-flex-2">
+                                <label class="required" for="e-affiliation">所属教育機関 <span class="visibility-tag">公開</span></label>
+                                <input type="text" id="e-affiliation" name="organization" required autocomplete="organization" placeholder="○○高">
+                                <div class="hint">非公開を希望する場合は「非公開」と入力してください。</div>
+                            </div>
+                            <div class="form-group u-flex-1">
+                                <label class="required" for="e-grade">学年 <span class="visibility-tag">公開</span></label>
+                                <select id="e-grade" class="custom-select" required>
+                                    <option value="">選択</option>
+                                    <option value="１年">１年</option>
+                                    <option value="２年">２年</option>
+                                    <option value="３年">３年</option>
+                                    <option value="４年">４年</option>
+                                    <option value="５年">５年</option>
+                                    <option value="６年">６年</option>
+                                    <option value="非表示">非表示</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="custom-checkbox" for="e-chubu">
+                            <input type="checkbox" id="e-chubu">
+                            <span class="checkbox-mark"><svg class="checkbox-svg" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5L6.5 12L13 4"></path></svg></span>
+                            <div class="u-flex-1">
+                                <span>所属教育機関は<strong>中部地方</strong>（愛知・岐阜・三重・静岡・長野・山梨・新潟・富山・石川・福井）にあります</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="required" for="e-entry-name">エントリーネーム <span class="visibility-tag">公開</span></label>
+                        <input type="text" id="e-entry-name" required placeholder="エントリーリストでの表示名">
+                    </div>
+                    <div class="form-group">
+                        <fieldset class="choice-fieldset">
+                            <legend class="required">記録集での本名使用</legend>
+                            <p class="my-note">大会後に発行される記録集への氏名掲載の可否です。</p>
+                            <div class="choice-row">
+                                <label class="choice-option">
+                                    <input type="radio" name="e-record-name-permission" value="allow" required>
+                                    <span>許可する</span>
+                                </label>
+                                <label class="choice-option">
+                                    <input type="radio" name="e-record-name-permission" value="deny" required>
+                                    <span>許可しない</span>
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="form-group">
+                        <label for="e-message">意気込み <span class="visibility-tag">公開</span></label>
+                        <input type="text" id="e-message" placeholder="エントリーリストに表示されます">
+                    </div>
+                    <div class="form-group">
+                        <label for="e-inquiry">運営への連絡</label>
+                        <textarea id="e-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
+                    </div>
+                    <div class="my-edit-actions">
+                        <button type="button" class="btn ghost" id="close-edit-btn">閉じる</button>
+                        <button type="submit" class="btn" id="save-btn">変更を保存する</button>
+                    </div>
+                    <div class="page-msg" id="edit-msg" role="status" aria-live="polite"></div>
+                </form>
+            </section>
+
+            <!-- 当日 -->
+            <section class="my-section" id="late-section" aria-labelledby="late-heading" hidden>
+                <div class="my-section-head">
+                    <h2 id="late-heading">当日</h2>
+                </div>
+                <p class="my-note">開始時刻に間に合わない場合は、事前に遅刻を連絡できます。</p>
+                <button type="button" class="btn secondary" id="late-btn">遅刻を連絡する</button>
+                <div class="page-msg" id="late-msg" role="status" aria-live="polite"></div>
+            </section>
+
+            <!-- 成績(照会期間中のみ) -->
+            <section class="my-section" id="result-section" aria-labelledby="result-heading" hidden>
+                <div class="my-section-head">
+                    <h2 id="result-heading">成績</h2>
+                </div>
+                <button type="button" class="page-btn" id="view-result-btn">成績を表示する</button>
+                <div class="page-msg" id="result-msg" role="alert" aria-live="assertive"></div>
+                <div id="result-view" class="u-hidden" role="region" aria-label="成績結果">
+                    <div class="result-header">
+                        <div class="result-name" id="result-name"></div>
+                        <div class="result-rank" id="result-rank"></div>
+                        <div class="result-score-line"><span class="result-score" id="result-score"></span><span class="result-score-unit">pts</span></div>
+                        <div class="result-streaks" id="result-streaks"></div>
+                    </div>
+                    <div id="share-area" class="u-hidden">
+                        <div id="share-preview"></div>
+                        <div class="share-buttons">
+                            <button type="button" class="share-btn share-main" id="share-main-btn" title="シェア" aria-label="成績をシェア"><span data-icon="share-from-square" aria-hidden="true"></span></button>
+                            <button type="button" class="share-btn share-download" id="share-download-btn" title="画像を保存" aria-label="成績画像をダウンロード"><span data-icon="download" aria-hidden="true"></span></button>
+                        </div>
+                    </div>
+                    <p class="my-note">共有端末をお使いの場合は、確認後にログアウトしてください。</p>
+                </div>
+            </section>
+
+            <!-- キャンセル(分離・最下部) -->
+            <section class="my-section my-danger-section" id="cancel-section" aria-labelledby="cancel-heading" hidden>
+                <div class="my-section-head">
+                    <h2 id="cancel-heading">エントリーのキャンセル</h2>
+                </div>
+                <p class="my-note">キャンセルは取り消せません。定員超過時は、キャンセル待ちの方が自動的に繰り上がります。</p>
+                <button type="button" class="btn danger" id="cancel-btn">エントリーをキャンセルする</button>
+                <div class="page-msg" id="cancel-msg" role="status" aria-live="polite"></div>
+            </section>
+
+            <div class="my-footer-actions">
+                <a id="my-terms-link" href="#" target="_blank" rel="noopener">参加規約</a>
+                <button type="button" id="logout-btn">ログアウト</button>
+            </div>
+        </div>
+
+        <div class="page-footer">Powered by CIQ</div>
+    </div>
+
+    <script defer src="js/email.js?v=4"></script>
+    <script defer src="js/share_card.js?v=2"></script>
+    <script defer src="js/my.js?v=1"></script>
+</body>
+</html>

@@ -6,32 +6,27 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="favicon.png">
-    <meta name="description" content="CIQ - クイズ大会の解答採点を支援するウェブプラットフォーム">
-    <meta property="og:title" content="CIQ - 解答採点プラットフォーム">
-    <meta property="og:description" content="クイズ大会の解答採点を支援するウェブプラットフォーム">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="og-image.png">
-    <title>CIQ - 問題一覧</title>
+    <meta name="description" content="CIQ - クイズ大会のペーパー運営を支援するプラットフォーム">
+    <title>採点ボード - CIQ</title>
     <script defer src="js/config.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=7"></script>
+    <script defer src="js/supabase_api.js?v=28"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=3"></script>
     <script defer src="js/ui.js?v=5"></script>
     <script defer src="js/custom-select.js?v=4"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=32">
-    <link rel="stylesheet" href="css/pages.css?v=47">
+    <link rel="stylesheet" href="css/design_system.css?v=33">
+    <link rel="stylesheet" href="css/pages.css?v=48">
 </head>
 
 <body class="page-judge">
-    <div class="header-bar">
-        <div class="header-left">
+    <!-- 運営共通シェル: アプリバー -->
+    <div class="fixed-header">
+        <div class="header-left"></div>
+        <div class="header-center">
             <h1 id="project-title"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</h1>
         </div>
         <div class="header-right">
@@ -41,7 +36,7 @@
         </div>
     </div>
 
-    <!-- Slide Panel Menu -->
+    <!-- 運営共通シェル: ドロワー(ロール別) -->
     <div class="menu-backdrop" id="menu-backdrop" data-toggle-menu></div>
     <div class="menu-panel" id="menu-panel">
         <button class="menu-panel-close" data-toggle-menu><span data-icon="xmark" aria-hidden="true"></span></button>
@@ -54,9 +49,9 @@
 
         <div id="admin-menu-section" class="u-hidden">
             <div class="menu-section">
-                <div class="menu-section-label">管理</div>
+                <div class="menu-section-label">運営</div>
                 <button class="menu-item" data-nav-target="admin.html">
-                    <span data-icon="gauge" aria-hidden="true"></span> 管理画面
+                    <span data-icon="gauge" aria-hidden="true"></span> 運営ホーム
                 </button>
                 <button class="menu-item warn" data-nav-target="conflict.html">
                     <span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認
@@ -70,39 +65,38 @@
             <button class="menu-item" data-nav-target="checkin.html">
                 <span data-icon="qrcode" aria-hidden="true"></span> 当日受付
             </button>
-            <button class="menu-item" data-open-page="entry.html">
-                <span data-icon="pen-to-square" aria-hidden="true"></span> エントリーフォーム
-            </button>
-            <button class="menu-item" data-open-page="entry_list.html">
-                <span data-icon="list" aria-hidden="true"></span> エントリーリスト
-            </button>
-            <button class="menu-item" data-open-page="cancel.html">
-                <span data-icon="user-xmark" aria-hidden="true"></span> キャンセルフォーム
-            </button>
-            <button class="menu-item" data-open-page="disclosure.html">
-                <span data-icon="chart-column" aria-hidden="true"></span> 成績照会
-            </button>
-            <button class="menu-item" data-open-page="terms.html">
-                <span data-icon="scroll" aria-hidden="true"></span> 参加規約
-            </button>
         </div>
 
         <div class="menu-footer">
             <button class="menu-item" data-open-static="help.html">
                 <span data-icon="circle-question" aria-hidden="true"></span> ヘルプ
             </button>
-
             <button class="menu-item danger" id="judge-logout-btn">
                 <span data-icon="right-from-bracket" aria-hidden="true"></span> プロジェクトから退出
             </button>
         </div>
     </div>
 
+    <main class="judge-main">
+        <!-- 続きから: 採点者の「次の一手」 -->
+        <section class="judge-resume u-hidden" id="judge-resume" aria-label="採点の再開">
+            <div class="judge-resume-text">
+                <div class="judge-resume-title">続きから採点する</div>
+                <div class="judge-resume-desc" id="judge-resume-desc"></div>
+            </div>
+            <button type="button" class="btn" id="judge-resume-btn">
+                採点を再開 <span data-icon="arrow-right" aria-hidden="true"></span>
+            </button>
+        </section>
 
+        <!-- 状況サマリー(1行・控えめ) -->
+        <p class="judge-summary" id="judge-summary" role="status" aria-live="polite"></p>
 
-    <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
+        <!-- 問題ボード: 担当中 → 空き → 採点中 → 完了 → 満員 の順に自動整列 -->
+        <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
+    </main>
 
-    <script defer src="js/judge.js?v=2"></script>
+    <script defer src="js/judge.js?v=3"></script>
 </body>
 
 </html>

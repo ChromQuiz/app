@@ -1,5 +1,6 @@
 import { handleOptions, jsonResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -7,23 +8,19 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
   try {
-    const { projectId, emailHash, disclosurePasswordHash } = await req.json();
-    if (!projectId || !emailHash || !disclosurePasswordHash) {
+    const body = await req.json();
+    const { projectId } = body;
+    if (!projectId) {
       return jsonResponse({ error: 'Missing required fields' }, 400);
     }
 
     const supabase = createServiceClient();
-    const { data: entry, error: entryError } = await supabase
-      .from('entries')
-      .select('id, entry_number, status, checked_in')
-      .eq('project_id', projectId)
-      .eq('email_hash', emailHash)
-      .eq('disclosure_password_hash', disclosurePasswordHash)
-      .single();
+    const { entry } = await resolveParticipantAuth(
+      supabase,
+      body,
+      'id, entry_number, status, checked_in',
+    );
 
-    if (entryError || !entry) {
-      return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
-    }
     if (entry.status === 'late') {
       return jsonResponse({ error: '既に遅刻が届け出済みです。' }, 409);
     }
@@ -56,6 +53,9 @@ Deno.serve(async (req) => {
       },
     });
   } catch (error) {
+    if (error instanceof ParticipantAuthError) {
+      return jsonResponse({ error: error.message }, error.status);
+    }
     return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
   }
 });

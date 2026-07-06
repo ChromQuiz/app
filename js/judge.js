@@ -44,6 +44,10 @@ function setupJudgeEvents() {
         el.addEventListener('click', () => window.open(el.dataset.openStatic, '_blank'));
     });
     document.getElementById('judge-logout-btn')?.addEventListener('click', logout);
+    document.getElementById('judge-resume-btn')?.addEventListener('click', (event) => {
+        const q = Number(event.currentTarget.dataset.resumeQ || 0);
+        if (q > 0) enterQ(q);
+    });
 }
 
 async function initializeApp() {
@@ -113,13 +117,27 @@ function scorerLabel(memberId, index) {
 }
 
 function updateGrid(rows) {
+    // 「次の一手」計算用
+    let resumeQ = 0;          // 自分が担当していて未完了の最小問題番号
+    let openCount = 0;
+    let inprogressCount = 0;
+    let doneCount = 0;
+    let lockedCount = 0;
+
     for (let q = 1; q <= totalQuestions; q++) {
         const qRows = rows.filter(row => Number(row.question_number) === q);
         const scorerIds = qRows.map(row => row.scorer_member_id);
         const completedIds = qRows.filter(row => row.completed_at).map(row => row.scorer_member_id);
         const isMine = currentMemberId && scorerIds.includes(currentMemberId);
+        const myDone = isMine && completedIds.includes(currentMemberId);
         const isFull = scorerIds.length >= requiredScorers && !isMine;
         const allDone = scorerIds.length >= requiredScorers && completedIds.length >= requiredScorers;
+
+        if (isMine && !myDone && !allDone && !resumeQ) resumeQ = q;
+        if (isFull && !allDone) lockedCount++;
+        else if (allDone) doneCount++;
+        else if (scorerIds.length > 0) inprogressCount++;
+        else openCount++;
 
         const card = document.getElementById(`qcard-${q}`);
         const statusEl = document.getElementById(`qstatus-${q}`);
@@ -128,6 +146,7 @@ function updateGrid(rows) {
 
         card.className = 'q-card';
         if (isMine) card.classList.add('mine');
+        if (isMine && !myDone && !allDone) card.classList.add('mine-active');
         if (isFull) card.classList.add('locked');
         if (allDone) card.classList.add('done');
         else if (scorerIds.length > 0) card.classList.add('inprogress');
@@ -149,6 +168,31 @@ function updateGrid(rows) {
             setStatus(statusEl, 'status-open', 'fa-solid fa-minus', '未着手');
         }
     }
+
+    updateResumeHero(resumeQ);
+    updateJudgeSummary({ openCount, inprogressCount, doneCount, lockedCount });
+}
+
+// 「続きから採点する」ヒーロー — 自分の未完了担当があるときだけ出す
+function updateResumeHero(resumeQ) {
+    const hero = document.getElementById('judge-resume');
+    const desc = document.getElementById('judge-resume-desc');
+    const btn = document.getElementById('judge-resume-btn');
+    if (!hero || !desc || !btn) return;
+    if (resumeQ > 0) {
+        desc.textContent = `第${resumeQ}問の採点が途中です`;
+        btn.dataset.resumeQ = String(resumeQ);
+        hero.classList.remove('u-hidden');
+    } else {
+        hero.classList.add('u-hidden');
+    }
+}
+
+function updateJudgeSummary({ openCount, inprogressCount, doneCount, lockedCount }) {
+    const summary = document.getElementById('judge-summary');
+    if (!summary) return;
+    summary.textContent =
+        `担当できる問題 ${openCount} · 採点中 ${inprogressCount} · 完了 ${doneCount} · 満員 ${lockedCount}`;
 }
 
 function enterQ(q) {

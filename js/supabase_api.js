@@ -406,6 +406,13 @@ const CIQSupabaseAPI = {
         return data;
     },
 
+    // マイエントリー(my.html): 認証 + サマリー + QR + セッショントークン
+    async myEntry(payload) {
+        const data = await this.invokePublicFunction('my-entry', payload);
+        if (!data?.ok) throw new Error(data?.error || 'My entry failed');
+        return data;
+    },
+
     async getCheckInStats(projectId) {
         const data = await this.invokeAuthedFunction('check-in', {
             action: 'stats',

@@ -66,38 +66,39 @@ async function signedQrUrl(value: string) {
 }
 
 /* ------------------------------------------------------------
- * HTMLメール — CIQ Design System "Calm Command" と同一トークン
+ * HTMLメール — CIQ Design System(白・黒・グレー基調)と同一トークン
  * design-system/MASTER.md 準拠:
- *   ink #191827 / paper #f6f6fa / iris #483ed1 (#5a50e8) /
- *   ok #187a41 / warn #a05a00 / bad #c22945 / gold #9a6a00
+ *   text #1a1a1e / sub #6e6e76 / border #e6e6ea / paper #f5f5f7 /
+ *   accent #0b57d0(CTAのみ) / ok #1e7a44 / warn #9a6200 / bad #c22945
  * メールクライアント互換のため 600px テーブルレイアウト +
  * インラインCSS のみを使用（Outlook/Gmail/Apple Mail）。
+ * 参加者向けCTAは「マイエントリー」1本に集約する。
  * ------------------------------------------------------------ */
-const MAIL_FONT = "'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif";
-const MAIL_MONO = "'SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
+const MAIL_FONT = "-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif";
+const MAIL_MONO = "'SF Mono','SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
 
 function shell(title: string, subtitle: string, body: string) {
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f6f6fa;padding:24px 12px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f7;padding:32px 12px;">
     <tr>
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;">
           <tr>
-            <td style="font-family:${MAIL_MONO};font-size:15px;font-weight:700;letter-spacing:.3em;color:#55536b;padding:0 8px 12px;" align="left">
-              C I Q
+            <td style="font-family:${MAIL_MONO};font-size:13px;font-weight:600;letter-spacing:.3em;color:#6e6e76;padding:0 4px 14px;" align="left">
+              CIQ
             </td>
           </tr>
           <tr>
-            <td style="background:#191827;border-radius:16px 16px 0 0;padding:28px 28px 24px;border-bottom:3px solid #5a50e8;" align="left">
-              <div style="font-family:${MAIL_FONT};color:#a9a3f6;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">${escapeHtml(subtitle)}</div>
-              <div style="font-family:${MAIL_FONT};color:#ffffff;font-size:22px;line-height:1.35;font-weight:700;letter-spacing:-.01em;">${escapeHtml(title)}</div>
+            <td style="background:#ffffff;border:1px solid #e6e6ea;border-bottom:0;border-radius:12px 12px 0 0;padding:32px 32px 0;" align="left">
+              <div style="font-family:${MAIL_FONT};color:#6e6e76;font-size:13px;font-weight:500;margin-bottom:6px;">${escapeHtml(subtitle)}</div>
+              <div style="font-family:${MAIL_FONT};color:#1a1a1e;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-.01em;padding-bottom:20px;border-bottom:1px solid #e6e6ea;">${escapeHtml(title)}</div>
             </td>
           </tr>
           <tr>
-            <td style="background:#ffffff;padding:28px;font-family:${MAIL_FONT};color:#191827;font-size:14px;line-height:1.8;" align="left">${body}</td>
+            <td style="background:#ffffff;border:1px solid #e6e6ea;border-top:0;border-bottom:0;padding:24px 32px 32px;font-family:${MAIL_FONT};color:#1a1a1e;font-size:15px;line-height:1.8;" align="left">${body}</td>
           </tr>
           <tr>
-            <td style="background:#f1f0f7;border-radius:0 0 16px 16px;padding:16px 28px;font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:#8b89a3;border-top:1px solid #e5e4f0;">
+            <td style="background:#ffffff;border:1px solid #e6e6ea;border-top:1px solid #e6e6ea;border-radius:0 0 12px 12px;padding:16px 32px;font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:#6e6e76;">
               このメールは CIQ から自動送信されています。<br>心当たりがない場合は大会運営へお問い合わせください。
             </td>
           </tr>
@@ -109,17 +110,18 @@ function shell(title: string, subtitle: string, body: string) {
 }
 
 function panel(body: string, tone = 'info') {
-  const styles: Record<string, { bg: string; border: string; color: string }> = {
-    info: { bg: '#efeefd', border: '#c5c1f5', color: '#3a31ac' },
-    success: { bg: '#dff5e8', border: '#9adcb8', color: '#187a41' },
-    warning: { bg: '#fdeed3', border: '#f0cd93', color: '#a05a00' },
-    danger: { bg: '#fce7eb', border: '#f2b2c0', color: '#c22945' },
+  // 状態色は文字と左罫のみ。面塗りは使わない(静かな階層)。
+  const colors: Record<string, string> = {
+    info: '#1a1a1e',
+    success: '#1e7a44',
+    warning: '#9a6200',
+    danger: '#c22945',
   };
-  const s = styles[tone] || styles.info;
+  const color = colors[tone] || colors.info;
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
     <tr>
-      <td style="background:${s.bg};border:1px solid ${s.border};border-radius:12px;padding:14px 16px;font-family:${MAIL_FONT};color:${s.color};font-size:14px;line-height:1.7;font-weight:700;">${body}</td>
+      <td style="border-left:3px solid ${color};padding:4px 0 4px 14px;font-family:${MAIL_FONT};color:${color};font-size:15px;line-height:1.7;font-weight:600;">${body}</td>
     </tr>
   </table>
   `;
@@ -129,12 +131,12 @@ function detailsTable(rows: Array<[string, unknown]>) {
   const last = rows.length - 1;
   const tableRows = rows.map(([label, value], i) => `
     <tr>
-      <td style="padding:13px 16px;font-family:${MAIL_FONT};font-size:13px;font-weight:600;color:#8b89a3;${i === last ? '' : 'border-bottom:1px solid #e5e4f0;'}">${escapeHtml(label)}</td>
-      <td align="right" style="padding:13px 16px;font-family:${MAIL_MONO};font-size:15px;font-weight:700;color:#191827;letter-spacing:.04em;${i === last ? '' : 'border-bottom:1px solid #e5e4f0;'}">${escapeHtml(value)}</td>
+      <td style="padding:14px 16px;font-family:${MAIL_FONT};font-size:13px;font-weight:500;color:#6e6e76;${i === last ? '' : 'border-bottom:1px solid #e6e6ea;'}">${escapeHtml(label)}</td>
+      <td align="right" style="padding:14px 16px;font-family:${MAIL_MONO};font-size:15px;font-weight:600;color:#1a1a1e;letter-spacing:.04em;${i === last ? '' : 'border-bottom:1px solid #e6e6ea;'}">${escapeHtml(value)}</td>
     </tr>
   `).join('');
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e4f0;border-radius:12px;margin:18px 0;background:#ffffff;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e6e6ea;border-radius:10px;margin:18px 0;background:#ffffff;">
     ${tableRows}
   </table>
   `;
@@ -142,12 +144,20 @@ function detailsTable(rows: Array<[string, unknown]>) {
 
 function primaryButton(label: string, href: string) {
   if (!href) return '';
-  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#483ed1;color:#ffffff;text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;border-radius:12px;padding:12px 22px;margin:4px 8px 4px 0;">${escapeHtml(label)}</a>`;
+  return `
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;">
+    <tr>
+      <td style="background:#0b57d0;border-radius:10px;">
+        <a href="${escapeHtml(href)}" style="display:inline-block;color:#ffffff;text-decoration:none;font-family:${MAIL_FONT};font-size:15px;font-weight:600;padding:13px 26px;">${escapeHtml(label)}</a>
+      </td>
+    </tr>
+  </table>
+  `;
 }
 
-function secondaryButton(label: string, href: string) {
+function textLink(label: string, href: string) {
   if (!href) return '';
-  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#ffffff;color:#483ed1;text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;border:1px solid #c9c7dc;border-radius:12px;padding:11px 21px;margin:4px 8px 4px 0;">${escapeHtml(label)}</a>`;
+  return `<a href="${escapeHtml(href)}" style="color:#0b57d0;text-decoration:none;font-family:${MAIL_FONT};font-size:13px;">${escapeHtml(label)}</a>`;
 }
 
 function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
@@ -155,36 +165,43 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
   const entryNumber = String(data.entryNumber || '');
   const status = data.status === 'waitlist' ? 'キャンセル待ち' : '登録完了';
   const password = String(data.password || '');
-  const editUrl = String(data.editUrl || '');
+  const myUrl = String(data.myUrl || '');
   const entryListUrl = String(data.entryListUrl || '');
   const qrImageUrl = String(data.qrImageUrl || '');
   const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
   const waitlistNotice = data.status === 'waitlist'
     ? panel('現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。', 'warning')
-    : panel('エントリーを受け付けました。大会当日までこのメールを保管してください。', 'success');
-  const actionButtons = `
-    <div style="margin:18px 0;">
-      ${primaryButton('エントリーを編集', editUrl)}
-      ${secondaryButton('エントリーリストを見る', entryListUrl)}
-    </div>
-  `;
+    : panel('エントリーを受け付けました。', 'success');
   const body = `
-    <p>${escapeHtml(person || '参加者')} 様</p>
+    <p style="margin:0 0 4px;">${escapeHtml(person || '参加者')} 様</p>
     ${waitlistNotice}
-    ${detailsTable([['受付番号', entryNumber], ['パスワード', password], ['状態', status]])}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
+      <tr>
+        <td align="center" style="border:1px solid #e6e6ea;border-radius:10px;padding:22px;">
+          <div style="font-family:${MAIL_FONT};color:#6e6e76;font-size:12px;font-weight:500;margin-bottom:4px;">受付番号</div>
+          <div style="font-family:${MAIL_MONO};color:#1a1a1e;font-size:44px;font-weight:600;letter-spacing:.06em;line-height:1.1;">${escapeHtml(entryNumber)}</div>
+        </td>
+      </tr>
+    </table>
+    ${detailsTable([['パスワード', password], ['状態', status]])}
+    <p style="margin:0;font-family:${MAIL_FONT};color:#6e6e76;font-size:13px;">パスワードはマイエントリーのログインに使用します。</p>
     ${qrImageUrl ? `
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
         <tr>
-          <td align="center" style="background:#f6f6fa;border:1px solid #e5e4f0;border-radius:16px;padding:20px;">
-            <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="184" height="184" style="display:block;margin:0 auto;border:1px solid #c9c7dc;border-radius:12px;padding:12px;background:#ffffff;">
-            <div style="font-family:${MAIL_FONT};color:#55536b;font-size:12px;font-weight:700;margin-top:12px;letter-spacing:.04em;">当日受付用QRコード</div>
+          <td align="center" style="border:1px solid #e6e6ea;border-radius:10px;padding:22px;">
+            <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="184" height="184" style="display:block;margin:0 auto;">
+            <div style="font-family:${MAIL_FONT};color:#1a1a1e;font-size:13px;font-weight:600;margin-top:12px;">当日受付用QRコード</div>
+            <div style="font-family:${MAIL_FONT};color:#6e6e76;font-size:12px;margin-top:2px;">当日、受付でこのコードを提示してください。</div>
           </td>
         </tr>
       </table>
     ` : ''}
-    ${panel('当日受付には、このメールに表示されたQRコードが必要です。', 'info')}
-    ${actionButtons}
-    <p style="color:#64748b;font-size:13px;">このメールは大会当日まで保管してください。</p>
+    ${panel('このメールには受付QRとマイエントリー用の情報が含まれます。大会当日まで保存してください。', 'info')}
+    ${primaryButton('マイエントリーを開く', myUrl)}
+    <p style="margin:0;font-family:${MAIL_FONT};color:#6e6e76;font-size:13px;line-height:1.8;">
+      マイエントリーでは、登録内容の確認・変更、遅刻の連絡、QRコードの再表示ができます。<br>
+      ${entryListUrl ? textLink('エントリーリストを見る', entryListUrl) : ''}
+    </p>
   `;
   return {
     subject: `【${name}】エントリー受付完了（No.${entryNumber}）`,
@@ -195,102 +212,101 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
       `受付番号: ${entryNumber}`,
       data.status === 'waitlist' ? `状態: ${status}` : '',
       `パスワード: ${password}`,
-      `当日受付には、このメールに表示されたQRコードが必要です。`,
-      editUrl ? `編集: ${editUrl}` : '',
+      'このメールには受付QRとマイエントリー用の情報が含まれます。大会当日まで保存してください。',
+      'QRコードはマイエントリーからも再表示できます。',
+      myUrl ? `マイエントリー: ${myUrl}` : '',
       entryListUrl ? `エントリーリスト: ${entryListUrl}` : '',
     ].filter(Boolean).join('\n'),
   };
 }
 
-function cancellation(data: Record<string, unknown>): EmailTemplate {
-  const name = projectName(data);
-  const entryNumber = String(data.entryNumber || '');
-  const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
+function simpleNotice(args: {
+  data: Record<string, unknown>;
+  subjectLabel: string;
+  title: string;
+  message: string;
+  tone: string;
+  withMyCta: boolean;
+}): EmailTemplate {
+  const name = projectName(args.data);
+  const entryNumber = String(args.data.entryNumber || '');
+  const myUrl = args.withMyCta ? String(args.data.myUrl || '') : '';
+  const person = `${args.data.familyName || ''} ${args.data.firstName || ''}`.trim();
   return {
-    subject: `【${name}】エントリーキャンセル完了（No.${entryNumber}）`,
-    html: shell('キャンセル完了', name, `
-      <p>${escapeHtml(person || '参加者')} 様</p>
-      ${panel('エントリーをキャンセルしました。', 'danger')}
+    subject: `【${name}】${args.subjectLabel}（No.${entryNumber}）`,
+    html: shell(args.title, name, `
+      <p style="margin:0 0 4px;">${escapeHtml(person || '参加者')} 様</p>
+      ${panel(args.message, args.tone)}
       ${detailsTable([['受付番号', entryNumber]])}
+      ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
     `),
     text: [
       `${person || '参加者'} 様`,
-      `${name} のエントリーをキャンセルしました。`,
+      `${name} — ${args.message}`,
       `受付番号: ${entryNumber}`,
-    ].join('\n'),
+      myUrl ? `マイエントリー: ${myUrl}` : '',
+    ].filter(Boolean).join('\n'),
   };
+}
+
+function cancellation(data: Record<string, unknown>): EmailTemplate {
+  // キャンセル後に呼び戻す行動はないため、CTAは置かない
+  return simpleNotice({
+    data,
+    subjectLabel: 'エントリーキャンセル完了',
+    title: 'キャンセル完了',
+    message: 'エントリーをキャンセルしました。',
+    tone: 'danger',
+    withMyCta: false,
+  });
 }
 
 function entryEdited(data: Record<string, unknown>): EmailTemplate {
-  const name = projectName(data);
-  const entryNumber = String(data.entryNumber || '');
-  const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
-  return {
-    subject: `【${name}】エントリー編集完了（No.${entryNumber}）`,
-    html: shell('エントリー編集完了', name, `
-      <p>${escapeHtml(person || '参加者')} 様</p>
-      ${panel('エントリー内容の変更を受け付けました。', 'success')}
-      ${detailsTable([['受付番号', entryNumber]])}
-    `),
-    text: [
-      `${person || '参加者'} 様`,
-      `${name} のエントリー内容の変更を受け付けました。`,
-      `受付番号: ${entryNumber}`,
-    ].join('\n'),
-  };
+  return simpleNotice({
+    data,
+    subjectLabel: 'エントリー編集完了',
+    title: 'エントリー編集完了',
+    message: 'エントリー内容の変更を受け付けました。',
+    tone: 'success',
+    withMyCta: true,
+  });
 }
 
 function lateNotice(data: Record<string, unknown>): EmailTemplate {
-  const name = projectName(data);
-  const entryNumber = String(data.entryNumber || '');
-  const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
-  return {
-    subject: `【${name}】遅刻連絡受付（No.${entryNumber}）`,
-    html: shell('遅刻連絡受付', name, `
-      <p>${escapeHtml(person || '参加者')} 様</p>
-      ${panel('遅刻の届け出を受け付けました。', 'warning')}
-      ${detailsTable([['受付番号', entryNumber]])}
-    `),
-    text: [
-      `${person || '参加者'} 様`,
-      `${name} の遅刻の届け出を受け付けました。`,
-      `受付番号: ${entryNumber}`,
-    ].join('\n'),
-  };
+  return simpleNotice({
+    data,
+    subjectLabel: '遅刻連絡受付',
+    title: '遅刻連絡受付',
+    message: '遅刻の届け出を受け付けました。',
+    tone: 'warning',
+    withMyCta: true,
+  });
 }
 
 function waitlistPromoted(data: Record<string, unknown>): EmailTemplate {
-  const name = projectName(data);
-  const entryNumber = String(data.entryNumber || '');
-  const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
-  return {
-    subject: `【${name}】キャンセル待ち繰り上げのお知らせ（No.${entryNumber}）`,
-    html: shell('キャンセル待ち繰り上げ', name, `
-      <p>${escapeHtml(person || '参加者')} 様</p>
-      ${panel('キャンセル待ちから通常エントリーへ繰り上がりました。', 'success')}
-      ${detailsTable([['受付番号', entryNumber]])}
-    `),
-    text: [
-      `${person || '参加者'} 様`,
-      `${name} のキャンセル待ちから通常エントリーへ繰り上がりました。`,
-      `受付番号: ${entryNumber}`,
-    ].join('\n'),
-  };
+  return simpleNotice({
+    data,
+    subjectLabel: 'キャンセル待ち繰り上げのお知らせ',
+    title: 'キャンセル待ち繰り上げ',
+    message: 'キャンセル待ちから通常エントリーへ繰り上がりました。',
+    tone: 'success',
+    withMyCta: true,
+  });
 }
 
 function verificationEmail(projectNameValue: string, code: string): EmailTemplate {
   return {
     subject: `【${projectNameValue}】メール認証コード`,
     html: shell('メール認証コード', projectNameValue, `
-      ${panel('エントリーフォームに以下のコードを入力してください。', 'info')}
+      <p style="margin:0;">エントリーフォームに以下のコードを入力してください。</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
         <tr>
-          <td align="center" style="background:#ffffff;border:2px solid #5a50e8;border-radius:16px;padding:22px;">
-            <span style="font-family:${MAIL_MONO};font-size:36px;font-weight:700;letter-spacing:10px;color:#191827;">${escapeHtml(code)}</span>
+          <td align="center" style="border:1px solid #e6e6ea;border-radius:10px;padding:24px;">
+            <span style="font-family:${MAIL_MONO};font-size:36px;font-weight:600;letter-spacing:10px;color:#1a1a1e;">${escapeHtml(code)}</span>
           </td>
         </tr>
       </table>
-      <p style="font-family:${MAIL_FONT};color:#8b89a3;font-size:13px;margin:0;">このコードは10分間有効です。</p>
+      <p style="font-family:${MAIL_FONT};color:#6e6e76;font-size:13px;margin:0;">このコードは10分間有効です。</p>
     `),
     text: `認証コード: ${code}\nこのコードは10分間有効です。`,
   };

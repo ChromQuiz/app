@@ -696,8 +696,9 @@ document.addEventListener('visibilitychange', () => {
     startConflictRefreshTimer();
 });
 
+// 戻る先はロール別(管理者→運営 / 採点者→採点ボード)
 document.getElementById('conflict-back-btn')?.addEventListener('click', () => {
-    location.href = 'judge.html';
+    location.href = opsBackTarget();
 });
 
 init();

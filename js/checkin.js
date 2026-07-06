@@ -16,9 +16,14 @@ function setPageTitle(projectName) {
 }
 
 if (auth) {
-    document.getElementById('checkin-back-btn')?.addEventListener('click', () => {
-        location.href = 'judge.html';
-    });
+    // 戻る先はロール別(管理者→運営 / 採点者→採点ボード)
+    const backBtn = document.getElementById('checkin-back-btn');
+    if (backBtn) {
+        backBtn.appendChild(document.createTextNode(` ${opsBackLabel()}`));
+        backBtn.addEventListener('click', () => {
+            location.href = opsBackTarget();
+        });
+    }
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');

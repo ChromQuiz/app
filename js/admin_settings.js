@@ -203,7 +203,7 @@
         function buildAdminEntryLinks() {
             const baseUrl = new URL('.', window.location.href);
             return {
-                editUrl: new URL(`edit.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href,
+                myUrl: new URL(`my.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href,
                 entryListUrl: new URL(`entry_list.html?pid=${encodeURIComponent(projectId)}`, baseUrl).href,
             };
         }
@@ -221,7 +221,7 @@
                 '当日受付には、別途送付するQRコード画像が必要です。',
                 'この画像とパスワードは大会当日まで保管してください。',
                 '',
-                `編集: ${receipt.editUrl}`,
+                `マイエントリー(内容の確認・変更): ${receipt.myUrl}`,
                 `エントリーリスト: ${receipt.entryListUrl}`,
             ].join('\n');
         }
@@ -481,7 +481,7 @@
                 document.getElementById('admin-entry-result-number').textContent = padNum(entry.entry_number || entry.entryNumber);
                 document.getElementById('admin-entry-result-status').textContent = entry.status === 'waitlist' ? 'キャンセル待ち' : '登録済み';
                 document.getElementById('admin-entry-result-password').textContent = password;
-                const { editUrl, entryListUrl } = buildAdminEntryLinks();
+                const { myUrl, entryListUrl } = buildAdminEntryLinks();
                 const receipt = {
                     projectName: adminProjectName || projectId,
                     entryId: entry.id,
@@ -490,7 +490,7 @@
                     password,
                     familyName: values.familyName,
                     firstName: values.firstName,
-                    editUrl,
+                    myUrl,
                     entryListUrl,
                     imageBlob: null,
                 };

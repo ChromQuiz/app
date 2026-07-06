@@ -117,10 +117,17 @@ const params = new URLSearchParams(location.search);
             return;
         }
 
-        const { ordered, earlyCount, hasGraceSplit } = calcPriority(entries);
+        const { ordered } = calcPriority(entries);
 
         const confirmed = ordered.filter(e => !e._isWaitlist);
         const waitlist = ordered.filter(e => e._isWaitlist);
+
+        // 枠区分: 先着(開始30分以内) / 中部枠(以降の中部地方) / 一般(以降のその他)
+        const slotLabel = (e) => {
+            if (!e._isAfterGrace) return { label: '先着', cls: 'slot-early' };
+            if (e.isChubu === true) return { label: '中部枠', cls: 'slot-chubu' };
+            return { label: '一般', cls: 'slot-general' };
+        };
 
         const renderRow = (e, isWaitlist) => {
             const d = new Date(e.timestamp || Date.now());
@@ -133,27 +140,24 @@ const params = new URLSearchParams(location.search);
 
             const tr = document.createElement('tr');
             if (isWaitlist) tr.classList.add('entry-row-waitlist');
+
+            // 枠 = 順位 + 区分(自分が出場圏内か・どの枠で並んでいるかが行だけで分かる)
             const priorityTd = document.createElement('td');
             priorityTd.className = 'entry-priority-cell';
-            priorityTd.dataset.label = '優先順位';
+            priorityTd.dataset.label = '枠';
             const priorityBadge = document.createElement('span');
             priorityBadge.className = 'entry-priority-badge';
-            priorityBadge.textContent = e._priority;
-            priorityTd.appendChild(priorityBadge);
+            priorityBadge.textContent = `#${e._priority}`;
+            const slot = slotLabel(e);
+            const slotSpan = document.createElement('span');
+            slotSpan.className = `entry-slot-label ${slot.cls}`;
+            slotSpan.textContent = slot.label;
+            priorityTd.append(priorityBadge, slotSpan);
 
-            const timeTd = document.createElement('td');
-            timeTd.className = 'c-time';
-            timeTd.dataset.label = '日時';
-            if (isWaitlist) {
-                const waitIcon = createIcon('fa-solid fa-clock entry-wait-icon');
-                waitIcon.title = 'キャンセル待ち';
-                timeTd.appendChild(waitIcon);
-            }
-            timeTd.appendChild(document.createTextNode(`${timeStr} `));
-            const numberSpan = document.createElement('span');
-            numberSpan.className = 'entry-number-mini';
-            numberSpan.textContent = `#${padNum(e.entryNumber)}`;
-            timeTd.appendChild(numberSpan);
+            const nameTd = document.createElement('td');
+            nameTd.className = 'entry-list-name-cell';
+            nameTd.dataset.label = 'エントリーネーム';
+            nameTd.textContent = e.entryName || '';
 
             const affiliationTd = document.createElement('td');
             affiliationTd.className = 'entry-list-affiliation-cell';
@@ -163,51 +167,44 @@ const params = new URLSearchParams(location.search);
             gradeTd.className = 'entry-list-grade-cell';
             gradeTd.dataset.label = '学年';
             gradeTd.textContent = grade;
-            const nameTd = document.createElement('td');
-            nameTd.className = 'entry-list-name-cell';
-            nameTd.dataset.label = 'エントリーネーム';
-            nameTd.textContent = e.entryName || '';
+
             const messageTd = document.createElement('td');
             messageTd.className = 'entry-list-message-cell';
             messageTd.dataset.label = '意気込み';
             messageTd.textContent = e.message || '';
 
-            const chubuTd = document.createElement('td');
-            chubuTd.className = 'entry-center-cell';
-            chubuTd.dataset.label = '中部';
-            if (e.isChubu) {
-                const chubuMark = createIcon('fa-solid fa-check entry-chubu-mark');
-                chubuMark.title = '中部地方';
-                chubuTd.append(chubuMark, document.createTextNode(' 中部'));
-            }
+            const timeTd = document.createElement('td');
+            timeTd.className = 'c-time';
+            timeTd.dataset.label = '日時';
+            timeTd.appendChild(document.createTextNode(`${timeStr} `));
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'entry-number-mini';
+            numberSpan.textContent = `#${padNum(e.entryNumber)}`;
+            timeTd.appendChild(numberSpan);
 
-            tr.append(priorityTd, timeTd, affiliationTd, gradeTd, nameTd, messageTd, chubuTd);
+            tr.append(priorityTd, nameTd, affiliationTd, gradeTd, messageTd, timeTd);
             body.appendChild(tr);
         };
 
-        // 先着順エリア（30分以内）
-        let graceDividerInserted = false;
-        confirmed.forEach(e => {
-            if (!graceDividerInserted && hasGraceSplit && e._isAfterGrace) {
-                graceDividerInserted = true;
-                appendDivider(body, 'fa-solid fa-map-location-dot', '以降中部地方優先', 'entry-list-divider-primary');
-            }
-            renderRow(e, false);
-        });
+        confirmed.forEach(e => renderRow(e, false));
 
+        // 定員ライン: ここから下は出場圏外(キャンセル待ち)
         if (waitlist.length > 0) {
-            appendDivider(body, 'fa-solid fa-clock', `キャンセル待ち（${waitlist.length}名）`, 'entry-list-divider-warning');
+            const capacityNote = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
+            appendDivider(body, 'fa-solid fa-clock', `ここまで出場圏内${capacityNote} — 以下キャンセル待ち（${waitlist.length}名）`, 'entry-list-divider-warning');
             waitlist.forEach(e => renderRow(e, true));
         }
 
         document.getElementById('total-count').textContent = ordered.length;
+        const capacityEl = document.getElementById('entry-capacity');
+        if (capacityEl) capacityEl.textContent = maxEntries > 0 ? `（定員${maxEntries}名）` : '';
     }
 
     function appendTableMessage(body, message) {
         const tr = document.createElement('tr');
         tr.className = 'entry-list-message-row';
         const td = document.createElement('td');
-        td.colSpan = 7;
+        td.colSpan = 6;
         td.className = 'entry-table-message';
         td.textContent = message;
         tr.appendChild(td);
@@ -218,7 +215,7 @@ const params = new URLSearchParams(location.search);
         const divider = document.createElement('tr');
         divider.className = `entry-list-divider entry-list-message-row ${toneClass}`;
         const td = document.createElement('td');
-        td.colSpan = 7;
+        td.colSpan = 6;
         const icon = createIcon(iconClass);
         td.append(icon, ` ${label}`);
         divider.appendChild(td);
