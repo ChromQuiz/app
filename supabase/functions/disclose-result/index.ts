@@ -1,5 +1,6 @@
 import { handleOptions, jsonResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
 
 type EntryRow = {
   id: string;
@@ -70,8 +71,9 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
   try {
-    const { projectId, emailHash, disclosurePasswordHash } = await req.json();
-    if (!projectId || !emailHash || !disclosurePasswordHash) {
+    const body = await req.json();
+    const { projectId } = body;
+    if (!projectId) {
       return jsonResponse({ error: 'Missing required fields' }, 400);
     }
 
@@ -92,15 +94,12 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Disclosure has ended' }, 403);
     }
 
-    const { data: entry, error: entryError } = await supabase
-      .from('entries')
-      .select('id, entry_number, entry_name, affiliation, grade, status')
-      .eq('project_id', projectId)
-      .eq('email_hash', emailHash)
-      .eq('disclosure_password_hash', disclosurePasswordHash)
-      .single();
-    if (entryError || !entry) return jsonResponse({ error: 'Entry not found' }, 404);
-    const authEntry = entry as AuthEntryRow;
+    const { entry } = await resolveParticipantAuth(
+      supabase,
+      body,
+      'id, entry_number, entry_name, affiliation, grade, status',
+    );
+    const authEntry = entry as unknown as AuthEntryRow;
     if (authEntry.status !== 'registered' && authEntry.status !== 'late') {
       return jsonResponse({ error: 'このエントリーは成績照会の対象外です。' }, 409);
     }
@@ -160,6 +159,11 @@ Deno.serve(async (req) => {
       totalQuestions: project.question_count,
     });
   } catch (error) {
+    if (error instanceof ParticipantAuthError) {
+      // 従来クライアント互換のため、認証失敗は 'Entry not found' を含む文言を維持
+      const message = error.status === 404 ? 'Entry not found' : error.message;
+      return jsonResponse({ error: message }, error.status);
+    }
     return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
   }
 });

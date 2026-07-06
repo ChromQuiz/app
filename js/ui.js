@@ -183,6 +183,19 @@ function toggleMenu() {
     document.body.classList.toggle('body-scroll-locked', !isOpen);
 }
 
+/**
+ * 運営共通シェルの「戻る」先をロールで決める。
+ * 管理者 → 運営ホーム(admin.html) / 採点者 → 採点ボード(judge.html)。
+ * 権限のないページへは戻さない。
+ */
+function opsBackTarget() {
+    return session.scorerRole === 'admin' ? 'admin.html' : 'judge.html';
+}
+
+function opsBackLabel() {
+    return session.scorerRole === 'admin' ? '運営' : '採点ボード';
+}
+
 function requireAuth(opts = {}) {
     const projectId = session.projectId;
     const secretHash = session.get('secretHash');

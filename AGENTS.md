@@ -17,7 +17,7 @@ No Node/Express server exists. Do not introduce one. Business logic currently li
 
 ## Project Structure
 
-- Root HTML files are page entry points: `admin.html`, `index.html`, `entry.html`, `judge.html`, `question.html`, `conflict.html`, `disclosure.html`, and related public pages.
+- Root HTML files are page entry points: `admin.html`, `index.html`, `entry.html`, `my.html`, `judge.html`, `question.html`, `conflict.html`, `checkin.html`, and related public pages.
 - `js/`: page scripts and shared browser modules.
 - `css/design_system.css`: global design system.
 - `css/pages.css`: page-specific styling.
@@ -32,7 +32,8 @@ No Node/Express server exists. Do not introduce one. Business logic currently li
 - Admin: `admin.html`, `js/admin*.js`, `css/pages.css`.
 - Answer upload: `js/admin_prep.js`, `js/upload_validation.js`, Storage policies.
 - Judging: `judge.html`, `question.html`, `conflict.html`, `js/judge.js`, `js/question.js`, `js/conflict.js`.
-- Score disclosure: `disclosure.html`, `js/disclosure.js`, `supabase/functions/disclose-result/`.
+- Participant hub (view/QR/edit/late/cancel/score): `my.html`, `js/my.js`, `supabase/functions/my-entry/`, `supabase/functions/_shared/participant_auth.ts`.
+- Score disclosure: my.html の成績セクション + `supabase/functions/disclose-result/`.
 - Shared Supabase access: `js/supabase_api.js`.
 
 ## Invariants
@@ -70,7 +71,7 @@ Prefer:
 
 ## UI Rules
 
-- Keep the existing CIQ design language.
+- Follow `design-system/MASTER.md` (Apple-like white/black/gray, system font stack). No purple, gradients, glow, glassmorphism.
 - Reuse `css/design_system.css` and existing utility classes.
 - Do not add inline CSS or inline JavaScript.
 - Prefer DOM builders and `textContent`; avoid `innerHTML`.

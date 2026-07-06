@@ -16,16 +16,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=5"></script>
+    <script defer src="js/supabase_api.js?v=28"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=3"></script>
-    <script defer src="js/ui.js?v=4"></script>
+    <script defer src="js/ui.js?v=5"></script>
     <script defer src="js/custom-select.js?v=4"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=32">
+    <link rel="stylesheet" href="css/design_system.css?v=33">
     <link rel="stylesheet" href="css/pages.css?v=48">
 </head>
 
@@ -83,9 +80,12 @@
                         <span data-icon="circle-check" aria-hidden="true"></span> メール認証済: <strong id="verified-email"></strong>
                     </div>
 
+                <h2 class="entry-section-heading">基本情報</h2>
+                <p class="entry-section-note">氏名とメールアドレスは公開されません。</p>
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="required" for="f-family-name"><span data-icon="user" aria-hidden="true"></span> 姓 (全角)</label>
+                        <label class="required" for="f-family-name">姓 (全角)</label>
                         <input type="text" id="f-family-name" name="family-name" required autocomplete="family-name" placeholder="山田">
                     </div>
                     <div class="form-group">
@@ -107,15 +107,18 @@
                     </div>
                 </div>
 
+                <h2 class="entry-section-heading">大会で表示される情報</h2>
+                <p class="entry-section-note">以下はエントリーリストに公開されます。</p>
+
                 <div id="affiliation-section">
                     <div class="form-row" id="school-mode-fields">
                         <div class="form-group u-flex-2">
-                            <label class="required" for="f-affiliation"><span data-icon="school" aria-hidden="true"></span> 所属教育機関</label>
+                            <label class="required" for="f-affiliation">所属教育機関 <span class="visibility-tag">公開</span></label>
                             <input type="text" id="f-affiliation" name="organization" required autocomplete="organization" placeholder="○○高">
-                            <div class="hint"><span data-icon="circle-info" aria-hidden="true"></span> 非公開を希望する場合は「非公開」と入力してください。</div>
+                            <div class="hint">非公開を希望する場合は「非公開」と入力してください。</div>
                         </div>
                         <div class="form-group u-flex-1">
-                            <label class="required" for="f-grade"><span data-icon="graduation-cap" aria-hidden="true"></span> 学年</label>
+                            <label class="required" for="f-grade">学年 <span class="visibility-tag">公開</span></label>
                             <select id="f-grade" class="custom-select" required>
                                 <option value="">選択</option>
                                 <option value="１年">１年</option>
@@ -141,16 +144,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="required" for="f-entry-name"><span data-icon="id-badge" aria-hidden="true"></span> エントリーネーム</label>
-                    <input type="text" id="f-entry-name" required placeholder="エントリーシートでの表示名">
+                    <label class="required" for="f-entry-name">エントリーネーム <span class="visibility-tag">公開</span></label>
+                    <input type="text" id="f-entry-name" required placeholder="エントリーリストでの表示名">
                     <div id="entry-name-pref-area" class="mt-sm">
-                        <div class="u-danger-note"><span data-icon="circle-exclamation" aria-hidden="true"></span> 当日は本名（姓名）での表示となります。</div>
+                        <div class="hint">当日は本名（姓名）での表示となります。</div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <fieldset class="choice-fieldset">
-                        <legend class="required"><span data-icon="book-open" aria-hidden="true"></span> 記録集での本名使用</legend>
+                        <legend class="required">記録集での本名使用</legend>
+                        <div class="hint mb-md">大会後に発行される記録集への氏名掲載の可否です。</div>
                         <div class="choice-row">
                             <label class="choice-option">
                                 <input type="radio" name="f-record-name-permission" value="allow" required>
@@ -164,13 +168,15 @@
                     </fieldset>
                 </div>
 
+                <h2 class="entry-section-heading">任意</h2>
+
                 <div class="form-group">
-                    <label for="f-message"><span data-icon="comment" aria-hidden="true"></span> 意気込み</label>
-                    <input type="text" id="f-message" placeholder="大会への意気込みをどうぞ！(公開されます)">
+                    <label for="f-message">意気込み <span class="visibility-tag">公開</span></label>
+                    <input type="text" id="f-message" placeholder="エントリーリストに表示されます">
                 </div>
 
                 <div class="form-group">
-                    <label for="f-inquiry"><span data-icon="message" aria-hidden="true"></span> 運営への連絡</label>
+                    <label for="f-inquiry">運営への連絡</label>
                     <textarea id="f-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
                 </div>
 
@@ -184,34 +190,40 @@
                     </label>
                 </div>
 
-                <button type="submit" class="page-btn" id="submit-btn"><span data-icon="paper-plane" aria-hidden="true"></span> エントリーを確定する</button>
+                <!-- 確定前の確認サマリー(開くとJSが入力内容を要約) -->
+                <details class="entry-confirm" id="entry-confirm">
+                    <summary>入力内容を確認する</summary>
+                    <dl class="entry-confirm-list" id="entry-confirm-list"></dl>
+                </details>
+
+                <button type="submit" class="page-btn" id="submit-btn">エントリーを確定する</button>
                 </div><!-- /form-body -->
             </form>
             <div class="page-msg" id="status-msg" role="status" aria-live="polite"></div>
         </div>
 
         <div class="page-card result-card is-success u-hidden" id="result-card" role="status">
-            <h2 class="result-title"><span data-icon="circle-check" aria-hidden="true"></span> エントリー完了！</h2>
+            <h2 class="result-title">エントリー完了</h2>
             <p class="result-desc">当日受付に必要な情報をメールで送信しました。</p>
 
             <div class="result-info-box">
-                <div class="info-label"><span data-icon="hashtag" aria-hidden="true"></span> あなたの受付番号</div>
+                <div class="info-label">あなたの受付番号</div>
                 <div class="info-value" id="r-entry-number">---</div>
             </div>
 
             <div class="entry-mail-notice">
-                <span data-icon="envelope" aria-hidden="true"></span>
-                <strong>メールを必ず保存してください</strong>
-                <div>当日受付では、メール本文のQRコードが必要です。メールが見つからない場合は迷惑メールフォルダも確認してください。</div>
+                <strong>メールを保存してください</strong>
+                <div>メールには当日受付用のQRコードとマイエントリー用のパスワードが含まれます。見つからない場合は迷惑メールフォルダも確認してください。</div>
             </div>
 
+            <a class="btn secondary u-full-width mt-md" id="r-my-link" href="#">マイエントリーを開く</a>
         </div>
 
         <div class="page-footer">Powered by CIQ</div>
     </div>
 
-    <script defer src="js/email.js?v=3"></script>
-    <script defer src="js/entry.js?v=13"></script>
+    <script defer src="js/email.js?v=4"></script>
+    <script defer src="js/entry.js?v=14"></script>
 </body>
 
 </html>

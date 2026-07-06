@@ -238,13 +238,11 @@
 
         function setupPublicLinks() {
             const baseUrl = new URL('.', window.location.href).href;
+            // 共有リンクは4本に集約(編集/キャンセル/遅刻/成績照会は my.html に統合)
             const links = {
-                'entry-link': 'entry_list.html',
-                'edit-link': 'edit.html',
                 'registration-link': 'entry.html',
-                'cancel-link': 'cancel.html',
-                'late-link': 'late.html',
-                'disclosure-link': 'disclosure.html',
+                'entry-link': 'entry_list.html',
+                'my-link': 'my.html',
                 'terms-link': 'terms.html',
             };
 
@@ -292,11 +290,11 @@
         };
 
         function registerAdminShortcuts() {
-            KeyboardShortcuts.register('1', '参加者タブ', () => switchTab('tab-entries'));
-            KeyboardShortcuts.register('2', '採点準備タブ', () => switchTab('tab-prep'));
-            KeyboardShortcuts.register('3', '答案管理タブ', () => switchTab('tab-scan'));
-            KeyboardShortcuts.register('4', '集計タブ', () => switchTab('tab-stats'));
-            KeyboardShortcuts.register('5', '設定タブ', () => switchTab('tab-settings'));
+            KeyboardShortcuts.register('1', '準備フェーズ', () => switchTab('tab-prep'));
+            KeyboardShortcuts.register('2', '公開フェーズ', () => switchTab('tab-entries'));
+            KeyboardShortcuts.register('3', '採点フェーズ', () => switchTab('tab-scan'));
+            KeyboardShortcuts.register('4', '結果フェーズ', () => switchTab('tab-stats'));
+            KeyboardShortcuts.register('5', '設定', () => switchTab('tab-settings'));
         }
 
 
@@ -516,8 +514,8 @@
             panel.classList.add('active');
             panel.hidden = false;
             const btns = document.querySelectorAll('.tab-btn');
-            const tabs = ['tab-entries', 'tab-prep', 'tab-scan', 'tab-stats', 'tab-settings'];
-            const activeBtn = btns[tabs.indexOf(tabId)];
+            // フェーズ順に依存しないよう data-tab-target で対応ボタンを引く
+            const activeBtn = document.querySelector(`.tab-btn[data-tab-target="${tabId}"]`);
             activeBtn?.classList.add('active');
             // ARIA 同期（initTablist が未初期化の場合のフォールバック込み）
             btns.forEach(b => {

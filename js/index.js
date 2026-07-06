@@ -30,8 +30,22 @@ function generateStrongPassword() {
     return chars.join('');
 }
 
-let currentTab = document.body?.dataset?.authPage === 'create' ? 'create' : 'join';
+// 作成モードは #create でのみ到達する(参加者導線には出さない)
+function tabFromLocation() {
+    return location.hash === '#create' ? 'create' : 'join';
+}
+
+let currentTab = tabFromLocation();
 let supabaseSession = null;
+
+/**
+ * プロジェクト作成の権限ゲート。
+ * 現在は Google 認証のみを要求。将来は招待コード・許可ユーザーリスト・
+ * サーバー側チェックをこの1点に差し込む(config.local.js 等のフラグで切替)。
+ */
+function canCreateProject() {
+    return Boolean(supabaseSession?.user);
+}
 
 function getGoogleDisplayName() {
     const user = supabaseSession?.user;
@@ -75,15 +89,19 @@ function getPublicIndexUrl() {
 
 function setTab(tab) {
     currentTab = tab;
-    const tabJoin = document.getElementById('tab-join');
-    const tabCreate = document.getElementById('tab-create');
-    if (tabJoin) tabJoin.className = tab === 'join' ? 'tab active' : 'tab';
-    if (tabCreate) tabCreate.className = tab === 'create' ? 'tab active' : 'tab';
     const joinSection = document.getElementById('section-join');
     const createSection = document.getElementById('section-create');
     const signedIn = Boolean(supabaseSession?.user);
     if (joinSection) joinSection.hidden = tab !== 'join' || !signedIn;
     if (createSection) createSection.hidden = tab !== 'create' || !signedIn;
+
+    // モード表示とフッター導線(作成モードでは参加への戻り導線を出す)
+    const title = document.getElementById('index-mode-title');
+    if (title) title.textContent = tab === 'create' ? 'プロジェクト作成' : 'ログイン';
+    document.title = tab === 'create' ? 'プロジェクト作成 - CIQ' : 'CIQ';
+    document.getElementById('index-create-link')?.classList.toggle('u-hidden', tab === 'create');
+    document.getElementById('index-join-link')?.classList.toggle('u-hidden', tab !== 'create');
+
     renderCreateAuthState();
 }
 
@@ -268,7 +286,7 @@ async function createProject() {
     const scorerCode = generateStrongPassword();
     const btn = document.getElementById('create-btn');
 
-    if (!supabaseSession?.user) {
+    if (!canCreateProject()) {
         showError('先にGoogleアカウントでサインインしてください。');
         return;
     }
@@ -382,6 +400,11 @@ async function initSupabaseAuth() {
 
 document.addEventListener('keyup', (e) => {
     if (e.key === 'Enter' && currentTab === 'create') createProject();
+});
+
+// #create の付け外しでモードを切り替える(戻る操作も保つ)
+window.addEventListener('hashchange', () => {
+    setTab(tabFromLocation());
 });
 
 document.addEventListener('DOMContentLoaded', () => {

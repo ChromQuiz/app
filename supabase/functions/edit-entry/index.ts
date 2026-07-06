@@ -1,5 +1,6 @@
 import { handleOptions, jsonResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
 
 type PublicProfile = {
   entryName?: string;
@@ -28,21 +29,18 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
   try {
+    const body = await req.json();
     const {
       projectId,
-      emailHash,
-      disclosurePasswordHash,
       encryptedPii,
       publicProfile,
     }: {
       projectId?: string;
-      emailHash?: string;
-      disclosurePasswordHash?: string;
       encryptedPii?: string;
       publicProfile?: PublicProfile;
-    } = await req.json();
+    } = body;
 
-    if (!projectId || !emailHash || !disclosurePasswordHash) {
+    if (!projectId) {
       return jsonResponse({ error: 'Missing required fields' }, 400);
     }
 
@@ -57,17 +55,12 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: '現在エントリー内容の編集はできません。' }, 403);
     }
 
-    const { data: entry, error: entryError } = await supabase
-      .from('entries')
-      .select('id, entry_number, entry_name, affiliation, grade, message, inquiry, is_chubu, status, checked_in')
-      .eq('project_id', projectId)
-      .eq('email_hash', emailHash)
-      .eq('disclosure_password_hash', disclosurePasswordHash)
-      .single();
+    const { entry } = await resolveParticipantAuth(
+      supabase,
+      body,
+      'id, entry_number, entry_name, affiliation, grade, message, inquiry, is_chubu, status, checked_in',
+    );
 
-    if (entryError || !entry) {
-      return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
-    }
     if (entry.status === 'canceled') {
       return jsonResponse({ error: 'このエントリーはキャンセルされています。' }, 409);
     }
@@ -123,6 +116,9 @@ Deno.serve(async (req) => {
       },
     });
   } catch (error) {
+    if (error instanceof ParticipantAuthError) {
+      return jsonResponse({ error: error.message }, error.status);
+    }
     return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
   }
 });

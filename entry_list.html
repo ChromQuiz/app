@@ -15,16 +15,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=5"></script>
+    <script defer src="js/supabase_api.js?v=28"></script>
     <script defer src="js/icons.js?v=3"></script>
-    <script defer src="js/ui.js?v=4"></script>
+    <script defer src="js/ui.js?v=5"></script>
     <script defer src="js/custom-select.js?v=4"></script>
     <script defer src="js/shared.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=32">
-    <link rel="stylesheet" href="css/pages.css?v=47">
+    <link rel="stylesheet" href="css/design_system.css?v=33">
+    <link rel="stylesheet" href="css/pages.css?v=48">
 </head>
 <body class="page-wrapper page-entry-list">
     <div class="page-container full">
@@ -35,29 +32,25 @@
         </div>
 
         <div id="content-area" class="u-hidden">
-            <div class="u-text-center">
-                <div class="stat-badge entry-count-badge glass-panel" role="status" aria-live="polite">
-                    <span class="entry-count-main"><span class="stat-val" id="total-count">-</span><span class="entry-count-unit">名</span></span>
-                    <span class="stat-label"><span data-icon="user-check" aria-hidden="true"></span> エントリー済</span>
-                </div>
-            </div>
+            <p class="entry-list-count" role="status" aria-live="polite">
+                <strong id="total-count">-</strong>名がエントリー<span id="entry-capacity"></span>
+            </p>
 
             <div class="list-container">
                 <table>
                     <caption class="u-hidden">エントリー一覧</caption>
                     <thead>
                         <tr>
-                            <th scope="col"><span data-icon="trophy" aria-hidden="true"></span> 優先順位</th>
-                            <th scope="col"><span data-icon="calendar" aria-hidden="true"></span> エントリー日時</th>
-                            <th scope="col"><span data-icon="school" aria-hidden="true"></span> 所属</th>
-                            <th scope="col"><span data-icon="graduation-cap" aria-hidden="true"></span> 学年</th>
-                            <th scope="col"><span data-icon="id-badge" aria-hidden="true"></span> エントリーネーム</th>
-                            <th scope="col"><span data-icon="comment" aria-hidden="true"></span> 意気込み</th>
-                            <th scope="col"><span data-icon="map-location-dot" aria-hidden="true"></span> 中部</th>
+                            <th scope="col">枠</th>
+                            <th scope="col">エントリーネーム</th>
+                            <th scope="col">所属</th>
+                            <th scope="col">学年</th>
+                            <th scope="col">意気込み</th>
+                            <th scope="col">日時</th>
                         </tr>
                     </thead>
                     <tbody id="list-body">
-                        <tr><td colspan="7" class="entry-list-loading-cell"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</td></tr>
+                        <tr><td colspan="6" class="entry-list-loading-cell"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -71,6 +64,6 @@
         <div class="page-footer">Powered by CIQ</div>
     </div>
 
-    <script defer src="js/entry_list.js?v=6"></script>
+    <script defer src="js/entry_list.js?v=7"></script>
 </body>
 </html>

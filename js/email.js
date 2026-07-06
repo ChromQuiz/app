@@ -28,6 +28,10 @@ const CIQEmail = (() => {
             return null;
         }
         const projectId = data.projectId || defaultProjectId();
+        // 参加者向けCTAはマイエントリーに集約する(全テンプレート共通)
+        if (projectId && !data.myUrl) {
+            data.myUrl = new URL(`my.html?pid=${encodeURIComponent(projectId)}`, location.href).href;
+        }
         const res = await fetch(_endpoint, {
             method: 'POST',
             headers: {
@@ -44,9 +48,9 @@ const CIQEmail = (() => {
         return result;
     }
 
-    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, entryListUrl, qrData, senderName }) {
+    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, entryListUrl, qrData, senderName }) {
         const result = await request('entry_confirmation', to, {
-            projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, editUrl, entryListUrl, qrData, senderName,
+            projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, entryListUrl, qrData, senderName,
             entryId: uuid,
         });
         return Boolean(result?.success);
