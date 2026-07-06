@@ -24,8 +24,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="css/design_system.css?v=30">
-    <link rel="stylesheet" href="css/pages.css?v=41">
+    <link rel="stylesheet" href="css/design_system.css?v=31">
+    <link rel="stylesheet" href="css/pages.css?v=42">
 </head>
 
 <body class="page-admin">
@@ -151,14 +151,6 @@
             </div>
 
         <div class="admin-body">
-
-        <div class="admin-quick-actions mb-md" aria-label="主要操作">
-            <button class="btn cta" data-nav-target="judge.html"><span data-icon="table-cells-large" aria-hidden="true"></span> 問題一覧へ</button>
-            <button class="btn secondary" data-nav-target="conflict.html"><span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認</button>
-            <button class="btn secondary" data-nav-target="checkin.html"><span data-icon="qrcode" aria-hidden="true"></span> 当日受付</button>
-            <button class="btn secondary" data-open-link="registration-link"><span data-icon="share-from-square" aria-hidden="true"></span> エントリーフォーム</button>
-        </div>
-
 
         <!-- ==================== TAB 0: 参加者管理 ==================== -->
         <div class="tab-content active" id="tab-entries" role="tabpanel" aria-labelledby="tab-entries-tab">
@@ -574,9 +566,8 @@
         <div class="dt-picker-days" id="dt-picker-days"></div>
         <div class="dt-picker-time">
             <span class="time-icon" data-icon="clock" aria-hidden="true"></span>
-            <select id="dt-picker-hour"></select>
-            <span class="time-colon">:</span>
-            <select id="dt-picker-min"></select>
+            <label class="dt-time-label" for="dt-picker-time-input">時刻</label>
+            <input type="text" id="dt-picker-time-input" class="dt-time-input" inputmode="numeric" autocomplete="off" placeholder="00:00" aria-label="時刻">
         </div>
         <div class="dt-picker-actions">
             <button type="button" class="dt-clear" data-dt-clear><span data-icon="xmark" aria-hidden="true"></span> クリア</button>
@@ -703,11 +694,11 @@
       </div><!-- /admin-shell -->
     </div><!-- /admin-container -->
 
-    <script defer src="js/admin.js?v=29"></script>
+    <script defer src="js/admin.js?v=30"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
     <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
     <script defer src="js/admin_graded_pdf.js?v=9"></script>
-    <script defer src="js/admin_settings.js?v=23"></script>
+    <script defer src="js/admin_settings.js?v=24"></script>
 </body>
 </html>

@@ -2258,18 +2258,22 @@ tbody tr:hover {
   margin: var(--sp-4) 0;
 }
 
-.dt-picker-time select {
+.dt-time-label {
+  font-size: var(--fs-13);
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.dt-time-input {
   flex: 1;
   min-height: var(--control-h-sm);
   font-family: var(--font-mono);
+  text-align: center;
+  letter-spacing: 0;
 }
 
 .time-icon {
   color: var(--ink-3);
-}
-
-.time-colon {
-  font-weight: 700;
 }
 
 .dt-picker-actions {

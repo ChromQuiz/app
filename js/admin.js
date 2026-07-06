@@ -160,6 +160,20 @@
             document.querySelector('[data-dt-close]')?.addEventListener('click', closeDatePicker);
             document.querySelector('[data-dt-clear]')?.addEventListener('click', dtClear);
             document.querySelector('[data-dt-confirm]')?.addEventListener('click', dtConfirm);
+            const timeInput = document.getElementById('dt-picker-time-input');
+            timeInput?.addEventListener('focus', () => {
+                timeInput.dataset.timeFresh = 'true';
+                timeInput.select();
+            });
+            timeInput?.addEventListener('keydown', (event) => handleDtTimeKeydown(event));
+            timeInput?.addEventListener('paste', (event) => handleDtTimePaste(event));
+            document.addEventListener('pointerdown', (event) => {
+                const picker = document.getElementById('dt-picker');
+                if (!picker || picker.hidden) return;
+                const target = event.target;
+                if (picker.contains(target) || target.closest?.('[data-dt-target]')) return;
+                closeDatePicker();
+            });
             document.querySelectorAll('[data-file-trigger]').forEach((el) => {
                 el.addEventListener('click', (event) => {
                     if (event.target?.matches?.('input[type="file"]')) return;

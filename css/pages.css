@@ -1725,12 +1725,6 @@ body.page-judge {
   color: var(--warn-600);
 }
 
-.admin-quick-actions {
-  display: flex;
-  gap: var(--sp-3);
-  flex-wrap: wrap;
-}
-
 /* 公開管理 */
 .public-state-grid {
   display: grid;

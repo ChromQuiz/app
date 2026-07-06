@@ -788,6 +788,83 @@
             return scope === 'disclosure' ? `dt-disclosure-${target}-trigger` : `dt-${target}-trigger`;
         }
 
+        function getDtTimeInput() {
+            return document.getElementById('dt-picker-time-input');
+        }
+
+        function normalizeTimeDigits(digits) {
+            return String(digits || '').replace(/\D/g, '').slice(0, 4);
+        }
+
+        function parseTimeDigits(digits) {
+            const padded = normalizeTimeDigits(digits).padStart(4, '0');
+            const hour = Math.min(23, parseInt(padded.slice(0, 2), 10) || 0);
+            const minute = Math.min(59, parseInt(padded.slice(2, 4), 10) || 0);
+            return { hour, minute };
+        }
+
+        function formatTimeDigits(digits) {
+            const time = parseTimeDigits(digits);
+            return `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`;
+        }
+
+        function setDtTimeInput(hour = 0, minute = 0) {
+            const input = getDtTimeInput();
+            if (!input) return;
+            const digits = `${String(hour).padStart(2, '0')}${String(minute).padStart(2, '0')}`;
+            input.dataset.timeDigits = digits;
+            input.dataset.timeFresh = 'true';
+            input.value = formatTimeDigits(digits);
+        }
+
+        function readDtTimeInput() {
+            const input = getDtTimeInput();
+            return parseTimeDigits(input?.dataset.timeDigits || input?.value || '');
+        }
+
+        function updateDtTimeInputFromDigits(input, digits) {
+            const normalized = normalizeTimeDigits(digits);
+            input.dataset.timeDigits = normalized;
+            input.dataset.timeFresh = 'false';
+            input.value = formatTimeDigits(normalized);
+        }
+
+        function handleDtTimeKeydown(event) {
+            const input = event.currentTarget;
+            if (!input) return;
+            if (/^\d$/.test(event.key)) {
+                event.preventDefault();
+                const current = input.dataset.timeFresh === 'true' ? '' : (input.dataset.timeDigits || '');
+                updateDtTimeInputFromDigits(input, `${current}${event.key}`);
+                return;
+            }
+            if (event.key === 'Backspace' || event.key === 'Delete') {
+                event.preventDefault();
+                const current = input.dataset.timeFresh === 'true' ? '' : (input.dataset.timeDigits || '');
+                updateDtTimeInputFromDigits(input, current.slice(0, -1));
+                return;
+            }
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                dtConfirm();
+                return;
+            }
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeDatePicker();
+                return;
+            }
+            if (['Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+        }
+
+        function handleDtTimePaste(event) {
+            const input = event.currentTarget;
+            if (!input) return;
+            event.preventDefault();
+            updateDtTimeInputFromDigits(input, event.clipboardData?.getData('text') || '');
+        }
+
         function openDatePicker(scopeOrTarget, maybeTarget) {
             dtScope = maybeTarget ? scopeOrTarget : 'entry';
             dtTarget = maybeTarget || scopeOrTarget;
@@ -798,22 +875,7 @@
             dtDay = now.getDate();
             dtHour = now.getHours(); dtMin = now.getMinutes();
 
-            // populate hour/min selectors
-            const hSel = document.getElementById('dt-picker-hour');
-            const mSel = document.getElementById('dt-picker-min');
-            hSel.textContent = ''; mSel.textContent = '';
-            for (let h = 0; h < 24; h++) {
-                const o = document.createElement('option'); o.value = h;
-                o.textContent = String(h).padStart(2, '0');
-                if (h === dtHour) o.selected = true;
-                hSel.appendChild(o);
-            }
-            for (let m = 0; m < 60; m += 5) {
-                const o = document.createElement('option'); o.value = m;
-                o.textContent = String(m).padStart(2, '0');
-                if (m <= dtMin && m + 5 > dtMin) o.selected = true;
-                mSel.appendChild(o);
-            }
+            setDtTimeInput(dtHour, dtMin);
 
             renderDtDays();
 
@@ -879,8 +941,9 @@
         }
 
         function dtConfirm() {
-            dtHour = parseInt(document.getElementById('dt-picker-hour').value);
-            dtMin = parseInt(document.getElementById('dt-picker-min').value);
+            const selectedTime = readDtTimeInput();
+            dtHour = selectedTime.hour;
+            dtMin = selectedTime.minute;
             const d = new Date(dtYear, dtMonth, dtDay, dtHour, dtMin);
             // Format as datetime-local value
             const pad = n => String(n).padStart(2, '0');
