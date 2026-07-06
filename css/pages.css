@@ -425,7 +425,7 @@ body.page-wrapper {
 /* ============================================================
    entry.html — エントリーフォーム（3ステップ）
    ============================================================ */
-/* ステップインジケーター（HTML静的 + :has() で状態遷移、JS変更不要） */
+/* ステップインジケーター */
 .entry-steps {
   display: flex;
   align-items: center;
@@ -456,6 +456,7 @@ body.page-wrapper {
   background: var(--surface);
   font-family: var(--font-mono);
   font-size: var(--fs-12);
+  color: var(--ink-3);
 }
 
 .entry-step::after {
@@ -471,42 +472,33 @@ body.page-wrapper {
   display: none;
 }
 
-/* step1: 初期状態 = 認証中 */
-.entry-steps .entry-step:nth-child(1) {
+.entry-step.is-active {
   color: var(--brand-600);
 }
 
-.entry-steps .entry-step:nth-child(1) .entry-step-num {
+.entry-step.is-active .entry-step-num {
   background: var(--brand-600);
   border-color: var(--brand-600);
   color: var(--brand-ink);
 }
 
-/* step2: #form-body が表示されたら入力中 */
-body:has(#form-body:not(.u-hidden)) .entry-steps .entry-step:nth-child(1) .entry-step-num {
-  background: var(--ok-500);
-  border-color: var(--ok-500);
+.entry-step.is-complete {
+  color: var(--ok-600);
 }
 
-body:has(#form-body:not(.u-hidden)) .entry-steps .entry-step:nth-child(2) {
-  color: var(--brand-600);
-}
-
-body:has(#form-body:not(.u-hidden)) .entry-steps .entry-step:nth-child(2) .entry-step-num {
-  background: var(--brand-600);
-  border-color: var(--brand-600);
-  color: var(--brand-ink);
-}
-
-/* step3: #result-card が表示されたら完了 */
-body:has(#result-card:not(.u-hidden)) .entry-steps .entry-step .entry-step-num {
+.entry-step.is-complete .entry-step-num {
   background: var(--ok-500);
   border-color: var(--ok-500);
   color: #fff;
 }
 
-body:has(#result-card:not(.u-hidden)) .entry-steps .entry-step:nth-child(3) {
-  color: var(--ok-600);
+.entry-step.is-complete::after {
+  background: var(--ok-500);
+}
+
+.entry-step.is-active::after {
+  border-color: var(--brand-600);
+  background: var(--brand-600);
 }
 
 /* 認証コード入力 */

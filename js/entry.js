@@ -32,6 +32,20 @@ function setEntryButton(button, text, iconClass = '') {
     button.appendChild(document.createTextNode(text));
 }
 
+function setEntryStepState(state) {
+    const steps = Array.from(document.querySelectorAll('.entry-step'));
+    const order = ['verify', 'form', 'done'];
+    const activeIndex = order.indexOf(state);
+    steps.forEach((step, index) => {
+        step.classList.remove('is-active', 'is-complete');
+        if (state === 'done' || index < activeIndex) {
+            step.classList.add('is-complete');
+        } else if (index === activeIndex) {
+            step.classList.add('is-active');
+        }
+    });
+}
+
 function requireSupabasePublicApi() {
     if (!window.CIQSupabaseAPI?.isEnabled?.()) {
         throw new Error('Supabase設定が見つかりません。');
@@ -235,6 +249,7 @@ async function verifyEmailCode() {
     clearStatus();
     hideEl(document.getElementById('email-verify-section'));
     showEl(document.getElementById('form-body'));
+    setEntryStepState('form');
     document.getElementById('verified-email').textContent = email;
 
     sessionTimer = setTimeout(() => {
@@ -247,6 +262,7 @@ async function verifyEmailCode() {
         document.getElementById('f-verify-code').value = '';
         hideEl(document.getElementById('code-input-area'));
         showEl(document.getElementById('send-code-btn'));
+        setEntryStepState('verify');
         document.getElementById('send-code-btn').disabled = false;
         setEntryButton(document.getElementById('send-code-btn'), '認証コードを送信', 'fa-solid fa-paper-plane');
         hideEl(document.getElementById('resend-code-btn'));
@@ -345,6 +361,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
         hideEl(document.getElementById('form-card'));
         showEl(document.getElementById('result-card'));
+        setEntryStepState('done');
         document.getElementById('r-entry-number').textContent = String(entryNumber).padStart(3, '0');
         hideEl(document.getElementById('status-msg'));
 
@@ -373,6 +390,7 @@ document.getElementById('verify-code-btn')?.addEventListener('click', verifyEmai
 document.getElementById('resend-code-btn')?.addEventListener('click', resendVerification);
 
 async function init() {
+    setEntryStepState('verify');
     if (!projectId) {
         showDisabled('プロジェクトが指定されていません', '正しいエントリーURLへアクセスしてください。');
         return;

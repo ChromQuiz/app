@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="css/design_system.css?v=32">
-    <link rel="stylesheet" href="css/pages.css?v=47">
+    <link rel="stylesheet" href="css/pages.css?v=48">
 </head>
 
 <body class="page-wrapper">
@@ -38,9 +38,9 @@
         </div>
 
         <ol class="entry-steps" aria-label="エントリーの手順">
-            <li class="entry-step"><span class="entry-step-num" aria-hidden="true">1</span>本人確認</li>
-            <li class="entry-step"><span class="entry-step-num" aria-hidden="true">2</span>情報入力</li>
-            <li class="entry-step"><span class="entry-step-num" aria-hidden="true">3</span>完了</li>
+            <li class="entry-step is-active" data-step="verify"><span class="entry-step-num" aria-hidden="true">1</span>本人確認</li>
+            <li class="entry-step" data-step="form"><span class="entry-step-num" aria-hidden="true">2</span>情報入力</li>
+            <li class="entry-step" data-step="done"><span class="entry-step-num" aria-hidden="true">3</span>完了</li>
         </ol>
 
         <div class="page-card page-disabled is-disabled u-hidden" id="disabled-card" role="status">
@@ -211,7 +211,7 @@
     </div>
 
     <script defer src="js/email.js?v=3"></script>
-    <script defer src="js/entry.js?v=12"></script>
+    <script defer src="js/entry.js?v=13"></script>
 </body>
 
 </html>
