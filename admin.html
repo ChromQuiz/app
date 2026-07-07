@@ -19,7 +19,7 @@
     <script defer src="js/custom-select.js?v=5"></script>
     <script defer src="js/shared.js"></script>
     <link rel="stylesheet" href="css/design_system.css?v=37">
-    <link rel="stylesheet" href="css/pages.css?v=54">
+    <link rel="stylesheet" href="css/pages.css?v=55">
 </head>
 
 <body class="page-admin">
@@ -87,6 +87,15 @@
     </div>
 
     <div class="admin-container">
+        <nav class="phase-quick-nav" aria-label="運営フェーズショートカット">
+            <button type="button" class="phase-quick-btn" data-tab-target="tab-prep"><span>1</span><b>準備</b></button>
+            <button type="button" class="phase-quick-btn active" data-tab-target="tab-entries"><span>2</span><b>公開</b></button>
+            <button type="button" class="phase-quick-btn" data-nav-target="checkin.html"><span>3</span><b>当日</b></button>
+            <button type="button" class="phase-quick-btn" data-tab-target="tab-scan"><span>4</span><b>採点</b></button>
+            <button type="button" class="phase-quick-btn" data-tab-target="tab-stats"><span>5</span><b>結果</b></button>
+            <button type="button" class="phase-quick-btn" data-tab-target="tab-settings"><span data-icon="gear" aria-hidden="true"></span><b>設定</b></button>
+        </nav>
+
         <!-- フェーズタイムライン: 大会運営の流れそのものがナビゲーション -->
         <ol class="phase-list" id="admin-tabs" aria-label="運営フェーズ">
 
@@ -669,7 +678,7 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=31"></script>
+    <script defer src="js/admin.js?v=33"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
     <script defer src="js/admin_scan.js?v=11"></script>
     <script defer src="js/admin_stats.js?v=10"></script>

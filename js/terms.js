@@ -58,6 +58,14 @@ function appendBlockToken(parent, token) {
         const list = document.createElement(token.ordered ? 'ol' : 'ul');
         (token.items || []).forEach((item) => {
             const li = document.createElement('li');
+            if (item.task) {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = Boolean(item.checked);
+                checkbox.disabled = true;
+                checkbox.className = 'terms-task-checkbox';
+                li.appendChild(checkbox);
+            }
             if (item.tokens?.length) {
                 item.tokens.forEach(child => appendBlockToken(li, child));
             } else {
@@ -90,6 +98,35 @@ function appendBlockToken(parent, token) {
         return;
     }
 
+    if (token.type === 'table') {
+        const wrap = document.createElement('div');
+        wrap.className = 'terms-table-wrap';
+        const table = document.createElement('table');
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        (token.header || []).forEach((cell) => {
+            const th = document.createElement('th');
+            appendInlineTokens(th, cell.tokens || []);
+            headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        (token.rows || []).forEach((row) => {
+            const tr = document.createElement('tr');
+            row.forEach((cell) => {
+                const td = document.createElement('td');
+                appendInlineTokens(td, cell.tokens || []);
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        wrap.appendChild(table);
+        parent.appendChild(wrap);
+        return;
+    }
+
     const p = document.createElement('p');
     p.textContent = token.text || token.raw || '';
     parent.appendChild(p);
@@ -99,9 +136,38 @@ function renderMarkdown(container, markdown) {
     container.textContent = '';
     const tokens = window.marked?.lexer ? marked.lexer(markdown || '') : [];
     tokens.forEach(token => appendBlockToken(container, token));
+    renderTermsToc(container);
+}
+
+function renderTermsToc(container) {
+    const toc = document.getElementById('terms-toc');
+    if (!toc) return;
+    toc.textContent = '';
+    const headings = Array.from(container.querySelectorAll('h1, h2, h3'));
+    if (headings.length < 2) {
+        toc.classList.add('u-hidden');
+        return;
+    }
+    const title = document.createElement('div');
+    title.className = 'terms-toc-title';
+    title.textContent = '目次';
+    const list = document.createElement('ol');
+    headings.forEach((heading, index) => {
+        heading.id = `terms-section-${index + 1}`;
+        const item = document.createElement('li');
+        item.className = `terms-toc-depth-${heading.tagName.slice(1)}`;
+        const link = document.createElement('a');
+        link.href = `#${heading.id}`;
+        link.textContent = heading.textContent || `項目${index + 1}`;
+        item.appendChild(link);
+        list.appendChild(item);
+    });
+    toc.append(title, list);
+    toc.classList.remove('u-hidden');
 }
 
 function setTermsMessage(container, message) {
+    document.getElementById('terms-toc')?.classList.add('u-hidden');
     container.textContent = '';
     const p = document.createElement('p');
     p.textContent = message;

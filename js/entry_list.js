@@ -91,13 +91,20 @@ const params = new URLSearchParams(location.search);
         }
 
         const earlyCount = early.length;
+        const lateChubuCount = lateChubu.length;
         const ordered = [...early, ...lateChubu, ...lateOther];
         ordered.forEach((e, i) => {
             e._priority = i + 1;
             e._isWaitlist = maxEntries > 0 && e._priority > maxEntries;
             e._isAfterGrace = i >= earlyCount && cutoff > 0;
         });
-        return { ordered, earlyCount, hasGraceSplit: cutoff > 0 && earlyCount < ordered.length };
+        return {
+            ordered,
+            earlyCount,
+            lateChubuCount,
+            lateOtherCount: lateOther.length,
+            hasGraceSplit: cutoff > 0 && earlyCount < ordered.length,
+        };
     }
 
     function renderList(data) {
@@ -117,17 +124,8 @@ const params = new URLSearchParams(location.search);
             return;
         }
 
-        const { ordered } = calcPriority(entries);
-
-        const confirmed = ordered.filter(e => !e._isWaitlist);
-        const waitlist = ordered.filter(e => e._isWaitlist);
-
-        // 枠区分: 先着(開始30分以内) / 中部枠(以降の中部地方) / 一般(以降のその他)
-        const slotLabel = (e) => {
-            if (!e._isAfterGrace) return { label: '先着', cls: 'slot-early' };
-            if (e.isChubu === true) return { label: '中部枠', cls: 'slot-chubu' };
-            return { label: '一般', cls: 'slot-general' };
-        };
+        const { ordered, earlyCount, lateChubuCount, lateOtherCount, hasGraceSplit } = calcPriority(entries);
+        const waitlistCount = ordered.filter(e => e._isWaitlist).length;
 
         const renderRow = (e, isWaitlist) => {
             const d = new Date(e.timestamp || Date.now());
@@ -148,11 +146,7 @@ const params = new URLSearchParams(location.search);
             const priorityBadge = document.createElement('span');
             priorityBadge.className = 'entry-priority-badge';
             priorityBadge.textContent = `#${e._priority}`;
-            const slot = slotLabel(e);
-            const slotSpan = document.createElement('span');
-            slotSpan.className = `entry-slot-label ${slot.cls}`;
-            slotSpan.textContent = slot.label;
-            priorityTd.append(priorityBadge, slotSpan);
+            priorityTd.append(priorityBadge);
 
             const nameTd = document.createElement('td');
             nameTd.className = 'entry-list-name-cell';
@@ -186,14 +180,19 @@ const params = new URLSearchParams(location.search);
             body.appendChild(tr);
         };
 
-        confirmed.forEach(e => renderRow(e, false));
-
-        // 定員ライン: ここから下は出場圏外(キャンセル待ち)
-        if (waitlist.length > 0) {
-            const capacityNote = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
-            appendDivider(body, 'clock', `ここまで出場圏内${capacityNote} — 以下キャンセル待ち（${waitlist.length}名）`, 'entry-list-divider-warning');
-            waitlist.forEach(e => renderRow(e, true));
-        }
+        ordered.forEach((entry, index) => {
+            if (index === maxEntries && waitlistCount > 0) {
+                const capacityNote = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
+                appendDivider(body, 'clock', `ここまで出場圏内${capacityNote} — 以下キャンセル待ち（${waitlistCount}名）`, 'entry-list-divider-warning');
+            }
+            if (hasGraceSplit && index === earlyCount && lateChubuCount > 0) {
+                appendDivider(body, 'map-pin', '以降 中部優先', 'entry-list-divider-rule');
+            }
+            if (hasGraceSplit && index === earlyCount + lateChubuCount && lateOtherCount > 0) {
+                appendDivider(body, 'clock', '以降 先着', 'entry-list-divider-rule');
+            }
+            renderRow(entry, entry._isWaitlist);
+        });
 
         document.getElementById('total-count').textContent = ordered.length;
         const capacityEl = document.getElementById('entry-capacity');

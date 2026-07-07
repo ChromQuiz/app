@@ -489,6 +489,9 @@
             // フェーズ順に依存しないよう data-tab-target で対応ボタンを引く
             const activeBtn = document.querySelector(`.tab-btn[data-tab-target="${tabId}"]`);
             activeBtn?.classList.add('active');
+            document.querySelectorAll('.phase-quick-btn[data-tab-target]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tabTarget === tabId);
+            });
             // ARIA 同期（initTablist が未初期化の場合のフォールバック込み）
             btns.forEach(b => {
                 const isActive = b.classList.contains('active');
@@ -517,7 +520,7 @@
             // 集計タブは毎回更新
             if (tabId === 'tab-stats') updateStatsView();
             updateAdminOverview();
-            activeBtn?.focus?.();
+            activeBtn?.focus?.({ preventScroll: true });
         }
 
         // タブの件数バッジを更新（参加者数 / 答案数 / 要確認数）
