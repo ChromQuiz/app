@@ -20,6 +20,7 @@ let backgroundPrewarmToken = 0;
 let lastRenderMetrics = null;
 let totalQuestions = 100;
 let requiredScorers = 3;
+let hasSetInitialSelection = false;
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
@@ -159,6 +160,13 @@ function setAnswerGridMessage(message, iconClass = '') {
 
 function updateAnswerCardClass(card, result, isSelected) {
     card.className = `answer-card ${result === 'correct' ? 'correct' : result === 'wrong' ? 'wrong' : result === 'hold' ? 'hold' : ''} ${isSelected ? 'selected' : ''}`;
+}
+
+function setInitialSelectionToFirstUnscored() {
+    if (hasSetInitialSelection || !answerCards.length) return;
+    const firstUnscoredIndex = answerCards.findIndex(card => myScores[card.entryId] === null);
+    selectedIndex = firstUnscoredIndex >= 0 ? firstUnscoredIndex : 0;
+    hasSetInitialSelection = true;
 }
 
 function createAnswerCard(cardData, idx) {
@@ -582,6 +590,7 @@ async function refreshVotes() {
         if (serverVote?.result === result) delete pendingWrites[entryId];
     }
     myScores = nextScores;
+    setInitialSelectionToFirstUnscored();
     renderGrid();
     checkAutoCompletion();
 }

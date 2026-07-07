@@ -1972,6 +1972,31 @@ body.page-wrapper {
   transition: border-color var(--t-micro) var(--ease);
 }
 
+.answer-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 0 solid transparent;
+}
+
+.answer-card::before {
+  content: '選択中';
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+  z-index: 1;
+  display: none;
+  padding: 5px 8px;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: var(--surface);
+  font-size: var(--fs-12);
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
 .answer-card:hover {
   border-color: var(--ink-3);
 }
@@ -1983,7 +2008,16 @@ body.page-wrapper {
 
 .answer-card.selected {
   border-color: var(--ink);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 25%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 24%, transparent);
+}
+
+.answer-card.selected::after {
+  border-width: 4px;
+  border-color: var(--ink);
+}
+
+.answer-card.selected::before {
+  display: block;
 }
 
 .answer-card.correct {
