@@ -169,6 +169,16 @@ function setInitialSelectionToFirstUnscored() {
     hasSetInitialSelection = true;
 }
 
+function keepSelectedVisibleDuringInitialLayout() {
+    scrollToSelected();
+    requestAnimationFrame(() => {
+        scrollToSelected();
+        requestAnimationFrame(scrollToSelected);
+    });
+    setTimeout(scrollToSelected, 120);
+    setTimeout(scrollToSelected, 420);
+}
+
 function createAnswerCard(cardData, idx) {
     const myScore = myScores[cardData.entryId];
     const card = document.createElement('div');
@@ -624,7 +634,7 @@ function renderGrid() {
         grid.appendChild(fragment);
     }
 
-    if (createdCards) scrollToSelected();
+    if (createdCards) keepSelectedVisibleDuringInitialLayout();
     lastRenderMetrics = {
         renderMs: roundMs(performance.now() - renderStartedAt),
         createdCards,
