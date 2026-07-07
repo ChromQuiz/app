@@ -48,13 +48,7 @@
                     cb.dataset.num = String(num);
                     const mark = document.createElement('span');
                     mark.className = 'checkbox-mark';
-                    const checkSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    checkSvg.classList.add('checkbox-svg');
-                    checkSvg.setAttribute('viewBox', '0 0 16 16');
-                    const checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    checkPath.setAttribute('d', 'M3 8.5L6.5 12L13 4');
-                    checkSvg.appendChild(checkPath);
-                    mark.appendChild(checkSvg);
+                    mark.appendChild(createIcon('check'));
                     checkboxLabel.append(cb, mark);
 
                     const entryInfo = document.createElement('div');

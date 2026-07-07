@@ -18,6 +18,7 @@ const ICON_PATHS = {
   'xmark': 'M17 7 7 17M7 7l10 10',
   'plus': 'M12 5.8v12.4M5.8 12h12.4',
   'minus': 'M5.8 12h12.4',
+  'line-3-horizontal': 'M4.8 7.2h14.4M4.8 12h14.4M4.8 16.8h14.4',
   'check': 'M5.5 12.5 9.7 16.5 18.5 7.5',
   'check-double': ['M3.8 12.6 7.1 15.9 13 9.8', 'M10.2 13.4l2.7 2.5 7.3-8.1'],
   'rotate': ['M18.8 8.2A7.7 7.7 0 1 1 12 4.3c2.3 0 4.2 1 5.6 2.5', 'M18.8 3.8v4.6h-4.6'],
@@ -168,7 +169,7 @@ function createIcon(nameOrClass, opts = {}) {
   svg.setAttribute('viewBox', '-1 -1 26 26');
   svg.setAttribute('fill', 'none');
   svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '1.8');
+  svg.setAttribute('stroke-width', '1.9');
   svg.setAttribute('stroke-linecap', 'round');
   svg.setAttribute('stroke-linejoin', 'round');
   svg.setAttribute('vector-effect', 'non-scaling-stroke');
@@ -191,6 +192,7 @@ function createIcon(nameOrClass, opts = {}) {
     if (!d) return;
     const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     p.setAttribute('d', d);
+    p.setAttribute('vector-effect', 'non-scaling-stroke');
     svg.appendChild(p);
   });
   return svg;
