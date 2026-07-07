@@ -65,7 +65,7 @@
 Background  #FFFFFF / #111113        Surface-2  #F5F5F7 / #242428
 Text        #1A1A1E / #F5F5F7        Sub        #6E6E76 / #A1A1A8
 Border      #E6E6EA / #333338        強調線     #D2D2D7 / #44444A
-Accent(1色) #0B57D0(dark #7CACF8) — 主CTA・リンク・フォーカスのみ
+Accent(1色) #1A1A1E(dark #F5F5F7) — 主CTA・リンク・フォーカスのみ
 Success #1E7A44 / Warning #9A6200 / Error #C22945 — 状態表示限定・面塗り最小(左罫+文字中心)
 Gold #9A6A00 — 成績・順位の1点のみ
 ```
@@ -98,7 +98,7 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 ## 7. HTMLメール
 
 - サイトと同一トークン(白ボディ・near-black見出し・neutral罫線・アクセント1色のCTA)。600pxテーブル+インラインCSS。
-- **CTAは[マイエントリーを開く]1本に集約**(キャンセル完了のみCTAなし)。
+- 基本CTAは[マイエントリー]に集約。エントリー完了メールのみ[マイエントリー]と[エントリーリスト]を横並びで置く。キャンセル完了はCTAなし。
 - エントリー完了メールに必須: 受付番号(mono大) / 当日受付QR / パスワード / マイエントリーCTA /
   保存文言「このメールには受付QRとマイエントリー用の情報が含まれます。大会当日まで保存してください。」
   +「QRコードはマイエントリーからも再表示できます」。

@@ -287,38 +287,38 @@
 
             try { await document.fonts.ready; } catch (_) {}
 
-            ctx.fillStyle = '#f8fafc';
+            ctx.fillStyle = '#f5f5f7';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#2563eb';
+            ctx.fillStyle = '#1a1a1e';
             ctx.fillRect(0, 0, canvas.width, 170);
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
             ctx.font = '800 38px "Noto Sans JP", "Hiragino Sans", sans-serif';
             ctx.fillText('エントリー受付完了', canvas.width / 2, 72);
-            ctx.fillStyle = '#dbeafe';
+            ctx.fillStyle = '#d2d2d7';
             ctx.font = '600 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
             ctx.fillText(receipt.projectName, canvas.width / 2, 116);
 
             ctx.fillStyle = '#ffffff';
             drawRoundedRect(ctx, 70, 215, 760, 820, 24);
             ctx.fill();
-            ctx.strokeStyle = '#dbeafe';
+            ctx.strokeStyle = '#e6e6ea';
             ctx.lineWidth = 2;
             ctx.stroke();
 
             ctx.textAlign = 'left';
-            ctx.fillStyle = '#334155';
+            ctx.fillStyle = '#1a1a1e';
             ctx.font = '600 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
             drawReceiptText(ctx, `${receipt.familyName} ${receipt.firstName} 様`, 110, 270, 680, 36);
 
-            ctx.fillStyle = '#eff6ff';
+            ctx.fillStyle = '#f5f5f7';
             drawRoundedRect(ctx, 110, 315, 680, 150, 16);
             ctx.fill();
-            ctx.fillStyle = '#64748b';
+            ctx.fillStyle = '#6e6e76';
             ctx.font = '700 22px "Noto Sans JP", "Hiragino Sans", sans-serif';
             ctx.fillText('受付番号', 145, 370);
             ctx.fillText('パスワード', 145, 430);
-            ctx.fillStyle = '#0f172a';
+            ctx.fillStyle = '#1a1a1e';
             ctx.textAlign = 'right';
             ctx.font = '800 34px "Inter", "Noto Sans JP", sans-serif';
             ctx.fillText(receipt.entryNumber, 750, 374);
@@ -335,22 +335,22 @@
             }
 
             ctx.drawImage(qrImage, 285, 585, 330, 330);
-            ctx.strokeStyle = '#bfdbfe';
+            ctx.strokeStyle = '#d2d2d7';
             ctx.lineWidth = 2;
             drawRoundedRect(ctx, 275, 575, 350, 350, 20);
             ctx.stroke();
 
             ctx.textAlign = 'center';
-            ctx.fillStyle = '#1e3a8a';
+            ctx.fillStyle = '#1a1a1e';
             ctx.font = '800 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
             ctx.fillText('当日受付にはこのQRコードが必要です', canvas.width / 2, 970);
-            ctx.fillStyle = '#64748b';
+            ctx.fillStyle = '#6e6e76';
             ctx.font = '500 18px "Noto Sans JP", "Hiragino Sans", sans-serif';
             ctx.fillText('この画像とパスワードを大会当日まで保管してください', canvas.width / 2, 1005);
 
-            ctx.fillStyle = '#f1f5f9';
+            ctx.fillStyle = '#f5f5f7';
             ctx.fillRect(0, 1080, canvas.width, 100);
-            ctx.fillStyle = '#64748b';
+            ctx.fillStyle = '#6e6e76';
             ctx.font = '600 18px "Inter", "Noto Sans JP", sans-serif';
             ctx.fillText('CIQ', canvas.width / 2, 1138);
 
@@ -785,7 +785,28 @@
         }
 
         function getDtTriggerId(scope, target) {
+            if (scope === 'waitlist') return `dt-waitlist-${target}-trigger`;
             return scope === 'disclosure' ? `dt-disclosure-${target}-trigger` : `dt-${target}-trigger`;
+        }
+
+        function placeDatePicker(picker, scope, target) {
+            const trigger = document.getElementById(getDtTriggerId(scope, target));
+            if (!picker || !trigger) return;
+            const rect = trigger.getBoundingClientRect();
+            const margin = 12;
+            const pickerWidth = picker.offsetWidth || 300;
+            const pickerHeight = picker.offsetHeight || 390;
+            const left = Math.min(
+                Math.max(margin, rect.left),
+                Math.max(margin, window.innerWidth - pickerWidth - margin)
+            );
+            const belowTop = rect.bottom + margin;
+            const aboveTop = rect.top - pickerHeight - margin;
+            const top = belowTop + pickerHeight <= window.innerHeight - margin
+                ? belowTop
+                : Math.max(margin, aboveTop);
+            picker.style.left = `${left}px`;
+            picker.style.top = `${top}px`;
         }
 
         function getDtTimeInput() {
@@ -881,12 +902,20 @@
 
             const picker = document.getElementById('dt-picker');
             picker.hidden = false;
-            document.getElementById('dt-picker-overlay').hidden = false;
+            placeDatePicker(picker, dtScope, dtTarget);
+            const overlay = document.getElementById('dt-picker-overlay');
+            overlay.hidden = false;
+            overlay.classList.add('active');
         }
 
         function closeDatePicker() {
-            document.getElementById('dt-picker').hidden = true;
-            document.getElementById('dt-picker-overlay').hidden = true;
+            const picker = document.getElementById('dt-picker');
+            const overlay = document.getElementById('dt-picker-overlay');
+            picker.hidden = true;
+            picker.style.left = '';
+            picker.style.top = '';
+            overlay.classList.remove('active');
+            overlay.hidden = true;
         }
 
         function dtNavMonth(delta) {
@@ -894,6 +923,7 @@
             if (dtMonth < 0) { dtMonth = 11; dtYear--; }
             if (dtMonth > 11) { dtMonth = 0; dtYear++; }
             renderDtDays();
+            placeDatePicker(document.getElementById('dt-picker'), dtScope, dtTarget);
         }
 
         function renderDtDays() {
@@ -979,6 +1009,66 @@
                 updateEntryOpenStatus();
             }
         }
+
+        window.bindDatePickerControls = function bindDatePickerControls() {
+            document.querySelectorAll('[data-dt-target]').forEach((el) => {
+                if (el.dataset.dtBound === 'true') return;
+                el.dataset.dtBound = 'true';
+                el.addEventListener('click', () => {
+                    if (el.dataset.dtScope) {
+                        openDatePicker(el.dataset.dtScope, el.dataset.dtTarget);
+                    } else {
+                        openDatePicker(el.dataset.dtTarget);
+                    }
+                });
+            });
+
+            document.querySelectorAll('[data-dt-nav]').forEach((el) => {
+                if (el.dataset.dtBound === 'true') return;
+                el.dataset.dtBound = 'true';
+                el.addEventListener('click', () => dtNavMonth(Number(el.dataset.dtNav || 0)));
+            });
+
+            const closeControl = document.querySelector('[data-dt-close]');
+            if (closeControl && closeControl.dataset.dtBound !== 'true') {
+                closeControl.dataset.dtBound = 'true';
+                closeControl.addEventListener('click', closeDatePicker);
+            }
+
+            const clearControl = document.querySelector('[data-dt-clear]');
+            if (clearControl && clearControl.dataset.dtBound !== 'true') {
+                clearControl.dataset.dtBound = 'true';
+                clearControl.addEventListener('click', dtClear);
+            }
+
+            const confirmControl = document.querySelector('[data-dt-confirm]');
+            if (confirmControl && confirmControl.dataset.dtBound !== 'true') {
+                confirmControl.dataset.dtBound = 'true';
+                confirmControl.addEventListener('click', dtConfirm);
+            }
+
+            const timeInput = document.getElementById('dt-picker-time-input');
+            if (timeInput && timeInput.dataset.dtBound !== 'true') {
+                timeInput.dataset.dtBound = 'true';
+                timeInput.addEventListener('focus', () => {
+                    timeInput.dataset.timeFresh = 'true';
+                    timeInput.select();
+                });
+                timeInput.addEventListener('keydown', (event) => handleDtTimeKeydown(event));
+                timeInput.addEventListener('paste', (event) => handleDtTimePaste(event));
+            }
+
+            if (document.body.dataset.dtOutsideBound !== 'true') {
+                document.body.dataset.dtOutsideBound = 'true';
+                document.addEventListener('pointerdown', (event) => {
+                    const picker = document.getElementById('dt-picker');
+                    if (!picker || picker.hidden) return;
+                    const target = event.target;
+                    if (picker.contains(target) || target.closest?.('[data-dt-target]')) return;
+                    closeDatePicker();
+                });
+            }
+        };
 
         async function loadAdminEntries() {
             const tbody = document.getElementById('admin-entries-tbody');
@@ -1115,8 +1205,8 @@
             const noticeState = entry.waitlist_promotion_notice;
             if (noticeState === 'pending' || noticeState === 'sending') {
                 statusTd.appendChild(createBadge('badge', 'fa-solid fa-envelope', '繰り上げ通知送信待ち', {
-                    background: 'rgba(37,99,235,0.10)',
-                    color: 'var(--primary)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--ink)',
                 }));
             } else if (noticeState === 'sent') {
                 statusTd.appendChild(createBadge('badge success', 'fa-solid fa-envelope-circle-check', '繰り上げ通知送信済み'));

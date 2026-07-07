@@ -6,7 +6,7 @@ CIQ の UI/UX/CX を「今どこにいるか・何が安全か・次に何をす
 ## 設計主軸（再掲）
 
 - **デザインシステムの正典は `design-system/MASTER.md`**（2026-07 全面再構築 / Apple方向の白・黒・グレー基調）。トークン・コンポーネント・タイポグラフィ・メール設計はそちらを参照。
-- **色**: Background `#FFFFFF` / Text `#1A1A1E` / Sub `#6E6E76` / Border `#E6E6EA` / Accent `#0B57D0`(CTA・リンク限定) / Success `#1E7A44` / Warning `#9A6200` / Error `#C22945` / Gold(成績のみ) `#9A6A00`。ライト/ダーク両対応。紫・グラデ・グロー・ガラス風は禁止。
+- **色**: Background `#FFFFFF` / Text `#1A1A1E` / Sub `#6E6E76` / Border `#E6E6EA` / Accent `#1A1A1E`(dark `#F5F5F7`, CTA・リンク限定) / Success `#1E7A44` / Warning `#9A6200` / Error `#C22945` / Gold(成績のみ) `#9A6A00`。ライト/ダーク両対応。紫・青・グラデ・グロー・ガラス風は禁止。
 - **タイポ**: システムフォントスタック(SF Pro前提)。mono(SF Mono系)は数値・受付番号・ID・コード専用。
 - **状態は色だけで伝えない**: 色 + アイコン + テキスト + 配置の複合。44px touch / focus ring 3px / prefers-reduced-motion 対応。
 - **ページ構成**: 参加者のセルフ操作は my.html(マイエントリー)に集約。edit/cancel/late/disclosure は廃止。admin はフェーズタイムライン。詳細は `docs/page_structure.md`。

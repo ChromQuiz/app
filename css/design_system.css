@@ -26,14 +26,14 @@
   --scrim: rgba(26, 26, 30, 0.5);
 
   /* --- Color: accent(1色のみ / CTA・リンク・フォーカス限定) --- */
-  --brand-50: #eef4fe;
-  --brand-100: #dce8fc;
-  --brand-200: #b9d2f9;
-  --brand-300: #8ab4f2;
-  --brand-500: #0b57d0;
-  --brand-600: #0b57d0;
-  --brand-700: #0a4cb5;
-  --brand-ink: #ffffff;
+  --brand-50: var(--surface-2);
+  --brand-100: var(--surface-3);
+  --brand-200: var(--line);
+  --brand-300: var(--line-strong);
+  --brand-500: var(--ink);
+  --brand-600: var(--ink);
+  --brand-700: var(--ink-2);
+  --brand-ink: var(--surface);
 
   /* --- Color: semantic(状態表示限定・面塗り最小) --- */
   --ok-600: #1e7a44;
@@ -95,7 +95,7 @@
   --sh-1: 0 0 0 rgba(0, 0, 0, 0);
   --sh-2: 0 1px 2px rgba(0, 0, 0, 0.05);
   --sh-3: 0 16px 40px rgba(0, 0, 0, 0.14);
-  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--brand-500) 30%, transparent);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--ink) 18%, transparent);
 
   /* --- Z-index scale --- */
   --z-sticky: 10;
@@ -135,14 +135,14 @@
     --line-strong: #44444a;
     --scrim: rgba(0, 0, 0, 0.6);
 
-    --brand-50: #1b2940;
-    --brand-100: #21335a;
-    --brand-200: #2c477e;
-    --brand-300: #4f7ecb;
-    --brand-500: #6ea3f5;
-    --brand-600: #7cacf8;
-    --brand-700: #9dc0fa;
-    --brand-ink: #111113;
+    --brand-50: var(--surface-2);
+    --brand-100: var(--surface-3);
+    --brand-200: var(--line);
+    --brand-300: var(--line-strong);
+    --brand-500: var(--ink);
+    --brand-600: var(--ink);
+    --brand-700: var(--ink-2);
+    --brand-ink: var(--surface);
 
     --ok-600: #4cc07a;
     --ok-500: #3daf6b;
@@ -2191,66 +2191,85 @@ tbody tr:hover {
 .dt-picker {
   position: fixed;
   z-index: var(--z-modal);
-  width: 300px;
+  width: min(360px, calc(100vw - 24px));
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-3);
-  padding: var(--sp-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-2);
+  padding: var(--sp-5);
 }
 
 .dt-picker-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-weight: 700;
-  margin-bottom: var(--sp-3);
+  gap: var(--sp-3);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  margin-bottom: var(--sp-4);
 }
 
 .dt-picker-nav button {
   width: var(--control-h-sm);
   height: var(--control-h-sm);
+  border: 1px solid var(--line);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
+  background: var(--surface);
   color: var(--ink-2);
+  cursor: pointer;
 }
 
 .dt-picker-nav button:hover {
   background: var(--surface-2);
   color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.dt-picker-nav button:focus-visible,
+.dt-day:focus-visible,
+.dt-clear:focus-visible,
+.dt-ok:focus-visible,
+.dt-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 18%, transparent);
 }
 
 .dt-picker-weekdays,
 .dt-picker-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: var(--sp-1);
   text-align: center;
 }
 
 .dt-picker-weekdays span {
   font-size: var(--fs-12);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-3);
-  padding: var(--sp-1) 0;
+  padding: 0 0 var(--sp-2);
 }
 
 .dt-day {
-  min-height: 36px;
+  min-height: var(--control-h-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--r-sm);
   font-size: var(--fs-14);
   font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: transparent;
   cursor: pointer;
-  transition: background var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease);
 }
 
 .dt-day:hover {
-  background: var(--brand-50);
+  background: var(--surface-2);
 }
 
 .dt-day.other {
@@ -2259,20 +2278,25 @@ tbody tr:hover {
 }
 
 .dt-day.today {
-  box-shadow: inset 0 0 0 1px var(--brand-500);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 
 .dt-day.selected {
-  background: var(--brand-600);
-  color: var(--brand-ink);
-  font-weight: 700;
+  background: var(--ink);
+  color: var(--surface);
+  font-weight: 600;
+  box-shadow: none;
 }
 
 .dt-picker-time {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin: var(--sp-4) 0;
+  gap: var(--sp-3);
+  margin: var(--sp-5) 0 var(--sp-4);
+  padding: var(--sp-3);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
 }
 
 .dt-time-label {
@@ -2283,20 +2307,25 @@ tbody tr:hover {
 
 .dt-time-input {
   flex: 1;
-  min-height: var(--control-h-sm);
+  min-height: var(--control-h);
   font-family: var(--font-mono);
+  font-size: var(--fs-16);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   text-align: center;
   letter-spacing: 0;
+  background: var(--surface);
+  border-color: var(--line);
 }
 
 .time-icon {
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 
 .dt-picker-actions {
   display: flex;
-  justify-content: space-between;
-  gap: var(--sp-3);
+  justify-content: flex-end;
+  gap: var(--sp-2);
 }
 
 .dt-clear,
@@ -2304,28 +2333,35 @@ tbody tr:hover {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-1);
-  min-height: var(--control-h-sm);
+  min-height: var(--control-h);
   padding: 0 var(--sp-4);
   border-radius: var(--r-md);
-  font-size: var(--fs-14);
+  font-size: var(--fs-15);
   font-weight: 600;
+  cursor: pointer;
 }
 
 .dt-clear {
   color: var(--ink-2);
+  border: 1px solid var(--line);
+  background: var(--surface);
 }
 
 .dt-clear:hover {
   background: var(--surface-2);
+  color: var(--ink);
+  border-color: var(--line-strong);
 }
 
 .dt-ok {
-  background: var(--brand-600);
-  color: var(--brand-ink);
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--surface);
 }
 
 .dt-ok:hover {
-  background: var(--brand-700);
+  background: var(--ink-2);
+  border-color: var(--ink-2);
 }
 
 /* 日時トリガー */
@@ -2339,13 +2375,15 @@ tbody tr:hover {
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   font-size: var(--fs-14);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--t-micro) var(--ease);
+  transition: border-color var(--t-micro) var(--ease), background var(--t-micro) var(--ease);
 }
 
 .dt-trigger:hover {
-  border-color: var(--brand-500);
+  background: var(--surface-2);
+  border-color: var(--line-strong);
 }
 
 .dt-trigger [data-icon] {

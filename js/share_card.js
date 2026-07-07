@@ -7,7 +7,7 @@ const ShareCard = (() => {
     const C = {
         bg: '#f8fafc',
         bgLine: '#e2e8f0',
-        accent: '#5a50e8',
+        accent: '#1a1a1e',
         dark: '#0f172a',
         darkSub: '#334155',
         white: '#ffffff',
@@ -72,7 +72,7 @@ const ShareCard = (() => {
         ctx.beginPath(); ctx.moveTo(480, 200); ctx.lineTo(480, 520); ctx.stroke();
         ctx.restore();
 
-        // 太い青アクセント（右上）
+        // 太いアクセント（右上）
         ctx.save();
         ctx.fillStyle = C.accent;
         ctx.beginPath();
@@ -98,7 +98,7 @@ const ShareCard = (() => {
         ctx.fillStyle = C.dark;
         ctx.fill();
 
-        // 上辺の青ライン
+        // 上辺のアクセントライン
         ctx.strokeStyle = C.accent;
         ctx.lineWidth = 3;
         ctx.beginPath();
@@ -191,7 +191,7 @@ const ShareCard = (() => {
         ctx.closePath();
         ctx.fill();
 
-        // 青いアクセントバー（ヘッダー内）
+        // アクセントバー（ヘッダー内）
         ctx.fillStyle = C.accent;
         ctx.fillRect(x + topSkew + 8, y + 7, 4, headerH - 14);
 
@@ -202,7 +202,7 @@ const ShareCard = (() => {
         ctx.fillText(label, x + topSkew + 20, y + headerH / 2);
         ctx.restore();
 
-        // 右下コーナー（青い三角）
+        // 右下コーナー
         ctx.save();
         ctx.fillStyle = C.accent;
         const cs = 18;
