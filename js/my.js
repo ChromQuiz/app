@@ -4,7 +4,7 @@
 // (タブを閉じると消える。パスワードはどこにも保存しない)。
 
 const params = new URLSearchParams(location.search);
-const projectId = params.get('pid') || params.get('projectId') || params.get('project');
+const projectId = params.get('pid') || params.get('projectId') || params.get('project') || session.get('projectId');
 const SESSION_KEY = projectId ? `ciqMy:${projectId}` : '';
 
 let projectSettings = null;

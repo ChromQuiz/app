@@ -173,7 +173,7 @@ export async function resolveParticipantAuth(
   select: string,
 ): Promise<ParticipantAuthResult> {
   const projectId = String(body.projectId || '');
-  if (!projectId) throw new ParticipantAuthError('Missing required fields', 400);
+  if (!projectId) throw new ParticipantAuthError('プロジェクト情報が見つかりません。メール内のリンクから開き直してください。', 400);
 
   const columns = select.includes('email_hash') ? select : `${select}, email_hash`;
 
@@ -193,7 +193,7 @@ export async function resolveParticipantAuth(
 
   const emailHash = String(body.emailHash || '');
   const passwordHash = String(body.disclosurePasswordHash || '');
-  if (!emailHash || !passwordHash) throw new ParticipantAuthError('Missing required fields', 400);
+  if (!emailHash || !passwordHash) throw new ParticipantAuthError('メールアドレスまたはパスワードの情報が不足しています。もう一度ログインしてください。', 400);
 
   await enforceAuthRateLimit(supabase, projectId, emailHash);
 

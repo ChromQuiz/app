@@ -2668,16 +2668,17 @@ body.page-wrapper {
 /* 解決済みは下部に畳む(order) + 静かに */
 .conflict-card.resolved {
   order: 1;
-  border-color: var(--line);
   opacity: 0.8;
 }
 
 .conflict-card.resolved.correct {
-  border-color: color-mix(in srgb, var(--ok-500) 50%, transparent);
+  border-color: var(--ok-500);
+  background: color-mix(in srgb, var(--ok-100) 50%, var(--surface));
 }
 
 .conflict-card.resolved.wrong {
-  border-color: color-mix(in srgb, var(--bad-500) 50%, transparent);
+  border-color: var(--bad-500);
+  background: color-mix(in srgb, var(--bad-100) 50%, var(--surface));
 }
 
 .conflict-review-row {
@@ -2693,18 +2694,13 @@ body.page-wrapper {
   overflow: hidden;
 }
 
-.conflict-review-chip {
-  flex: none;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  color: var(--ink);
-}
-
 .conflict-review-answer {
   min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--ink-2);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .conflict-review-row .votes-mini {

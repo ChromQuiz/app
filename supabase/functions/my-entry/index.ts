@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const projectId = String(body.projectId || '');
-    if (!projectId) return jsonResponse({ error: 'Missing required fields' }, 400);
+    if (!projectId) return jsonResponse({ error: 'プロジェクト情報が見つかりません。メール内のリンクから開き直してください。' }, 400);
 
     const supabase = createServiceClient();
     const { entry, emailHash } = await resolveParticipantAuth(supabase, body, ENTRY_COLUMNS);

@@ -163,9 +163,7 @@ Deno.serve(async (req) => {
       // 従来クライアント互換のため、認証失敗は 'Entry not found' を含む文言を維持
       const message = error.status === 404
         ? 'Entry not found'
-        : error.message === 'Missing required fields'
-          ? 'ログイン情報が不足しています。もう一度ログインしてください。'
-          : error.message;
+        : error.message;
       return jsonResponse({ error: message }, error.status);
     }
     return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);

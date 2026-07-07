@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
 
   try {
     const { projectId, entryId } = await req.json();
-    if (!projectId || !entryId) return jsonResponse({ error: 'Missing required fields' }, 400);
+    if (!projectId || !entryId) return jsonResponse({ error: 'QRコードの取得に必要な情報が不足しています。参加者一覧を再読み込みしてください。' }, 400);
 
     const supabase = createServiceClient();
     await requireAdminMember(supabase, req, projectId);

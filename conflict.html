@@ -24,7 +24,7 @@
     <script defer src="js/custom-select.js?v=5"></script>
     <script defer src="js/shared.js"></script>
     <link rel="stylesheet" href="css/design_system.css?v=37">
-    <link rel="stylesheet" href="css/pages.css?v=59">
+    <link rel="stylesheet" href="css/pages.css?v=60">
 </head>
 
 <body class="page-conflict">
@@ -44,6 +44,12 @@
         <div class="loading-state u-grid-span-all"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</div>
     </div>
 
+    <div class="kbd-hint conflict-kbd-hint" aria-hidden="true">
+        <span><kbd>M</kbd> 正解</span>
+        <span><kbd>X</kbd> 不正解</span>
+        <span><kbd>←→</kbd> 移動</span>
+    </div>
+
     <div class="action-bar conflict-action-bar u-hidden" id="conflict-action-bar" role="toolbar" aria-label="要確認の判定">
         <button class="btn score-correct" id="conflict-correct-btn" type="button"><span data-icon="check" aria-hidden="true"></span><span>正解</span></button>
         <button class="btn score-wrong" id="conflict-wrong-btn" type="button"><span data-icon="xmark" aria-hidden="true"></span><span>不正解</span></button>
@@ -51,7 +57,7 @@
 
 
 
-    <script defer src="js/conflict.js?v=37"></script>
+    <script defer src="js/conflict.js?v=38"></script>
 </body>
 
 </html>

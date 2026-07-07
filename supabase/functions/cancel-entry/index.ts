@@ -53,10 +53,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     if (error instanceof ParticipantAuthError) {
-      const message = error.message === 'Missing required fields'
-        ? 'ログイン情報が不足しています。もう一度ログインしてください。'
-        : error.message;
-      return jsonResponse({ error: message }, error.status);
+      return jsonResponse({ error: error.message }, error.status);
     }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Entry already checked in')) {

@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
 
   try {
     const { action, projectId, entryId } = await req.json();
-    if (!projectId || !action) return jsonResponse({ error: 'Missing required fields' }, 400);
+    if (!projectId || !action) return jsonResponse({ error: '当日受付のリクエスト情報が不足しています。ページを開き直してください。' }, 400);
 
     const supabase = createServiceClient();
     await requireProjectMember(supabase, req, projectId);

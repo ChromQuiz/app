@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { projectId, encryptedPii, emailHash, disclosurePasswordHash, publicProfile } = body;
     if (!projectId || !encryptedPii || !emailHash || !disclosurePasswordHash) {
-      return jsonResponse({ error: 'Missing required fields' }, 400);
+      return jsonResponse({ error: '代理エントリーの作成に必要な情報が不足しています。入力内容を確認してください。' }, 400);
     }
 
     const supabase = createServiceClient();

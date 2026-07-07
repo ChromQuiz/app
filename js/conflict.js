@@ -469,12 +469,9 @@ function createConflictCard(conflict, idx) {
 
     const reviewRow = document.createElement('div');
     reviewRow.className = 'conflict-review-row';
-    const qTag = document.createElement('span');
-    qTag.className = 'conflict-review-chip';
-    qTag.textContent = `${conflict.q}問`;
     const model = document.createElement('span');
     model.className = 'conflict-review-answer';
-    model.textContent = modelAnswer ? `解答 ${modelAnswer}` : '解答未登録';
+    model.textContent = modelAnswer || '未登録';
     const votes = document.createElement('span');
     votes.className = 'votes-mini';
     conflict.votes.forEach((vote, index) => {
@@ -483,7 +480,7 @@ function createConflictCard(conflict, idx) {
         if (index > 0 && votes.childNodes.length) votes.appendChild(document.createTextNode(' '));
         votes.appendChild(dot);
     });
-    reviewRow.append(qTag, model, votes);
+    reviewRow.append(model, votes);
     card.appendChild(reviewRow);
     return card;
 }

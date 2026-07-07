@@ -488,7 +488,7 @@ Deno.serve(async (req) => {
 
   try {
     const { type, to, data = {}, projectId, entryId } = await req.json();
-    if (!type || !to) return jsonResponse({ error: 'Missing required fields' }, 400);
+    if (!type || !to) return jsonResponse({ error: 'メール送信に必要な宛先または種別が不足しています。' }, 400);
 
     const normalizedEmail = String(to).trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
