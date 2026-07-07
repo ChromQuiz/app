@@ -128,6 +128,7 @@ function renderSupabaseAuth(sessionData) {
     const displayName = sessionData?.user ? getGoogleDisplayName() : '';
 
     if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '';
+    panel.classList.toggle('is-signed-in', Boolean(email));
     setAuthButtonVisibility(loginBtn, logoutBtn, Boolean(email));
     setTab(currentTab);
     renderCreateAuthState();

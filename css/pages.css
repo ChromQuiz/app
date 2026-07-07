@@ -87,7 +87,7 @@ select,
   display: none;
 }
 
-.auth-provider-main:has(.auth-provider-user:empty) {
+.auth-provider-panel:not(.is-signed-in) .auth-provider-main {
   display: none;
 }
 
