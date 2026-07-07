@@ -35,6 +35,12 @@ function setBusy(button, busy, label) {
     if (label) button.textContent = label;
 }
 
+function getParticipantActionPayload() {
+    if (!projectId) throw new Error('プロジェクト情報が見つかりません。URLを確認してください。');
+    if (!mySession?.token) throw new Error('セッションの有効期限が切れました。もう一度ログインしてください。');
+    return { projectId, token: mySession.token };
+}
+
 function readStoredSession() {
     if (!SESSION_KEY) return null;
     try {
@@ -442,7 +448,7 @@ async function cancelEntry() {
     const btn = el('cancel-btn');
     setBusy(btn, true, '処理中...');
     try {
-        const result = await CIQSupabaseAPI.cancelEntry({ projectId, token: mySession.token });
+        const result = await CIQSupabaseAPI.cancelEntry(getParticipantActionPayload());
 
         if (projectSettings?.notifyEntryCancel !== false && window.CIQEmail?.sendCancellation) {
             const emailHash = await AppCrypto.hashPassword(mySession.email.toLowerCase());
@@ -476,7 +482,7 @@ async function viewResult() {
     setBusy(btn, true, '確認中...');
     setMsg('result-msg', '', '');
     try {
-        const disc = await CIQSupabaseAPI.discloseResult({ projectId, token: mySession.token });
+        const disc = await CIQSupabaseAPI.discloseResult(getParticipantActionPayload());
         renderResult(disc);
         hideEl(btn);
     } catch (e) {

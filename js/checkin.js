@@ -158,7 +158,7 @@ if (auth) {
     }
 
     function entryLabel(entry) {
-        return entry?.entryName || `受付番号 ${padNum(entry?.entryNumber || '')}`;
+        return `受付番号 ${padNum(entry?.entryNumber || '')}`;
     }
 
     async function processQR(entryId) {

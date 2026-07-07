@@ -12,14 +12,14 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="js/supabase_config.js"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=30"></script>
+    <script defer src="js/supabase_api.js?v=31"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=6"></script>
     <script defer src="js/ui.js?v=6"></script>
     <script defer src="js/custom-select.js?v=5"></script>
     <script defer src="js/shared.js"></script>
     <link rel="stylesheet" href="css/design_system.css?v=37">
-    <link rel="stylesheet" href="css/pages.css?v=53">
+    <link rel="stylesheet" href="css/pages.css?v=54">
 </head>
 
 <body class="page-admin">
@@ -205,10 +205,10 @@
                     <div class="phase-block">
                         <h2>参加者に共有するリンク</h2>
                         <div class="public-links">
-                            <div class="link-row"><span class="link-label">エントリーフォーム</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-copy-link="registration-link"><span data-icon="copy" aria-hidden="true"></span> コピー</button><button class="btn ghost link-btn-sm" data-open-link="registration-link" title="開く" aria-label="エントリーフォームを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
-                            <div class="link-row"><span class="link-label">エントリーリスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-copy-link="entry-link"><span data-icon="copy" aria-hidden="true"></span> コピー</button><button class="btn ghost link-btn-sm" data-open-link="entry-link" title="開く" aria-label="エントリーリストを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
-                            <div class="link-row"><span class="link-label">マイエントリー</span><a id="my-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-copy-link="my-link"><span data-icon="copy" aria-hidden="true"></span> コピー</button><button class="btn ghost link-btn-sm" data-open-link="my-link" title="開く" aria-label="マイエントリーを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
-                            <div class="link-row"><span class="link-label">参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary link-btn-sm" data-copy-link="terms-link"><span data-icon="copy" aria-hidden="true"></span> コピー</button><button class="btn ghost link-btn-sm" data-open-link="terms-link" title="開く" aria-label="参加規約を開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">エントリーフォーム</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="registration-link" title="コピー" aria-label="エントリーフォームのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="registration-link" title="開く" aria-label="エントリーフォームを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">エントリーリスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="entry-link" title="コピー" aria-label="エントリーリストのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="entry-link" title="開く" aria-label="エントリーリストを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">マイエントリー</span><a id="my-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="my-link" title="コピー" aria-label="マイエントリーのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="my-link" title="開く" aria-label="マイエントリーを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="terms-link" title="コピー" aria-label="参加規約のリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="terms-link" title="開く" aria-label="参加規約を開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
                         </div>
                         <p class="u-tiny-muted mt-sm">編集・キャンセル・遅刻連絡・成績照会は、すべてマイエントリーから行えます。</p>
                     </div>
@@ -661,7 +661,6 @@
                     <div class="page-msg info is-visible" id="admin-entry-receipt-status">QRコード入り控え画像を生成しています...</div>
                 </div>
                 <div class="admin-entry-result-actions">
-                    <button type="button" class="btn secondary" data-action="copy-admin-entry-password"><span data-icon="copy" aria-hidden="true"></span> パスワードをコピー</button>
                     <button type="button" class="btn secondary" data-action="copy-admin-entry-template"><span data-icon="file-lines" aria-hidden="true"></span> 定型文をコピー</button>
                     <button type="button" class="btn secondary" data-action="download-admin-entry-receipt"><span data-icon="download" aria-hidden="true"></span> 画像をダウンロード</button>
                     <button type="button" class="btn" data-action="finish-admin-entry"><span data-icon="check" aria-hidden="true"></span> 閉じる</button>

@@ -170,13 +170,14 @@ function setInitialSelectionToFirstUnscored() {
 }
 
 function keepSelectedVisibleDuringInitialLayout() {
-    scrollToSelected();
+    scrollToSelected({ center: true });
     requestAnimationFrame(() => {
-        scrollToSelected();
-        requestAnimationFrame(scrollToSelected);
+        scrollToSelected({ center: true });
+        requestAnimationFrame(() => scrollToSelected({ center: true }));
     });
-    setTimeout(scrollToSelected, 120);
-    setTimeout(scrollToSelected, 420);
+    setTimeout(() => scrollToSelected({ center: true }), 120);
+    setTimeout(() => scrollToSelected({ center: true }), 420);
+    setTimeout(() => scrollToSelected({ center: true }), 900);
 }
 
 function createAnswerCard(cardData, idx) {
@@ -681,14 +682,14 @@ function getGridCols() {
     return getComputedStyle(grid).gridTemplateColumns.split(' ').length;
 }
 
-function scrollToSelected() {
+function scrollToSelected(options = {}) {
     const cards = document.querySelectorAll('.answer-card');
     const card = cards[selectedIndex];
     if (!card) return;
-    scrollElementIntoScoringViewport(card);
+    scrollElementIntoScoringViewport(card, options);
 }
 
-function scrollElementIntoScoringViewport(element) {
+function scrollElementIntoScoringViewport(element, options = {}) {
     const header = document.querySelector('.fixed-header');
     const topLimit = (header?.getBoundingClientRect().bottom || 0) + 16;
     const fixedBottomElements = Array.from(document.querySelectorAll('.action-bar, .kbd-hint'))
@@ -704,7 +705,11 @@ function scrollElementIntoScoringViewport(element) {
     const bottomLimit = Math.max(topLimit + 80, fixedTop - 16);
     const rect = element.getBoundingClientRect();
 
-    if (rect.bottom > bottomLimit) {
+    if (options.center) {
+        const availableHeight = Math.max(120, bottomLimit - topLimit);
+        const desiredTop = topLimit + Math.max(0, (availableHeight - rect.height) / 2);
+        window.scrollBy({ top: rect.top - desiredTop, behavior: 'auto' });
+    } else if (rect.bottom > bottomLimit) {
         window.scrollBy({ top: rect.bottom - bottomLimit, behavior: 'auto' });
     } else if (rect.top < topLimit) {
         window.scrollBy({ top: rect.top - topLimit, behavior: 'auto' });

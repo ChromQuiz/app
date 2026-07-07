@@ -125,6 +125,12 @@ function setConflictGridMessage(message, options = {}) {
     grid.appendChild(messageEl);
 }
 
+function setConflictActionsDisabled(disabled) {
+    document.getElementById('conflict-action-bar')?.classList.toggle('u-hidden', disabled);
+    document.getElementById('conflict-correct-btn')?.toggleAttribute('disabled', disabled);
+    document.getElementById('conflict-wrong-btn')?.toggleAttribute('disabled', disabled);
+}
+
 async function init() {
     try {
         await refreshData();
@@ -356,6 +362,7 @@ async function render() {
 
     const grid = document.getElementById('conflict-grid');
     if (currentConflicts.length === 0) {
+        setConflictActionsDisabled(true);
         lastConflictRenderSignature = '';
         setConflictGridMessage('要確認はありません', {
             className: 'loading-state no-conflict',
@@ -365,6 +372,7 @@ async function render() {
         });
         return;
     }
+    setConflictActionsDisabled(false);
 
     const renderSignature = getConflictRenderSignature(currentConflicts);
     if (renderSignature === lastConflictRenderSignature && grid.children.length === currentConflicts.length) {
@@ -416,6 +424,8 @@ function createVoteDot(result) {
     } else if (result === 'hold') {
         dot.className = 'vote-dot hold';
         dot.appendChild(createIcon('triangle', { size: 12, title: '保留' }));
+    } else {
+        return null;
     }
     return dot;
 }
@@ -428,6 +438,7 @@ function createConflictCard(conflict, idx) {
 
     const card = document.createElement('div');
     card.className = `conflict-card ${conflict.finalResult ? 'resolved ' + conflict.finalResult : ''} ${idx === selectedIndex ? 'selected' : ''}`;
+    card._ciqConflict = conflict;
     if (cellUrl) {
         const image = document.createElement('img');
         image.src = cellUrl;
@@ -454,7 +465,10 @@ function createConflictCard(conflict, idx) {
     const entryNum = document.createElement('div');
     entryNum.className = 'entry-num';
     entryNum.textContent = conflict.displayName;
-    card.append(qTag, entryNum);
+    const cardHead = document.createElement('div');
+    cardHead.className = 'conflict-card-head';
+    cardHead.append(qTag, entryNum);
+    card.appendChild(cardHead);
 
     if (modelAnswer) {
         const model = document.createElement('div');
@@ -469,12 +483,20 @@ function createConflictCard(conflict, idx) {
     votes.className = 'votes-mini';
     conflict.votes.forEach((vote, index) => {
         const dot = createVoteDot(vote.result);
-        if (!dot.textContent) return;
+        if (!dot) return;
         if (index > 0 && votes.childNodes.length) votes.appendChild(document.createTextNode(' '));
         votes.appendChild(dot);
     });
     card.appendChild(votes);
     return card;
+}
+
+function scoreSelectedConflict(result) {
+    const conflict = currentConflicts[selectedIndex];
+    if (!conflict) return;
+    setFinal(conflict.q, conflict.entryId, result)
+        .then(advanceConflictSelection)
+        .catch(err => showToast(err.message, 'error'));
 }
 
 function attachConflictImageErrorFallback(image, conflict) {
@@ -660,7 +682,11 @@ function scrollToSelectedConflict() {
 function scrollElementIntoReviewViewport(element) {
     const header = document.querySelector('.fixed-header');
     const topLimit = (header?.getBoundingClientRect().bottom || 0) + 16;
-    const bottomLimit = window.innerHeight - 16;
+    const actionBar = document.getElementById('conflict-action-bar');
+    const actionTop = actionBar && getComputedStyle(actionBar).display !== 'none'
+        ? actionBar.getBoundingClientRect().top
+        : window.innerHeight;
+    const bottomLimit = Math.max(topLimit + 80, actionTop - 16);
     const rect = element.getBoundingClientRect();
 
     if (rect.bottom > bottomLimit) {
@@ -699,6 +725,9 @@ document.addEventListener('keydown', (e) => {
         selectConflictCard(selectedIndex - getConflictGridCols());
     }
 });
+
+document.getElementById('conflict-correct-btn')?.addEventListener('click', () => scoreSelectedConflict('correct'));
+document.getElementById('conflict-wrong-btn')?.addEventListener('click', () => scoreSelectedConflict('wrong'));
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {

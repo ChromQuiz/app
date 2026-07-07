@@ -206,9 +206,12 @@ const CIQSupabaseAPI = {
     },
 
     async signInWithGoogle() {
-        const redirectTo = location.protocol === 'file:'
-            ? undefined
-            : new URL(location.pathname.split('/').pop() || 'index.html', location.href).href;
+        let redirectTo;
+        if (location.protocol !== 'file:') {
+            const redirectUrl = new URL(location.pathname.split('/').pop() || 'index.html', location.href);
+            redirectUrl.hash = location.hash;
+            redirectTo = redirectUrl.href;
+        }
         const { error } = await this.client().auth.signInWithOAuth({
             provider: 'google',
             options: redirectTo ? { redirectTo } : undefined,
@@ -384,13 +387,19 @@ const CIQSupabaseAPI = {
     },
 
     async cancelEntry(payload) {
-        const data = await this.invokePublicFunction('cancel-entry', payload);
+        const normalizedPayload = payload?.token
+            ? { ...payload, token: String(payload.token) }
+            : payload;
+        const data = await this.invokePublicFunction('cancel-entry', normalizedPayload);
         if (!data?.ok) throw new Error(data?.error || 'Cancel failed');
         return data;
     },
 
     async discloseResult(payload) {
-        const data = await this.invokePublicFunction('disclose-result', payload);
+        const normalizedPayload = payload?.token
+            ? { ...payload, token: String(payload.token) }
+            : payload;
+        const data = await this.invokePublicFunction('disclose-result', normalizedPayload);
         if (!data?.ok) throw new Error(data?.error || 'Disclosure failed');
         return data;
     },

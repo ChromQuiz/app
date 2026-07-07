@@ -90,14 +90,11 @@ function renderQuestionCards() {
         const qNum = document.createElement('div');
         qNum.className = 'q-num';
         qNum.textContent = `${i}問`;
-        const scorers = document.createElement('div');
-        scorers.className = 'q-scorers';
-        scorers.id = `qscorers-${i}`;
         const status = document.createElement('div');
         status.className = 'q-status status-open';
         status.id = `qstatus-${i}`;
         status.textContent = '未着手';
-        card.append(qNum, scorers, status);
+        card.append(qNum, status);
         card.addEventListener('click', () => enterQ(i));
         qGrid.appendChild(card);
     }
@@ -112,18 +109,14 @@ async function refreshGrid() {
     }
 }
 
-function scorerLabel(memberId, index) {
-    return memberNameMap[memberId] || `採点者${index + 1}`;
-}
-
 function updateGrid(rows) {
     // 「次の一手」計算用
     let availableQ = 0;       // 入れる問題のうち最小問題番号
     let mineResumeQ = 0;      // 自分が担当していて未完了の最小問題番号
+    let hasAnyMine = false;
     let openCount = 0;
     let inprogressCount = 0;
     let doneCount = 0;
-    let lockedCount = 0;
 
     for (let q = 1; q <= totalQuestions; q++) {
         const qRows = rows.filter(row => Number(row.question_number) === q);
@@ -134,17 +127,16 @@ function updateGrid(rows) {
         const isFull = scorerIds.length >= requiredScorers && !isMine;
         const allDone = scorerIds.length >= requiredScorers && completedIds.length >= requiredScorers;
 
+        if (isMine) hasAnyMine = true;
         if (isMine && !myDone && !allDone && !mineResumeQ) mineResumeQ = q;
         if (!allDone && (!isFull || isMine) && !(isMine && myDone) && !availableQ) availableQ = q;
-        if (isFull && !allDone) lockedCount++;
-        else if (allDone) doneCount++;
+        if (allDone) doneCount++;
         else if (scorerIds.length > 0) inprogressCount++;
         else openCount++;
 
         const card = document.getElementById(`qcard-${q}`);
         const statusEl = document.getElementById(`qstatus-${q}`);
-        const scorersEl = document.getElementById(`qscorers-${q}`);
-        if (!card || !statusEl || !scorersEl) continue;
+        if (!card || !statusEl) continue;
 
         card.className = 'q-card';
         if (isMine) card.classList.add('mine');
@@ -153,17 +145,7 @@ function updateGrid(rows) {
         if (allDone) card.classList.add('done');
         else if (scorerIds.length > 0) card.classList.add('inprogress');
 
-        scorersEl.textContent = '';
-        scorerIds.forEach((memberId, idx) => {
-            const done = completedIds.includes(memberId);
-            if (idx > 0) scorersEl.appendChild(document.createElement('br'));
-            scorersEl.appendChild(createIcon(done ? 'check' : 'ellipsis', { size: 14 }));
-            scorersEl.appendChild(document.createTextNode(` ${scorerLabel(memberId, idx)}`));
-        });
-
-        if (isFull && !isMine) {
-            setStatus(statusEl, 'status-locked', 'ban', '満員');
-        } else if (allDone) {
+        if (allDone) {
             setStatus(statusEl, 'status-done', 'circle-check', '完了');
         } else if (scorerIds.length > 0) {
             setStatus(statusEl, 'status-inprogress', 'pen', `採点中 ${scorerIds.length}/${requiredScorers}`);
@@ -172,12 +154,12 @@ function updateGrid(rows) {
         }
     }
 
-    updateResumeHero(mineResumeQ || availableQ, mineResumeQ);
-    updateJudgeSummary({ openCount, inprogressCount, doneCount, lockedCount });
+    updateResumeHero(mineResumeQ || availableQ, mineResumeQ, hasAnyMine);
+    updateJudgeSummary({ openCount, inprogressCount, doneCount });
 }
 
 // 「続きから採点する」ヒーロー — 入れる最若番の問題へ常に案内する
-function updateResumeHero(resumeQ, mineResumeQ = 0) {
+function updateResumeHero(resumeQ, mineResumeQ = 0, hasAnyMine = false) {
     const hero = document.getElementById('judge-resume');
     const desc = document.getElementById('judge-resume-desc');
     const btn = document.getElementById('judge-resume-btn');
@@ -188,20 +170,23 @@ function updateResumeHero(resumeQ, mineResumeQ = 0) {
             : `入れる問題のうち最も若い第${resumeQ}問へ進みます`;
         btn.dataset.resumeQ = String(resumeQ);
         btn.disabled = false;
+        btn.textContent = '';
+        btn.append(hasAnyMine ? '採点を再開 ' : '採点を開始 ', createIcon('arrow-right'));
         hero.classList.remove('u-hidden');
     } else {
         desc.textContent = '現在入れる問題はありません';
         delete btn.dataset.resumeQ;
         btn.disabled = true;
+        btn.textContent = '採点できる問題なし';
         hero.classList.remove('u-hidden');
     }
 }
 
-function updateJudgeSummary({ openCount, inprogressCount, doneCount, lockedCount }) {
+function updateJudgeSummary({ openCount, inprogressCount, doneCount }) {
     const summary = document.getElementById('judge-summary');
     if (!summary) return;
     summary.textContent =
-        `担当できる問題 ${openCount} · 採点中 ${inprogressCount} · 完了 ${doneCount} · 満員 ${lockedCount}`;
+        `未着手 ${openCount} · 採点中 ${inprogressCount} · 完了 ${doneCount}`;
 }
 
 function enterQ(q) {
