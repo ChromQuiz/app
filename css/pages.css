@@ -1086,6 +1086,28 @@ body.page-wrapper {
   font-size: 0.92em;
 }
 
+.terms-body mark {
+  padding: 1px 4px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--gold-100) 75%, white);
+  color: var(--ink);
+}
+
+.terms-body kbd {
+  display: inline-block;
+  min-width: 1.8em;
+  padding: 1px 6px 2px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .terms-body pre {
   position: relative;
   overflow-x: auto;
@@ -1158,6 +1180,85 @@ body.page-wrapper {
   height: auto;
   border: 1px solid var(--line);
   border-radius: var(--r-md);
+}
+
+.terms-figure {
+  margin: var(--sp-4) 0;
+}
+
+.terms-figure img {
+  display: block;
+}
+
+.terms-figure figcaption {
+  margin-top: var(--sp-2);
+  color: var(--ink-3);
+  font-size: var(--fs-13);
+  text-align: center;
+}
+
+.terms-alert {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+.terms-alert-title {
+  margin-bottom: var(--sp-2);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.terms-alert-body > :last-child {
+  margin-bottom: 0;
+}
+
+.terms-alert-note,
+.terms-alert-info {
+  border-left-color: var(--line-strong);
+}
+
+.terms-alert-tip {
+  border-left-color: var(--ok-600);
+}
+
+.terms-alert-important {
+  border-left-color: var(--ink);
+}
+
+.terms-alert-warning,
+.terms-alert-caution {
+  border-left-color: var(--gold-600);
+}
+
+.terms-alert-danger {
+  border-left-color: var(--bad-600);
+}
+
+.terms-details {
+  margin: var(--sp-4) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+.terms-details summary {
+  cursor: pointer;
+  padding: var(--sp-3) var(--sp-4);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.terms-details-body {
+  padding: 0 var(--sp-4) var(--sp-4);
+  color: var(--ink-2);
+}
+
+.terms-details-body > :last-child {
+  margin-bottom: 0;
 }
 
 .terms-definition-list {

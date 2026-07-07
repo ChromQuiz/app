@@ -2,6 +2,7 @@
 
 let currentFootnotes = new Map();
 let usedHeadingIds = new Set();
+let currentCustomBlocks = new Map();
 
 function slugifyHeading(value) {
     const normalized = String(value || '')
@@ -49,34 +50,64 @@ function applyTableAlign(cell, align) {
     if (align === 'right') cell.classList.add('terms-align-right');
 }
 
-function appendText(parent, value) {
-    const text = String(value || '');
-    const re = /\[\^([^\]\s]+)\]/g;
+function customBlockMarker(index) {
+    return `CIQ_CUSTOM_BLOCK_${index}`;
+}
+
+function appendRichText(parent, text) {
+    const re = /(\[\^([^\]\s]+)\]|==([^=\n]+)==|\+\+([^+\n]+)\+\+|\^([^^\n]+)\^|~([^~\n]+)~|<kbd>([^<\n]+)<\/kbd>)/gi;
     let lastIndex = 0;
     let match;
     while ((match = re.exec(text))) {
         if (match.index > lastIndex) {
             parent.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
         }
-        const key = match[1];
-        const note = currentFootnotes.get(key);
-        if (note) {
+        if (match[2]) {
+            const key = match[2];
+            const note = currentFootnotes.get(key);
+            if (note) {
+                const sup = document.createElement('sup');
+                sup.className = 'terms-footnote-ref';
+                const link = document.createElement('a');
+                link.href = `#fn-${note.slug}`;
+                link.id = `fnref-${note.slug}`;
+                link.textContent = String(note.index);
+                sup.appendChild(link);
+                parent.appendChild(sup);
+            } else {
+                parent.appendChild(document.createTextNode(match[0]));
+            }
+        } else if (match[3]) {
+            const mark = document.createElement('mark');
+            mark.textContent = match[3];
+            parent.appendChild(mark);
+        } else if (match[4]) {
+            const ins = document.createElement('ins');
+            ins.textContent = match[4];
+            parent.appendChild(ins);
+        } else if (match[5]) {
             const sup = document.createElement('sup');
-            sup.className = 'terms-footnote-ref';
-            const link = document.createElement('a');
-            link.href = `#fn-${note.slug}`;
-            link.id = `fnref-${note.slug}`;
-            link.textContent = String(note.index);
-            sup.appendChild(link);
+            sup.textContent = match[5];
             parent.appendChild(sup);
-        } else {
-            parent.appendChild(document.createTextNode(match[0]));
+        } else if (match[6]) {
+            const sub = document.createElement('sub');
+            sub.textContent = match[6];
+            parent.appendChild(sub);
+        } else if (match[7]) {
+            const kbd = document.createElement('kbd');
+            kbd.textContent = match[7];
+            parent.appendChild(kbd);
         }
         lastIndex = re.lastIndex;
     }
     if (lastIndex < text.length) {
         parent.appendChild(document.createTextNode(text.slice(lastIndex)));
     }
+}
+
+function appendText(parent, value) {
+    const text = String(value || '');
+    appendRichText(parent, text);
 }
 
 function appendInlineTokens(parent, tokens = []) {
@@ -148,6 +179,11 @@ function appendInlineTokens(parent, tokens = []) {
 function appendBlockToken(parent, token) {
     if (token.type === 'space') return;
 
+    if (token.type === 'paragraph' && currentCustomBlocks.has(String(token.text || '').trim())) {
+        appendCustomBlock(parent, currentCustomBlocks.get(String(token.text || '').trim()));
+        return;
+    }
+
     if (token.type === 'heading') {
         const level = Math.min(Math.max(Number(token.depth) || 2, 1), 4);
         const h = document.createElement(`h${level}`);
@@ -168,6 +204,10 @@ function appendBlockToken(parent, token) {
     }
 
     if (token.type === 'paragraph') {
+        if (isImageOnlyParagraph(token)) {
+            appendImageFigure(parent, token.tokens[0]);
+            return;
+        }
         const p = document.createElement('p');
         appendInlineTokens(p, token.tokens || []);
         parent.appendChild(p);
@@ -255,6 +295,87 @@ function appendBlockToken(parent, token) {
     parent.appendChild(p);
 }
 
+function isImageOnlyParagraph(token) {
+    const tokens = token.tokens || [];
+    return tokens.length === 1 && tokens[0]?.type === 'image';
+}
+
+function appendImageFigure(parent, token) {
+    const href = String(token.href || '');
+    if (!isSafeImageUrl(href)) {
+        const p = document.createElement('p');
+        p.textContent = token.text || '';
+        parent.appendChild(p);
+        return;
+    }
+    const figure = document.createElement('figure');
+    figure.className = 'terms-figure';
+    const image = document.createElement('img');
+    image.src = href;
+    image.alt = token.text || '';
+    image.loading = 'lazy';
+    image.decoding = 'async';
+    figure.appendChild(image);
+    if (token.title) {
+        const caption = document.createElement('figcaption');
+        caption.textContent = token.title;
+        figure.appendChild(caption);
+    }
+    parent.appendChild(figure);
+}
+
+function normalizeAlertType(type) {
+    const value = String(type || 'note').toLowerCase();
+    if (['note', 'info', 'tip', 'important', 'warning', 'caution', 'danger'].includes(value)) return value;
+    return 'note';
+}
+
+function alertTitle(type, fallback) {
+    if (fallback) return fallback;
+    return {
+        note: 'Note',
+        info: 'Info',
+        tip: 'Tip',
+        important: 'Important',
+        warning: 'Warning',
+        caution: 'Caution',
+        danger: 'Danger',
+    }[type] || 'Note';
+}
+
+function appendCustomBlock(parent, block) {
+    if (!block) return;
+    if (block.type === 'details') {
+        const details = document.createElement('details');
+        details.className = 'terms-details';
+        const summary = document.createElement('summary');
+        summary.textContent = block.title || '詳細';
+        details.appendChild(summary);
+        const body = document.createElement('div');
+        body.className = 'terms-details-body';
+        const tokens = window.marked?.lexer ? marked.lexer(block.body || '') : [];
+        tokens.forEach(token => appendBlockToken(body, token));
+        details.appendChild(body);
+        parent.appendChild(details);
+        return;
+    }
+
+    if (block.type === 'alert') {
+        const type = normalizeAlertType(block.alertType);
+        const aside = document.createElement('aside');
+        aside.className = `terms-alert terms-alert-${type}`;
+        const title = document.createElement('div');
+        title.className = 'terms-alert-title';
+        title.textContent = alertTitle(type, block.title);
+        const body = document.createElement('div');
+        body.className = 'terms-alert-body';
+        const tokens = window.marked?.lexer ? marked.lexer(block.body || '') : [];
+        tokens.forEach(token => appendBlockToken(body, token));
+        aside.append(title, body);
+        parent.appendChild(aside);
+    }
+}
+
 function extractFootnotes(markdown) {
     const notes = new Map();
     const output = [];
@@ -283,6 +404,58 @@ function extractFootnotes(markdown) {
         });
     });
     return { markdown: output.join('\n'), footnotes };
+}
+
+function extractCustomBlocks(markdown) {
+    const blocks = new Map();
+    const output = [];
+    const lines = String(markdown || '').replace(/\r\n?/g, '\n').split('\n');
+    let index = 0;
+
+    for (let i = 0; i < lines.length; i += 1) {
+        const fence = lines[i].match(/^:::(details|note|info|tip|important|warning|caution|danger)\s*(.*)$/i);
+        if (fence) {
+            const body = [];
+            i += 1;
+            while (i < lines.length && !/^:::\s*$/.test(lines[i])) {
+                body.push(lines[i]);
+                i += 1;
+            }
+            const marker = customBlockMarker(index++);
+            blocks.set(marker, {
+                type: fence[1].toLowerCase() === 'details' ? 'details' : 'alert',
+                alertType: fence[1],
+                title: fence[2].trim(),
+                body: body.join('\n').trim(),
+            });
+            output.push(marker);
+            continue;
+        }
+
+        const alert = lines[i].match(/^>\s*\[!(NOTE|INFO|TIP|IMPORTANT|WARNING|CAUTION|DANGER)\]\s*(.*)$/i);
+        if (alert) {
+            const body = [];
+            i += 1;
+            while (i < lines.length && /^> ?/.test(lines[i])) {
+                body.push(lines[i].replace(/^> ?/, ''));
+                i += 1;
+            }
+            i -= 1;
+            const marker = customBlockMarker(index++);
+            blocks.set(marker, {
+                type: 'alert',
+                alertType: alert[1],
+                title: alert[2].trim(),
+                body: body.join('\n').trim(),
+            });
+            output.push(marker);
+            continue;
+        }
+
+        output.push(lines[i]);
+    }
+
+    return { markdown: output.join('\n'), blocks };
 }
 
 function appendFootnotes(parent) {
@@ -352,10 +525,12 @@ function renderMarkdown(container, markdown) {
     usedHeadingIds = new Set();
     const prepared = extractFootnotes(markdown || '');
     currentFootnotes = prepared.footnotes;
+    const custom = extractCustomBlocks(prepared.markdown);
+    currentCustomBlocks = custom.blocks;
     if (window.marked?.setOptions) {
         marked.setOptions({ gfm: true, breaks: false, mangle: false, headerIds: false });
     }
-    const tokens = window.marked?.lexer ? marked.lexer(prepared.markdown || '') : [];
+    const tokens = window.marked?.lexer ? marked.lexer(custom.markdown || '') : [];
     tokens.forEach(token => appendBlockToken(container, token));
     renderDefinitionLists(container);
     appendFootnotes(container);
