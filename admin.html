@@ -18,13 +18,15 @@
     <script defer src="js/custom-select.js?v=5"></script>
     <script defer src="js/shared.js"></script>
     <link rel="stylesheet" href="css/design_system.css?v=37">
-    <link rel="stylesheet" href="css/pages.css?v=48">
+    <link rel="stylesheet" href="css/pages.css?v=49">
 </head>
 
 <body class="page-admin">
     <!-- 運営共通シェル: アプリバー -->
     <div class="fixed-header">
-        <div class="header-left"></div>
+        <div class="header-left">
+            <button type="button" class="back-nav-btn" data-nav-target="judge.html"><span data-icon="chevron-left" aria-hidden="true"></span> 採点ボード</button>
+        </div>
         <div class="header-center">
             <h1>運営</h1>
         </div>
@@ -225,12 +227,13 @@
                                         <th>所属</th>
                                         <th>学年</th>
                                         <th>メール</th>
+                                        <th>運営への連絡</th>
                                         <th>本名使用</th>
                                         <th>状態</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-entries-tbody">
-                                    <tr><td colspan="8" class="loading-state">読み込み中...</td></tr>
+                                    <tr><td colspan="9" class="loading-state">読み込み中...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -671,6 +674,6 @@
     <script defer src="js/admin_scan.js?v=10"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
     <script defer src="js/admin_graded_pdf.js?v=9"></script>
-    <script defer src="js/admin_settings.js?v=26"></script>
+    <script defer src="js/admin_settings.js?v=27"></script>
 </body>
 </html>

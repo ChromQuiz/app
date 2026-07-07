@@ -1079,7 +1079,7 @@
                 window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
                 entryNumbers = entries.map(e => e.entry_number || e.entryNumber).sort((a, b) => a - b);
                 if (!entries.length) {
-                    setTableMessage(tbody, 8, '名簿データがありません。');
+                    setTableMessage(tbody, 9, '名簿データがありません。');
                     window.setAdminEntriesCount?.(0);
                     return;
                 }
@@ -1121,7 +1121,7 @@
                     }).catch(e => console.warn('復号鍵の後追い読み込みをスキップ:', e));
                 }
             } catch (e) {
-                setTableMessage(tbody, 8, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
+                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
             }
         }
 
@@ -1175,6 +1175,9 @@
             const emailInfo = document.createDocumentFragment();
             appendStackedText(emailInfo, pii?.email || '', pii?.email ? '' : encryptedStatus);
             appendAdminEntryCell(row, emailInfo);
+
+            const inquiry = pii?.inquiry || entry.inquiry || '';
+            appendAdminEntryCell(row, inquiry || '-');
 
             const realNamePermission = pii?.allowRealNameInRecord === true
                 ? '許可'

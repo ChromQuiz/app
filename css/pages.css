@@ -1147,7 +1147,7 @@ body.page-wrapper {
    admin.html — フェーズタイムライン
    ============================================================ */
 .admin-container {
-  max-width: 880px;
+  max-width: min(1280px, calc(100vw - var(--sp-8)));
   margin: 0 auto;
   padding: var(--sp-7) var(--sp-4) var(--sp-11);
 }
@@ -1803,7 +1803,7 @@ body.page-wrapper {
   grid-column: 1 / -1;
 }
 
-/* 問題ボード: 状態でグループ順に整列(担当中 → 空き → 採点中 → 完了 → 満員) */
+/* 問題ボード: 問題番号順を固定し、「続きから」で次の一手へ進む */
 .q-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -1811,7 +1811,6 @@ body.page-wrapper {
 }
 
 .q-card {
-  order: 1; /* 未着手(空き) */
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1828,12 +1827,6 @@ body.page-wrapper {
 .q-card:hover {
   border-color: var(--ink-3);
 }
-
-.q-card.inprogress { order: 2; }
-.q-card.done { order: 3; }
-.q-card.locked { order: 4; }
-.q-card.mine { order: 1; }
-.q-card.mine-active { order: 0; } /* 自分の未完了担当が先頭 */
 
 .q-num {
   font-family: var(--font-mono);
@@ -2260,6 +2253,14 @@ body.page-checkin .left-col {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+#video {
+  transform: scaleX(-1);
+}
+
+#camera-container canvas {
+  display: none;
 }
 
 /* 参加者向けのかざす位置ガイド */

@@ -118,7 +118,8 @@ function scorerLabel(memberId, index) {
 
 function updateGrid(rows) {
     // 「次の一手」計算用
-    let resumeQ = 0;          // 自分が担当していて未完了の最小問題番号
+    let resumeQ = 0;          // 入れる問題のうち最小問題番号
+    let mineResumeQ = 0;      // 自分が担当していて未完了の最小問題番号
     let openCount = 0;
     let inprogressCount = 0;
     let doneCount = 0;
@@ -133,7 +134,8 @@ function updateGrid(rows) {
         const isFull = scorerIds.length >= requiredScorers && !isMine;
         const allDone = scorerIds.length >= requiredScorers && completedIds.length >= requiredScorers;
 
-        if (isMine && !myDone && !allDone && !resumeQ) resumeQ = q;
+        if (isMine && !myDone && !allDone && !mineResumeQ) mineResumeQ = q;
+        if (!allDone && (!isFull || isMine) && !(isMine && myDone) && !resumeQ) resumeQ = q;
         if (isFull && !allDone) lockedCount++;
         else if (allDone) doneCount++;
         else if (scorerIds.length > 0) inprogressCount++;
@@ -169,22 +171,28 @@ function updateGrid(rows) {
         }
     }
 
-    updateResumeHero(resumeQ);
+    updateResumeHero(resumeQ, mineResumeQ);
     updateJudgeSummary({ openCount, inprogressCount, doneCount, lockedCount });
 }
 
-// 「続きから採点する」ヒーロー — 自分の未完了担当があるときだけ出す
-function updateResumeHero(resumeQ) {
+// 「続きから採点する」ヒーロー — 入れる最若番の問題へ常に案内する
+function updateResumeHero(resumeQ, mineResumeQ = 0) {
     const hero = document.getElementById('judge-resume');
     const desc = document.getElementById('judge-resume-desc');
     const btn = document.getElementById('judge-resume-btn');
     if (!hero || !desc || !btn) return;
     if (resumeQ > 0) {
-        desc.textContent = `第${resumeQ}問の採点が途中です`;
+        desc.textContent = mineResumeQ === resumeQ
+            ? `第${resumeQ}問の採点が途中です`
+            : `入れる問題のうち最も若い第${resumeQ}問へ進みます`;
         btn.dataset.resumeQ = String(resumeQ);
+        btn.disabled = false;
         hero.classList.remove('u-hidden');
     } else {
-        hero.classList.add('u-hidden');
+        desc.textContent = '現在入れる問題はありません';
+        delete btn.dataset.resumeQ;
+        btn.disabled = true;
+        hero.classList.remove('u-hidden');
     }
 }
 
