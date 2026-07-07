@@ -137,7 +137,7 @@
             const closeButton = document.createElement('button');
             closeButton.type = 'button';
             closeButton.className = 'btn secondary';
-            closeButton.textContent = '✕ 閉じる';
+            closeButton.append(createIcon('xmark', { size: 16 }), ' 閉じる');
             closeButton.addEventListener('click', () => { overlay.classList.remove('show'); });
             header.append(title, closeButton);
             const content = document.createElement('div');

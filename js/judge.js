@@ -157,7 +157,8 @@ function updateGrid(rows) {
         scorerIds.forEach((memberId, idx) => {
             const done = completedIds.includes(memberId);
             if (idx > 0) scorersEl.appendChild(document.createElement('br'));
-            scorersEl.appendChild(document.createTextNode(`${done ? '✓' : '…'} ${scorerLabel(memberId, idx)}`));
+            scorersEl.appendChild(createIcon(done ? 'check' : 'ellipsis', { size: 14 }));
+            scorersEl.appendChild(document.createTextNode(` ${scorerLabel(memberId, idx)}`));
         });
 
         if (isFull && !isMine) {

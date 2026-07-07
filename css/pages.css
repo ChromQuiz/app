@@ -1957,9 +1957,11 @@ body.page-wrapper {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--sp-3);
-  padding: var(--sp-5) var(--sp-4) 130px;
+  padding: var(--sp-5) var(--sp-4) calc(180px + env(safe-area-inset-bottom));
   max-width: var(--container-wide);
   margin: 0 auto;
+  scroll-padding-top: 96px;
+  scroll-padding-bottom: calc(160px + env(safe-area-inset-bottom));
 }
 
 .answer-card {
@@ -2054,11 +2056,23 @@ body.page-wrapper {
   height: 10px;
   border-radius: 50%;
   background: var(--line-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.vote-dot.correct { background: var(--ok-500); }
-.vote-dot.wrong   { background: var(--bad-500); }
-.vote-dot.hold    { background: var(--warn-500); }
+.vote-dot.correct,
+.vote-dot.wrong,
+.vote-dot.hold {
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  background: transparent;
+}
+
+.vote-dot.correct { color: var(--ok-500); }
+.vote-dot.wrong   { color: var(--bad-500); }
+.vote-dot.hold    { color: var(--warn-500); }
 
 .kbd-hint {
   position: fixed;
@@ -2167,6 +2181,8 @@ body.page-wrapper {
   padding: var(--sp-5) var(--sp-4);
   max-width: var(--container-wide);
   margin: 0 auto;
+  scroll-padding-top: 96px;
+  scroll-padding-bottom: var(--sp-6);
 }
 
 .conflict-card {

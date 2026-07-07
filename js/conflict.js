@@ -409,13 +409,13 @@ function createVoteDot(result) {
     const dot = document.createElement('span');
     if (result === 'correct') {
         dot.className = 'vote-dot correct';
-        dot.textContent = '○';
+        dot.appendChild(createIcon('circle', { size: 12, title: '正解' }));
     } else if (result === 'wrong') {
         dot.className = 'vote-dot wrong';
-        dot.textContent = '×';
+        dot.appendChild(createIcon('xmark', { size: 12, title: '不正解' }));
     } else if (result === 'hold') {
         dot.className = 'vote-dot hold';
-        dot.textContent = '△';
+        dot.appendChild(createIcon('triangle', { size: 12, title: '保留' }));
     }
     return dot;
 }
@@ -652,8 +652,21 @@ function getConflictGridCols() {
 
 function scrollToSelectedConflict() {
     const cards = document.querySelectorAll('.conflict-card');
-    if (cards[selectedIndex]) {
-        cards[selectedIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const card = cards[selectedIndex];
+    if (!card) return;
+    scrollElementIntoReviewViewport(card);
+}
+
+function scrollElementIntoReviewViewport(element) {
+    const header = document.querySelector('.fixed-header');
+    const topLimit = (header?.getBoundingClientRect().bottom || 0) + 16;
+    const bottomLimit = window.innerHeight - 16;
+    const rect = element.getBoundingClientRect();
+
+    if (rect.bottom > bottomLimit) {
+        window.scrollBy({ top: rect.bottom - bottomLimit, behavior: 'auto' });
+    } else if (rect.top < topLimit) {
+        window.scrollBy({ top: rect.top - topLimit, behavior: 'auto' });
     }
 }
 

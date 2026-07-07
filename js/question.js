@@ -673,8 +673,31 @@ function getGridCols() {
 
 function scrollToSelected() {
     const cards = document.querySelectorAll('.answer-card');
-    if (cards[selectedIndex]) {
-        cards[selectedIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const card = cards[selectedIndex];
+    if (!card) return;
+    scrollElementIntoScoringViewport(card);
+}
+
+function scrollElementIntoScoringViewport(element) {
+    const header = document.querySelector('.fixed-header');
+    const topLimit = (header?.getBoundingClientRect().bottom || 0) + 16;
+    const fixedBottomElements = Array.from(document.querySelectorAll('.action-bar, .kbd-hint'))
+        .filter(el => {
+            const style = getComputedStyle(el);
+            return style.display !== 'none' && style.visibility !== 'hidden';
+        });
+    const fixedTop = fixedBottomElements.reduce((min, el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.height <= 0) return min;
+        return Math.min(min, rect.top);
+    }, window.innerHeight);
+    const bottomLimit = Math.max(topLimit + 80, fixedTop - 16);
+    const rect = element.getBoundingClientRect();
+
+    if (rect.bottom > bottomLimit) {
+        window.scrollBy({ top: rect.bottom - bottomLimit, behavior: 'auto' });
+    } else if (rect.top < topLimit) {
+        window.scrollBy({ top: rect.top - topLimit, behavior: 'auto' });
     }
 }
 

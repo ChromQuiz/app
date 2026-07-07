@@ -55,7 +55,7 @@ async function showPreview(projectId, secretHash, entryNum) {
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'preview-close';
-    closeBtn.textContent = '✕ 閉じる';
+    closeBtn.append(createIcon('xmark', { size: 16 }), ' 閉じる');
     closeBtn.addEventListener('click', () => { overlay.classList.remove('show'); });
     header.append(title, closeBtn);
 
