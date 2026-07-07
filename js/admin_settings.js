@@ -76,7 +76,7 @@
             if (member.status === 'removed') {
                 appendMemberActionButton(actionGroup, {
                     label: '復帰',
-                    icon: 'fa-solid fa-rotate-left',
+                    icon: 'rotate-left',
                     disabled: isSelf,
                     onClick: () => restoreProjectMember(member.id),
                 });
@@ -88,7 +88,7 @@
                 });
                 appendMemberActionButton(actionGroup, {
                     label: 'キック',
-                    icon: 'fa-solid fa-user-slash',
+                    icon: 'user-slash',
                     variant: 'danger',
                     disabled: !canChange,
                     onClick: () => removeProjectMember(member.id),
@@ -145,7 +145,7 @@
             if (!submit) return;
             submit.disabled = isSubmitting;
             submit.textContent = '';
-            const icon = createIcon(isSubmitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-plus');
+            const icon = createIcon(isSubmitting ? 'spinner' : 'plus');
             submit.append(icon, document.createTextNode(isSubmitting ? ' 追加中...' : ' 追加する'));
         }
 
@@ -1185,33 +1185,33 @@
 
             const statusTd = appendAdminEntryCell(row, document.createDocumentFragment());
             if (entry.status === 'canceled') {
-                statusTd.appendChild(createBadge('badge danger', 'fa-solid fa-xmark', 'キャンセル'));
+                statusTd.appendChild(createBadge('badge danger', 'xmark', 'キャンセル'));
             } else if (entry.status === 'waitlist') {
-                statusTd.appendChild(createBadge('badge', 'fa-solid fa-clock', 'キャンセル待ち', {
+                statusTd.appendChild(createBadge('badge', 'clock', 'キャンセル待ち', {
                     background: 'var(--warning-soft)',
                     color: 'var(--warning)',
                 }));
             } else if (entry.status === 'late') {
-                statusTd.appendChild(createBadge('badge', 'fa-solid fa-clock-rotate-left', '遅刻', {
+                statusTd.appendChild(createBadge('badge', 'clock-rotate-left', '遅刻', {
                     background: 'rgba(168,85,247,0.2)',
                     color: '#a855f7',
                 }));
             } else if (entry.checked_in) {
-                statusTd.appendChild(createBadge('badge success', 'fa-solid fa-check', '受付済'));
+                statusTd.appendChild(createBadge('badge success', 'check', '受付済'));
             } else {
-                statusTd.appendChild(createBadge('badge muted', 'fa-regular fa-clock', '未受付'));
+                statusTd.appendChild(createBadge('badge muted', 'clock', '未受付'));
             }
 
             const noticeState = entry.waitlist_promotion_notice;
             if (noticeState === 'pending' || noticeState === 'sending') {
-                statusTd.appendChild(createBadge('badge', 'fa-solid fa-envelope', '繰り上げ通知送信待ち', {
+                statusTd.appendChild(createBadge('badge', 'envelope', '繰り上げ通知送信待ち', {
                     background: 'var(--surface-2)',
                     color: 'var(--ink)',
                 }));
             } else if (noticeState === 'sent') {
-                statusTd.appendChild(createBadge('badge success', 'fa-solid fa-envelope-circle-check', '繰り上げ通知送信済み'));
+                statusTd.appendChild(createBadge('badge success', 'envelope-circle-check', '繰り上げ通知送信済み'));
             } else if (noticeState === 'failed') {
-                statusTd.appendChild(createBadge('badge danger', 'fa-solid fa-envelope-circle-xmark', '繰り上げ通知未送信'));
+                statusTd.appendChild(createBadge('badge danger', 'envelope-circle-xmark', '繰り上げ通知未送信'));
             }
         }
 

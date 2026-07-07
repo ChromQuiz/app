@@ -1,8 +1,7 @@
 /**
  * CIQ 共通 UI ユーティリティ (ui.js)
  * db.js の後に読み込むこと。
- * 注意: createIcon は js/icons.js で定義される local SVG アイコン生成関数。
- *       旧 FA class 文字列（例: 'fa-solid fa-check'）も互換のため icon name に変換する。
+ * 注意: createIcon は js/icons.js で定義されるCIQ Symbols生成関数。
  */
 
 function padNum(n) { return String(n).padStart(3, '0'); }
@@ -12,74 +11,7 @@ function escapeHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-// FA class 文字列 → icon name の互換マッピング（旧コード資産保護）
-const FA_NAME_MAP = {
-  'fa-arrow-left': 'arrow-left', 'fa-arrow-right': 'arrow-right',
-  'fa-arrow-right-to-bracket': 'arrow-right-to-bracket',
-  'fa-arrow-up-right-from-square': 'share-from-square',
-  'fa-arrows-rotate': 'arrows-rotate',
-  'fa-address-book': 'address-book',
-  'fa-ban': 'ban', 'fa-book-open': 'book-open', 'fa-box-open': 'box-open',
-  'fa-calendar': 'calendar', 'fa-calendar-days': 'calendar-days',
-  'fa-camera': 'camera', 'fa-chart-bar': 'chart-bar',
-  'fa-chart-column': 'chart-column', 'fa-chart-pie': 'chart-pie',
-  'fa-check': 'check', 'fa-check-circle': 'check-circle',
-  'fa-check-double': 'check-double',
-  'fa-circle-check': 'circle-check', 'fa-circle-exclamation': 'circle-exclamation',
-  'fa-circle-info': 'circle-info', 'fa-circle-notch': 'circle-notch',
-  'fa-circle-plus': 'circle-plus', 'fa-circle-question': 'circle-question',
-  'fa-circle-xmark': 'circle-xmark', 'fa-clock': 'clock',
-  'fa-clock-rotate-left': 'clock-rotate-left', 'fa-cloud-arrow-up': 'cloud-arrow-up',
-  'fa-comment': 'comment', 'fa-copy': 'copy', 'fa-crown': 'crown',
-  'fa-door-closed': 'door-closed', 'fa-door-open': 'door-open',
-  'fa-download': 'download', 'fa-envelope': 'envelope',
-  'fa-envelope-circle-check': 'envelope-circle-check',
-  'fa-envelope-circle-xmark': 'envelope-circle-xmark',
-  'fa-file-csv': 'file-csv', 'fa-file-image': 'file-image',
-  'fa-file-lines': 'file-lines', 'fa-file-pdf': 'file-pdf',
-  'fa-file-pen': 'file-pen', 'fa-file-export': 'file-export',
-  'fa-fingerprint': 'fingerprint', 'fa-flag-checkered': 'flag-checkered',
-  'fa-floppy-disk': 'floppy-disk', 'fa-folder-open': 'folder-open',
-  'fa-gauge': 'gauge', 'fa-gear': 'gear', 'fa-ghost': 'ghost',
-  'fa-graduation-cap': 'graduation-cap', 'fa-hashtag': 'hashtag',
-  'fa-history': 'history', 'fa-home': 'home', 'fa-hourglass': 'hourglass',
-  'fa-id-badge': 'id-badge', 'fa-inbox': 'inbox',
-  'fa-key': 'key', 'fa-keyboard': 'keyboard', 'fa-list': 'list',
-  'fa-list-check': 'list-check', 'fa-list-ol': 'list-ol',
-  'fa-lock': 'lock', 'fa-magnifying-glass-chart': 'magnifying-glass-chart',
-  'fa-map-location-dot': 'map-location-dot', 'fa-map-pin': 'map-pin',
-  'fa-message': 'message', 'fa-minus': 'minus', 'fa-paper-plane': 'paper-plane',
-  'fa-paperclip': 'paperclip', 'fa-pen': 'pen', 'fa-pen-to-square': 'pen-to-square',
-  'fa-percent': 'percent', 'fa-play': 'play', 'fa-plus': 'plus',
-  'fa-qrcode': 'qrcode', 'fa-ranking-star': 'ranking-star',
-  'fa-right-from-bracket': 'right-from-bracket',
-  'fa-right-to-bracket': 'right-to-bracket',
-  'fa-rotate': 'rotate', 'fa-rotate-left': 'rotate-left',
-  'fa-rotate-right': 'rotate-right',
-  'fa-school': 'school', 'fa-scroll': 'scroll',
-  'fa-send': 'send', 'fa-share-from-square': 'share-from-square',
-  'fa-shield-halved': 'shield-halved', 'fa-sliders': 'sliders',
-  'fa-spinner': 'spinner', 'fa-spell-check': 'spell-check',
-  'fa-stop': 'stop', 'fa-table-cells-large': 'table-cells-large',
-  'fa-th': 'th', 'fa-tower-broadcast': 'tower-broadcast',
-  'fa-trash': 'trash', 'fa-trophy': 'trophy',
-  'fa-triangle-exclamation': 'triangle-exclamation',
-  'fa-unlock': 'unlock', 'fa-user': 'user', 'fa-user-check': 'user-check',
-  'fa-user-clock': 'user-clock', 'fa-user-plus': 'user-plus',
-  'fa-user-shield': 'user-shield', 'fa-user-slash': 'user-slash',
-  'fa-user-xmark': 'user-xmark', 'fa-users': 'users',
-  'fa-users-gear': 'users-gear', 'fa-wifi': 'wifi', 'fa-wrench': 'wrench',
-  'fa-xmark': 'xmark',
-};
-
-/**
- * 旧 createIcon(className) 互換ブリッジ。
- * 'fa-solid fa-check' 形式 → 'check' に変換して SVG アイコンを返す。
- * 'check' 形式はそのまま icons.js の createIcon へ委譲。
- * icons.js 未読み込み時は i 要素フォールバック（後方互換）。
- */
 function createIconLegacyBridge(nameOrClass, opts) {
-  // icons.js が読み込まれていればそちらの createIcon を使用
   if (typeof window.__createSvgIcon === 'function') {
     return window.__createSvgIcon(nameOrClass, opts);
   }
@@ -119,7 +51,7 @@ async function showPreview(projectId, secretHash, entryNum) {
     const header = document.createElement('div');
     header.className = 'preview-header';
     const title = document.createElement('h2');
-    title.append(createIcon('fa-solid fa-file-image'), ` ${name} の解答用紙`);
+    title.append(createIcon('file-image'), ` ${name} の解答用紙`);
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'preview-close';
@@ -132,7 +64,7 @@ async function showPreview(projectId, secretHash, entryNum) {
     pc.className = 'preview-overlay-content';
     const loading = document.createElement('div');
     loading.className = 'text-muted-loader';
-    loading.append(createIcon('fa-solid fa-spinner fa-spin'), ' 読み込み中...');
+    loading.append(createIcon('spinner'), ' 読み込み中...');
     pc.appendChild(loading);
     overlay.append(header, pc);
 
@@ -230,8 +162,8 @@ function showToast(msg, type = 'info', duration = 3000) {
     }
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
-    const icon = createIcon(`fa-solid ${icons[type] || icons.info}`);
+    const icons = { success: 'circle-check', error: 'circle-xmark', info: 'circle-info' };
+    const icon = createIcon(icons[type] || icons.info);
     const text = document.createElement('span');
     text.textContent = String(msg || '');
     toast.append(icon, text);
@@ -251,7 +183,7 @@ function showConfirm(message, confirmText = '削除する') {
 
         const dialog = document.createElement('div');
         dialog.className = 'confirm-dialog glass-panel';
-        const icon = createIcon('fa-solid fa-triangle-exclamation confirm-icon');
+        const icon = createIcon('triangle-exclamation', { className: 'confirm-icon' });
         const messageEl = document.createElement('div');
         messageEl.className = 'confirm-message';
         messageEl.textContent = String(message || '');
@@ -283,12 +215,12 @@ const ConnectionMonitor = {
     init() {
         this._offlineBanner = document.createElement('div');
         this._offlineBanner.className = 'offline-banner';
-        this._offlineBanner.append(createIcon('fa-solid fa-wifi'), ' インターネット接続が切断されました');
+        this._offlineBanner.append(createIcon('wifi'), ' インターネット接続が切断されました');
         document.body.appendChild(this._offlineBanner);
 
         this._onlineBanner = document.createElement('div');
         this._onlineBanner.className = 'online-banner';
-        this._onlineBanner.append(createIcon('fa-solid fa-check-circle'), ' 接続が回復しました');
+        this._onlineBanner.append(createIcon('check-circle'), ' 接続が回復しました');
         document.body.appendChild(this._onlineBanner);
 
         window.addEventListener('offline', () => this._goOffline());
@@ -349,7 +281,7 @@ const KeyboardShortcuts = {
         const modal = document.createElement('div');
         modal.className = 'kbd-modal';
         const title = document.createElement('h3');
-        const titleIcon = createIcon('fa-solid fa-keyboard');
+        const titleIcon = createIcon('keyboard');
         title.append(titleIcon, ' キーボードショートカット');
         modal.appendChild(title);
 
@@ -489,7 +421,7 @@ function setButtonLoading(btn, loading, label) {
         btn.dataset.loading = 'true';
         btn.disabled = true;
         btn.textContent = '';
-        const icon = createIcon('fa-solid fa-circle-notch fa-spin');
+        const icon = createIcon('circle-notch');
         const text = document.createElement('span');
         text.textContent = label || '処理中...';
         btn.append(icon, text);

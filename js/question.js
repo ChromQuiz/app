@@ -158,7 +158,7 @@ function createAnswerCard(cardData, idx) {
     } else {
         const expired = document.createElement('div');
         expired.className = 'img-expired';
-        const icon = createIcon('fa-solid fa-clock');
+        const icon = createIcon('clock');
         expired.append(icon, ' 画像がありません');
         card.appendChild(expired);
     }
@@ -296,7 +296,7 @@ async function applyFallbackImageResult(result) {
     image.remove();
     const expired = document.createElement('div');
     expired.className = 'img-expired';
-    const icon = createIcon('fa-solid fa-clock');
+    const icon = createIcon('clock');
     expired.append(icon, ' 画像がありません');
     card.prepend(expired);
 }
@@ -461,7 +461,7 @@ async function init() {
         })));
 
         if (answerCards.length === 0) {
-            setAnswerGridMessage('答案データがありません', 'fa-solid fa-inbox');
+            setAnswerGridMessage('答案データがありません', 'inbox');
             return;
         }
 
@@ -520,7 +520,7 @@ async function init() {
             totalMs: roundMs(performance.now() - startedAt),
         });
     } catch (e) {
-        setAnswerGridMessage(e.message || '採点データを読み込めませんでした', 'fa-solid fa-triangle-exclamation');
+        setAnswerGridMessage(e.message || '採点データを読み込めませんでした', 'triangle-exclamation');
     }
 }
 

@@ -84,7 +84,7 @@ function showVerifyHelp(msg) {
     const el = document.getElementById('verify-help-msg');
     if (!el) return;
     el.textContent = '';
-    el.append(entryIcon('fa-solid fa-triangle-exclamation'), document.createTextNode(msg));
+    el.append(entryIcon('triangle-exclamation'), document.createTextNode(msg));
     el.classList.remove('u-hidden');
 }
 
@@ -138,16 +138,16 @@ function startResendCooldown() {
     const resendBtn = document.getElementById('resend-code-btn');
     showEl(resendBtn);
     resendBtn.disabled = true;
-    setEntryButton(resendBtn, `${sec}秒`, 'fa-solid fa-clock');
+    setEntryButton(resendBtn, `${sec}秒`, 'clock');
     clearInterval(resendCooldown);
     resendCooldown = setInterval(() => {
         sec--;
         if (sec <= 0) {
             clearInterval(resendCooldown);
             resendBtn.disabled = false;
-            setEntryButton(resendBtn, '再送信', 'fa-solid fa-rotate-right');
+            setEntryButton(resendBtn, '再送信', 'rotate-right');
         } else {
-            setEntryButton(resendBtn, `${sec}秒`, 'fa-solid fa-clock');
+            setEntryButton(resendBtn, `${sec}秒`, 'clock');
         }
     }, 1000);
 }
@@ -156,7 +156,7 @@ async function resendVerification() {
     const email = document.getElementById('f-email').value.trim();
     const resendBtn = document.getElementById('resend-code-btn');
     resendBtn.disabled = true;
-    setEntryButton(resendBtn, '送信中...', 'fa-solid fa-spinner fa-spin');
+    setEntryButton(resendBtn, '送信中...', 'spinner');
     showVerifyMsg('認証コードを再送信しています...', '');
 
     const pName = document.getElementById('project-title')?.textContent || projectId;
@@ -165,7 +165,7 @@ async function resendVerification() {
     if (!result || !result.success) {
         showVerifyMsg('再送信に失敗しました。', 'error');
         resendBtn.disabled = false;
-        setEntryButton(resendBtn, '再送信', 'fa-solid fa-rotate-right');
+        setEntryButton(resendBtn, '再送信', 'rotate-right');
         return;
     }
 
@@ -191,7 +191,7 @@ async function sendVerification() {
 
     const btn = document.getElementById('send-code-btn');
     btn.disabled = true;
-    setEntryButton(btn, '送信中...', 'fa-solid fa-spinner fa-spin');
+    setEntryButton(btn, '送信中...', 'spinner');
     showVerifyMsg('認証コードを送信しています...', '');
 
     const pName = document.getElementById('project-title')?.textContent || projectId;
@@ -200,7 +200,7 @@ async function sendVerification() {
     if (!result || !result.success) {
         showVerifyMsg('認証コードの送信に失敗しました。メールアドレスを確認してください。', 'error');
         btn.disabled = false;
-        setEntryButton(btn, '認証コードを送信', 'fa-solid fa-paper-plane');
+        setEntryButton(btn, '認証コードを送信', 'paper-plane');
         return;
     }
 
@@ -231,13 +231,13 @@ async function verifyEmailCode() {
 
     const btn = document.getElementById('verify-code-btn');
     btn.disabled = true;
-    setEntryButton(btn, '確認中...', 'fa-solid fa-spinner fa-spin');
+    setEntryButton(btn, '確認中...', 'spinner');
 
     const verified = await CIQEmail.verifyCode(email, code, verifySignature, verifyExpiresAt);
     if (!verified) {
         showVerifyMsg('認証コードが正しくないか、有効期限が切れています。', 'error');
         btn.disabled = false;
-        setEntryButton(btn, '認証する', 'fa-solid fa-check-circle');
+        setEntryButton(btn, '認証する', 'check-circle');
         return;
     }
 
@@ -264,7 +264,7 @@ async function verifyEmailCode() {
         showEl(document.getElementById('send-code-btn'));
         setEntryStepState('verify');
         document.getElementById('send-code-btn').disabled = false;
-        setEntryButton(document.getElementById('send-code-btn'), '認証コードを送信', 'fa-solid fa-paper-plane');
+        setEntryButton(document.getElementById('send-code-btn'), '認証コードを送信', 'paper-plane');
         hideEl(document.getElementById('resend-code-btn'));
         showVerifyMsg('セッションの有効期限が切れました。再度メール認証を行ってください。', 'error');
     }, SESSION_TIMEOUT);
@@ -414,7 +414,7 @@ function showWaitlistMessage() {
     waitMsg.className = 'waitlist-result-note';
     const strong = document.createElement('strong');
     strong.textContent = 'キャンセル待ち';
-    waitMsg.append(entryIcon('fa-solid fa-clock'), ' 定員に達したため、', strong, 'として登録されました。');
+    waitMsg.append(entryIcon('clock'), ' 定員に達したため、', strong, 'として登録されました。');
     document.getElementById('r-entry-number').parentElement.after(waitMsg);
 }
 

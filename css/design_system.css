@@ -295,7 +295,7 @@ body.body-scroll-locked {
 }
 
 /* ============================================================
-   3. ICONS  (js/icons.js が <span data-icon> に SVG を注入)
+   3. ICONS  (js/icons.js が SF Symbols 風 SVG を注入)
    ============================================================ */
 [data-icon] {
   display: inline-flex;
@@ -314,8 +314,10 @@ body.body-scroll-locked {
   height: 100%;
   overflow: visible;
   flex: none;
+  stroke-width: 1.8;
 }
 
+svg[data-ciq-symbol-style="sf-like"],
 svg[width="24"][stroke="currentColor"] {
   display: inline-block;
   width: 1.1em;
@@ -323,6 +325,8 @@ svg[width="24"][stroke="currentColor"] {
   overflow: visible;
   flex: none;
   vertical-align: -0.14em;
+  stroke-width: 1.8;
+  shape-rendering: geometricPrecision;
 }
 
 /* spinner アイコン（icons.js が .spinner ラッパーを生成） */

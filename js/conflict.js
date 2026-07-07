@@ -130,7 +130,7 @@ async function init() {
         await refreshData();
         startConflictRefreshTimer();
     } catch (e) {
-        setConflictGridMessage(e.message || '要確認データを読み込めませんでした', { icon: 'fa-solid fa-triangle-exclamation' });
+        setConflictGridMessage(e.message || '要確認データを読み込めませんでした', { icon: 'triangle-exclamation' });
         const counter = document.getElementById('counter');
         counter.textContent = '読み込み失敗';
         counter.className = 'counter has-conflicts';
@@ -359,7 +359,7 @@ async function render() {
         lastConflictRenderSignature = '';
         setConflictGridMessage('要確認はありません', {
             className: 'no-conflict',
-            icon: 'fa-solid fa-circle-check',
+            icon: 'circle-check',
             iconSize: '48px',
             iconColor: 'var(--success)',
         });
@@ -375,7 +375,7 @@ async function render() {
     const initialImageLimit = getInitialConflictImageLimit(currentConflicts);
     const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, initialImageLimit));
     if (missingImages.length) {
-        setConflictGridMessage('画像を準備中...', { icon: 'fa-solid fa-spinner fa-spin' });
+        setConflictGridMessage('画像を準備中...', { icon: 'spinner' });
         const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
         const imageStartedAt = performance.now();
         await ensureConflictCellUrls(missingImages);
@@ -440,7 +440,7 @@ function createConflictCard(conflict, idx) {
     } else {
         const expired = document.createElement('div');
         expired.className = 'img-expired';
-        const icon = createIcon('fa-solid fa-clock');
+        const icon = createIcon('clock');
         expired.append(icon, hasTriedImage ? ' 画像がありません' : ' 画像を読み込み中');
         card.appendChild(expired);
         if (!hasTriedImage && conflict.storagePath && (conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`])) {
@@ -486,7 +486,7 @@ function attachConflictImageErrorFallback(image, conflict) {
         delete cellUrlCache[key];
         const placeholder = document.createElement('div');
         placeholder.className = 'img-expired';
-        const icon = createIcon('fa-solid fa-clock');
+        const icon = createIcon('clock');
         placeholder.append(icon, ' 画像を読み込み中');
         image.replaceWith(placeholder);
         queueConflictImage(conflict);
@@ -552,7 +552,7 @@ function updateVisibleConflictImages(requests) {
         if (!imageSlot) return;
         if (!cellUrl) {
             imageSlot.textContent = '';
-            const icon = createIcon('fa-solid fa-clock');
+            const icon = createIcon('clock');
             imageSlot.append(icon, ' 画像がありません');
             return;
         }

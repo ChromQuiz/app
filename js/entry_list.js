@@ -14,7 +14,7 @@ const params = new URLSearchParams(location.search);
     if (!projectId) {
         const disabledMsg = document.getElementById('disabled-msg');
         disabledMsg.textContent = '';
-        const icon = createIcon('fa-solid fa-ban');
+        const icon = createIcon('ban');
         disabledMsg.append(icon, 'プロジェクトが指定されていません。正しいURLへアクセスしてください。');
     }
 
@@ -191,7 +191,7 @@ const params = new URLSearchParams(location.search);
         // 定員ライン: ここから下は出場圏外(キャンセル待ち)
         if (waitlist.length > 0) {
             const capacityNote = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
-            appendDivider(body, 'fa-solid fa-clock', `ここまで出場圏内${capacityNote} — 以下キャンセル待ち（${waitlist.length}名）`, 'entry-list-divider-warning');
+            appendDivider(body, 'clock', `ここまで出場圏内${capacityNote} — 以下キャンセル待ち（${waitlist.length}名）`, 'entry-list-divider-warning');
             waitlist.forEach(e => renderRow(e, true));
         }
 

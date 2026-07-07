@@ -23,7 +23,7 @@
                 document.getElementById('entry-count-badge').textContent = `${entryListData.length}件`;
                 window.setAdminScanCount?.(entryListData.length);
                 if (entryListData.length === 0) {
-                    setScanMessage(el, '保存済み答案はありません', { icon: 'fa-solid fa-box-open icon-empty' });
+                    setScanMessage(el, '保存済み答案はありません', { icon: 'box-open', className: 'text-muted-center icon-empty' });
                     document.getElementById('select-all-label').hidden = true;
                     document.getElementById('batch-delete-btn').hidden = true;
                     return;
@@ -138,7 +138,7 @@
             header.className = 'preview-overlay-header';
             const title = document.createElement('h2');
             title.className = 'preview-overlay-title';
-            const titleIcon = createIcon('fa-solid fa-file-image');
+            const titleIcon = createIcon('file-image');
             title.append(titleIcon, ` ${name} の解答用紙`);
             const closeButton = document.createElement('button');
             closeButton.type = 'button';
@@ -149,7 +149,7 @@
             const content = document.createElement('div');
             content.id = 'admin-preview-content';
             content.className = 'preview-overlay-content';
-            setScanMessage(content, '読み込み中...', { className: 'text-muted-loader', icon: 'fa-solid fa-spinner fa-spin' });
+            setScanMessage(content, '読み込み中...', { className: 'text-muted-loader', icon: 'spinner' });
             overlay.append(header, content);
             overlay.classList.add('show');
             const pc = document.getElementById('admin-preview-content');
@@ -188,7 +188,7 @@
                 item.dataset.idx = i;
                 const label = document.createElement('div');
                 label.className = 'q-label';
-                const icon = createIcon('fa-solid fa-hashtag');
+                const icon = createIcon('hashtag');
                 label.append(icon, String(i + 1));
                 const answer = document.createElement('div');
                 answer.className = `q-answer${ans ? '' : ' model-answer-empty'}`;
@@ -200,14 +200,14 @@
                 prevBtn.className = 'model-move-btn';
                 prevBtn.title = '前へ移動';
                 prevBtn.disabled = i === 0;
-                const prevIcon = createIcon('fa-solid fa-chevron-left');
+                const prevIcon = createIcon('chevron-left');
                 prevBtn.appendChild(prevIcon);
                 const nextBtn = document.createElement('button');
                 nextBtn.type = 'button';
                 nextBtn.className = 'model-move-btn';
                 nextBtn.title = '後ろへ移動';
                 nextBtn.disabled = i === modelAnswers.length - 1;
-                const nextIcon = createIcon('fa-solid fa-chevron-right');
+                const nextIcon = createIcon('chevron-right');
                 nextBtn.appendChild(nextIcon);
                 prevBtn.addEventListener('click', (e) => {
                     e.stopPropagation();

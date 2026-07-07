@@ -88,6 +88,12 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - 幅: 参加者640px(リスト960px) / admin 880px / ボード類 1280px。タッチターゲット44px。フォーカスリング3px
 - Z: sticky10 / appbar20 / dropdown30 / drawer40 / modal50 / toast60 / max70
 
+### Icons
+- Web上ではSF Symbols本体を同梱しない。`js/icons.js` の自前SVGを唯一のアイコンソースとし、SF Symbols風の24pxグリッド・細い丸線・十分な内側余白で統一する。
+- 外部アイコンセット名や旧クラス文字列をコードに残さない。`createIcon()` にはCIQ Symbol名だけを渡す。
+- 新しいアイコンが必要な場合は `ICON_PATHS` に追加し、`currentColor` / `fill="none"` / `stroke-width: 1.8` / `round cap+join` に従う。
+- 欠落アイコンを `circle-question` のまま放置しない。四角表示・途切れ・異なる太さを見つけたらレジストリ側で直す。
+
 ## 6. 運営共通シェル
 
 - 全運営ページ同一のアプリバー(戻る / 大会名+現在位置 / メニュー)とドロワー。

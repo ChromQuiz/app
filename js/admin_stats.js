@@ -100,12 +100,12 @@
             const csvS = document.getElementById('csv-status'), csvB = document.getElementById('csv-btn');
             // CSV出力の可否は表示用の完了カウントではなく、真の全問確定（allConfirmed）で判定
             if (allConfirmed && totalQuestions > 0) { 
-                setCsvStatus(csvS, 'ready', 'fa-solid fa-circle-check', '全問確定済み — CSV出力できます');
+                setCsvStatus(csvS, 'ready', 'circle-check', '全問確定済み — CSV出力できます');
                 csvB.disabled = false;
                 const pdfB = document.getElementById('graded-pdf-btn');
                 if (pdfB) pdfB.disabled = false;
             } else { 
-                setCsvStatus(csvS, 'notready', 'fa-solid fa-circle-xmark', `未確定の問題があります（${confirmedCount} / ${totalQuestions} 確定済み）`);
+                setCsvStatus(csvS, 'notready', 'circle-xmark', `未確定の問題があります（${confirmedCount} / ${totalQuestions} 確定済み）`);
                 csvB.disabled = true;
                 const pdfB2 = document.getElementById('graded-pdf-btn');
                 if (pdfB2) pdfB2.disabled = true;

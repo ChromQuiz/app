@@ -79,7 +79,7 @@
         const projectIdDisplay = document.getElementById('project-id-display');
         if (projectIdDisplay) {
             projectIdDisplay.textContent = '';
-            projectIdDisplay.append(adminIcon('fa-solid fa-copy'), ` ${projectId}`);
+            projectIdDisplay.append(adminIcon('copy'), ` ${projectId}`);
         }
         const menuName = document.getElementById('menu-scorer-name');
         if (menuName) menuName.textContent = auth.scorerName;
@@ -242,7 +242,7 @@
             if (!url) return;
             const originalNodes = [...btn.childNodes].map(node => node.cloneNode(true));
             function onSuccess() {
-                setIconOnlyButton(btn, 'fa-solid fa-check');
+                setIconOnlyButton(btn, 'check');
                 btn.classList.add('copy-success');
                 setTimeout(() => {
                     btn.textContent = '';

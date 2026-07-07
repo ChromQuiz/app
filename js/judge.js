@@ -14,7 +14,7 @@ function setRoleBadge(role) {
     roleEl.textContent = '';
     const badge = document.createElement('span');
     badge.className = role === 'admin' ? 'menu-role-badge admin' : 'menu-role-badge scorer';
-    const icon = createIcon(role === 'admin' ? 'fa-solid fa-crown' : 'fa-solid fa-user-check');
+    const icon = createIcon(role === 'admin' ? 'crown' : 'user-check');
     badge.append(icon, role === 'admin' ? ' 管理者' : ' 採点者');
     roleEl.appendChild(badge);
 }
@@ -159,13 +159,13 @@ function updateGrid(rows) {
         });
 
         if (isFull && !isMine) {
-            setStatus(statusEl, 'status-locked', 'fa-solid fa-ban', '満員');
+            setStatus(statusEl, 'status-locked', 'ban', '満員');
         } else if (allDone) {
-            setStatus(statusEl, 'status-done', 'fa-solid fa-circle-check', '完了');
+            setStatus(statusEl, 'status-done', 'circle-check', '完了');
         } else if (scorerIds.length > 0) {
-            setStatus(statusEl, 'status-inprogress', 'fa-solid fa-pen', `採点中 ${scorerIds.length}/${requiredScorers}`);
+            setStatus(statusEl, 'status-inprogress', 'pen', `採点中 ${scorerIds.length}/${requiredScorers}`);
         } else {
-            setStatus(statusEl, 'status-open', 'fa-solid fa-minus', '未着手');
+            setStatus(statusEl, 'status-open', 'minus', '未着手');
         }
     }
 

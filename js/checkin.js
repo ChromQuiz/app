@@ -12,7 +12,7 @@ function setPageTitle(projectName) {
     const title = document.getElementById('page-title');
     if (!title) return;
     title.textContent = '';
-    title.append(makeIcon('fa-solid fa-qrcode'), ` ${projectName} 受付`);
+    title.append(makeIcon('qrcode'), ` ${projectName} 受付`);
 }
 
 if (auth) {
@@ -90,7 +90,7 @@ if (auth) {
             })
             .then(() => {
                 scanningText.textContent = '';
-                scanningText.append(makeIcon('fa-solid fa-camera'), ' QRコードをカメラにかざしてください');
+                scanningText.append(makeIcon('camera'), ' QRコードをカメラにかざしてください');
                 requestAnimationFrame(scanFrame);
             })
             .catch(err => {
@@ -112,7 +112,7 @@ if (auth) {
             })
             .then(() => {
                 scanningText.textContent = '';
-                scanningText.append(makeIcon('fa-solid fa-camera'), ' QRコードをカメラにかざしてください');
+                scanningText.append(makeIcon('camera'), ' QRコードをカメラにかざしてください');
                 requestAnimationFrame(scanFrame);
             })
             .catch(err => setScanMessage(cameraErrorMessage(err)));
@@ -127,7 +127,7 @@ if (auth) {
 
     function setScanMessage(message) {
         scanningText.textContent = '';
-        scanningText.append(makeIcon('fa-solid fa-triangle-exclamation'), ` ${message}`);
+        scanningText.append(makeIcon('triangle-exclamation'), ` ${message}`);
     }
 
     function scanFrame() {
@@ -169,17 +169,17 @@ if (auth) {
             const number = `受付番号 ${padNum(entry.entryNumber)}`;
 
             if (result.result === 'canceled') {
-                showResultUI('canceled', 'fa-solid fa-xmark', 'キャンセル済み', name, number);
+                showResultUI('canceled', 'xmark', 'キャンセル済み', name, number);
             } else if (result.result === 'waitlist') {
-                showResultUI('already', 'fa-solid fa-triangle-exclamation', 'キャンセル待ち', name, number);
+                showResultUI('already', 'triangle-exclamation', 'キャンセル待ち', name, number);
             } else if (result.result === 'already') {
-                showResultUI('already', 'fa-solid fa-triangle-exclamation', '受付済み', name, number);
+                showResultUI('already', 'triangle-exclamation', '受付済み', name, number);
             } else {
-                showResultUI('success', 'fa-solid fa-check', '受付完了', name, number);
+                showResultUI('success', 'check', '受付完了', name, number);
                 await loadStats();
             }
         } catch (err) {
-            showResultUI('error', 'fa-solid fa-xmark', 'エラーが発生しました', err.message, '');
+            showResultUI('error', 'xmark', 'エラーが発生しました', err.message, '');
             lastUUID = '';
         }
         processing = false;

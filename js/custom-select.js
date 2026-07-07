@@ -32,17 +32,10 @@ class CustomSelect {
         this.labelSpan = document.createElement('span');
         this.labelSpan.className = 'cd-label cd-placeholder';
         this.labelSpan.textContent = this.options[0]?.text || '選択';
-        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const arrow = typeof createIcon === 'function'
+            ? createIcon('chevron-down')
+            : document.createElement('span');
         arrow.classList.add('cd-arrow');
-        arrow.setAttribute('viewBox', '0 0 24 24');
-        arrow.setAttribute('fill', 'none');
-        arrow.setAttribute('stroke', 'currentColor');
-        arrow.setAttribute('stroke-width', '2.5');
-        arrow.setAttribute('stroke-linecap', 'round');
-        arrow.setAttribute('stroke-linejoin', 'round');
-        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-        polyline.setAttribute('points', '6 9 12 15 18 9');
-        arrow.appendChild(polyline);
         this.trigger.append(this.labelSpan, arrow);
 
         this.menu = document.createElement('div');

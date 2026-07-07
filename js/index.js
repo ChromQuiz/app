@@ -74,7 +74,7 @@ function setButtonContent(button, text, iconClass = '', iconAfter = true) {
 
 function showError(msg) {
     const el = document.getElementById('status-msg');
-    setIconText(el, 'fa-solid fa-triangle-exclamation', msg);
+    setIconText(el, 'triangle-exclamation', msg);
     el.classList.add('is-visible');
     setTimeout(() => el.classList.remove('is-visible'), 5000);
 }
@@ -133,7 +133,7 @@ function renderCreateAuthState() {
     if (createSection) createSection.hidden = currentTab !== 'create' || !email;
     if (createBtn) {
         createBtn.disabled = !email;
-        setButtonContent(createBtn, '作成', email ? 'fa-solid fa-plus' : '');
+        setButtonContent(createBtn, '作成', email ? 'plus' : '');
     }
 }
 
@@ -163,7 +163,7 @@ async function renderProjectList() {
     list.textContent = '';
     const loading = document.createElement('div');
     loading.className = 'project-list-empty';
-    loading.append(icon('fa-solid fa-spinner fa-spin'), ' 読み込み中...');
+    loading.append(icon('spinner'), ' 読み込み中...');
     list.appendChild(loading);
     try {
         const projects = await CIQSupabaseAPI.listMyProjects();
@@ -182,7 +182,7 @@ async function renderProjectList() {
             const meta = document.createElement('small');
             meta.textContent = `${project.id} / ${getRoleLabel(project.role)}`;
             textWrap.append(name, meta);
-            button.append(textWrap, icon('fa-solid fa-arrow-right'));
+            button.append(textWrap, icon('arrow-right'));
             button.addEventListener('click', () => {
                 openSupabaseProject(
                     project.id,
@@ -225,7 +225,7 @@ async function joinProjectAsScorer() {
     }
 
     btn.disabled = true;
-    setButtonContent(btn, '確認中...', 'fa-solid fa-circle-notch fa-spin', false);
+    setButtonContent(btn, '確認中...', 'circle-notch', false);
     try {
         const codeHash = await AppCrypto.hashPassword(accessCode);
         const joined = await CIQSupabaseAPI.joinProjectWithScorerCode(projectId, codeHash);
@@ -240,7 +240,7 @@ async function joinProjectAsScorer() {
     } catch (e) {
         showError(e.message);
         btn.disabled = false;
-        setButtonContent(btn, 'プロジェクトに参加', 'fa-solid fa-arrow-right-to-bracket');
+        setButtonContent(btn, 'プロジェクトに参加', 'arrow-right-to-bracket');
     }
 }
 
@@ -273,8 +273,8 @@ async function copyToClipboard(id, btn) {
     const input = document.getElementById(id);
     try {
         await navigator.clipboard.writeText(input.value);
-        setButtonContent(btn, '', 'fa-solid fa-check', false);
-        setTimeout(() => setButtonContent(btn, '', 'fa-solid fa-copy', false), 1500);
+        setButtonContent(btn, '', 'check', false);
+        setTimeout(() => setButtonContent(btn, '', 'copy', false), 1500);
     } catch (err) {
         showError('コピーに失敗しました');
     }
@@ -299,7 +299,7 @@ async function createProject() {
     const pName = `CIQ the ${edition}${getOrdinalSuffix(edition)}`;
 
     btn.disabled = true;
-    setButtonContent(btn, '作成中...', 'fa-solid fa-circle-notch fa-spin', false);
+    setButtonContent(btn, '作成中...', 'circle-notch', false);
 
     try {
         const { publicKeyJwk, privateKeyJwk } = await AppCrypto.generateRSAKeyPair();
