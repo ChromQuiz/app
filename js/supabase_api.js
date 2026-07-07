@@ -208,9 +208,7 @@ const CIQSupabaseAPI = {
     async signInWithGoogle() {
         let redirectTo;
         if (location.protocol !== 'file:') {
-            const redirectUrl = new URL(location.href);
-            redirectUrl.search = '';
-            redirectUrl.hash = location.hash;
+            const redirectUrl = new URL('/app/', location.origin);
             redirectTo = redirectUrl.href;
         }
         const { error } = await this.client().auth.signInWithOAuth({
