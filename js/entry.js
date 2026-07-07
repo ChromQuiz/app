@@ -104,6 +104,62 @@ function shouldShowVerificationMailboxHelp() {
     return Boolean(codeArea && !codeArea.classList.contains('u-hidden'));
 }
 
+function getVerifyCodeBoxes() {
+    return Array.from(document.querySelectorAll('.verify-code-box'));
+}
+
+function syncVerifyCodeFromBoxes() {
+    const hiddenInput = document.getElementById('f-verify-code');
+    if (!hiddenInput) return;
+    hiddenInput.value = getVerifyCodeBoxes().map(input => input.value).join('');
+}
+
+function setVerifyCodeValue(value) {
+    const digits = String(value || '').replace(/\D/g, '').slice(0, 6).split('');
+    getVerifyCodeBoxes().forEach((input, index) => {
+        input.value = digits[index] || '';
+    });
+    syncVerifyCodeFromBoxes();
+}
+
+function focusVerifyCodeBox(index = 0) {
+    const boxes = getVerifyCodeBoxes();
+    boxes[Math.max(0, Math.min(index, boxes.length - 1))]?.focus();
+}
+
+function setupVerifyCodeBoxes() {
+    const boxes = getVerifyCodeBoxes();
+    boxes.forEach((input, index) => {
+        input.addEventListener('input', () => {
+            const digits = input.value.replace(/\D/g, '');
+            if (digits.length > 1) {
+                const current = getVerifyCodeBoxes().map(box => box.value).join('');
+                setVerifyCodeValue(current.slice(0, index) + digits + current.slice(index + 1));
+                focusVerifyCodeBox(Math.min(index + digits.length, boxes.length - 1));
+                return;
+            }
+            input.value = digits;
+            syncVerifyCodeFromBoxes();
+            if (digits && index < boxes.length - 1) focusVerifyCodeBox(index + 1);
+        });
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Backspace' && !input.value && index > 0) {
+                event.preventDefault();
+                boxes[index - 1].value = '';
+                syncVerifyCodeFromBoxes();
+                focusVerifyCodeBox(index - 1);
+            }
+        });
+        input.addEventListener('paste', (event) => {
+            const text = event.clipboardData?.getData('text') || '';
+            if (!text) return;
+            event.preventDefault();
+            setVerifyCodeValue(text);
+            focusVerifyCodeBox(Math.min(text.replace(/\D/g, '').length, boxes.length - 1));
+        });
+    });
+}
+
 function showStatus(msg, type) {
     const sm = document.getElementById('status-msg');
     sm.textContent = msg;
@@ -171,7 +227,7 @@ async function resendVerification() {
 
     verifySignature = result.signature;
     verifyExpiresAt = result.expiresAt;
-    document.getElementById('f-verify-code').value = '';
+    setVerifyCodeValue('');
     showVerifyMsg(`${email} に認証コードを再送信しました。`, 'success');
     showVerificationMailboxHelp();
     startResendCooldown();
@@ -211,7 +267,7 @@ async function sendVerification() {
     hideEl(btn);
     showVerifyMsg(`${email} に6桁の認証コードを送信しました。`, 'success');
     showVerificationMailboxHelp();
-    document.getElementById('f-verify-code').focus();
+    focusVerifyCodeBox(0);
     startResendCooldown();
 }
 
@@ -259,7 +315,7 @@ async function verifyEmailCode() {
         showEl(document.getElementById('email-verify-section'));
         document.getElementById('f-email').disabled = false;
         document.getElementById('f-email').value = '';
-        document.getElementById('f-verify-code').value = '';
+        setVerifyCodeValue('');
         hideEl(document.getElementById('code-input-area'));
         showEl(document.getElementById('send-code-btn'));
         setEntryStepState('verify');
@@ -421,6 +477,7 @@ function showWaitlistMessage() {
 document.getElementById('send-code-btn')?.addEventListener('click', sendVerification);
 document.getElementById('verify-code-btn')?.addEventListener('click', verifyEmailCode);
 document.getElementById('resend-code-btn')?.addEventListener('click', resendVerification);
+setupVerifyCodeBoxes();
 
 async function init() {
     setEntryStepState('verify');

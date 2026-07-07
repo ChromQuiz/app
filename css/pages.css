@@ -472,13 +472,37 @@ body.page-wrapper {
 }
 
 /* 認証コード入力 */
-.verify-code-input {
+.verify-code-boxes {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--sp-2);
+  max-width: 360px;
+}
+
+.verify-code-box {
   font-family: var(--font-mono);
-  font-size: var(--fs-26) !important;
-  font-weight: 500;
-  letter-spacing: 0.4em;
+  font-size: var(--fs-24) !important;
+  font-weight: 600;
   text-align: center;
-  min-height: 60px;
+  min-height: 56px;
+  padding-inline: 0;
+  border-radius: var(--r-md);
+}
+
+.verify-code-box:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+@media (max-width: 420px) {
+  .verify-code-boxes {
+    gap: var(--sp-1);
+  }
+
+  .verify-code-box {
+    min-height: 50px;
+    font-size: var(--fs-22) !important;
+  }
 }
 
 .entry-resend-btn {

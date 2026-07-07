@@ -24,7 +24,7 @@
     <script defer src="js/custom-select.js?v=5"></script>
     <script defer src="js/shared.js"></script>
     <link rel="stylesheet" href="css/design_system.css?v=37">
-    <link rel="stylesheet" href="css/pages.css?v=53">
+    <link rel="stylesheet" href="css/pages.css?v=54">
 </head>
 
 <body class="page-wrapper">
@@ -61,8 +61,16 @@
                     </button>
                     <div id="code-input-area" class="u-hidden">
                         <div class="form-group">
-                            <label class="required" for="f-verify-code"><span data-icon="shield-halved" aria-hidden="true"></span> 認証コード（6桁）</label>
-                            <input type="text" id="f-verify-code" name="otp" class="verify-code-input" maxlength="6" pattern="[0-9]{6}" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
+                            <label class="required" for="verify-code-0"><span data-icon="shield-halved" aria-hidden="true"></span> 認証コード</label>
+                            <input type="text" id="f-verify-code" name="otp" class="u-hidden" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code">
+                            <div class="verify-code-boxes" id="verify-code-boxes" aria-label="認証コード">
+                                <input type="text" id="verify-code-0" class="verify-code-box" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="認証コード 1桁目">
+                                <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 2桁目">
+                                <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 3桁目">
+                                <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 4桁目">
+                                <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 5桁目">
+                                <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 6桁目">
+                            </div>
                         </div>
                         <button type="button" class="page-btn" id="verify-code-btn">
                             <span data-icon="check-circle" aria-hidden="true"></span> 認証する
@@ -224,7 +232,7 @@
     </div>
 
     <script defer src="js/email.js?v=4"></script>
-    <script defer src="js/entry.js?v=14"></script>
+    <script defer src="js/entry.js?v=11"></script>
 </body>
 
 </html>
