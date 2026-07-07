@@ -1108,6 +1108,10 @@ body.page-wrapper {
   background: transparent;
 }
 
+.terms-escaped-html {
+  border: 1px dashed var(--line-strong);
+}
+
 .terms-table-wrap {
   overflow-x: auto;
   margin: var(--sp-4) 0;
@@ -1132,6 +1136,14 @@ body.page-wrapper {
   font-weight: 600;
 }
 
+.terms-table-wrap .terms-align-center {
+  text-align: center;
+}
+
+.terms-table-wrap .terms-align-right {
+  text-align: right;
+}
+
 .terms-table-wrap tr:last-child td {
   border-bottom: 0;
 }
@@ -1146,6 +1158,59 @@ body.page-wrapper {
   height: auto;
   border: 1px solid var(--line);
   border-radius: var(--r-md);
+}
+
+.terms-definition-list {
+  display: grid;
+  gap: var(--sp-2);
+  margin: var(--sp-4) 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+.terms-definition-list dt {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.terms-definition-list dd {
+  margin: 0 0 var(--sp-2);
+  color: var(--ink-2);
+}
+
+.terms-definition-list dd:last-child {
+  margin-bottom: 0;
+}
+
+.terms-footnote-ref {
+  margin-inline: 2px;
+  font-size: 0.72em;
+  line-height: 1;
+}
+
+.terms-footnotes {
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+}
+
+.terms-footnotes h2 {
+  margin-top: 0;
+}
+
+.terms-footnotes li {
+  padding-left: var(--sp-1);
+}
+
+.terms-footnote-back {
+  display: inline-block;
+  margin-left: var(--sp-2);
+  color: var(--ink-3);
+  font-size: var(--fs-12);
 }
 
 @media (max-width: 768px) {
