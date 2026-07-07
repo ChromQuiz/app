@@ -79,19 +79,21 @@ body.page-index .card {
   align-items: stretch;
 }
 
-.google-signin-btn {
-  display: inline-flex;
+.google-auth-btn {
+  width: 100%;
   justify-content: center;
-  border-radius: var(--r-full);
-  transition: opacity var(--t-micro) var(--ease);
+  gap: var(--sp-2);
+  min-height: 48px;
 }
 
-.google-signin-btn:hover {
-  opacity: 0.85;
+.google-g-mark {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
 }
 
-.google-signin-img {
-  height: 44px;
+.google-auth-btn span {
+  line-height: 1;
 }
 
 /* 参加できるプロジェクト一覧 */

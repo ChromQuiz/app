@@ -24,7 +24,7 @@
   <script defer src="js/custom-select.js?v=5"></script>
   <script defer src="js/shared.js"></script>
   <link rel="stylesheet" href="css/design_system.css?v=37">
-  <link rel="stylesheet" href="css/pages.css?v=52">
+  <link rel="stylesheet" href="css/pages.css?v=53">
 </head>
 
 <body class="page-index">
@@ -43,10 +43,12 @@
         <div class="auth-provider-user" id="supabase-auth-user"></div>
       </div>
       <div class="auth-provider-actions">
-        <button type="button" class="google-signin-btn" id="supabase-login-btn">
-          <img class="google-signin-img" src="assets/vendor/google/web_light_rd_ctn.svg" alt="Googleで続行">
+        <button type="button" class="btn secondary google-auth-btn" id="supabase-login-btn">
+          <img class="google-g-mark" src="assets/vendor/google/g_mark.svg" alt="" aria-hidden="true">
+          <span>Googleで続行</span>
         </button>
-        <button type="button" class="btn secondary" id="supabase-logout-btn" hidden>
+        <button type="button" class="btn secondary google-auth-btn" id="supabase-logout-btn" hidden>
+          <img class="google-g-mark" src="assets/vendor/google/g_mark.svg" alt="" aria-hidden="true">
           Googleからサインアウト
         </button>
       </div>
