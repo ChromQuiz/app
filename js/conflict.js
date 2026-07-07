@@ -358,7 +358,7 @@ async function render() {
     if (currentConflicts.length === 0) {
         lastConflictRenderSignature = '';
         setConflictGridMessage('要確認はありません', {
-            className: 'no-conflict',
+            className: 'loading-state no-conflict',
             icon: 'circle-check',
             iconSize: '48px',
             iconColor: 'var(--success)',

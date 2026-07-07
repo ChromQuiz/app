@@ -1801,6 +1801,14 @@ body.page-wrapper {
 /* グリッド内メッセージ(空/エラー時に全幅) */
 .grid-message {
   grid-column: 1 / -1;
+  min-height: min(48vh, 420px);
+  align-self: center;
+  justify-self: stretch;
+  text-align: center;
+}
+
+.grid-message .ciq-symbol {
+  flex: 0 0 auto;
 }
 
 /* 問題ボード: 問題番号順を固定し、「続きから」で次の一手へ進む */
