@@ -12,6 +12,10 @@ function appendInlineTokens(parent, tokens = []) {
             const el = document.createElement(token.type === 'strong' ? 'strong' : 'em');
             appendInlineTokens(el, token.tokens || []);
             parent.appendChild(el);
+        } else if (token.type === 'del') {
+            const el = document.createElement('del');
+            appendInlineTokens(el, token.tokens || []);
+            parent.appendChild(el);
         } else if (token.type === 'codespan') {
             const code = document.createElement('code');
             code.textContent = token.text || '';
@@ -28,6 +32,20 @@ function appendInlineTokens(parent, tokens = []) {
                 link.rel = 'noopener noreferrer';
             }
             parent.appendChild(link);
+        } else if (token.type === 'image') {
+            const href = String(token.href || '');
+            if (/^https?:\/\//i.test(href) || href.startsWith('data:image/')) {
+                const image = document.createElement('img');
+                image.src = href;
+                image.alt = token.text || '';
+                image.loading = 'lazy';
+                image.decoding = 'async';
+                parent.appendChild(image);
+            } else {
+                appendText(parent, token.text || '');
+            }
+        } else if (token.type === 'html') {
+            appendText(parent, token.text || token.raw || '');
         } else if (token.tokens) {
             appendInlineTokens(parent, token.tokens);
         } else {
@@ -86,6 +104,7 @@ function appendBlockToken(parent, token) {
 
     if (token.type === 'code') {
         const pre = document.createElement('pre');
+        if (token.lang) pre.dataset.lang = String(token.lang);
         const code = document.createElement('code');
         code.textContent = token.text || '';
         pre.appendChild(code);

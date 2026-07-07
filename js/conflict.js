@@ -339,6 +339,7 @@ function getConflictRenderSignature(conflicts) {
 function updateConflictSelectionClasses() {
     document.querySelectorAll('.conflict-card').forEach((card, i) => {
         card.classList.toggle('selected', i === selectedIndex);
+        card.setAttribute('aria-selected', i === selectedIndex ? 'true' : 'false');
     });
 }
 
@@ -437,7 +438,9 @@ function createConflictCard(conflict, idx) {
     const modelAnswer = conflict.modelAnswer || modelAnswers[conflict.q] || '';
 
     const card = document.createElement('div');
-    card.className = `conflict-card ${conflict.finalResult ? 'resolved ' + conflict.finalResult : ''} ${idx === selectedIndex ? 'selected' : ''}`;
+    card.className = `answer-card conflict-card ${conflict.finalResult ? 'resolved ' + conflict.finalResult : ''} ${idx === selectedIndex ? 'selected' : ''}`;
+    card.setAttribute('aria-label', `${conflict.displayName} ${conflict.q}問 要確認`);
+    card.setAttribute('aria-selected', idx === selectedIndex ? 'true' : 'false');
     card._ciqConflict = conflict;
     if (cellUrl) {
         const image = document.createElement('img');
@@ -459,27 +462,20 @@ function createConflictCard(conflict, idx) {
         }
     }
 
-    const qTag = document.createElement('div');
-    qTag.className = 'q-tag-badge';
-    qTag.textContent = `${conflict.q}問`;
     const entryNum = document.createElement('div');
     entryNum.className = 'entry-num';
     entryNum.textContent = conflict.displayName;
-    const cardHead = document.createElement('div');
-    cardHead.className = 'conflict-card-head';
-    cardHead.append(qTag, entryNum);
-    card.appendChild(cardHead);
+    card.appendChild(entryNum);
 
-    if (modelAnswer) {
-        const model = document.createElement('div');
-        model.className = 'conflict-model-ans';
-        const strong = document.createElement('strong');
-        strong.textContent = modelAnswer;
-        model.appendChild(strong);
-        card.appendChild(model);
-    }
-
-    const votes = document.createElement('div');
+    const reviewRow = document.createElement('div');
+    reviewRow.className = 'conflict-review-row';
+    const qTag = document.createElement('span');
+    qTag.className = 'conflict-review-chip';
+    qTag.textContent = `${conflict.q}問`;
+    const model = document.createElement('span');
+    model.className = 'conflict-review-answer';
+    model.textContent = modelAnswer ? `解答 ${modelAnswer}` : '解答未登録';
+    const votes = document.createElement('span');
     votes.className = 'votes-mini';
     conflict.votes.forEach((vote, index) => {
         const dot = createVoteDot(vote.result);
@@ -487,7 +483,8 @@ function createConflictCard(conflict, idx) {
         if (index > 0 && votes.childNodes.length) votes.appendChild(document.createTextNode(' '));
         votes.appendChild(dot);
     });
-    card.appendChild(votes);
+    reviewRow.append(qTag, model, votes);
+    card.appendChild(reviewRow);
     return card;
 }
 

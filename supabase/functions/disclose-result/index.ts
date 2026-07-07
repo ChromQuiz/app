@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { projectId } = body;
     if (!projectId) {
-      return jsonResponse({ error: 'Missing required fields' }, 400);
+      return jsonResponse({ error: 'プロジェクト情報が見つかりません。URLを確認してください。' }, 400);
     }
 
     const supabase = createServiceClient();
@@ -161,7 +161,11 @@ Deno.serve(async (req) => {
   } catch (error) {
     if (error instanceof ParticipantAuthError) {
       // 従来クライアント互換のため、認証失敗は 'Entry not found' を含む文言を維持
-      const message = error.status === 404 ? 'Entry not found' : error.message;
+      const message = error.status === 404
+        ? 'Entry not found'
+        : error.message === 'Missing required fields'
+          ? 'ログイン情報が不足しています。もう一度ログインしてください。'
+          : error.message;
       return jsonResponse({ error: message }, error.status);
     }
     return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);

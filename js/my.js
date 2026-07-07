@@ -4,7 +4,7 @@
 // (タブを閉じると消える。パスワードはどこにも保存しない)。
 
 const params = new URLSearchParams(location.search);
-const projectId = params.get('pid');
+const projectId = params.get('pid') || params.get('projectId') || params.get('project');
 const SESSION_KEY = projectId ? `ciqMy:${projectId}` : '';
 
 let projectSettings = null;
@@ -373,8 +373,7 @@ async function saveEdit(event) {
         const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
 
         const result = await CIQSupabaseAPI.editEntry({
-            projectId,
-            token: mySession.token,
+            ...getParticipantActionPayload(),
             encryptedPii: encryptedPII,
             publicProfile: {
                 entryName, affiliation, grade, message, inquiry, isChubu, allowRealNameInRecord,
@@ -412,7 +411,7 @@ async function markLate() {
     const btn = el('late-btn');
     setBusy(btn, true, '送信中...');
     try {
-        const result = await CIQSupabaseAPI.markLate({ projectId, token: mySession.token });
+        const result = await CIQSupabaseAPI.markLate(getParticipantActionPayload());
 
         if (projectSettings?.notifyLateNotice !== false && window.CIQEmail?.sendLateNotice) {
             const emailHash = await AppCrypto.hashPassword(mySession.email.toLowerCase());

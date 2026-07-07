@@ -1087,10 +1087,20 @@ body.page-wrapper {
 }
 
 .terms-body pre {
+  position: relative;
   overflow-x: auto;
   padding: var(--sp-3);
   border-radius: var(--r-md);
   background: var(--surface-2);
+}
+
+.terms-body pre[data-lang]::before {
+  content: attr(data-lang);
+  display: block;
+  margin-bottom: var(--sp-2);
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
 }
 
 .terms-body pre code {
@@ -1129,6 +1139,13 @@ body.page-wrapper {
 .terms-task-checkbox {
   margin-right: var(--sp-2);
   vertical-align: -0.1em;
+}
+
+.terms-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
 }
 
 @media (max-width: 768px) {
@@ -2412,58 +2429,8 @@ body.page-wrapper {
   color: var(--ok-600);
 }
 
-.conflict-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--sp-4);
-  padding: var(--sp-5) var(--sp-4) calc(96px + env(safe-area-inset-bottom));
-  max-width: var(--container-wide);
-  margin: 0 auto;
-  scroll-padding-top: 96px;
-  scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom));
-}
-
 .conflict-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  background: var(--surface);
-  border: 2px solid var(--line);
-  border-radius: var(--r-md);
-  padding: var(--sp-4);
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color var(--t-micro) var(--ease);
-}
-
-.conflict-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border: 0 solid transparent;
-}
-
-.conflict-card.selected {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 25%, transparent);
-  border-color: var(--ink);
-}
-
-.conflict-card.selected::after {
-  border: 4px solid var(--ink);
-}
-
-.conflict-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-2);
-}
-
-.conflict-card img {
-  width: 100%;
-  background: #fff;
+  padding-bottom: 0;
 }
 
 /* 解決済みは下部に畳む(order) + 静かに */
@@ -2481,26 +2448,42 @@ body.page-wrapper {
   border-color: color-mix(in srgb, var(--bad-500) 50%, transparent);
 }
 
-.conflict-model-ans {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: var(--r-full);
-  background: var(--gold-100);
-  color: var(--gold-600);
+.conflict-review-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 36px;
+  padding: var(--sp-2);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
   font-size: var(--fs-13);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.conflict-review-chip {
+  flex: none;
+  font-family: var(--font-mono);
   font-weight: 600;
-  align-self: flex-start;
+  color: var(--ink);
+}
+
+.conflict-review-answer {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink-2);
+}
+
+.conflict-review-row .votes-mini {
+  flex: none;
+  margin-left: auto;
+  padding: 0;
 }
 
 @media (min-width: 769px) {
   .conflict-action-bar {
-    max-width: 520px;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    border: 1px solid var(--line);
-    border-bottom: 0;
-    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    max-width: none;
   }
 }
 

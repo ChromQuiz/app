@@ -218,7 +218,7 @@ function openSupabaseProject(projectId, projectName, role, displayName) {
     const normalizedRole = role === 'scorer' ? 'scorer' : 'admin';
     session.set('scorer_role', normalizedRole);
     session.set('supabaseMode', 'true');
-    location.href = normalizedRole === 'scorer' ? 'judge.html' : 'admin.html';
+    location.href = 'judge.html';
 }
 
 async function joinProjectAsScorer() {

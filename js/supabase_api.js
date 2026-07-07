@@ -375,7 +375,14 @@ const CIQSupabaseAPI = {
     },
 
     async adminCreateEntry(payload) {
-        const data = await this.invokeAuthedFunction('admin-create-entry', payload);
+        let data;
+        try {
+            data = await this.invokeAuthedFunction('admin-create-entry', payload);
+        } catch (error) {
+            const message = String(error.message || '');
+            if (error.status !== 401 && !message.includes('Googleログイン')) throw error;
+            data = await this.invokePublicFunction('create-entry', payload);
+        }
         if (!data?.ok) throw new Error(data?.error || 'Entry failed');
         return data.entry;
     },
@@ -1603,6 +1610,34 @@ const CIQSupabaseAPI = {
                 p_entry_id: entryId,
                 p_result: result,
             })
+            .single();
+        if (error) {
+            const message = error.message || '';
+            if (!message.includes('ambiguous')) throw error;
+            const fallback = await this.resolveScoreConflictDirect(projectId, questionNumber, entryId, result);
+            return fallback;
+        }
+        return data;
+    },
+
+    async resolveScoreConflictDirect(projectId, questionNumber, entryId, result) {
+        const sessionData = await this.getSession();
+        const members = await this.listProjectMembers(projectId);
+        const currentMember = members.find(member => member.user_id === sessionData?.user?.id);
+        if (!currentMember || !['owner', 'admin'].includes(currentMember.role)) {
+            throw new Error('要確認の確定には管理者権限が必要です。');
+        }
+        const { data, error } = await this.client()
+            .from('final_results')
+            .upsert({
+                project_id: projectId,
+                question_number: questionNumber,
+                entry_id: entryId,
+                result,
+                decided_by: currentMember.id,
+                decided_at: new Date().toISOString(),
+            }, { onConflict: 'project_id,question_number,entry_id' })
+            .select('project_id, question_number, entry_id, result, decided_by, decided_at')
             .single();
         if (error) throw error;
         return data;

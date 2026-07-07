@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { projectId } = body;
     if (!projectId) {
-      return jsonResponse({ error: 'Missing required fields' }, 400);
+      return jsonResponse({ error: 'プロジェクト情報が見つかりません。URLを確認してください。' }, 400);
     }
 
     const supabase = createServiceClient();
@@ -53,7 +53,10 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     if (error instanceof ParticipantAuthError) {
-      return jsonResponse({ error: error.message }, error.status);
+      const message = error.message === 'Missing required fields'
+        ? 'ログイン情報が不足しています。もう一度ログインしてください。'
+        : error.message;
+      return jsonResponse({ error: message }, error.status);
     }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Entry already checked in')) {
