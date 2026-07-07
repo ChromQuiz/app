@@ -3,6 +3,7 @@
 let currentFootnotes = new Map();
 let usedHeadingIds = new Set();
 let currentCustomBlocks = new Map();
+let currentAbbreviations = new Map();
 
 function slugifyHeading(value) {
     const normalized = String(value || '')
@@ -54,13 +55,51 @@ function customBlockMarker(index) {
     return `CIQ_CUSTOM_BLOCK_${index}`;
 }
 
-function appendRichText(parent, text) {
-    const re = /(\[\^([^\]\s]+)\]|==([^=\n]+)==|\+\+([^+\n]+)\+\+|\^([^^\n]+)\^|~([^~\n]+)~|<kbd>([^<\n]+)<\/kbd>)/gi;
+function parseHeadingId(text) {
+    const value = String(text || '');
+    const match = value.match(/\s*\{#([A-Za-z][A-Za-z0-9_-]*)\}\s*$/);
+    if (!match) return { text: value, id: '' };
+    return { text: value.slice(0, match.index).trim(), id: match[1] };
+}
+
+function appendAbbreviationAwareText(parent, text) {
+    if (!currentAbbreviations.size) {
+        parent.appendChild(document.createTextNode(text));
+        return;
+    }
+    const keys = Array.from(currentAbbreviations.keys())
+        .filter(Boolean)
+        .sort((a, b) => b.length - a.length)
+        .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (!keys.length) {
+        parent.appendChild(document.createTextNode(text));
+        return;
+    }
+    const re = new RegExp(`(${keys.join('|')})`, 'g');
     let lastIndex = 0;
     let match;
     while ((match = re.exec(text))) {
         if (match.index > lastIndex) {
             parent.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+        }
+        const abbr = document.createElement('abbr');
+        abbr.title = currentAbbreviations.get(match[0]) || '';
+        abbr.textContent = match[0];
+        parent.appendChild(abbr);
+        lastIndex = re.lastIndex;
+    }
+    if (lastIndex < text.length) {
+        parent.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+}
+
+function appendRichText(parent, text) {
+    const re = /(\[\^([^\]\s]+)\]|\[button:\s*([^\]\n]+)\]\(([^)\s]+)\)|\[badge:\s*([^\]\n]+)\]|\{([^{}|\n]+)\|([^{}|\n]+)\}|==([^=\n]+)==|\+\+([^+\n]+)\+\+|\^([^^\n]+)\^|~([^~\n]+)~|<kbd>([^<\n]+)<\/kbd>)/gi;
+    let lastIndex = 0;
+    let match;
+    while ((match = re.exec(text))) {
+        if (match.index > lastIndex) {
+            appendAbbreviationAwareText(parent, text.slice(lastIndex, match.index));
         }
         if (match[2]) {
             const key = match[2];
@@ -78,30 +117,55 @@ function appendRichText(parent, text) {
                 parent.appendChild(document.createTextNode(match[0]));
             }
         } else if (match[3]) {
-            const mark = document.createElement('mark');
-            mark.textContent = match[3];
-            parent.appendChild(mark);
-        } else if (match[4]) {
-            const ins = document.createElement('ins');
-            ins.textContent = match[4];
-            parent.appendChild(ins);
+            const href = String(match[4] || '');
+            const link = document.createElement('a');
+            link.className = 'terms-button-link';
+            link.textContent = match[3].trim();
+            if (isSafeUrl(href)) {
+                link.href = href;
+                if (!href.startsWith('#')) {
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                }
+            }
+            parent.appendChild(link);
         } else if (match[5]) {
-            const sup = document.createElement('sup');
-            sup.textContent = match[5];
-            parent.appendChild(sup);
+            const badge = document.createElement('span');
+            badge.className = 'terms-badge';
+            badge.textContent = match[5].trim();
+            parent.appendChild(badge);
         } else if (match[6]) {
+            const ruby = document.createElement('ruby');
+            ruby.appendChild(document.createTextNode(match[6]));
+            const rt = document.createElement('rt');
+            rt.textContent = match[7];
+            ruby.appendChild(rt);
+            parent.appendChild(ruby);
+        } else if (match[8]) {
+            const mark = document.createElement('mark');
+            mark.textContent = match[8];
+            parent.appendChild(mark);
+        } else if (match[9]) {
+            const ins = document.createElement('ins');
+            ins.textContent = match[9];
+            parent.appendChild(ins);
+        } else if (match[10]) {
+            const sup = document.createElement('sup');
+            sup.textContent = match[10];
+            parent.appendChild(sup);
+        } else if (match[11]) {
             const sub = document.createElement('sub');
-            sub.textContent = match[6];
+            sub.textContent = match[11];
             parent.appendChild(sub);
-        } else if (match[7]) {
+        } else if (match[12]) {
             const kbd = document.createElement('kbd');
-            kbd.textContent = match[7];
+            kbd.textContent = match[12];
             parent.appendChild(kbd);
         }
         lastIndex = re.lastIndex;
     }
     if (lastIndex < text.length) {
-        parent.appendChild(document.createTextNode(text.slice(lastIndex)));
+        appendAbbreviationAwareText(parent, text.slice(lastIndex));
     }
 }
 
@@ -131,7 +195,13 @@ function appendInlineTokens(parent, tokens = []) {
         } else if (token.type === 'link') {
             const href = String(token.href || '');
             const link = document.createElement('a');
-            link.textContent = token.text || href;
+            const buttonMatch = String(token.text || '').match(/^button:\s*(.+)$/i);
+            if (buttonMatch) {
+                link.className = 'terms-button-link';
+                link.textContent = buttonMatch[1].trim();
+            } else {
+                link.textContent = token.text || href;
+            }
             if (isSafeUrl(href)) {
                 link.href = href;
                 if (!href.startsWith('#')) {
@@ -184,11 +254,26 @@ function appendBlockToken(parent, token) {
         return;
     }
 
+    if (token.type === 'paragraph' && /^\[toc\]$/i.test(String(token.text || '').trim())) {
+        const placeholder = document.createElement('nav');
+        placeholder.className = 'terms-inline-toc';
+        placeholder.setAttribute('aria-label', '本文内目次');
+        parent.appendChild(placeholder);
+        return;
+    }
+
     if (token.type === 'heading') {
         const level = Math.min(Math.max(Number(token.depth) || 2, 1), 4);
         const h = document.createElement(`h${level}`);
-        appendInlineTokens(h, token.tokens || []);
-        h.id = uniqueHeadingId(h.textContent || token.text || '');
+        const parsed = parseHeadingId(token.text || '');
+        if (parsed.id) {
+            appendText(h, parsed.text);
+            usedHeadingIds.add(parsed.id);
+            h.id = parsed.id;
+        } else {
+            appendInlineTokens(h, token.tokens || []);
+            h.id = uniqueHeadingId(h.textContent || token.text || '');
+        }
         parent.appendChild(h);
         return;
     }
@@ -325,7 +410,19 @@ function appendImageFigure(parent, token) {
 }
 
 function normalizeAlertType(type) {
-    const value = String(type || 'note').toLowerCase();
+    const aliases = {
+        補足: 'note',
+        情報: 'info',
+        ヒント: 'tip',
+        重要: 'important',
+        注意: 'warning',
+        警告: 'warning',
+        必須: 'important',
+        禁止: 'danger',
+        危険: 'danger',
+    };
+    const raw = String(type || 'note').trim();
+    const value = (aliases[raw] || raw).toLowerCase();
     if (['note', 'info', 'tip', 'important', 'warning', 'caution', 'danger'].includes(value)) return value;
     return 'note';
 }
@@ -347,7 +444,7 @@ function appendCustomBlock(parent, block) {
     if (!block) return;
     if (block.type === 'details') {
         const details = document.createElement('details');
-        details.className = 'terms-details';
+        details.className = block.faq ? 'terms-details terms-faq' : 'terms-details';
         const summary = document.createElement('summary');
         summary.textContent = block.title || '詳細';
         details.appendChild(summary);
@@ -406,6 +503,21 @@ function extractFootnotes(markdown) {
     return { markdown: output.join('\n'), footnotes };
 }
 
+function extractAbbreviations(markdown) {
+    const abbreviations = new Map();
+    const output = [];
+    const lines = String(markdown || '').replace(/\r\n?/g, '\n').split('\n');
+    for (const line of lines) {
+        const match = line.match(/^\*\[([^\]\n]+)\]:\s*(.+)$/);
+        if (match) {
+            abbreviations.set(match[1], match[2].trim());
+        } else {
+            output.push(line);
+        }
+    }
+    return { markdown: output.join('\n'), abbreviations };
+}
+
 function extractCustomBlocks(markdown) {
     const blocks = new Map();
     const output = [];
@@ -413,7 +525,7 @@ function extractCustomBlocks(markdown) {
     let index = 0;
 
     for (let i = 0; i < lines.length; i += 1) {
-        const fence = lines[i].match(/^:::(details|note|info|tip|important|warning|caution|danger)\s*(.*)$/i);
+        const fence = lines[i].match(/^:::(details|note|info|tip|important|warning|caution|danger|補足|情報|ヒント|重要|注意|警告|必須|禁止|危険)\s*(.*)$/i);
         if (fence) {
             const body = [];
             i += 1;
@@ -427,6 +539,32 @@ function extractCustomBlocks(markdown) {
                 alertType: fence[1],
                 title: fence[2].trim(),
                 body: body.join('\n').trim(),
+            });
+            output.push(marker);
+            continue;
+        }
+
+        const faq = lines[i].match(/^\?\?\?\s*(.+)$/);
+        if (faq) {
+            const body = [];
+            i += 1;
+            let sawAnswer = false;
+            while (i < lines.length && !/^\?\?\?\s*$/.test(lines[i])) {
+                const answer = lines[i].match(/^!!!\s*(.*)$/);
+                if (answer) {
+                    sawAnswer = true;
+                    if (answer[1]) body.push(answer[1]);
+                } else {
+                    body.push(lines[i]);
+                }
+                i += 1;
+            }
+            const marker = customBlockMarker(index++);
+            blocks.set(marker, {
+                type: 'details',
+                faq: true,
+                title: faq[1].trim(),
+                body: (sawAnswer ? body : ['回答は未設定です。']).join('\n').trim(),
             });
             output.push(marker);
             continue;
@@ -523,7 +661,9 @@ function renderDefinitionLists(container) {
 function renderMarkdown(container, markdown) {
     container.textContent = '';
     usedHeadingIds = new Set();
-    const prepared = extractFootnotes(markdown || '');
+    const abbreviations = extractAbbreviations(markdown || '');
+    currentAbbreviations = abbreviations.abbreviations;
+    const prepared = extractFootnotes(abbreviations.markdown);
     currentFootnotes = prepared.footnotes;
     const custom = extractCustomBlocks(prepared.markdown);
     currentCustomBlocks = custom.blocks;
@@ -535,13 +675,33 @@ function renderMarkdown(container, markdown) {
     renderDefinitionLists(container);
     appendFootnotes(container);
     renderTermsToc(container);
+    renderInlineTocs(container);
+}
+
+function buildTermsTocList(headings) {
+    const list = document.createElement('ol');
+    headings.forEach((heading) => {
+        const item = document.createElement('li');
+        item.className = `terms-toc-depth-${heading.tagName.slice(1)}`;
+        const link = document.createElement('a');
+        link.href = `#${heading.id}`;
+        link.textContent = heading.textContent || '項目';
+        item.appendChild(link);
+        list.appendChild(item);
+    });
+    return list;
+}
+
+function getTocHeadings(container) {
+    return Array.from(container.querySelectorAll('h1, h2, h3, h4'))
+        .filter(heading => !heading.closest('.terms-footnotes'));
 }
 
 function renderTermsToc(container) {
     const toc = document.getElementById('terms-toc');
     if (!toc) return;
     toc.textContent = '';
-    const headings = Array.from(container.querySelectorAll('h1, h2, h3'));
+    const headings = getTocHeadings(container);
     if (headings.length < 2) {
         toc.classList.add('u-hidden');
         return;
@@ -549,19 +709,26 @@ function renderTermsToc(container) {
     const title = document.createElement('div');
     title.className = 'terms-toc-title';
     title.textContent = '目次';
-    const list = document.createElement('ol');
-    headings.forEach((heading, index) => {
-        if (!heading.id) heading.id = `terms-section-${index + 1}`;
-        const item = document.createElement('li');
-        item.className = `terms-toc-depth-${heading.tagName.slice(1)}`;
-        const link = document.createElement('a');
-        link.href = `#${heading.id}`;
-        link.textContent = heading.textContent || `項目${index + 1}`;
-        item.appendChild(link);
-        list.appendChild(item);
-    });
+    const list = buildTermsTocList(headings);
     toc.append(title, list);
     toc.classList.remove('u-hidden');
+}
+
+function renderInlineTocs(container) {
+    const placeholders = Array.from(container.querySelectorAll('.terms-inline-toc'));
+    if (!placeholders.length) return;
+    const headings = getTocHeadings(container);
+    placeholders.forEach((placeholder) => {
+        placeholder.textContent = '';
+        if (headings.length < 2) {
+            placeholder.remove();
+            return;
+        }
+        const title = document.createElement('div');
+        title.className = 'terms-toc-title';
+        title.textContent = '目次';
+        placeholder.append(title, buildTermsTocList(headings));
+    });
 }
 
 function setTermsMessage(container, message) {

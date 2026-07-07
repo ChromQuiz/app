@@ -1044,6 +1044,18 @@ body.page-wrapper {
   padding-left: var(--sp-3);
 }
 
+.terms-toc-depth-4 {
+  padding-left: var(--sp-5);
+}
+
+.terms-inline-toc {
+  margin: var(--sp-4) 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
 .terms-body h1,
 .terms-body h2,
 .terms-body h3 {
@@ -1106,6 +1118,46 @@ body.page-wrapper {
   font-size: 0.86em;
   line-height: 1.4;
   text-align: center;
+}
+
+.terms-body abbr[title] {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.16em;
+}
+
+.terms-body ruby rt {
+  color: var(--ink-3);
+  font-size: 0.62em;
+}
+
+.terms-button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  margin: 0 2px;
+  padding: 4px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--ink);
+  color: var(--surface) !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.terms-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: 700;
+  vertical-align: 0.08em;
 }
 
 .terms-body pre {
@@ -1259,6 +1311,20 @@ body.page-wrapper {
 
 .terms-details-body > :last-child {
   margin-bottom: 0;
+}
+
+.terms-faq summary::before {
+  content: 'Q';
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: var(--sp-2);
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
 }
 
 .terms-definition-list {
