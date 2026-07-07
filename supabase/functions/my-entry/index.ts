@@ -6,13 +6,15 @@
 //   - スライド延長された新しいセッショントークン
 // を返す。パスワードや復号PIIは返さない・保存しない。
 
-import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import {
   ParticipantAuthError,
   issueParticipantToken,
   resolveParticipantAuth,
 } from '../_shared/participant_auth.ts';
+import { SigningConfigError } from '../_shared/signing.ts';
+import { clientIp } from '../_shared/rate_limit.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
 
 const ENTRY_COLUMNS = [
@@ -47,7 +49,7 @@ Deno.serve(async (req) => {
     if (!projectId) return jsonResponse({ error: 'プロジェクト情報が見つかりません。メール内のリンクから開き直してください。' }, 400);
 
     const supabase = createServiceClient();
-    const { entry, emailHash } = await resolveParticipantAuth(supabase, body, ENTRY_COLUMNS);
+    const { entry, emailHash } = await resolveParticipantAuth(supabase, body, ENTRY_COLUMNS, { ip: clientIp(req) });
 
     const { data: project, error: projectError } = await supabase
       .from('projects')
@@ -103,6 +105,10 @@ Deno.serve(async (req) => {
     if (error instanceof ParticipantAuthError) {
       return jsonResponse({ error: error.message }, error.status);
     }
-    return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
+    if (error instanceof SigningConfigError) {
+      console.error('[my-entry] signing secret is not configured');
+      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+    }
+    return serverErrorResponse(error, 'my-entry');
   }
 });

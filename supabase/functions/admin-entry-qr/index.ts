@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 
@@ -46,12 +46,12 @@ Deno.serve(async (req) => {
     return jsonResponse({ ok: true, svg });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const status = message === 'Forbidden' ? 403 : message === 'Authentication required' ? 401 : 500;
-    const publicMessage = message === 'Forbidden'
-      ? 'このプロジェクトのQRコードを取得する権限がありません。'
-      : message === 'Authentication required'
-        ? 'Googleログインが必要です。'
-        : message;
-    return jsonResponse({ error: publicMessage }, status);
+    if (message === 'Forbidden') {
+      return jsonResponse({ error: 'このプロジェクトのQRコードを取得する権限がありません。' }, 403);
+    }
+    if (message === 'Authentication required') {
+      return jsonResponse({ error: 'Googleログインが必要です。' }, 401);
+    }
+    return serverErrorResponse(error, 'admin-entry-qr');
   }
 });

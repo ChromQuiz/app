@@ -1,6 +1,8 @@
-import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { emailProviderName, sendProviderEmail } from '../_shared/email_provider.ts';
+import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
+import { clientIp, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
 
 type EmailTemplate = {
   subject: string;
@@ -22,32 +24,6 @@ function escapeHtml(value: unknown) {
 async function sha256Hex(value: string) {
   const hash = await crypto.subtle.digest('SHA-256', encoder.encode(value));
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function hmacHex(secret: string, value: string) {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(value));
-  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-function safeEqual(a: string, b: string) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-function signingSecret() {
-  return Deno.env.get('CIQ_EMAIL_SIGNING_SECRET')
-    || Deno.env.get('CIQ_EDGE_INTERNAL_SECRET')
-    || Deno.env.get('SUPABASE_URL')
-    || 'ciq-local-email-signing-secret';
 }
 
 function projectName(data: Record<string, unknown>) {
@@ -510,6 +486,7 @@ Deno.serve(async (req) => {
       const effectiveProjectId = projectId || String(data.projectId || '');
       if (!effectiveProjectId) return jsonResponse({ error: 'Project is required' }, 400);
       const supabase = createServiceClient();
+      await enforceIpRateLimit(supabase, { bucket: 'send_verification', ip: clientIp(req), projectId: effectiveProjectId });
       const project = await getProjectForMail(supabase, effectiveProjectId);
       assertEntryOpen(project);
 
@@ -569,8 +546,17 @@ Deno.serve(async (req) => {
     });
     return jsonResponse({ success: true, ...result });
   } catch (error) {
+    if (error instanceof SigningConfigError) {
+      console.error('[send-email] signing secret is not configured');
+      return jsonResponse({ error: 'メールを送信できませんでした。運営にお問い合わせください。' }, 503);
+    }
+    if (error instanceof RateLimitError) {
+      return jsonResponse({ error: error.message }, error.status);
+    }
     const message = error instanceof Error ? error.message : String(error);
-    const status = message.includes('Too many email requests') ? 429 : 500;
-    return jsonResponse({ error: message }, status);
+    if (message.includes('Too many email requests')) {
+      return jsonResponse({ error: message }, 429);
+    }
+    return serverErrorResponse(error, 'send-email');
   }
 });

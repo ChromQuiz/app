@@ -9,36 +9,14 @@
 // パスワード(平文/ハッシュ)はトークンに含めない。
 
 import { createServiceClient } from './supabase.ts';
+import { hmacHex, safeEqual, signingSecret } from './signing.ts';
+import { enforceIpRateLimit, RateLimitError } from './rate_limit.ts';
 
 const encoder = new TextEncoder();
 
+export { hmacHex, safeEqual, signingSecret };
+
 export const PARTICIPANT_TOKEN_TTL_MS = 30 * 60 * 1000; // 30分(操作ごとにスライド延長)
-
-export function signingSecret() {
-  return Deno.env.get('CIQ_EMAIL_SIGNING_SECRET')
-    || Deno.env.get('CIQ_EDGE_INTERNAL_SECRET')
-    || Deno.env.get('SUPABASE_URL')
-    || 'ciq-local-email-signing-secret';
-}
-
-export async function hmacHex(secret: string, value: string) {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(value));
-  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-export function safeEqual(a: string, b: string) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
 
 function b64urlEncode(value: string) {
   return btoa(String.fromCharCode(...encoder.encode(value)))
@@ -171,9 +149,21 @@ export async function resolveParticipantAuth(
   supabase: ReturnType<typeof createServiceClient>,
   body: { projectId?: string; token?: string; emailHash?: string; disclosurePasswordHash?: string },
   select: string,
+  options: { ip?: string } = {},
 ): Promise<ParticipantAuthResult> {
   const projectId = String(body.projectId || '');
   if (!projectId) throw new ParticipantAuthError('プロジェクト情報が見つかりません。メール内のリンクから開き直してください。', 400);
+
+  // IP単位のレート制限(fail-open)。超過は 429 として既存catchに委ねる。
+  // token/credentials 両経路の乱用を入口で抑える。
+  if (options.ip) {
+    try {
+      await enforceIpRateLimit(supabase, { bucket: 'participant_auth', ip: options.ip, projectId });
+    } catch (error) {
+      if (error instanceof RateLimitError) throw new ParticipantAuthError(error.message, error.status);
+      throw error;
+    }
+  }
 
   const columns = select.includes('email_hash') ? select : `${select}, email_hash`;
 

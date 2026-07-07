@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 
 const enc = new TextEncoder();
@@ -133,7 +133,8 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Unknown action' }, 400);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const status = message === 'Forbidden' ? 403 : message.includes('Authentication') ? 401 : 500;
-    return jsonResponse({ error: message }, status);
+    if (message === 'Forbidden') return jsonResponse({ error: 'Forbidden' }, 403);
+    if (message.includes('Authentication')) return jsonResponse({ error: 'Authentication required' }, 401);
+    return serverErrorResponse(error, 'project-key');
   }
 });

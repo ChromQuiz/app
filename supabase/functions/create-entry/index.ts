@@ -1,5 +1,6 @@
-import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { clientIp, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -15,6 +16,7 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createServiceClient();
+    await enforceIpRateLimit(supabase, { bucket: 'create_entry', ip: clientIp(req), projectId });
 
     const { data: entry, error: insertError } = await supabase
       .rpc('create_entry_atomic', {
@@ -49,6 +51,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ ok: true, entry });
   } catch (error) {
-    return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
+    if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
+    return serverErrorResponse(error, 'create-entry');
   }
 });

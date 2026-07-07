@@ -1,33 +1,6 @@
 import { handleOptions } from '../_shared/http.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
-
-const encoder = new TextEncoder();
-
-async function hmacHex(secret: string, value: string) {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(value));
-  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-function safeEqual(a: string, b: string) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-function signingSecret() {
-  return Deno.env.get('CIQ_EMAIL_SIGNING_SECRET')
-    || Deno.env.get('CIQ_EDGE_INTERNAL_SECRET')
-    || Deno.env.get('SUPABASE_URL')
-    || 'ciq-local-email-signing-secret';
-}
+import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -39,7 +12,16 @@ Deno.serve(async (req) => {
   const signature = url.searchParams.get('s') || '';
   if (!data || !signature) return new Response('Not found', { status: 404 });
 
-  const expected = await hmacHex(signingSecret(), data);
+  let expected: string;
+  try {
+    expected = await hmacHex(signingSecret(), data);
+  } catch (error) {
+    if (error instanceof SigningConfigError) {
+      console.error('[checkin-qr] signing secret is not configured');
+      return new Response('Service unavailable', { status: 503 });
+    }
+    throw error;
+  }
   if (!safeEqual(expected, signature)) return new Response('Not found', { status: 404 });
 
   const svg = await makeQrSvg(data);

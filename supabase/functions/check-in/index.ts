@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 
 async function requireProjectMember(supabase: ReturnType<typeof createServiceClient>, req: Request, projectId: string) {
@@ -109,12 +109,12 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const status = message === 'Forbidden' ? 403 : message === 'Authentication required' ? 401 : 500;
-    const publicMessage = message === 'Forbidden'
-      ? 'このプロジェクトの当日受付を操作する権限がありません。Googleアカウントとプロジェクトを確認してください。'
-      : message === 'Authentication required'
-        ? 'Googleログインが必要です。'
-        : message;
-    return jsonResponse({ error: publicMessage }, status);
+    if (message === 'Forbidden') {
+      return jsonResponse({ error: 'このプロジェクトの当日受付を操作する権限がありません。Googleアカウントとプロジェクトを確認してください。' }, 403);
+    }
+    if (message === 'Authentication required') {
+      return jsonResponse({ error: 'Googleログインが必要です。' }, 401);
+    }
+    return serverErrorResponse(error, 'check-in');
   }
 });

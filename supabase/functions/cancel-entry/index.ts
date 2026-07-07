@@ -1,6 +1,8 @@
-import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
+import { SigningConfigError } from '../_shared/signing.ts';
+import { clientIp } from '../_shared/rate_limit.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -22,6 +24,7 @@ Deno.serve(async (req) => {
       supabase,
       body,
       'id, disclosure_password_hash',
+      { ip: clientIp(req) },
     );
 
     const { data, error } = await supabase
@@ -55,10 +58,14 @@ Deno.serve(async (req) => {
     if (error instanceof ParticipantAuthError) {
       return jsonResponse({ error: error.message }, error.status);
     }
+    if (error instanceof SigningConfigError) {
+      console.error('[cancel-entry] signing secret is not configured');
+      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+    }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Entry already checked in')) {
       return jsonResponse({ error: '当日受付済みのため、キャンセルできません。変更が必要な場合は運営へ連絡してください。' }, 409);
     }
-    return jsonResponse({ error: message }, 500);
+    return serverErrorResponse(error, 'cancel-entry');
   }
 });

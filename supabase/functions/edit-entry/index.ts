@@ -1,6 +1,8 @@
-import { handleOptions, jsonResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
+import { SigningConfigError } from '../_shared/signing.ts';
+import { clientIp } from '../_shared/rate_limit.ts';
 
 type PublicProfile = {
   entryName?: string;
@@ -59,6 +61,7 @@ Deno.serve(async (req) => {
       supabase,
       body,
       'id, entry_number, entry_name, affiliation, grade, message, inquiry, is_chubu, status, checked_in',
+      { ip: clientIp(req) },
     );
 
     if (entry.status === 'canceled') {
@@ -119,6 +122,10 @@ Deno.serve(async (req) => {
     if (error instanceof ParticipantAuthError) {
       return jsonResponse({ error: error.message }, error.status);
     }
-    return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
+    if (error instanceof SigningConfigError) {
+      console.error('[edit-entry] signing secret is not configured');
+      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+    }
+    return serverErrorResponse(error, 'edit-entry');
   }
 });
