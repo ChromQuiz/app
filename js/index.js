@@ -83,6 +83,17 @@ function useSupabaseAuth() {
     return Boolean(window.CIQSupabaseAPI?.isEnabled?.());
 }
 
+function setAuthButtonVisibility(loginBtn, logoutBtn, signedIn) {
+    if (loginBtn) {
+        loginBtn.hidden = signedIn;
+        loginBtn.classList.toggle('u-hidden', signedIn);
+    }
+    if (logoutBtn) {
+        logoutBtn.hidden = !signedIn;
+        logoutBtn.classList.toggle('u-hidden', !signedIn);
+    }
+}
+
 function getPublicIndexUrl() {
     return 'https://chromquiz.github.io/app/';
 }
@@ -117,8 +128,7 @@ function renderSupabaseAuth(sessionData) {
     const displayName = sessionData?.user ? getGoogleDisplayName() : '';
 
     if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '';
-    if (loginBtn) loginBtn.hidden = Boolean(email);
-    if (logoutBtn) logoutBtn.hidden = !email;
+    setAuthButtonVisibility(loginBtn, logoutBtn, Boolean(email));
     setTab(currentTab);
     renderCreateAuthState();
     renderProjectList();
@@ -368,14 +378,15 @@ async function initSupabaseAuth() {
         const panel = document.getElementById('supabase-auth-panel');
         const userEl = document.getElementById('supabase-auth-user');
         const loginBtn = document.getElementById('supabase-login-btn');
+        const logoutBtn = document.getElementById('supabase-logout-btn');
         if (panel) panel.hidden = false;
         if (userEl) {
             userEl.textContent = location.protocol === 'file:'
                 ? 'ローカルサーバーで開く必要があります'
                 : 'Supabase未接続';
         }
+        setAuthButtonVisibility(loginBtn, logoutBtn, false);
         if (loginBtn) {
-            loginBtn.hidden = false;
             setButtonContent(
                 loginBtn,
                 location.protocol === 'file:' ? 'localhostで開く' : '設定を確認'
