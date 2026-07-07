@@ -1473,6 +1473,50 @@ const CIQSupabaseAPI = {
         return data || [];
     },
 
+    async getCurrentProjectMember(projectId) {
+        const session = await this.getSession();
+        const userId = session?.user?.id || '';
+        if (!userId) return null;
+        const members = await this.listProjectMembers(projectId);
+        return (members || []).find(member => member.user_id === userId) || null;
+    },
+
+    async getNextScoringQuestion(projectId, options = {}) {
+        const project = options.totalQuestions && options.requiredScorers
+            ? null
+            : await this.getProject(projectId).catch(() => null);
+        const totalQuestions = Math.max(1, Number(options.totalQuestions || project?.question_count || 100));
+        const requiredScorers = Math.max(1, Number(options.requiredScorers || project?.required_scorers || 3));
+        const excludeQuestionNumber = Number(options.excludeQuestionNumber || 0);
+        const currentMemberId = options.currentMemberId
+            || (await this.getCurrentProjectMember(projectId).catch(() => null))?.id
+            || '';
+        const rows = await this.listQuestionScorers(projectId);
+
+        let mineQ = 0;
+        let availableQ = 0;
+        for (let q = 1; q <= totalQuestions; q++) {
+            if (q === excludeQuestionNumber) continue;
+            const qRows = rows.filter(row => Number(row.question_number) === q);
+            const scorerIds = qRows.map(row => row.scorer_member_id);
+            const completedIds = qRows.filter(row => row.completed_at).map(row => row.scorer_member_id);
+            const isMine = Boolean(currentMemberId && scorerIds.includes(currentMemberId));
+            const myDone = Boolean(isMine && completedIds.includes(currentMemberId));
+            const allDone = scorerIds.length >= requiredScorers && completedIds.length >= requiredScorers;
+            const isFullForMe = scorerIds.length >= requiredScorers && !isMine;
+
+            if (isMine && !myDone && !allDone && !mineQ) mineQ = q;
+            if (!allDone && !isFullForMe && !(isMine && myDone) && !availableQ) availableQ = q;
+        }
+
+        const questionNumber = mineQ || availableQ || 0;
+        return {
+            questionNumber,
+            reason: mineQ ? 'mine' : questionNumber ? 'available' : 'none',
+            currentMemberId,
+        };
+    },
+
     async listScoreVotes(projectId) {
         const { data, error } = await this.client()
             .from('score_votes')

@@ -18,6 +18,8 @@ const IMAGE_CROP_CONCURRENCY = 12;
 const BACKGROUND_PREWARM_BATCH = 24;
 let backgroundPrewarmToken = 0;
 let lastRenderMetrics = null;
+let totalQuestions = 100;
+let requiredScorers = 3;
 
 document.getElementById('q-badge').textContent = `${currentQ} 問`;
 
@@ -49,6 +51,31 @@ function runWhenIdle(task, timeout = 2500) {
     } else {
         setTimeout(task, 250);
     }
+}
+
+function isQuestionFullError(error) {
+    const message = error?.message || String(error || '');
+    return message.includes('満員') || message.includes('Question is full');
+}
+
+async function navigateToNextScoringQuestion(options = {}) {
+    const next = await CIQSupabaseAPI.getNextScoringQuestion(projectId, {
+        totalQuestions,
+        requiredScorers,
+        currentMemberId,
+        excludeQuestionNumber: options.excludeCurrent ? currentQ : 0,
+    }).catch(error => {
+        console.warn('次の採点問題の取得に失敗:', error);
+        return null;
+    });
+    if (next?.questionNumber > 0) {
+        if (options.notice) showToast(options.notice, 'info');
+        localStorage.setItem('current_q', String(next.questionNumber));
+        location.href = 'question.html';
+        return true;
+    }
+    location.href = 'judge.html';
+    return false;
 }
 
 function preloadImageUrl(url) {
@@ -433,10 +460,14 @@ async function init() {
     try {
         const startedAt = performance.now();
         let stepStartedAt = performance.now();
+        const projectPromise = CIQSupabaseAPI.getProject(projectId).catch(() => null);
         const joined = await CIQSupabaseAPI.joinQuestionScorer(projectId, currentQ);
         const joinMs = roundMs(performance.now() - stepStartedAt);
         currentMemberId = joined.scorer_member_id;
         isCompleted = Boolean(joined.completed_at);
+        const project = await projectPromise;
+        totalQuestions = Number(project?.question_count || totalQuestions);
+        requiredScorers = Number(project?.required_scorers || requiredScorers);
 
         const answerTextPromise = (async () => {
             const started = performance.now();
@@ -520,6 +551,13 @@ async function init() {
             totalMs: roundMs(performance.now() - startedAt),
         });
     } catch (e) {
+        if (isQuestionFullError(e)) {
+            await navigateToNextScoringQuestion({
+                excludeCurrent: true,
+                notice: 'この問題は満員になりました。次に入れる問題へ移動します。',
+            });
+            return;
+        }
         setAnswerGridMessage(e.message || '採点データを読み込めませんでした', 'triangle-exclamation');
     }
 }
@@ -698,7 +736,7 @@ async function checkAutoCompletion() {
     if (done === total && total > 0 && !isCompleted) {
         isCompleted = true;
         await CIQSupabaseAPI.completeQuestionScoring(projectId, currentQ);
-        location.href = 'judge.html';
+        await navigateToNextScoringQuestion({ excludeCurrent: true });
     }
 }
 
