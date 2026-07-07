@@ -32,7 +32,12 @@ function generateStrongPassword() {
 
 // 作成モードは #create でのみ到達する(参加者導線には出さない)
 function tabFromLocation() {
-    return location.hash === '#create' ? 'create' : 'join';
+    if (location.hash === '#create') return 'create';
+    try {
+        return sessionStorage.getItem('ciq:index:intendedTab') === 'create' ? 'create' : 'join';
+    } catch {
+        return 'join';
+    }
 }
 
 let currentTab = tabFromLocation();
@@ -100,6 +105,10 @@ function getPublicIndexUrl() {
 
 function setTab(tab) {
     currentTab = tab;
+    try {
+        if (tab === 'create') sessionStorage.setItem('ciq:index:intendedTab', 'create');
+        else sessionStorage.removeItem('ciq:index:intendedTab');
+    } catch { /* ignore storage errors */ }
     const joinSection = document.getElementById('section-join');
     const createSection = document.getElementById('section-create');
     const signedIn = Boolean(supabaseSession?.user);
@@ -265,6 +274,9 @@ async function signInWithSupabaseGoogle() {
         return;
     }
     try {
+        try {
+            sessionStorage.setItem('ciq:index:intendedTab', currentTab);
+        } catch { /* ignore storage errors */ }
         await CIQSupabaseAPI.signInWithGoogle();
     } catch (e) {
         showError('Googleサインインを開始できませんでした: ' + e.message);

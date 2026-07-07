@@ -208,7 +208,8 @@ const CIQSupabaseAPI = {
     async signInWithGoogle() {
         let redirectTo;
         if (location.protocol !== 'file:') {
-            const redirectUrl = new URL(location.pathname.split('/').pop() || 'index.html', location.href);
+            const redirectUrl = new URL(location.href);
+            redirectUrl.search = '';
             redirectUrl.hash = location.hash;
             redirectTo = redirectUrl.href;
         }

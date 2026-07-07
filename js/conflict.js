@@ -25,6 +25,7 @@ let lastConflictRenderSignature = '';
 let scoreConflictRpcAvailable = true;
 let conflictRefreshTimer = null;
 let conflictRefreshPromise = null;
+let shouldResetConflictSelection = true;
 
 async function runLimited(items, limit, task) {
     const results = [];
@@ -133,6 +134,8 @@ function setConflictActionsDisabled(disabled) {
 
 async function init() {
     try {
+        selectedIndex = 0;
+        shouldResetConflictSelection = true;
         await refreshData();
         startConflictRefreshTimer();
     } catch (e) {
@@ -344,12 +347,28 @@ function updateConflictSelectionClasses() {
 }
 
 async function render() {
-    currentConflicts = buildConflicts();
+    const previousSelected = currentConflicts[selectedIndex] || null;
+    currentConflicts = buildConflicts().sort((a, b) => {
+        const aResolved = a.finalResult ? 1 : 0;
+        const bResolved = b.finalResult ? 1 : 0;
+        return aResolved - bResolved || a.q - b.q || a.entryNumber - b.entryNumber;
+    });
     CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, currentConflicts.map(conflict => ({
         ...conflict,
         questionNumber: conflict.q,
     })));
-    if (selectedIndex >= currentConflicts.length) selectedIndex = Math.max(0, currentConflicts.length - 1);
+    if (shouldResetConflictSelection) {
+        selectedIndex = 0;
+        shouldResetConflictSelection = false;
+    } else if (previousSelected) {
+        const nextIndex = currentConflicts.findIndex(conflict => (
+            conflict.entryId === previousSelected.entryId
+            && Number(conflict.q) === Number(previousSelected.q)
+        ));
+        selectedIndex = nextIndex >= 0 ? nextIndex : Math.min(selectedIndex, Math.max(0, currentConflicts.length - 1));
+    } else if (selectedIndex >= currentConflicts.length) {
+        selectedIndex = Math.max(0, currentConflicts.length - 1);
+    }
 
     const unresolvedCount = currentConflicts.filter(c => !c.finalResult).length;
     const counter = document.getElementById('counter');
@@ -738,3 +757,10 @@ document.getElementById('conflict-back-btn')?.addEventListener('click', () => {
 });
 
 init();
+
+window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    selectedIndex = 0;
+    shouldResetConflictSelection = true;
+    refreshData();
+});
