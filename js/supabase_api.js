@@ -228,6 +228,7 @@ const CIQSupabaseAPI = {
             headers: {
                 'content-type': 'application/json',
                 apikey: cfg.publishableKey,
+                authorization: `Bearer ${cfg.publishableKey}`,
             },
             body: JSON.stringify(payload),
         });

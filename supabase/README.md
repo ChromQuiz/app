@@ -35,11 +35,15 @@ window.CIQ_SUPABASE_CONFIG = {
 
    The functions also fall back to the legacy `SUPABASE_SERVICE_ROLE_KEY` if needed.
 
-6. Deploy browser-callable Edge Functions. `send-email` must be deployed without JWT verification because public entry forms call it before login:
+6. Deploy browser-callable public Edge Functions without JWT verification. These functions are called before Google login and validate participant identity or project state inside the function:
 
 ```bash
-pnpm dlx supabase functions deploy send-email --project-ref YOUR_PROJECT_REF --no-verify-jwt
+for fn in send-email create-entry my-entry edit-entry cancel-entry mark-late disclose-result checkin-qr; do
+  pnpm dlx supabase functions deploy "$fn" --project-ref YOUR_PROJECT_REF --no-verify-jwt
+done
 ```
+
+Admin/scorer-only functions such as `check-in`, `project-key`, `admin-create-entry`, and `admin-entry-qr` should keep JWT verification enabled.
 
 7. Set email Edge Function secrets. Brevo is the current default provider; SES remains available as a fallback by changing `CIQ_EMAIL_PROVIDER`.
 
@@ -80,7 +84,7 @@ Use a long random value for `CIQ_EMAIL_SIGNING_SECRET`. It signs verification co
 - `score_events` is append-only from the client perspective and should be used as the audit trail for scoring changes.
 - `email_events` stores delivery metadata only. Never store raw recipient addresses there; use `recipient_hash`.
 - Keep `SUPABASE_SERVICE_ROLE_KEY`, Brevo API keys, and AWS secrets only in Supabase Edge Function secrets.
-- `send-email` is browser-callable with the publishable key, but email provider credentials and verification-code signing stay inside Edge Function secrets.
+- Public participant functions are browser-callable with the publishable key, but provider credentials, QR signing, and participant-token signing stay inside Edge Function secrets.
 - `send-email` rejects verification mail unless the project exists and entry reception is currently open.
 - Entry confirmation, edit, cancellation, late notice, and waitlist promotion mails require a matching `projectId`, `entryId`, recipient address, and `emailHash`.
 - The browser never sends email provider credentials or a service role key.

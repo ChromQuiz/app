@@ -26,6 +26,7 @@ Functions in `supabase/functions/` handle public or privileged flows that should
 - `mark-late`
 - `check-in`
 - `disclose-result`
+- `my-entry`
 - `send-email`
 
 Shared helpers are in `supabase/functions/_shared/`.
