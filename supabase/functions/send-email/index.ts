@@ -63,22 +63,29 @@ const MAIL = {
 
 function shell(title: string, subtitle: string, body: string) {
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${MAIL.canvas};padding:28px 12px;">
+  <style>
+    @media screen and (max-width: 560px) {
+      .ciq-mail-canvas { padding: 20px 10px !important; }
+      .ciq-mail-card { padding: 22px 18px !important; }
+      .ciq-mail-button-cell { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
+    }
+  </style>
+  <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:28px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:100%;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:720px;margin:0 auto;">
           <tr>
-            <td style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:24px;line-height:1.25;font-weight:800;padding:0 2px 6px;" align="center">
+            <td style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:24px;line-height:1.25;font-weight:800;padding:0 2px 6px;text-align:center;" align="center">
               ${escapeHtml(subtitle)}
             </td>
           </tr>
           <tr>
-            <td style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:700;padding:0 2px 22px;" align="center">
+            <td style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:700;padding:0 2px 22px;text-align:center;" align="center">
               ${escapeHtml(title)}
             </td>
           </tr>
           <tr>
-            <td style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:8px;padding:28px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.8;" align="left">${body}</td>
+            <td class="ciq-mail-card" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:8px;padding:28px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.8;text-align:left;" align="left">${body}</td>
           </tr>
           <tr>
             <td style="font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:${MAIL.muted};padding:22px 8px 0;">
@@ -157,10 +164,10 @@ function qrCard(qrImageUrl: string) {
 function primaryButton(label: string, href: string) {
   if (!href) return '';
   return `
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
     <tr>
-      <td style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:8px;">
-        <a href="${escapeHtml(href)}" style="display:inline-block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:11px 18px;">${escapeHtml(label)}</a>
+      <td align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:8px;">
+        <a href="${escapeHtml(href)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:12px 18px;">${escapeHtml(label)}</a>
       </td>
     </tr>
   </table>
@@ -169,22 +176,22 @@ function primaryButton(label: string, href: string) {
 
 function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: string, secondaryHref: string) {
   const primary = primaryHref ? `
-    <td align="left" style="padding:0 6px 0 0;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+    <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 6px 0 0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:8px;">
-            <a href="${escapeHtml(primaryHref)}" style="display:inline-block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:11px 18px;">${escapeHtml(primaryLabel)}</a>
+          <td align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:8px;">
+            <a href="${escapeHtml(primaryHref)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:12px 18px;">${escapeHtml(primaryLabel)}</a>
           </td>
         </tr>
       </table>
     </td>
   ` : '';
   const secondary = secondaryHref ? `
-    <td align="left" style="padding:0 0 0 6px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+    <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 0 0 6px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td style="background:${MAIL.surface};border:1px solid ${MAIL.borderStrong};border-radius:8px;">
-            <a href="${escapeHtml(secondaryHref)}" style="display:inline-block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:11px 18px;">${escapeHtml(secondaryLabel)}</a>
+          <td align="center" style="background:${MAIL.surface};border:1px solid ${MAIL.borderStrong};border-radius:8px;">
+            <a href="${escapeHtml(secondaryHref)}" style="display:block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:12px 18px;">${escapeHtml(secondaryLabel)}</a>
           </td>
         </tr>
       </table>
@@ -192,7 +199,7 @@ function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: s
   ` : '';
   if (!primary && !secondary) return '';
   return `
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;margin:18px 0;">
     <tr>${primary}${secondary}</tr>
   </table>
   `;
@@ -211,15 +218,15 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     ? panel('現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。', 'warning')
     : panel('エントリーを受け付けました。', 'success');
   const body = `
-    <p style="margin:0 0 4px;">${escapeHtml(person || '参加者')} 様</p>
+    <p style="margin:0 0 4px;text-align:left;">${escapeHtml(person || '参加者')} 様</p>
     ${waitlistNotice}
     ${numberCard('受付番号', entryNumber)}
     ${detailsTable([['パスワード', password], ['状態', status]])}
-    <p style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;">パスワードはマイエントリー、編集、キャンセルなどに使用します。</p>
+    <p style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;text-align:left;">パスワードはマイエントリー、編集、キャンセルなどに使用します。</p>
     ${qrCard(qrImageUrl)}
     ${panel('このメールには受付QRとマイエントリー用の情報が含まれます。大会当日まで保存してください。', 'info')}
     ${buttonPair('マイエントリー', myUrl, 'エントリーリスト', entryListUrl)}
-    <p style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;">
+    <p style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">
       マイエントリーでは、登録内容の確認・変更、遅刻の連絡、QRコードの再表示ができます。
     </p>
   `;
@@ -255,7 +262,7 @@ function simpleNotice(args: {
   return {
     subject: `【${name}】${args.subjectLabel}（No.${entryNumber}）`,
     html: shell(args.title, name, `
-      <p style="margin:0 0 4px;">${escapeHtml(person || '参加者')} 様</p>
+      <p style="margin:0 0 4px;text-align:left;">${escapeHtml(person || '参加者')} 様</p>
       ${panel(args.message, args.tone)}
       ${detailsTable([['受付番号', entryNumber]])}
       ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
@@ -318,7 +325,7 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
   return {
     subject: `【${projectNameValue}】メール認証コード`,
     html: shell('メール認証コード', projectNameValue, `
-      <p style="margin:0;">エントリーフォームに以下のコードを入力してください。</p>
+      <p style="margin:0;text-align:left;">エントリーフォームに以下のコードを入力してください。</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
         <tr>
           <td align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:10px;padding:24px;background:${MAIL.surface};">
@@ -326,7 +333,7 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
           </td>
         </tr>
       </table>
-      <p style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;">このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。</p>
+      <p style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。</p>
     `),
     text: `認証コード: ${code}\nこのコードは10分間有効です。`,
   };
