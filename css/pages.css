@@ -543,13 +543,7 @@ body.page-wrapper {
 
 #verify-msg.page-msg {
   margin-top: var(--sp-3);
-  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
-  border: 0;
-  border-left: 3px solid currentColor;
-  border-radius: 0;
-  background: transparent;
   font-size: var(--fs-13);
-  font-weight: 500;
 }
 
 .entry-verify-help {
@@ -1262,15 +1256,12 @@ body.page-wrapper {
 
 .terms-alert {
   margin: var(--sp-4) 0;
-  padding: var(--sp-3) var(--sp-4);
-  border: 1px solid var(--line);
-  border-left-width: 4px;
-  border-radius: var(--r-md);
-  background: var(--surface);
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
+  border-left: 3px solid var(--line-strong);
 }
 
 .terms-alert-title {
-  margin-bottom: var(--sp-2);
+  margin-bottom: var(--sp-1);
   color: var(--ink);
   font-weight: 700;
 }

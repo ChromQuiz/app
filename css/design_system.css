@@ -647,13 +647,11 @@ svg[width="24"][stroke="currentColor"] {
   display: flex;
   align-items: flex-start;
   gap: var(--sp-2);
-  background: var(--warn-100);
   color: var(--warn-600);
-  border: 1px solid color-mix(in srgb, var(--warn-600) 30%, transparent);
-  border-radius: var(--r-md);
-  padding: var(--sp-3) var(--sp-4);
+  border-left: 3px solid currentColor;
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
   font-size: var(--fs-14);
-  font-weight: 600;
+  font-weight: 500;
   margin: var(--sp-4) 0;
 }
 
@@ -1509,13 +1507,11 @@ tbody tr:hover {
   align-items: flex-start;
   gap: var(--sp-2);
   margin-top: var(--sp-4);
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-md);
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
   font-size: var(--fs-14);
-  font-weight: 600;
-  background: var(--brand-50);
+  font-weight: 500;
   color: var(--brand-600);
-  border: 1px solid color-mix(in srgb, var(--brand-500) 30%, transparent);
+  border-left: 3px solid currentColor;
 }
 
 .page-msg.is-visible,
@@ -1524,10 +1520,10 @@ tbody tr:hover {
   display: flex;
 }
 
-.page-msg.info { background: var(--brand-50); color: var(--brand-600); border-color: color-mix(in srgb, var(--brand-500) 30%, transparent); }
-.page-msg.success { background: var(--ok-100); color: var(--ok-600); border-color: color-mix(in srgb, var(--ok-600) 30%, transparent); }
-.page-msg.error { background: var(--bad-100); color: var(--bad-600); border-color: color-mix(in srgb, var(--bad-600) 30%, transparent); }
-.page-msg.warning { background: var(--warn-100); color: var(--warn-600); border-color: color-mix(in srgb, var(--warn-600) 30%, transparent); }
+.page-msg.info { color: var(--brand-600); }
+.page-msg.success { color: var(--ok-600); }
+.page-msg.error { color: var(--bad-600); }
+.page-msg.warning { color: var(--warn-600); }
 
 /* --- 汎用状態表示 --- */
 .loading-state {
@@ -2580,12 +2576,10 @@ tbody tr:hover {
   align-items: flex-start;
   gap: var(--sp-2);
   font-size: var(--fs-13);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--bad-600);
-  background: var(--bad-100);
-  border: 1px solid color-mix(in srgb, var(--bad-600) 35%, transparent);
-  border-radius: var(--r-md);
-  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid currentColor;
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
 }
 
 .u-danger-note [data-icon] {
