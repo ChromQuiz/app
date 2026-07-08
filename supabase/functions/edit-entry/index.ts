@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
 import { SigningConfigError } from '../_shared/signing.ts';
@@ -26,7 +26,7 @@ function isEntryEditOpen(project: {
   return true;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
@@ -154,4 +154,4 @@ Deno.serve(async (req) => {
     }
     return serverErrorResponse(error, 'edit-entry');
   }
-});
+}));

@@ -1,9 +1,9 @@
-import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { clientIp, clientIpHash, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
@@ -64,4 +64,4 @@ Deno.serve(async (req) => {
     if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
     return serverErrorResponse(error, 'create-entry');
   }
-});
+}));

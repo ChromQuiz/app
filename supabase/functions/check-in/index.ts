@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
@@ -21,7 +21,7 @@ async function requireProjectMember(supabase: ReturnType<typeof createServiceCli
   return member;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
@@ -129,4 +129,4 @@ Deno.serve(async (req) => {
     }
     return serverErrorResponse(error, 'check-in');
   }
-});
+}));

@@ -6,7 +6,7 @@
 //   - スライド延長された新しいセッショントークン
 // を返す。パスワードや復号PIIは返さない・保存しない。
 
-import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import {
   ParticipantAuthError,
@@ -38,7 +38,7 @@ function isWithinPeriod(start: string | null, end: string | null) {
   return true;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
@@ -111,4 +111,4 @@ Deno.serve(async (req) => {
     }
     return serverErrorResponse(error, 'my-entry');
   }
-});
+}));

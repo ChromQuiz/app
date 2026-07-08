@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 
 const enc = new TextEncoder();
@@ -85,7 +85,7 @@ async function requireAdminMember(supabase: ReturnType<typeof createServiceClien
   return member;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
@@ -137,4 +137,4 @@ Deno.serve(async (req) => {
     if (message.includes('Authentication')) return jsonResponse({ error: 'Authentication required' }, 401);
     return serverErrorResponse(error, 'project-key');
   }
-});
+}));

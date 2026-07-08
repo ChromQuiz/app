@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
+import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 
@@ -22,7 +22,7 @@ async function requireAdminMember(supabase: SupabaseClient, req: Request, projec
   if (member.role !== 'owner' && member.role !== 'admin') throw new Error('Forbidden');
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
@@ -54,4 +54,4 @@ Deno.serve(async (req) => {
     }
     return serverErrorResponse(error, 'admin-entry-qr');
   }
-});
+}));

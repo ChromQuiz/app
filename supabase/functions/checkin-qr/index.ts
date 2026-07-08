@@ -1,8 +1,8 @@
-import { handleOptions } from '../_shared/http.ts';
+import { handleOptions, withCors } from '../_shared/http.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
 import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
 
-Deno.serve(async (req) => {
+Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
   if (req.method !== 'GET') return new Response('Method not allowed', { status: 405 });
@@ -32,4 +32,4 @@ Deno.serve(async (req) => {
       'x-content-type-options': 'nosniff',
     },
   });
-});
+}));
