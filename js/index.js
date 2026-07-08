@@ -132,7 +132,6 @@ function getPublicIndexUrl() {
 
 function setTab(tab) {
     currentTab = tab;
-    if (tab !== 'create') clearAuthIntent();
     const joinSection = document.getElementById('section-join');
     const createSection = document.getElementById('section-create');
     const signedIn = Boolean(supabaseSession?.user);
@@ -314,6 +313,7 @@ async function signInWithSupabaseGoogle() {
 async function signOutSupabase() {
     try {
         await CIQSupabaseAPI.signOut();
+        clearAuthIntent();
         session.clear();
     } catch (e) {
         showError('Googleサインアウトに失敗しました: ' + e.message);
@@ -401,10 +401,14 @@ async function createProject() {
 function setupIndexEvents() {
     document.getElementById('supabase-login-btn')?.addEventListener('click', signInWithSupabaseGoogle);
     document.getElementById('supabase-logout-btn')?.addEventListener('click', signOutSupabase);
-    document.getElementById('tab-join')?.addEventListener('click', () => setTab('join'));
+    document.getElementById('tab-join')?.addEventListener('click', () => {
+        clearAuthIntent();
+        setTab('join');
+    });
     document.getElementById('tab-create')?.addEventListener('click', () => setTab('create'));
     document.getElementById('index-join-link')?.addEventListener('click', (event) => {
         event.preventDefault();
+        clearAuthIntent();
         history.replaceState(null, '', location.pathname + location.search);
         setTab('join');
     });
