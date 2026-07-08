@@ -15,6 +15,93 @@
 
 const ICON_STROKE_WIDTH = 1.7;
 
+function iconPath(d, opts = {}) {
+  return { d, ...opts };
+}
+
+function filledIcon(...paths) {
+  return { paths: paths.flat().filter(Boolean).map((item) => (typeof item === 'string' ? iconPath(item) : item)) };
+}
+
+function evenOdd(d) {
+  return iconPath(d, { fillRule: 'evenodd' });
+}
+
+function disk(cx, cy, r) {
+  return `M${cx} ${cy}m-${r} 0a${r} ${r} 0 1 0 ${r * 2} 0a${r} ${r} 0 1 0 -${r * 2} 0`;
+}
+
+function ring(cx, cy, outer, inner) {
+  return evenOdd(`${disk(cx, cy, outer)}${disk(cx, cy, inner)}`);
+}
+
+function rr(x, y, w, h, r) {
+  const x2 = x + w;
+  const y2 = y + h;
+  return `M${x + r} ${y}H${x2 - r}a${r} ${r} 0 0 1 ${r} ${r}V${y2 - r}a${r} ${r} 0 0 1 -${r} ${r}H${x + r}a${r} ${r} 0 0 1 -${r}-${r}V${y + r}a${r} ${r} 0 0 1 ${r}-${r}z`;
+}
+
+function cap(x1, y1, x2, y2, width) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+  const px = -uy * width / 2;
+  const py = ux * width / 2;
+  const r = width / 2;
+  return `M${(x1 + px).toFixed(2)} ${(y1 + py).toFixed(2)}L${(x2 + px).toFixed(2)} ${(y2 + py).toFixed(2)}a${r} ${r} 0 0 1 ${(px * -2).toFixed(2)} ${(py * -2).toFixed(2)}L${(x1 - px).toFixed(2)} ${(y1 - py).toFixed(2)}a${r} ${r} 0 0 1 ${(px * 2).toFixed(2)} ${(py * 2).toFixed(2)}z`;
+}
+
+function dot(cx, cy, r = 1) {
+  return disk(cx, cy, r);
+}
+
+function checkShape(x = 5.1, y = 12.1, s = 1) {
+  return `M${x} ${y}c${0.44 * s} ${-0.46 * s} ${1.18 * s} ${-0.48 * s} ${1.65 * s}-.04l${3.16 * s} ${3.02 * s} ${7.36 * s}-${8.65 * s}c.42-.5 1.17-.56 1.67-.13l.7.6c.5.42.56 1.17.13 1.67l${-8.58 * s} ${10.08 * s}c-.43.51-1.19.56-1.68.1l${-4.36 * s}-${4.16 * s}a1.18 1.18 0 0 1-.05-1.67z`;
+}
+
+function xShape(cx = 12, cy = 12, size = 6.6, w = 1.95) {
+  const a = size / 2;
+  return [cap(cx - a, cy - a, cx + a, cy + a, w), cap(cx + a, cy - a, cx - a, cy + a, w)];
+}
+
+function plusShape(cx = 12, cy = 12, size = 8, w = 1.95) {
+  const a = size / 2;
+  return [cap(cx, cy - a, cx, cy + a, w), cap(cx - a, cy, cx + a, cy, w)];
+}
+
+function arrowRight(x = 4.7, y = 12, w = 1) {
+  return `M${x} ${10.75 * w + y - 12}c0-.62.5-1.12 1.12-1.12h8.2V7.2c0-.78.94-1.16 1.49-.61l4.94 4.78c.36.35.36.91 0 1.26l-4.94 4.78c-.55.55-1.49.17-1.49-.61v-2.43h-8.2c-.62 0-1.12-.5-1.12-1.12z`;
+}
+
+function arrowLeft() {
+  return 'M19.3 10.75c0-.62-.5-1.12-1.12-1.12h-8.2V7.2c0-.78-.94-1.16-1.49-.61l-4.94 4.78c-.36.35-.36.91 0 1.26l4.94 4.78c.55.55 1.49.17 1.49-.61v-2.43h8.2c.62 0 1.12-.5 1.12-1.12z';
+}
+
+function chevronDown() { return cap(7.4, 9.2, 12, 13.8, 2.05) + cap(16.6, 9.2, 12, 13.8, 2.05); }
+function chevronLeft() { return cap(14.8, 7.4, 10.2, 12, 2.05) + cap(10.2, 12, 14.8, 16.6, 2.05); }
+function chevronRight() { return cap(9.2, 7.4, 13.8, 12, 2.05) + cap(13.8, 12, 9.2, 16.6, 2.05); }
+
+function pageShape(extra = '') {
+  return evenOdd(`M7.65 3.35h6.35c.44 0 .86.17 1.17.48l3.32 3.32c.31.31.48.73.48 1.17v9.98a2.35 2.35 0 0 1-2.35 2.35H7.65A2.35 2.35 0 0 1 5.3 18.3V5.7a2.35 2.35 0 0 1 2.35-2.35zm6.6 1.86v2.23c0 .42.34.76.76.76h2.23z${extra}`);
+}
+
+function userBody(cx = 9.65, cy = 7.83) {
+  return `${disk(cx, cy, 3.62)}M3.27 19.05c.57-3.58 3.18-5.77 6.38-5.77s5.81 2.19 6.38 5.77c.08.57-.3 1.05-.81 1.05H4.08c-.51 0-.89-.48-.81-1.05z`;
+}
+
+function badgeCircle(cx = 17.5, cy = 15.25, r = 4.25) {
+  return disk(cx, cy, r);
+}
+
+function gearShape(cx = 12, cy = 12, scale = 1) {
+  if (scale !== 1 || cx !== 12 || cy !== 12) {
+    return evenOdd(`M${cx - 1.4} ${cy - 5.05}h${2.8}l.34 1.12c.3.1.59.22.86.37l1.04-.55 1.1 1.1-.55 1.04c.15.27.27.56.37.86l1.12.34v1.55l-1.12.34c-.1.3-.22.59-.37.86l.55 1.04-1.1 1.1-1.04-.55c-.27.15-.56.27-.86.37l-.34 1.12h-2.8l-.34-1.12a4.6 4.6 0 0 1-.86-.37l-1.04.55-1.1-1.1.55-1.04a4.6 4.6 0 0 1-.37-.86l-1.12-.34v-1.55l1.12-.34c.1-.3.22-.59.37-.86l-.55-1.04 1.1-1.1 1.04.55c.27-.15.56-.27.86-.37zm1.4 5.05m-1.26 0a1.26 1.26 0 1 0 2.52 0 1.26 1.26 0 1 0-2.52 0z`);
+  }
+  return evenOdd('M10.55 3.35h2.9l.58 2.08c.56.16 1.09.38 1.58.66l1.88-1.06 2.05 2.05-1.06 1.88c.28.49.5 1.02.66 1.58l2.08.58v2.9l-2.08.58a7.6 7.6 0 0 1-.66 1.58l1.06 1.88-2.05 2.05-1.88-1.06c-.49.28-1.02.5-1.58.66l-.58 2.08h-2.9l-.58-2.08a7.6 7.6 0 0 1-1.58-.66l-1.88 1.06-2.05-2.05 1.06-1.88a7.6 7.6 0 0 1-.66-1.58l-2.08-.58v-2.9l2.08-.58c.16-.56.38-1.09.66-1.58L4.52 7.08l2.05-2.05 1.88 1.06c.49-.28 1.02-.5 1.58-.66zm1.45 8.65m-2.55 0a2.55 2.55 0 1 0 5.1 0 2.55 2.55 0 1 0-5.1 0z');
+}
+
 const ICON_PATHS = {
   // ナビゲーション / 基本操作
   'chevron-down': 'M6.9 9.45 12 14.55l5.1-5.1',
@@ -31,11 +118,6 @@ const ICON_PATHS = {
   'right-to-bracket': ['M14.75 4.25h3a2 2 0 0 1 2 2v11.5a2 2 0 0 1-2 2h-3', 'M3.75 12h10.5', 'M9.75 7.5 14.25 12l-4.5 4.5'],
   'right-from-bracket': ['M9.25 4.25h-3a2 2 0 0 0-2 2v11.5a2 2 0 0 0 2 2h3', 'M9.75 12h10.5', 'M15.75 7.5 20.25 12l-4.5 4.5'],
   'home': ['M3.75 10.75 12 4.25l8.25 6.5', 'M5.75 9.5v8.25a2 2 0 0 0 2 2h8.5a2 2 0 0 0 2-2V9.5', 'M9.9 19.75v-4.7a1.1 1.1 0 0 1 1.1-1.1h2a1.1 1.1 0 0 1 1.1 1.1v4.7'],
-  'house': {
-    paths: [
-      { d: 'M3.75 10.75 11.2 4.8c.47-.38 1.13-.38 1.6 0l7.45 5.95c.52.42.61 1.18.19 1.7-.41.52-1.16.61-1.68.21l-.58-.46v6.05a2.45 2.45 0 0 1-2.45 2.45h-1.82v-5.16c0-.54-.44-.98-.98-.98h-1.86c-.54 0-.98.44-.98.98v5.16H8.27a2.45 2.45 0 0 1-2.45-2.45V12.2l-.58.46a1.2 1.2 0 0 1-1.49-1.91z' },
-    ],
-  },
   'xmark': 'M7.25 7.25l9.5 9.5M16.75 7.25l-9.5 9.5',
   'plus': 'M12 5.5v13M5.5 12h13',
   'minus': 'M5.5 12h13',
@@ -79,11 +161,6 @@ const ICON_PATHS = {
   },
   'unlock': ['M7.25 10.75h9.5a2 2 0 0 1 2 2v5.25a2 2 0 0 1-2 2h-9.5a2 2 0 0 1-2-2v-5.25a2 2 0 0 1 2-2z', 'M8.35 10.75V7.9a3.65 3.65 0 0 1 7.05-1.35'],
   'shield-halved': ['M12 3.5c2.05 1.5 4.25 2.2 6.6 2.35v5.55c0 4.15-2.5 7.1-6.6 9.1-4.1-2-6.6-4.95-6.6-9.1V5.85C7.75 5.7 9.95 5 12 3.5z', 'M12 3.9v16.15'],
-  'shield': {
-    paths: [
-      { d: 'M12 3.25c1.95 1.35 4.1 2.12 6.45 2.3.54.04.95.49.95 1.03v4.75c0 4.28-2.34 7.37-6.88 9.53-.33.16-.71.16-1.04 0-4.54-2.16-6.88-5.25-6.88-9.53V6.58c0-.54.41-.99.95-1.03 2.35-.18 4.5-.95 6.45-2.3z' },
-    ],
-  },
   'flag-checkered': ['M5.4 20.5V4.25', 'M5.4 5.15c2.25-1.05 4.45.95 6.7-.05s4.35-1 6.85.05v8.3c-2.5-1.05-4.6-.1-6.85.05s-4.45-1.1-6.7-.05', 'M8.75 4.7v8.55M12.1 5.1v8.3M15.45 4.65v8.5'],
   'wifi': ['M4.3 10.4a11.1 11.1 0 0 1 15.4 0', 'M7.4 13.55a6.6 6.6 0 0 1 9.2 0', 'M10.55 16.7a2.3 2.3 0 0 1 2.9 0', 'M12 19.4h.01'],
 
@@ -100,11 +177,6 @@ const ICON_PATHS = {
   'send': ['M20.65 3.35 4.1 10.65c-.9.4-.8 1.7.15 1.95l6.25 1.45 1.45 6.25c.25.95 1.55 1.05 1.95.15z', 'M10.5 14.05 20.65 3.35'],
   'share-from-square': ['M8.5 8.25H6.25a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h11.5a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2H15.5', 'M12 14.5V3.6', 'M8.25 7.35 12 3.6l3.75 3.75'],
   'key': ['M8.1 20.4a4.35 4.35 0 1 1 0-8.7 4.35 4.35 0 0 1 0 8.7z', 'M11.2 12.95 20 4.15', 'M17.5 6.65l2.4 2.4M14.9 9.25l1.95 1.95'],
-  'bookmark': {
-    paths: [
-      { d: 'M7.45 3.35h9.1A2.35 2.35 0 0 1 18.9 5.7v14.05c0 .78-.86 1.25-1.51.82L12 16.95l-5.39 3.62c-.65.43-1.51-.04-1.51-.82V5.7a2.35 2.35 0 0 1 2.35-2.35z' },
-    ],
-  },
 
   // ユーザー
   'user': ['M12 11.9a3.65 3.65 0 1 0 0-7.3 3.65 3.65 0 0 0 0 7.3z', 'M4.75 19.75a7.25 7.25 0 0 1 14.5 0'],
@@ -131,11 +203,6 @@ const ICON_PATHS = {
   'comment': ['M12 3.75c-4.55 0-8.25 3.1-8.25 6.95 0 1.9.9 3.6 2.35 4.85l-1.15 3.5 3.6-1.7c1.05.35 2.2.55 3.45.55 4.55 0 8.25-3.1 8.25-7.2 0-3.85-3.7-6.95-8.25-6.95z'],
   'message': ['M12 3.75c-4.55 0-8.25 3.1-8.25 6.95 0 1.9.9 3.6 2.35 4.85l-1.15 3.5 3.6-1.7c1.05.35 2.2.55 3.45.55 4.55 0 8.25-3.1 8.25-7.2 0-3.85-3.7-6.95-8.25-6.95z'],
   'paperclip': ['M13.05 6.2 6.6 12.65a4.55 4.55 0 0 0 6.45 6.45l6.45-6.45a3.05 3.05 0 0 0-4.3-4.3l-6.45 6.45a1.5 1.5 0 0 0 2.15 2.15l5.8-5.8'],
-  'bell': {
-    paths: [
-      { d: 'M9.5 5.75a2.5 2.5 0 0 1 5 0v.18a5.62 5.62 0 0 1 3.18 5.07v2.2c0 .65.23 1.27.64 1.78l.78.96c.55.69.06 1.71-.82 1.71H5.72c-.88 0-1.37-1.02-.82-1.71l.78-.96c.41-.51.64-1.13.64-1.78V11A5.62 5.62 0 0 1 9.5 5.93zm.1 13.15h4.8a2.42 2.42 0 0 1-4.8 0z' },
-    ],
-  },
 
   // ドキュメント
   'file-lines': {
@@ -148,11 +215,6 @@ const ICON_PATHS = {
   'file-image': ['M13.75 3.75H7.75a2 2 0 0 0-2 2v12.5a2 2 0 0 0 2 2h8.5a2 2 0 0 0 2-2V8.25z', 'M13.75 3.75v3.5a1 1 0 0 0 1 1h3.5', 'M8.6 16.6l2.45-2.75 1.8 1.85 1.55-1.65 2.2 2.55', 'M9.7 11.1h.01'],
   'file-export': ['M18.25 10.4V8.25L13.75 3.75H7.75a2 2 0 0 0-2 2v12.5a2 2 0 0 0 2 2h4.9', 'M13.75 3.75v3.5a1 1 0 0 0 1 1h3.5', 'M12.9 15.4h7.35', 'M17.6 12.75l2.65 2.65-2.65 2.65'],
   'folder-open': ['M4.9 18.9a1.9 1.9 0 0 1-1.9-1.9V6.6a1.9 1.9 0 0 1 1.9-1.9h3.05a1.9 1.9 0 0 1 1.6.85l.7 1.05a1.9 1.9 0 0 0 1.6.85h4.7a1.9 1.9 0 0 1 1.9 1.9v1.05', 'M4.9 18.9 7 12.7a1.9 1.9 0 0 1 1.8-1.3h11.35a1.45 1.45 0 0 1 1.4 1.85l-1.3 4.3a1.9 1.9 0 0 1-1.85 1.35z'],
-  'folder': {
-    paths: [
-      { d: 'M4.95 5.05h3.45c.62 0 1.2.29 1.57.79l.78 1.04c.2.27.52.43.86.43h7.44A2.45 2.45 0 0 1 21.5 9.76v6.74a2.45 2.45 0 0 1-2.45 2.45H4.95A2.45 2.45 0 0 1 2.5 16.5v-9a2.45 2.45 0 0 1 2.45-2.45z' },
-    ],
-  },
   'spell-check': ['M4.5 16.9 8.15 6.75 11.8 16.9', 'M5.7 13.55h4.9', 'M13.4 14.6l2.5 2.5 4.6-5.4'],
   'book-open': ['M12 6.85v13', 'M12 6.85C10.55 5.5 8.65 4.85 6.3 4.85c-.95 0-1.85.1-2.55.3v12.9c.7-.2 1.6-.3 2.55-.3 2.35 0 4.25.65 5.7 2 1.45-1.35 3.35-2 5.7-2 .95 0 1.85.1 2.55.3V5.15c-.7-.2-1.6-.3-2.55-.3-2.35 0-4.25.65-5.7 2z'],
   'scroll': ['M7.15 19.75H17.6a1.95 1.95 0 0 0 1.95-1.95V16.6H9.1v1.2a1.95 1.95 0 1 1-3.9 0V6.4a1.95 1.95 0 1 1 3.9 0v10.2', 'M9.1 6.4c0-1.1.85-1.95 1.95-1.95h6.55c1.1 0 1.95.85 1.95 1.95v10.2'],
@@ -226,11 +288,6 @@ const ICON_PATHS = {
       { d: 'M11.46 3.75c.34-.17.74-.17 1.08 0l7.1 3.55c.56.28.8.94.55 1.51l-.88 2.02 1.7 1.08c.36.23.58.63.58 1.06v3.05c0 .48-.27.91-.7 1.12l-7.83 3.77c-.67.32-1.45.32-2.12 0l-7.83-3.77a1.25 1.25 0 0 1-.7-1.12v-3.05c0-.43.22-.83.58-1.06l1.7-1.08-.88-2.02a1.22 1.22 0 0 1 .55-1.51zm.54 2.45L6.22 9.09 12 11.82l5.78-2.73zm-6.23 6.63v2.63l5 2.42v-3.49zm12.46 0-5 1.56v3.49l5-2.42z', fillRule: 'evenodd' },
     ],
   },
-  'ticket': {
-    paths: [
-      { d: 'M4.8 6.05h14.4a2.35 2.35 0 0 1 2.35 2.35v1.85a1.75 1.75 0 0 0 0 3.5v1.85a2.35 2.35 0 0 1-2.35 2.35H4.8a2.35 2.35 0 0 1-2.35-2.35v-1.85a1.75 1.75 0 0 0 0-3.5V8.4A2.35 2.35 0 0 1 4.8 6.05zm10.25 2.45c-.47 0-.85.38-.85.85v.25c0 .47.38.85.85.85s.85-.38.85-.85v-.25c0-.47-.38-.85-.85-.85zm0 3.15c-.47 0-.85.38-.85.85v.25c0 .47.38.85.85.85s.85-.38.85-.85v-.25c0-.47-.38-.85-.85-.85zm0 3.15c-.47 0-.85.38-.85.85v.25c0 .47.38.85.85.85s.85-.38.85-.85v-.25c0-.47-.38-.85-.85-.85z', fillRule: 'evenodd' },
-    ],
-  },
   'inbox': ['M20.75 12.25h-5.25l-1.75 2.6h-3.5l-1.75-2.6H3.25', 'M6.3 6.1 3.25 12.25v5.15a1.85 1.85 0 0 0 1.85 1.85h13.8a1.85 1.85 0 0 0 1.85-1.85v-5.15L17.7 6.1a1.85 1.85 0 0 0-1.65-1.05H7.95A1.85 1.85 0 0 0 6.3 6.1z'],
   'map-location-dot': ['M12 20.6c4.35-3.95 6.5-7.4 6.5-10.4a6.5 6.5 0 1 0-13 0c0 3 2.15 6.45 6.5 10.4z', 'M12 12.5a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8z'],
   'map-pin': ['M12 20.6c4.35-3.95 6.5-7.4 6.5-10.4a6.5 6.5 0 1 0-13 0c0 3 2.15 6.45 6.5 10.4z', 'M12 12.5a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8z'],
@@ -280,14 +337,8 @@ function createIcon(nameOrClass, opts = {}) {
   const filled = isFilledIconData(data);
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '-1 -1 26 26');
-  svg.setAttribute('fill', filled ? 'currentColor' : 'none');
-  svg.setAttribute('stroke', filled ? 'none' : 'currentColor');
-  if (!filled) {
-    svg.setAttribute('stroke-width', String(ICON_STROKE_WIDTH));
-    svg.setAttribute('stroke-linecap', 'round');
-    svg.setAttribute('stroke-linejoin', 'round');
-    svg.setAttribute('vector-effect', 'non-scaling-stroke');
-  }
+  svg.setAttribute('fill', 'currentColor');
+  svg.setAttribute('stroke', 'none');
   svg.setAttribute('width', size);
   svg.setAttribute('height', size);
   svg.setAttribute('focusable', 'false');
@@ -302,20 +353,16 @@ function createIcon(nameOrClass, opts = {}) {
   if (combinedClassName) svg.setAttribute('class', combinedClassName);
 
   if (!ICON_PATHS[name]) svg.setAttribute('data-missing-icon', String(nameOrClass || ''));
-  const paths = getIconPathItems(data);
+  const paths = getIconPathItems(data, name);
   paths.forEach((item) => {
     const pathData = typeof item === 'string' ? { d: item } : item;
     if (!pathData?.d) return;
     const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     p.setAttribute('d', pathData.d);
-    if (filled) {
-      p.setAttribute('fill', pathData.fill || 'currentColor');
-      p.setAttribute('stroke', pathData.stroke || 'none');
-      if (pathData.fillRule) p.setAttribute('fill-rule', pathData.fillRule);
-      if (pathData.clipRule) p.setAttribute('clip-rule', pathData.clipRule);
-    } else {
-      p.setAttribute('vector-effect', 'non-scaling-stroke');
-    }
+    p.setAttribute('fill', pathData.fill || 'currentColor');
+    p.setAttribute('stroke', pathData.stroke || 'none');
+    if (pathData.fillRule) p.setAttribute('fill-rule', pathData.fillRule);
+    if (pathData.clipRule) p.setAttribute('clip-rule', pathData.clipRule);
     svg.appendChild(p);
   });
   return svg;
@@ -325,9 +372,75 @@ function isFilledIconData(data) {
   return Boolean(data && typeof data === 'object' && !Array.isArray(data) && data.paths);
 }
 
-function getIconPathItems(data) {
+function getIconPathItems(data, name) {
   if (isFilledIconData(data)) return Array.isArray(data.paths) ? data.paths : [];
-  return Array.isArray(data) ? data : [data];
+  return legacyPathItemsToFilled(Array.isArray(data) ? data : [data], name);
+}
+
+function legacyPathItemsToFilled(items, name) {
+  return items.flatMap((d) => convertLegacyPathToFilled(d, name));
+}
+
+function convertLegacyPathToFilled(d, name) {
+  if (!d) return [];
+  if (/[zZ]/.test(d)) return [iconPath(d)];
+  const segments = extractLineSegments(d);
+  if (segments.length) return segments.map(([x1, y1, x2, y2]) => iconPath(cap(x1, y1, x2, y2, legacySurfaceWidth(name))));
+  return [iconPath(d)];
+}
+
+function legacySurfaceWidth(name) {
+  if (/chevron|arrow|check|xmark|plus|minus|line-3|list|hashtag|calendar|clock|wifi|download|share/.test(name)) return 2.05;
+  if (/user|file|envelope|folder|lock|shield|camera|door|table|qrcode/.test(name)) return 1.85;
+  return 1.95;
+}
+
+function extractLineSegments(d) {
+  const tokens = d.match(/[a-zA-Z]|-?\d*\.?\d+/g) || [];
+  const segments = [];
+  let i = 0;
+  let cmd = '';
+  let x = 0;
+  let y = 0;
+  let sx = 0;
+  let sy = 0;
+  const isCmd = (v) => /^[a-zA-Z]$/.test(v);
+  const num = () => Number(tokens[i++]);
+  while (i < tokens.length) {
+    if (isCmd(tokens[i])) cmd = tokens[i++];
+    const rel = cmd === cmd.toLowerCase();
+    const op = cmd.toUpperCase();
+    if (op === 'M') {
+      x = num(); y = num();
+      if (rel) { x += sx; y += sy; }
+      sx = x; sy = y;
+      cmd = rel ? 'l' : 'L';
+    } else if (op === 'L') {
+      while (i < tokens.length && !isCmd(tokens[i])) {
+        let nx = num(); let ny = num();
+        if (rel) { nx += x; ny += y; }
+        segments.push([x, y, nx, ny]);
+        x = nx; y = ny;
+      }
+    } else if (op === 'H') {
+      while (i < tokens.length && !isCmd(tokens[i])) {
+        let nx = num();
+        if (rel) nx += x;
+        segments.push([x, y, nx, y]);
+        x = nx;
+      }
+    } else if (op === 'V') {
+      while (i < tokens.length && !isCmd(tokens[i])) {
+        let ny = num();
+        if (rel) ny += y;
+        segments.push([x, y, x, ny]);
+        y = ny;
+      }
+    } else {
+      return [];
+    }
+  }
+  return segments;
 }
 
 function normalizeIconName(nameOrClass) {
