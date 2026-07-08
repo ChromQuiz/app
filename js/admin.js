@@ -27,7 +27,7 @@
         }
 
         const adminScriptLoads = {};
-        function loadAdminScriptOnce(src) {
+        function loadAdminScriptOnce(src, integrity) {
             if (adminScriptLoads[src]) return adminScriptLoads[src];
             adminScriptLoads[src] = new Promise((resolve, reject) => {
                 const existing = document.querySelector(`script[src="${src}"]`);
@@ -40,6 +40,11 @@
                 const script = document.createElement('script');
                 script.src = src;
                 script.defer = true;
+                // 外部CDNからの動的読込には SRI + crossorigin を付与して改ざんを遮断する。
+                if (integrity) {
+                    script.integrity = integrity;
+                    script.crossOrigin = 'anonymous';
+                }
                 script.onload = () => {
                     script.dataset.loaded = 'true';
                     resolve();
@@ -51,11 +56,11 @@
         }
 
         async function ensureJsPdfLoaded() {
-            if (!window.jspdf) await loadAdminScriptOnce('https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js');
+            if (!window.jspdf) await loadAdminScriptOnce('https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js', 'sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/');
         }
 
         async function ensureAdminPrepLoaded() {
-            if (!window.pdfjsLib) await loadAdminScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+            if (!window.pdfjsLib) await loadAdminScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', 'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e');
             await ensureJsPdfLoaded();
             if (!window.CV) await loadAdminScriptOnce('js/cv.js');
             if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
