@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
 
     if (error) {
       const message = error.message || '';
-      if (message.includes('Entry already checked in')) {
+      if (message.includes('Checked-in entry cannot be canceled') || message.includes('Entry already checked in')) {
         return jsonResponse({ error: '当日受付済みのため、キャンセルできません。変更が必要な場合は運営へ連絡してください。' }, 409);
       }
       return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
     }
     const message = error instanceof Error ? error.message : String(error);
-    if (message.includes('Entry already checked in')) {
+    if (message.includes('Checked-in entry cannot be canceled') || message.includes('Entry already checked in')) {
       return jsonResponse({ error: '当日受付済みのため、キャンセルできません。変更が必要な場合は運営へ連絡してください。' }, 409);
     }
     return serverErrorResponse(error, 'cancel-entry');

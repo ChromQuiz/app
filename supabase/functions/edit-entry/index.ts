@@ -111,21 +111,37 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'エントリーを更新できませんでした。' }, 500);
     }
 
+    const { error: recomputeError } = await supabase
+      .rpc('recompute_entry_statuses', {
+        p_project_id: projectId,
+        p_allow_waitlist_promotion: true,
+      });
+    if (recomputeError) throw recomputeError;
+
+    const { data: refreshed, error: refreshedError } = await supabase
+      .from('entries')
+      .select('id, entry_number, status')
+      .eq('id', entry.id)
+      .single();
+    if (refreshedError || !refreshed) {
+      return jsonResponse({ error: 'エントリーの更新結果を確認できませんでした。' }, 500);
+    }
+
     await logServiceEvent(supabase, {
       projectId,
       action: 'entry.edit',
-      targetId: String(updated.id),
+      targetId: String(refreshed.id),
       actorKind: 'participant',
       actorIpHash: await clientIpHash(req),
-      afterData: { status: updated.status },
+      afterData: { status: refreshed.status },
     });
 
     return jsonResponse({
       ok: true,
       entry: {
-        id: updated.id,
-        entryNumber: updated.entry_number,
-        status: updated.status,
+        id: refreshed.id,
+        entryNumber: refreshed.entry_number,
+        status: refreshed.status,
       },
     });
   } catch (error) {

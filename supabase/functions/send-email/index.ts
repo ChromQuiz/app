@@ -511,7 +511,7 @@ Deno.serve(async (req) => {
     const effectiveEntryId = entryId || String(data.entryId || '');
     const expectedEmailHash = String(data.emailHash || '');
     if (!effectiveEntryId || !expectedEmailHash) {
-      return jsonResponse({ error: 'Missing entry verification fields' }, 400);
+      return jsonResponse({ error: 'メール送信に必要なエントリー確認情報が不足しています。ページを再読み込みしてからもう一度お試しください。' }, 400);
     }
     const supabase = createServiceClient();
     const project = await getProjectForMail(supabase, effectiveProjectId);
@@ -555,6 +555,9 @@ Deno.serve(async (req) => {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Too many email requests')) {
       return jsonResponse({ error: message }, 429);
+    }
+    if (message.includes('Missing entry verification fields')) {
+      return jsonResponse({ error: 'メール送信に必要なエントリー確認情報が不足しています。ページを再読み込みしてからもう一度お試しください。' }, 400);
     }
     return serverErrorResponse(error, 'send-email');
   }
