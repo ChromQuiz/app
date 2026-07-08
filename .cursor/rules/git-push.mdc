@@ -1,14 +1,18 @@
 ---
-description: コード変更後は commit して remote へ push まで行う
+description: commit / push はユーザーが明示的に依頼した場合のみ実行する（自動 commit / push は禁止）
 alwaysApply: true
 ---
 
-# Git: 常に push まで
+# Git: 自動 commit / push 禁止
 
-コード変更を行ったセッションでは、ユーザーの明示的な依頼がなくても以下まで完了する:
+`git commit` と `git push` は、ユーザーが明示的に依頼した場合のみ実行する。
 
-1. 関連ファイルを stage する（秘密情報・`.env`・`js/config.local.js` は含めない）
+- コード変更を行っただけでは、自動で stage / commit / push しない。
+- 「変更が終わったら念のため commit しておく」といった先回りもしない。
+- コミット分割・履歴書き換え・`git push --force` などの破壊的操作は、明示依頼がある場合のみ、内容を提示して承認を得てから行う。
+
+ユーザーが commit / push を依頼した場合のみ、以下を行う:
+
+1. 関連ファイルのみを stage する（秘密情報・`.env`・`js/config.local.js` は含めない）
 2. 変更内容を反映した commit message で commit する
-3. `git push` で remote に push する
-
-push 前に `git status` で成功を確認する。push が失敗した場合は原因を報告し、可能なら修正して再 push する。
+3. 依頼されていれば `git push` で remote に push し、`git status` で結果を確認する
