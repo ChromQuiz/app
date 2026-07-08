@@ -117,3 +117,11 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - Edge Functions: `my-entry`(新設) / `_shared/participant_auth.ts`(トークン・レート制限) /
   edit-entry・cancel-entry・mark-late・disclose-result(トークン経路追加) / send-email(再設計)。
 - 不変条件: 静的HTML+vanilla JS+Supabase / CSP / textContent方針 / RLS前提 / DB変更はマイグレーション。
+
+### CSS Ownership
+
+- `css/design_system.css` owns generic UI: buttons, cards, form controls, badges, messages, steps, definition lists, modals, tables, empty/loading states, workbench cards, scoring controls, and touch/focus behavior.
+- `css/pages.css` may only define page shells, page layout, content typography, and workflow exceptions that cannot be expressed as a shared component variant.
+- Allowed page-specific exceptions include: index/login composition, admin phase layout, entry list responsive layout, terms Markdown article layout, check-in camera/result workflow, answer-prep PDF tooling, and one-off spacing overrides around shared components.
+- If a page-specific class starts looking reusable across two pages, promote it to `css/design_system.css` before adding a second definition.
+- Page-specific overrides must use design tokens and must not introduce new colors, shadows, gradients, radii, or button/message variants.
