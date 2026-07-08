@@ -33,8 +33,15 @@ function generateStrongPassword() {
 // 作成モードは #create でのみ到達する(参加者導線には出さない)
 function getStoredAuthIntent() {
     try {
-        if (sessionStorage.getItem('ciq:index:oauthPending') !== '1') return '';
-        return sessionStorage.getItem('ciq:index:intendedTab') || '';
+        const raw = localStorage.getItem('ciq:index:oauthIntent');
+        if (!raw) return '';
+        const data = JSON.parse(raw);
+        if (!data?.tab || !Number.isFinite(data.createdAt)) return '';
+        if (Date.now() - data.createdAt > 10 * 60 * 1000) {
+            clearAuthIntent();
+            return '';
+        }
+        return data.tab;
     } catch {
         return '';
     }
@@ -42,15 +49,16 @@ function getStoredAuthIntent() {
 
 function storeAuthIntent(tab) {
     try {
-        sessionStorage.setItem('ciq:index:oauthPending', '1');
-        sessionStorage.setItem('ciq:index:intendedTab', tab);
+        localStorage.setItem('ciq:index:oauthIntent', JSON.stringify({
+            tab,
+            createdAt: Date.now(),
+        }));
     } catch { /* ignore storage errors */ }
 }
 
 function clearAuthIntent() {
     try {
-        sessionStorage.removeItem('ciq:index:oauthPending');
-        sessionStorage.removeItem('ciq:index:intendedTab');
+        localStorage.removeItem('ciq:index:oauthIntent');
     } catch { /* ignore storage errors */ }
 }
 
