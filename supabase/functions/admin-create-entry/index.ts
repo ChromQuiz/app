@@ -1,5 +1,7 @@
 import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { clientIpHash } from '../_shared/rate_limit.ts';
+import { logServiceEvent } from '../_shared/audit.ts';
 
 type SupabaseClient = ReturnType<typeof createServiceClient>;
 
@@ -52,7 +54,7 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createServiceClient();
-    await requireAdminMember(supabase, req, projectId);
+    const member = await requireAdminMember(supabase, req, projectId);
 
     const { data: entry, error: insertError } = await supabase
       .rpc('create_entry_atomic', {
@@ -73,6 +75,16 @@ Deno.serve(async (req) => {
       if (mapped) return mapped;
       throw insertError;
     }
+
+    await logServiceEvent(supabase, {
+      projectId,
+      action: 'entry.create_by_staff',
+      targetId: entry?.id ? String(entry.id) : null,
+      actorKind: 'staff',
+      actorMemberId: member?.id ? String(member.id) : null,
+      actorIpHash: await clientIpHash(req),
+      afterData: entry?.status ? { status: entry.status } : null,
+    });
 
     return jsonResponse({ ok: true, entry });
   } catch (error) {

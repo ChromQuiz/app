@@ -33,6 +33,20 @@ function ratePepper(): string {
   return Deno.env.get('CIQ_RATE_LIMIT_PEPPER') || signingSecret();
 }
 
+/**
+ * 実クライアントIPを HMAC 化して返す(監査ログ用)。生IPは保存も返却もしない。
+ * IP不明・pepper導出失敗時は '' を返す(記録は継続=fail-open)。
+ */
+export async function clientIpHash(req: Request): Promise<string> {
+  const ip = clientIp(req);
+  if (!ip || ip === 'unknown') return '';
+  try {
+    return await hmacHex(ratePepper(), ip);
+  } catch {
+    return '';
+  }
+}
+
 /** env上書き対応の正の整数取得。未設定・不正なら既定値。 */
 function intEnv(name: string, fallback: number): number {
   const v = Number(Deno.env.get(name));

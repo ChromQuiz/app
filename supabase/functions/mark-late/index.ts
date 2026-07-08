@@ -2,7 +2,8 @@ import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/htt
 import { createServiceClient } from '../_shared/supabase.ts';
 import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
 import { SigningConfigError } from '../_shared/signing.ts';
-import { clientIp } from '../_shared/rate_limit.ts';
+import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
+import { logServiceEvent } from '../_shared/audit.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -46,6 +47,15 @@ Deno.serve(async (req) => {
     if (updateError || !updated) {
       return jsonResponse({ error: '遅刻届け出を保存できませんでした。' }, 500);
     }
+
+    await logServiceEvent(supabase, {
+      projectId,
+      action: 'entry.mark_late',
+      targetId: String(updated.id),
+      actorKind: 'participant',
+      actorIpHash: await clientIpHash(req),
+      afterData: { status: updated.status },
+    });
 
     return jsonResponse({
       ok: true,

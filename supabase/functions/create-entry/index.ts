@@ -1,6 +1,7 @@
 import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { clientIp, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
+import { clientIp, clientIpHash, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
+import { logServiceEvent } from '../_shared/audit.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -48,6 +49,15 @@ Deno.serve(async (req) => {
       }
       throw insertError;
     }
+
+    await logServiceEvent(supabase, {
+      projectId,
+      action: 'entry.create',
+      targetId: entry?.id ? String(entry.id) : null,
+      actorKind: 'participant',
+      actorIpHash: await clientIpHash(req),
+      afterData: entry?.status ? { status: entry.status } : null,
+    });
 
     return jsonResponse({ ok: true, entry });
   } catch (error) {

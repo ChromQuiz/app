@@ -2,7 +2,8 @@ import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/htt
 import { createServiceClient } from '../_shared/supabase.ts';
 import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
 import { SigningConfigError } from '../_shared/signing.ts';
-import { clientIp } from '../_shared/rate_limit.ts';
+import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
+import { logServiceEvent } from '../_shared/audit.ts';
 
 Deno.serve(async (req) => {
   const options = handleOptions(req);
@@ -43,6 +44,16 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
     }
     if (!data) return jsonResponse({ error: 'メールアドレスまたはパスワードが正しくありません。' }, 404);
+
+    await logServiceEvent(supabase, {
+      projectId,
+      action: 'entry.cancel',
+      targetId: data.canceled_entry_id ? String(data.canceled_entry_id) : null,
+      actorKind: 'participant',
+      actorIpHash: await clientIpHash(req),
+      afterData: { status: 'canceled' },
+    });
+
     return jsonResponse({
       ok: true,
       canceledEntry: {

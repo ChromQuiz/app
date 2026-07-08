@@ -1,5 +1,7 @@
 import { handleOptions, jsonResponse, serverErrorResponse } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { clientIpHash } from '../_shared/rate_limit.ts';
+import { logServiceEvent } from '../_shared/audit.ts';
 
 async function requireProjectMember(supabase: ReturnType<typeof createServiceClient>, req: Request, projectId: string) {
   const authHeader = req.headers.get('authorization') || '';
@@ -29,7 +31,7 @@ Deno.serve(async (req) => {
     if (!projectId || !action) return jsonResponse({ error: '当日受付のリクエスト情報が不足しています。ページを開き直してください。' }, 400);
 
     const supabase = createServiceClient();
-    await requireProjectMember(supabase, req, projectId);
+    const member = await requireProjectMember(supabase, req, projectId);
 
     if (action === 'stats') {
       const { data: entries, error } = await supabase
@@ -93,6 +95,16 @@ Deno.serve(async (req) => {
     if (updateError || !updated) {
       return jsonResponse({ error: '受付対象外になりました。最新の状態を確認してください。' }, 409);
     }
+
+    await logServiceEvent(supabase, {
+      projectId,
+      action: 'entry.checkin',
+      targetId: String(updated.id),
+      actorKind: 'staff',
+      actorMemberId: member?.id ? String(member.id) : null,
+      actorIpHash: await clientIpHash(req),
+      afterData: { checked_in: true },
+    });
 
     return jsonResponse({
       ok: true,
