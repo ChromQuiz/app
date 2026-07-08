@@ -541,6 +541,17 @@ body.page-wrapper {
   background: var(--surface-2);
 }
 
+#verify-msg.page-msg {
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
+  border: 0;
+  border-left: 3px solid currentColor;
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--fs-13);
+  font-weight: 500;
+}
+
 .entry-verify-help {
   margin-top: var(--sp-3);
   padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);

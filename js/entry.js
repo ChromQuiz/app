@@ -228,7 +228,7 @@ async function resendVerification() {
     verifySignature = result.signature;
     verifyExpiresAt = result.expiresAt;
     setVerifyCodeValue('');
-    showVerifyMsg(`${email} に認証コードを再送信しました。`, 'success');
+    showVerifyMsg(`${email} に認証コードを送信しました。`, 'success');
     showVerificationMailboxHelp();
     startResendCooldown();
 }
@@ -265,7 +265,7 @@ async function sendVerification() {
     document.getElementById('f-email').disabled = true;
     showEl(document.getElementById('code-input-area'));
     hideEl(btn);
-    showVerifyMsg(`${email} に6桁の認証コードを送信しました。`, 'success');
+    showVerifyMsg(`${email} に認証コードを送信しました。`, 'success');
     showVerificationMailboxHelp();
     focusVerifyCodeBox(0);
     startResendCooldown();
