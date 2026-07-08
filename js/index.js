@@ -31,13 +31,32 @@ function generateStrongPassword() {
 }
 
 // 作成モードは #create でのみ到達する(参加者導線には出さない)
+function getStoredAuthIntent() {
+    try {
+        if (sessionStorage.getItem('ciq:index:oauthPending') !== '1') return '';
+        return sessionStorage.getItem('ciq:index:intendedTab') || '';
+    } catch {
+        return '';
+    }
+}
+
+function storeAuthIntent(tab) {
+    try {
+        sessionStorage.setItem('ciq:index:oauthPending', '1');
+        sessionStorage.setItem('ciq:index:intendedTab', tab);
+    } catch { /* ignore storage errors */ }
+}
+
+function clearAuthIntent() {
+    try {
+        sessionStorage.removeItem('ciq:index:oauthPending');
+        sessionStorage.removeItem('ciq:index:intendedTab');
+    } catch { /* ignore storage errors */ }
+}
+
 function tabFromLocation() {
     if (location.hash === '#create') return 'create';
-    try {
-        return sessionStorage.getItem('ciq:index:intendedTab') === 'create' ? 'create' : 'join';
-    } catch {
-        return 'join';
-    }
+    return 'join';
 }
 
 let currentTab = tabFromLocation();
@@ -105,10 +124,7 @@ function getPublicIndexUrl() {
 
 function setTab(tab) {
     currentTab = tab;
-    try {
-        if (tab === 'create') sessionStorage.setItem('ciq:index:intendedTab', 'create');
-        else sessionStorage.removeItem('ciq:index:intendedTab');
-    } catch { /* ignore storage errors */ }
+    if (tab !== 'create') clearAuthIntent();
     const joinSection = document.getElementById('section-join');
     const createSection = document.getElementById('section-create');
     const signedIn = Boolean(supabaseSession?.user);
@@ -129,6 +145,12 @@ function renderSupabaseAuth(sessionData) {
     const panel = document.getElementById('supabase-auth-panel');
     if (!panel || !useSupabaseAuth()) return;
     panel.hidden = false;
+
+    const authIntent = getStoredAuthIntent();
+    if (sessionData?.user && authIntent) {
+        currentTab = authIntent === 'create' ? 'create' : 'join';
+        clearAuthIntent();
+    }
 
     const userEl = document.getElementById('supabase-auth-user');
     const loginBtn = document.getElementById('supabase-login-btn');
@@ -274,9 +296,7 @@ async function signInWithSupabaseGoogle() {
         return;
     }
     try {
-        try {
-            sessionStorage.setItem('ciq:index:intendedTab', currentTab);
-        } catch { /* ignore storage errors */ }
+        storeAuthIntent(currentTab);
         await CIQSupabaseAPI.signInWithGoogle();
     } catch (e) {
         showError('Googleサインインを開始できませんでした: ' + e.message);
@@ -375,6 +395,11 @@ function setupIndexEvents() {
     document.getElementById('supabase-logout-btn')?.addEventListener('click', signOutSupabase);
     document.getElementById('tab-join')?.addEventListener('click', () => setTab('join'));
     document.getElementById('tab-create')?.addEventListener('click', () => setTab('create'));
+    document.getElementById('index-join-link')?.addEventListener('click', (event) => {
+        event.preventDefault();
+        history.replaceState(null, '', location.pathname + location.search);
+        setTab('join');
+    });
     document.getElementById('join-scorer-btn')?.addEventListener('click', joinProjectAsScorer);
     document.getElementById('create-btn')?.addEventListener('click', createProject);
     document.querySelectorAll('[data-copy-target]').forEach((button) => {
