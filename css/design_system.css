@@ -145,6 +145,7 @@
   --container-narrow: 520px;
   --container-mid: 880px;
   --container-wide: 1600px;
+  --wide-gutter: clamp(24px, 4vw, 64px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -2218,7 +2219,8 @@ tbody tr:hover {
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--sp-3);
   padding: var(--sp-5) var(--sp-4) calc(180px + env(safe-area-inset-bottom));
-  max-width: var(--container-wide);
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+  max-width: 100%;
   margin: 0 auto;
   scroll-padding-top: 96px;
   scroll-padding-bottom: calc(160px + env(safe-area-inset-bottom));

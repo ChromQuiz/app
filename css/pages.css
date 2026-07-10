@@ -284,7 +284,7 @@ body.page-wrapper {
 }
 
 .page-container.full {
-  width: min(var(--container-wide), 100%);
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
 }
 
 /* 大会名ヘッダー — 大会が主役、CIQ は黒衣 */
@@ -1300,7 +1300,7 @@ body.page-wrapper:has(#terms-card) .page-container {
    admin.html — フェーズタイムライン
    ============================================================ */
 .admin-container {
-  width: min(var(--container-mid), calc(100vw - var(--sp-8)));
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
   max-width: 100%;
   margin: 0 auto;
   padding:
@@ -1312,10 +1312,10 @@ body.page-wrapper:has(#terms-card) .page-container {
 /* 参加者表・答案・集計のみに付与するwide breakout契約 */
 .admin-container .is-wide,
 .admin-container .wide-breakout {
-  width: min(var(--container-wide), calc(100vw - var(--sp-8)));
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
   max-width: none;
   margin-inline:
-    calc(50% - min(calc(50vw - var(--sp-4)), 800px));
+    calc(50% - min(calc(50vw - (var(--wide-gutter) / 2)), 800px));
 }
 
 .phase-quick-nav {
@@ -1907,7 +1907,8 @@ body.page-wrapper:has(#terms-card) .page-container {
    judge.html — 採点ボード
    ============================================================ */
 .judge-main {
-  max-width: var(--container-wide);
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+  max-width: 100%;
   margin: 0 auto;
   padding:
     var(--sp-6)
@@ -2080,8 +2081,8 @@ body.page-checkin .main-content {
     calc(var(--sp-5) + env(safe-area-inset-right))
     calc(var(--sp-6) + env(safe-area-inset-bottom))
     calc(var(--sp-5) + env(safe-area-inset-left));
-  max-width: var(--container-wide);
-  width: 100%;
+  max-width: 100%;
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
   margin: 0 auto;
   align-items: stretch;
 }
