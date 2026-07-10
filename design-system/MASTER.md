@@ -94,6 +94,10 @@ font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
 font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace; /* 数値専用 */
 ```
 - H1 26–32px/700(1画面1つ) / H2 18–24px/600 / H3 16–22px/600(H4以下は使わない)
+- **LP/公開画面のヒーローは例外**: `.hero-title`(`clamp(2.5rem, 7vw, 4.5rem)` / `letter-spacing: -0.022em`) と
+  `.hero-subtitle`(`clamp(1.125rem, 2.5vw, 1.5rem)`) を `design_system.css` に共有コンポーネントとして持つ。
+  H1のサイズ制約は管理画面の本文H1に適用し、ヒーローは独立クラスで Apple.com の強い見出しを再現する。
+  適用範囲は index / entry / 404 等の入口・LP 限定。運営・採点画面では使わない。
 - 本文 16px/400/lh1.7、補足 13px/400/Sub色、ボタン 15px/500–600、フォーム入力 ≥16px
 - テーブル: セル14px、ヘッダ12px/600/+0.06em
 - Canvas生成画像も同じApple stackを使い、`IBM Plex` / `Inter` などの外部フォント前提にしない。

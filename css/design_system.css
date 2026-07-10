@@ -85,9 +85,15 @@
   --fs-32: 2rem;
   --fs-40: 2.5rem;
   --fs-56: 3.5rem;
+  --fs-64: 4rem;
+  --fs-72: 4.5rem;
   --lh-tight: 1.25;
   --lh-body: 1.7;
   --ls-caps: 0.06em;
+  --ls-hero: -0.022em;
+
+  /* --- Hero / section rhythm(LP・公開画面の呼吸する余白) --- */
+  --section-gap: clamp(64px, 10vw, 160px);
 
   /* --- Spacing (4px base) --- */
   --sp-1: 4px;
@@ -935,6 +941,162 @@ svg[width="24"][stroke="currentColor"] {
 .hint [data-icon],
 .info-hint [data-icon] {
   margin-top: 0.25em;
+}
+
+/* ============================================================
+   5b. HERO & STRUCTURAL NAVIGATION(LP・公開画面用)
+   ------------------------------------------------------------
+   Apple.com のヒーロー/タイル美学を再利用可能な形で。
+   余白・タイポグラフィ・罫線で語る(装飾なし)。
+   ============================================================ */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  text-align: center;
+  padding: var(--section-gap) var(--sp-4) var(--sp-9);
+  max-width: min(880px, 100%);
+  margin: 0 auto;
+}
+
+.hero-eyebrow {
+  font-family: var(--font-display);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, var(--fs-72));
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: var(--ls-hero);
+  color: var(--ink);
+}
+
+.hero-subtitle {
+  font-size: clamp(var(--fs-18), 2.5vw, var(--fs-24));
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--ink-2);
+  max-width: 32em;
+}
+
+/* 役割/導線の構造的グリッド — Apple のタイル群 */
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--sp-4);
+  width: min(var(--container-mid), 100%);
+  margin: 0 auto;
+}
+
+.role-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: 180px;
+  padding: var(--sp-7) var(--sp-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-grouped);
+  text-align: left;
+  text-decoration: none;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color var(--t-micro) var(--ease),
+    background var(--t-micro) var(--ease);
+}
+
+.role-tile:hover {
+  border-color: var(--ink-3);
+  background: var(--surface-2);
+  text-decoration: none;
+}
+
+.role-tile:focus-visible {
+  outline: var(--focus-width) solid var(--accent);
+  outline-offset: var(--focus-offset);
+}
+
+.role-tile-eyebrow {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.role-tile-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-21);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.role-tile-desc {
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.role-tile-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-top: auto;
+  padding-top: var(--sp-3);
+  font-size: var(--fs-15);
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.role-tile-cta [data-icon],
+.role-tile-cta svg {
+  transition: transform var(--t-micro) var(--ease);
+}
+
+.role-tile:hover .role-tile-cta [data-icon],
+.role-tile:hover .role-tile-cta svg {
+  transform: translateX(2px);
+}
+
+/* 下部の「さらに詳しく」型矢印導線リスト */
+.nav-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-6);
+}
+
+.nav-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: var(--control-h-sm);
+  font-size: var(--fs-14);
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.nav-tile [data-icon],
+.nav-tile svg {
+  transition: transform var(--t-micro) var(--ease);
+}
+
+.nav-tile:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.nav-tile:hover [data-icon],
+.nav-tile:hover svg {
+  transform: translateX(2px);
 }
 
 /* ============================================================

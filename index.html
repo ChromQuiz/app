@@ -20,15 +20,39 @@
   <script defer src="js/icons.js?v=7"></script>
   <script defer src="js/ui.js?v=8"></script>
   <script defer src="js/shared.js?v=2"></script>
-  <link rel="stylesheet" href="css/design_system.css?v=42">
-  <link rel="stylesheet" href="css/pages.css?v=66">
+  <link rel="stylesheet" href="css/design_system.css?v=43">
+  <link rel="stylesheet" href="css/pages.css?v=67">
 </head>
 
 <body class="page-index">
-  <h1>CIQ</h1>
-  <p class="index-tagline">クイズ大会のペーパー運営を、エントリーから成績返却まで。</p>
+  <header class="hero">
+    <p class="hero-eyebrow">CIQ</p>
+    <h1 class="hero-title">クイズ大会の<br>ペーパー運営を。</h1>
+    <p class="hero-subtitle">エントリーから成績返却まで。誤採点・誤公開・受付の滞留を構造的に防ぐ。</p>
+  </header>
 
-  <div class="card">
+  <nav class="role-grid" aria-label="目的を選ぶ">
+    <a class="role-tile" href="#create">
+      <span class="role-tile-eyebrow">主催者</span>
+      <span class="role-tile-title">大会を主催する</span>
+      <span class="role-tile-desc">プロジェクトを作成し、エントリーから採点・成績公開までを一元管理します。</span>
+      <span class="role-tile-cta">はじめる <span data-icon="arrow-right" aria-hidden="true"></span></span>
+    </a>
+    <a class="role-tile" href="#join">
+      <span class="role-tile-eyebrow">採点者</span>
+      <span class="role-tile-title">採点に参加する</span>
+      <span class="role-tile-desc">プロジェクトIDとパスワードで入室し、答案の採点を始めます。</span>
+      <span class="role-tile-cta">入室する <span data-icon="arrow-right" aria-hidden="true"></span></span>
+    </a>
+    <a class="role-tile" href="help.html">
+      <span class="role-tile-eyebrow">参加者</span>
+      <span class="role-tile-title">エントリー・成績</span>
+      <span class="role-tile-desc">エントリーや成績照会は、大会ごとの専用リンクから行います。</span>
+      <span class="role-tile-cta">使い方を見る <span data-icon="arrow-right" aria-hidden="true"></span></span>
+    </a>
+  </nav>
+
+  <div class="card" id="join">
     <div class="auth-page-header">
       <h2 id="index-mode-title">ログイン</h2>
     </div>
@@ -93,10 +117,10 @@
     </div>
   </div>
 
-  <div class="index-help-link-wrap">
-    <a href="#" class="index-help-link u-hidden" id="index-join-link">採点者の方はこちら</a>
-    <a href="#create" class="index-help-link" id="index-create-link">大会を主催する方へ</a>
-    <a href="help.html" class="index-help-link">ヘルプ</a>
+  <div class="nav-tiles">
+    <a href="#" class="nav-tile u-hidden" id="index-join-link">採点者の方はこちら <span data-icon="arrow-right" aria-hidden="true"></span></a>
+    <a href="#create" class="nav-tile" id="index-create-link">大会を主催する方へ <span data-icon="arrow-right" aria-hidden="true"></span></a>
+    <a href="help.html" class="nav-tile">ヘルプ <span data-icon="arrow-right" aria-hidden="true"></span></a>
   </div>
   <script defer src="js/index.js?v=15"></script>
 </body>

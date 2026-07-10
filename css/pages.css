@@ -13,32 +13,38 @@ body.page-index {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--sp-4);
   padding:
-    calc(var(--sp-8) + env(safe-area-inset-top))
+    calc(var(--sp-4) + env(safe-area-inset-top))
     calc(var(--sp-4) + env(safe-area-inset-right))
-    calc(var(--sp-8) + env(safe-area-inset-bottom))
+    calc(var(--sp-10) + env(safe-area-inset-bottom))
     calc(var(--sp-4) + env(safe-area-inset-left));
   background: var(--canvas);
 }
 
-/* ロゴタイプ */
-body.page-index > h1 {
-  font-family: var(--font-display);
-  font-size: var(--fs-26);
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  margin-right: -0.18em;
-  color: var(--ink);
+/* hero は design_system.css の .hero に委譲。
+   index 固有の調整のみここで。 */
+body.page-index .hero {
+  padding-top: clamp(var(--sp-9), 12vh, var(--section-gap));
 }
 
-.index-tagline {
-  font-size: var(--fs-15);
-  color: var(--ink-2);
-  text-align: center;
-  margin-bottom: var(--sp-4);
-  max-width: 40ch;
+/* ロールグリッドとフォームの間の呼吸する余白 */
+body.page-index .role-grid {
+  margin-bottom: var(--section-gap);
+}
+
+/* ログイン/作成フォームカードの幅は従来通り維持(JS依存不変) */
+body.page-index .card {
+  width: min(420px, 100%);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 下部導線(nav-tiles 化) */
+body.page-index .index-help-link-wrap {
+  margin-top: var(--sp-9);
 }
 
 body.page-index .card {
