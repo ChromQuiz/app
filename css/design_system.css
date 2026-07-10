@@ -142,8 +142,8 @@
   --control-h: 44px;      /* touch target */
   --control-h-sm: 44px;
   --appbar-h: 56px;
-  --container-narrow: 1600px;
-  --container-mid: 1600px;
+  --container-narrow: 520px;
+  --container-mid: 880px;
   --container-wide: 1600px;
 }
 

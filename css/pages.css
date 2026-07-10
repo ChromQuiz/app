@@ -38,11 +38,11 @@ body.page-index > h1 {
   color: var(--ink-2);
   text-align: center;
   margin-bottom: var(--sp-4);
-  max-width: var(--container-wide);
+  max-width: 40ch;
 }
 
 body.page-index .card {
-  width: min(var(--container-wide), 100%);
+  width: min(420px, 100%);
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -704,13 +704,13 @@ body.page-wrapper {
    ============================================================ */
 .terms-body {
   width: 100%;
-  max-width: var(--container-wide);
+  max-width: 760px;
   font-size: var(--fs-15);
   line-height: 1.9;
 }
 
 body.page-wrapper:has(#terms-card) .page-container {
-  width: min(var(--container-wide), 100%);
+  width: min(840px, 100%);
 }
 
 #terms-card {
@@ -1300,7 +1300,7 @@ body.page-wrapper:has(#terms-card) .page-container {
    admin.html — フェーズタイムライン
    ============================================================ */
 .admin-container {
-  width: min(var(--container-wide), calc(100vw - var(--sp-8)));
+  width: min(var(--container-mid), calc(100vw - var(--sp-8)));
   max-width: 100%;
   margin: 0 auto;
   padding:
@@ -2304,7 +2304,7 @@ body.page-help {
 }
 
 .help-container {
-  max-width: var(--container-wide);
+  max-width: 760px;
   margin: 0 auto;
 }
 

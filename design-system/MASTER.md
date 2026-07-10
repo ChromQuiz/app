@@ -105,7 +105,7 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - 面は plain section / grouped surface / overlay の3役に限定する。Grouped list は単一の外枠と行間の hairline で構成し、行ごとの入れ子カードを作らない。
 - 影は実質廃止(`--sh-3`のオーバーレイのみ)。区切りは1px罫線と余白で表す。
 - Motion 150–250ms fade/slide のみ。`prefers-reduced-motion` 全停止
-- 幅: 全ページの主要コンテナ・本文・リスト・管理面・採点ボードは1600pxまで使う。Macの高解像度・広幅画面では余白を余らせすぎず、ページ全体が作業面として広がる。小型入力、QR、モーダルなど部品単位の適正幅は個別に維持する。タッチターゲット44px。フォーカスリング3px
+- 幅: ログイン・本人確認・フォーム・ヘルプ/規約本文は集中できる狭幅(概ね520〜840px)を維持する。一覧、管理表、答案、集計、採点ボード、チェックインなど作業面だけ1600pxまで広げる。Macの高解像度・広幅画面では作業面の余白を余らせすぎず、入力/読書画面は伸ばしすぎない。タッチターゲット44px。フォーカスリング3px
 - Z: sticky10 / appbar20 / dropdown30 / drawer40 / modal50 / toast60 / max70
 
 ### Accessibility
