@@ -1,7 +1,7 @@
 /**
  * CIQ 共通 UI ユーティリティ (ui.js)
  * db.js の後に読み込むこと。
- * 注意: createIcon は js/icons.js で定義されるCIQ Symbols生成関数。
+ * 注意: createIcon は js/icons.js で定義されるLucideベースのアイコン生成関数。
  */
 
 function padNum(n) { return String(n).padStart(3, '0'); }

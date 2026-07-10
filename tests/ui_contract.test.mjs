@@ -106,6 +106,40 @@ describe('production UI contracts', () => {
       expect(source, `${path}: keyboard activation`).toMatch(/event\.key === 'Enter'|event\.key !== 'Enter'/);
     }
   });
+
+  it('maps all product icon names to bundled Lucide icons', () => {
+    const icons = read('js/icons.js');
+    expect(icons).toContain('Lucide adapter');
+    expect(icons).toContain('data-lucide');
+
+    const aliasObjectSource = icons.match(/const ICON_ALIASES = (\{[\s\S]*?\n\});/)?.[1];
+    expect(aliasObjectSource).toBeTruthy();
+    const aliases = Function(`return (${aliasObjectSource})`)();
+    const used = new Set();
+    for (const { source } of pageSources()) {
+      for (const match of source.matchAll(/data-icon="([^"]+)"/g)) used.add(match[1]);
+    }
+    for (const sourcePath of [
+      'js/admin.js',
+      'js/admin_scan.js',
+      'js/admin_settings.js',
+      'js/admin_stats.js',
+      'js/checkin.js',
+      'js/conflict.js',
+      'js/entry.js',
+      'js/entry_list.js',
+      'js/index.js',
+      'js/judge.js',
+      'js/question.js',
+      'js/ui.js',
+    ]) {
+      const source = read(sourcePath);
+      for (const match of source.matchAll(/createIcon\('([^']+)'/g)) used.add(match[1]);
+    }
+
+    const missing = Array.from(used).filter((name) => !aliases[name]).sort();
+    expect(missing).toEqual([]);
+  });
 });
 
 describe('design-system contracts', () => {

@@ -111,11 +111,11 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - `prefers-reduced-motion: reduce`、`prefers-contrast: more`、`forced-colors: active` に対応し、200%ズームで情報や操作を欠落させない。
 
 ### Icons
-- Web上ではSF Symbols本体を同梱しない。`js/icons.js` の自前SVGを唯一のアイコンソースとし、SF Symbols風の24pxグリッド・細い丸線・十分な内側余白で統一する。
-- 外部アイコンセット名や旧クラス文字列をコードに残さない。`createIcon()` にはCIQ Symbol名だけを渡す。
-- 新しいアイコンが必要な場合は `ICON_PATHS` に追加し、`currentColor` / `fill="none"` / `stroke-width: 1.8` / `round cap+join` に従う。
+- Web上ではSF Symbols本体を同梱しない。`js/icons.js` は既存のCIQ論理名をLucide SVGへ解決するアダプタとする。
+- HTML/JSからは `createIcon('trash')` / `data-icon="trash"` のようなCIQ論理名だけを使い、Lucideの実名は `ICON_ALIASES` に閉じ込める。
+- Lucideは必要なSVG node dataだけをローカルにバンドルし、ランタイムCDNへ依存しない。ライセンスは `assets/vendor/lucide/LICENSE` に保持する。
+- 新しいアイコンが必要な場合はLucideから対応名を選び、`ICON_ALIASES` とバンドル済みnode dataを同期する。`currentColor` / `fill="none"` / `stroke-width="2"` / `round cap+join` を維持する。
 - 欠落アイコンを `circle-question` のまま放置しない。四角表示・途切れ・異なる太さを見つけたらレジストリ側で直す。
-- Apple UI/UX 刷新ではアイコンは別トラックの制作対象とし、`js/icons.js`、SVG、ギャラリー、faviconは変更しない。
 
 ## 6. 運営共通シェル
 

@@ -367,7 +367,7 @@ body.body-scroll-locked {
 }
 
 /* ============================================================
-   3. ICONS  (js/icons.js が SF Symbols 風 SVG を注入)
+   3. ICONS  (js/icons.js が Lucide SVG を注入)
    ============================================================ */
 [data-icon] {
   display: inline-flex;
@@ -389,7 +389,7 @@ body.body-scroll-locked {
   stroke-width: 1.9;
 }
 
-svg[data-ciq-symbol-style="sf-like"],
+svg[data-lucide],
 svg[width="24"][stroke="currentColor"] {
   display: inline-block;
   width: 1.1em;
