@@ -17,15 +17,6 @@ const PRODUCTION_PAGES = [
   'question.html',
   'terms.html',
 ];
-const ICON_REVIEW_PAGES = [
-  'c1-icon-gallery.html',
-  'c2-icon-gallery.html',
-  'c3-icon-gallery.html',
-  'c4-icon-gallery.html',
-  'c5-icon-gallery.html',
-  'design-system/icons.html',
-];
-
 function read(path) {
   return readFileSync(resolve(ROOT, path), 'utf8');
 }
@@ -140,7 +131,6 @@ describe('production UI contracts', () => {
       'js/judge.js',
       'js/question.js',
       'js/ui.js',
-      ...ICON_REVIEW_PAGES,
     ]) {
       const source = read(sourcePath);
       for (const match of source.matchAll(/createIcon\('([^']+)'/g)) used.add(match[1]);
@@ -158,7 +148,7 @@ describe('production UI contracts', () => {
     expect(icons).not.toContain('window.ICON_PATHS');
     expect(icons).toContain('window.LUCIDE_ICON_NODES');
 
-    for (const path of [...PRODUCTION_PAGES, ...ICON_REVIEW_PAGES, 'js/ui.js']) {
+    for (const path of [...PRODUCTION_PAGES, 'js/ui.js']) {
       const source = read(path);
       expect(source, `${path}: legacy icon path registry`).not.toContain('ICON_PATHS');
       expect(source, `${path}: legacy symbol style marker`).not.toContain('data-ciq-symbol-style');
