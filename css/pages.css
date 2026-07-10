@@ -38,11 +38,11 @@ body.page-index > h1 {
   color: var(--ink-2);
   text-align: center;
   margin-bottom: var(--sp-4);
-  max-width: 34em;
+  max-width: var(--container-wide);
 }
 
 body.page-index .card {
-  width: min(560px, 100%);
+  width: min(var(--container-wide), 100%);
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -704,13 +704,13 @@ body.page-wrapper {
    ============================================================ */
 .terms-body {
   width: 100%;
-  max-width: 720px;
+  max-width: var(--container-wide);
   font-size: var(--fs-15);
   line-height: 1.9;
 }
 
 body.page-wrapper:has(#terms-card) .page-container {
-  width: min(1040px, 100%);
+  width: min(var(--container-wide), 100%);
 }
 
 #terms-card {
@@ -1300,7 +1300,7 @@ body.page-wrapper:has(#terms-card) .page-container {
    admin.html — フェーズタイムライン
    ============================================================ */
 .admin-container {
-  width: min(980px, calc(100vw - var(--sp-8)));
+  width: min(var(--container-wide), calc(100vw - var(--sp-8)));
   max-width: 100%;
   margin: 0 auto;
   padding:
@@ -2077,7 +2077,7 @@ body.page-checkin .main-content {
     calc(var(--sp-5) + env(safe-area-inset-right))
     calc(var(--sp-6) + env(safe-area-inset-bottom))
     calc(var(--sp-5) + env(safe-area-inset-left));
-  max-width: 1400px;
+  max-width: var(--container-wide);
   width: 100%;
   margin: 0 auto;
   align-items: stretch;
@@ -2301,7 +2301,7 @@ body.page-help {
 }
 
 .help-container {
-  max-width: 720px;
+  max-width: var(--container-wide);
   margin: 0 auto;
 }
 
