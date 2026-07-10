@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
-    <title>CIQ Symbols — アイコンギャラリー</title>
-    <script defer src="../js/icons.js?v=6"></script>
+    <title>CIQ Icons — Lucide ギャラリー</title>
+    <script defer src="../js/icons.js?v=7"></script>
     <style>
         :root {
             color-scheme: light dark;
@@ -72,7 +72,7 @@
 </head>
 <body>
     <header>
-        <h1>CIQ Symbols</h1>
+        <h1>CIQ Icons / Lucide</h1>
         <span class="meta" id="count"></span>
         <label class="ctl">stroke
             <input type="range" id="stroke" min="1.4" max="2.0" step="0.05">
@@ -83,8 +83,8 @@
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             const grid = document.getElementById('grid');
-            const names = Object.keys(ICON_PATHS);
-            document.getElementById('count').textContent = `${names.length} symbols`;
+            const names = Object.keys(window.CIQ_ICON_ALIASES || {}).sort();
+            document.getElementById('count').textContent = `${names.length} aliases`;
 
             names.forEach((name) => {
                 const cell = document.createElement('div');

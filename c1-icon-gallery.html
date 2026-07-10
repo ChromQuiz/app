@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>C1 コアマーク レビューギャラリー</title>
+<title>Lucide C1 コアマーク レビューギャラリー</title>
 <style>
   body { margin: 0; font-family: -apple-system, system-ui, sans-serif; font-size: 12px; }
   .panel { padding: 12px 16px; }
@@ -18,7 +18,7 @@
   .ctx { margin-top: 8px; font-size: 13px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
   .ctx span[data-icon] { vertical-align: -3px; }
 </style>
-<script src="js/icons.js" defer></script>
+<script src="js/icons.js?v=7" defer></script>
 </head>
 <body>
 <div class="panel light" id="light"></div>
@@ -27,7 +27,7 @@
 const KEYS = [
   'chevron-right','chevron-left','chevron-down','arrow-right','arrow-left',
   'xmark','plus','minus','check','check-double','ellipsis','line-3-horizontal',
-  'hashtag','percent','percent-ring','home',
+  'hashtag','percent','badge-percent','home',
 ];
 
 function buildPanel(root, mode) {
@@ -87,13 +87,6 @@ function magnify(td, key, color) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  // percent のリング比較案（ギャラリー限定・レジストリ非改変の一時キー）
-  const solidPercent = window.ICON_PATHS['percent'].paths;
-  window.ICON_PATHS['percent-ring'] = { paths: [
-    { d: 'M7 7m-2.95 0a2.95 2.95 0 1 0 5.9 0a2.95 2.95 0 1 0 -5.9 0M7 7m-1.35 0a1.35 1.35 0 1 0 2.7 0a1.35 1.35 0 1 0 -2.7 0', fillRule: 'evenodd' },
-    { d: 'M17 17m-2.95 0a2.95 2.95 0 1 0 5.9 0a2.95 2.95 0 1 0 -5.9 0M17 17m-1.35 0a1.35 1.35 0 1 0 2.7 0a1.35 1.35 0 1 0 -2.7 0', fillRule: 'evenodd' },
-    solidPercent[2],
-  ] };
   buildPanel(document.getElementById('light'), 'light');
   buildPanel(document.getElementById('dark'), 'dark');
   document.querySelectorAll('#light [data-mag-key]').forEach((td) => magnify(td, td.dataset.magKey, '#000'));

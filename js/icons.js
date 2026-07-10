@@ -8,7 +8,7 @@
  * Source: https://github.com/lucide-icons/lucide
  */
 
-const LUCIDE_LICENSE = "ISC License\n\nCopyright (c) 2026 Lucide Icons and Contributors\n\nPermission to use, copy, modify, and/or distribute this software for any\npurpose with or without fee is hereby granted, provided that the above\ncopyright notice and this permission notice appear in all copies.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES\nWITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF\nMERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR\nANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES\nWHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN\nACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF\nOR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.\n\n---\n\nThe following Lucide icons are derived from the Feather project:\n\nairplay, alert-circle, alert-octagon, alert-triangle, aperture, arrow-down-circle, arrow-down-left, arrow-down-right, arrow-down, arrow-left-circle, arrow-left, arrow-right-circle, arrow-right, arrow-up-circle, arrow-up-left, arrow-up-right, arrow-up, at-sign, calendar, cast, check, chevron-down, chevron-left, chevron-right, chevron-up, chevrons-down, chevrons-left, chevrons-right, chevrons-up, circle, clipboard, clock, code, columns, command, compass, corner-down-left, corner-down-right, corner-left-down, corner-left-up, corner-right-down, corner-right-up, corner-up-left, corner-up-right, crosshair, database, divide-circle, divide-square, dollar-sign, download, external-link, feather, frown, hash, headphones, help-circle, info, italic, key, layout, life-buoy, link-2, link, loader, lock, log-in, log-out, maximize, meh, minimize, minimize-2, minus-circle, minus-square, minus, monitor, moon, more-horizontal, more-vertical, move, music, navigation-2, navigation, octagon, pause-circle, percent, plus-circle, plus-square, plus, power, radio, rss, search, server, share, shopping-bag, sidebar, smartphone, smile, square, table-2, tablet, target, terminal, trash-2, trash, triangle, tv, type, upload, x-circle, x-octagon, x-square, x, zoom-in, zoom-out\n\nThe MIT License (MIT) (for the icons listed above)\n\nCopyright (c) 2013-present Cole Bemis\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.";
+const LUCIDE_LICENSE = "ISC License\n\nCopyright (c) 2026 Lucide Icons and Contributors\n\nPermission to use, copy, modify, and/or distribute this software for any\npurpose with or without fee is hereby granted, provided that the above\ncopyright notice and this permission notice appear in all copies.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES\nWITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF\nMERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR\nANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES\nWHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN\nACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF\nOR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.\n\n---\n\nThe following Lucide icons are derived from the Feather project:\n\nairplay, alert-circle, alert-octagon, alert-triangle, aperture, arrow-down-circle, arrow-down-left, arrow-down-right, arrow-down, arrow-left-circle, arrow-left, arrow-right-circle, arrow-right, arrow-up-circle, arrow-up-left, arrow-up-right, arrow-up, at-sign, calendar, cast, check, chevron-down, chevron-left, chevron-right, chevron-up, chevrons-down, chevrons-left, chevrons-right, chevrons-up, circle, clipboard, clock, code, columns, command, compass, corner-down-left, corner-down-right, corner-left-down, corner-left-up, corner-right-down, corner-right-up, corner-up-left, corner-up-right, crosshair, database, divide-circle, divide-square, dollar-sign, download, external-link, feather, frown, hash, headphones, help-circle, info, italic, key, layout, life-buoy, link-2, link, loader, lock, log-in, log-out, maximize, meh, minimize, minimize-2, minus-circle, minus-square, minus, monitor, moon, more-horizontal, more-vertical, move, music, navigation-2, navigation, octagon, pause-circle, percent, plus-circle, plus-square, plus, power, radio, rss, search, server, share, shopping-bag, sidebar, smartphone, smile, square, table-2, tablet, target, terminal, trash-2, trash, triangle, tv, type, upload, x-circle, x-octagon, x-square, x, zoom-in, zoom-out\n\nThe MIT License (MIT) (for the icons listed above)\n\nCopyright (c) 2013-present Cole Bemis\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n";
 
 const LUCIDE_ICON_NODES = {
   "arrow-left": [
@@ -39,6 +39,46 @@ const LUCIDE_ICON_NODES = {
       }
     ]
   ],
+  "badge-check": [
+    [
+      "path",
+      {
+        "d": "M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "m9 12 2 2 4-4"
+      }
+    ]
+  ],
+  "badge-percent": [
+    [
+      "path",
+      {
+        "d": "M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "m15 9-6 6"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M9 9h.01"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M15 15h.01"
+      }
+    ]
+  ],
   "ban": [
     [
       "circle",
@@ -52,6 +92,20 @@ const LUCIDE_ICON_NODES = {
       "path",
       {
         "d": "M4.929 4.929 19.07 19.071"
+      }
+    ]
+  ],
+  "book-open": [
+    [
+      "path",
+      {
+        "d": "M12 7v14"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
       }
     ]
   ],
@@ -82,6 +136,72 @@ const LUCIDE_ICON_NODES = {
       "path",
       {
         "d": "M3 10h18"
+      }
+    ]
+  ],
+  "calendar-days": [
+    [
+      "path",
+      {
+        "d": "M8 2v4"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M16 2v4"
+      }
+    ],
+    [
+      "rect",
+      {
+        "width": "18",
+        "height": "18",
+        "x": "3",
+        "y": "4",
+        "rx": "2"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M3 10h18"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M8 14h.01"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M12 14h.01"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M16 14h.01"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M8 18h.01"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M12 18h.01"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M16 18h.01"
       }
     ]
   ],
@@ -182,6 +302,56 @@ const LUCIDE_ICON_NODES = {
       "path",
       {
         "d": "m9 12 2 2 4-4"
+      }
+    ]
+  ],
+  "circle-percent": [
+    [
+      "circle",
+      {
+        "cx": "12",
+        "cy": "12",
+        "r": "10"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "m15 9-6 6"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M9 9h.01"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M15 15h.01"
+      }
+    ]
+  ],
+  "circle-plus": [
+    [
+      "circle",
+      {
+        "cx": "12",
+        "cy": "12",
+        "r": "10"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M8 12h8"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M12 8v8"
       }
     ]
   ],
@@ -338,6 +508,32 @@ const LUCIDE_ICON_NODES = {
       }
     ]
   ],
+  "ellipsis": [
+    [
+      "circle",
+      {
+        "cx": "12",
+        "cy": "12",
+        "r": "1"
+      }
+    ],
+    [
+      "circle",
+      {
+        "cx": "19",
+        "cy": "12",
+        "r": "1"
+      }
+    ],
+    [
+      "circle",
+      {
+        "cx": "5",
+        "cy": "12",
+        "r": "1"
+      }
+    ]
+  ],
   "file-image": [
     [
       "path",
@@ -363,6 +559,32 @@ const LUCIDE_ICON_NODES = {
       "path",
       {
         "d": "m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"
+      }
+    ]
+  ],
+  "file-output": [
+    [
+      "path",
+      {
+        "d": "M4.226 20.925A2 2 0 0 0 6 22h12a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.127"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M14 2v5a1 1 0 0 0 1 1h5"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "m5 11-3 3"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "m5 17-3-3h10"
       }
     ]
   ],
@@ -502,6 +724,14 @@ const LUCIDE_ICON_NODES = {
       }
     ]
   ],
+  "folder-open": [
+    [
+      "path",
+      {
+        "d": "m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"
+      }
+    ]
+  ],
   "gauge": [
     [
       "path",
@@ -591,6 +821,46 @@ const LUCIDE_ICON_NODES = {
       "path",
       {
         "d": "M12 7v5l4 2"
+      }
+    ]
+  ],
+  "hourglass": [
+    [
+      "path",
+      {
+        "d": "M5 22h14"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M5 2h14"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"
+      }
+    ]
+  ],
+  "house": [
+    [
+      "path",
+      {
+        "d": "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
       }
     ]
   ],
@@ -903,11 +1173,46 @@ const LUCIDE_ICON_NODES = {
       }
     ]
   ],
+  "paperclip": [
+    [
+      "path",
+      {
+        "d": "m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551"
+      }
+    ]
+  ],
   "pen": [
     [
       "path",
       {
         "d": "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+      }
+    ]
+  ],
+  "percent": [
+    [
+      "line",
+      {
+        "x1": "19",
+        "x2": "5",
+        "y1": "5",
+        "y2": "19"
+      }
+    ],
+    [
+      "circle",
+      {
+        "cx": "6.5",
+        "cy": "6.5",
+        "r": "2.5"
+      }
+    ],
+    [
+      "circle",
+      {
+        "cx": "17.5",
+        "cy": "17.5",
+        "r": "2.5"
       }
     ]
   ],
@@ -1065,6 +1370,26 @@ const LUCIDE_ICON_NODES = {
       }
     ]
   ],
+  "save": [
+    [
+      "path",
+      {
+        "d": "M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M7 3v4a1 1 0 0 0 1 1h7"
+      }
+    ]
+  ],
   "scroll-text": [
     [
       "path",
@@ -1152,6 +1477,26 @@ const LUCIDE_ICON_NODES = {
       "path",
       {
         "d": "M12 22V2"
+      }
+    ]
+  ],
+  "spell-check": [
+    [
+      "path",
+      {
+        "d": "m6 16 6-12 6 12"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "M8 12h8"
+      }
+    ],
+    [
+      "path",
+      {
+        "d": "m16 20 2 2 4-4"
       }
     ]
   ],
@@ -1513,9 +1858,13 @@ const ICON_ALIASES = {
   "arrow-right-to-bracket": "log-in",
   "arrow-up-right-from-square": "square-arrow-up-right",
   "arrows-rotate": "refresh-cw",
+  "badge-percent": "badge-percent",
   "ban": "ban",
+  "book-open": "book-open",
   "calendar": "calendar",
+  "calendar-days": "calendar-days",
   "check": "check",
+  "check-badge": "badge-check",
   "check-circle": "circle-check",
   "check-double": "check-check",
   "chevron-down": "chevron-down",
@@ -1527,6 +1876,8 @@ const ICON_ALIASES = {
   "circle-exclamation": "circle-alert",
   "circle-info": "info",
   "circle-notch": "loader-circle",
+  "circle-percent": "circle-percent",
+  "circle-plus": "circle-plus",
   "circle-question": "circle-question-mark",
   "circle-xmark": "circle-x",
   "clock": "clock",
@@ -1536,19 +1887,26 @@ const ICON_ALIASES = {
   "crown": "crown",
   "door-closed": "door-closed",
   "download": "download",
+  "ellipsis": "ellipsis",
   "envelope": "mail",
   "envelope-circle-check": "mail-check",
   "envelope-circle-xmark": "mail-x",
   "file-csv": "file-spreadsheet",
+  "file-export": "file-output",
   "file-image": "file-image",
   "file-lines": "file-text",
   "file-pdf": "file-type",
   "file-pen": "file-pen-line",
   "flag-checkered": "flag",
+  "floppy-disk": "save",
+  "folder-open": "folder-open",
   "gauge": "gauge",
   "gear": "settings",
   "ghost": "ghost",
   "hashtag": "hash",
+  "history": "history",
+  "home": "house",
+  "hourglass": "hourglass",
   "inbox": "inbox",
   "keyboard": "keyboard",
   "line-3-horizontal": "menu",
@@ -1557,8 +1915,10 @@ const ICON_ALIASES = {
   "map-pin": "map-pin",
   "minus": "minus",
   "paper-plane": "send",
+  "paperclip": "paperclip",
   "pen": "pen",
   "pen-to-square": "square-pen",
+  "percent": "percent",
   "plus": "plus",
   "qrcode": "qr-code",
   "ranking-star": "trophy",
@@ -1569,6 +1929,7 @@ const ICON_ALIASES = {
   "scroll": "scroll-text",
   "share-from-square": "share",
   "shield-halved": "shield-half",
+  "spell-check": "spell-check",
   "spinner": "loader-circle",
   "spinner-border": "loader-circle",
   "table-cells-large": "table-cells-split",
@@ -1600,7 +1961,7 @@ function createIcon(nameOrClass, opts = {}) {
     wrap.className = 'spinner';
     wrap.setAttribute('role', 'status');
     wrap.setAttribute('aria-label', title || '読み込み中');
-    if (className) wrap.classList.add(...String(className).split(/s+/).filter(Boolean));
+    if (className) wrap.classList.add(...String(className).split(/\s+/).filter(Boolean));
     return wrap;
   }
 
@@ -1640,7 +2001,7 @@ function createIcon(nameOrClass, opts = {}) {
 window.__createSvgIcon = createIcon;
 window.createIcon = createIcon;
 window.normalizeIconName = normalizeIconName;
-window.ICON_PATHS = LUCIDE_ICON_NODES;
+window.LUCIDE_ICON_NODES = LUCIDE_ICON_NODES;
 window.CIQ_ICON_ALIASES = ICON_ALIASES;
 window.CIQ_ICON_LICENSE = LUCIDE_LICENSE;
 
@@ -1658,33 +2019,12 @@ function replaceIcons(root = document.body) {
     if (sizeAttr === 'sm') opts.size = 16;
     else if (sizeAttr === 'lg') opts.size = 28;
     else if (sizeAttr === 'xl') opts.size = 32;
-    const ariaLabel = node.getAttribute('aria-label');
-    if (ariaLabel) opts.title = ariaLabel;
+    const svg = createIcon(name, opts);
     node.textContent = '';
-    node.appendChild(createIcon(name, opts));
+    node.appendChild(svg);
     node.setAttribute('data-icon-ready', 'true');
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => replaceIcons(document.documentElement));
-} else {
-  replaceIcons(document.documentElement);
-}
-
-const iconObserver = new MutationObserver((mutations) => {
-  for (const mutation of mutations) {
-    mutation.addedNodes.forEach((node) => {
-      if (node.nodeType !== 1) return;
-      if (node.matches && node.matches('[data-icon]:not([data-icon-ready])')) {
-        replaceIcons(node.parentElement || document.body);
-      } else if (node.querySelectorAll && node.querySelectorAll('[data-icon]:not([data-icon-ready])').length) {
-        replaceIcons(node);
-      }
-    });
-  }
-});
-
-if (document.documentElement) {
-  iconObserver.observe(document.documentElement, { childList: true, subtree: true });
-}
+document.addEventListener('DOMContentLoaded', () => replaceIcons());
+window.replaceIcons = replaceIcons;
