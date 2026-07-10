@@ -101,18 +101,91 @@ document.addEventListener('keydown', e => {
         const o = document.getElementById('preview-overlay');
         if (o) o.classList.remove('show');
         const panel = document.getElementById('menu-panel');
-        if (panel && panel.classList.contains('active')) toggleMenu();
+        if (panel && panel.classList.contains('active')) toggleMenu(false);
     }
 });
 
-function toggleMenu() {
+let menuReturnFocus = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const panel = document.getElementById('menu-panel');
+    if (!panel || panel.classList.contains('active')) return;
+    panel.setAttribute('aria-hidden', 'true');
+    panel.setAttribute('inert', '');
+});
+
+function getFocusableElements(container) {
+    if (!container) return [];
+    return Array.from(container.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter((el) => el.getClientRects().length > 0 && el.getAttribute('aria-hidden') !== 'true');
+}
+
+function trapFocusWithin(event, container) {
+    if (event.key !== 'Tab') return;
+    const focusable = getFocusableElements(container);
+    if (!focusable.length) {
+        event.preventDefault();
+        container.focus();
+        return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
+}
+
+function handleMenuKeydown(event) {
+    const panel = event.currentTarget;
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleMenu(false);
+        return;
+    }
+    trapFocusWithin(event, panel);
+}
+
+function toggleMenu(forceOpen) {
     const panel = document.getElementById('menu-panel');
     const backdrop = document.getElementById('menu-backdrop');
     if (!panel || !backdrop) return;
     const isOpen = panel.classList.contains('active');
-    panel.classList.toggle('active', !isOpen);
-    backdrop.classList.toggle('active', !isOpen);
-    document.body.classList.toggle('body-scroll-locked', !isOpen);
+    const nextOpen = typeof forceOpen === 'boolean' ? forceOpen : !isOpen;
+    if (isOpen === nextOpen) return;
+
+    panel.classList.toggle('active', nextOpen);
+    backdrop.classList.toggle('active', nextOpen);
+    document.body.classList.toggle('body-scroll-locked', nextOpen);
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-label', panel.getAttribute('aria-label') || 'メニュー');
+    panel.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+    panel.toggleAttribute('inert', !nextOpen);
+    backdrop.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+    document.querySelectorAll('.menu-trigger[data-toggle-menu]').forEach((trigger) => {
+        trigger.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+        trigger.setAttribute('aria-controls', panel.id);
+    });
+
+    if (nextOpen) {
+        menuReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        panel.tabIndex = -1;
+        panel.addEventListener('keydown', handleMenuKeydown);
+        requestAnimationFrame(() => {
+            const preferred = panel.querySelector('.menu-panel-close') || getFocusableElements(panel)[0] || panel;
+            preferred.focus();
+        });
+    } else {
+        panel.removeEventListener('keydown', handleMenuKeydown);
+        if (menuReturnFocus?.isConnected) menuReturnFocus.focus();
+        menuReturnFocus = null;
+    }
 }
 
 /**
@@ -158,13 +231,19 @@ function showToast(msg, type = 'info', duration = 3000) {
         container = document.createElement('div');
         container.id = 'toast-container';
         container.className = 'toast-container';
+        container.setAttribute('aria-live', 'polite');
+        container.setAttribute('aria-atomic', 'false');
         document.body.appendChild(container);
     }
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    const icons = { success: 'circle-check', error: 'circle-xmark', info: 'circle-info' };
+    toast.setAttribute('role', type === 'error' || type === 'warning' ? 'alert' : 'status');
+    toast.setAttribute('aria-live', type === 'error' || type === 'warning' ? 'assertive' : 'polite');
+    toast.setAttribute('aria-atomic', 'true');
+    const icons = { success: 'circle-check', error: 'circle-xmark', warning: 'triangle-exclamation', info: 'circle-info' };
     const icon = createIcon(icons[type] || icons.info);
     const text = document.createElement('span');
+    // ASVS 1.2.1: status text is rendered as text, never interpreted as markup.
     text.textContent = String(msg || '');
     toast.append(icon, text);
     container.appendChild(toast);
@@ -172,38 +251,73 @@ function showToast(msg, type = 'info', duration = 3000) {
     setTimeout(() => {
         toast.classList.remove('show');
         toast.classList.add('hide');
-        toast.addEventListener('transitionend', () => toast.remove());
-    }, duration);
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+        setTimeout(() => toast.remove(), 400);
+    }, Math.max(1000, Number(duration) || 3000));
 }
+
+let confirmDialogSequence = 0;
 
 function showConfirm(message, confirmText = '削除する') {
     return new Promise(resolve => {
+        const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const wasScrollLocked = document.body.classList.contains('body-scroll-locked');
         const overlay = document.createElement('div');
         overlay.className = 'confirm-overlay';
 
         const dialog = document.createElement('div');
-        dialog.className = 'confirm-dialog glass-panel';
+        dialog.className = 'confirm-dialog';
+        dialog.setAttribute('role', 'alertdialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.tabIndex = -1;
         const icon = createIcon('triangle-exclamation', { className: 'confirm-icon' });
         const messageEl = document.createElement('div');
         messageEl.className = 'confirm-message';
+        messageEl.id = `confirm-message-${++confirmDialogSequence}`;
+        dialog.setAttribute('aria-describedby', messageEl.id);
+        // ASVS 1.2.1: untrusted confirmation content is kept in a text node.
         messageEl.textContent = String(message || '');
         const actions = document.createElement('div');
         actions.className = 'confirm-actions';
         const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
         cancelBtn.className = 'btn secondary confirm-cancel';
         cancelBtn.textContent = 'キャンセル';
         const okBtn = document.createElement('button');
+        okBtn.type = 'button';
         okBtn.className = 'btn danger confirm-ok';
         okBtn.textContent = String(confirmText || '削除する');
         actions.append(cancelBtn, okBtn);
         dialog.append(icon, messageEl, actions);
         overlay.appendChild(dialog);
 
-        cancelBtn.onclick = () => { overlay.remove(); resolve(false); };
-        okBtn.onclick = () => { overlay.remove(); resolve(true); };
-        overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+        let settled = false;
+        const finish = (confirmed) => {
+            if (settled) return;
+            settled = true;
+            dialog.removeEventListener('keydown', onKeydown);
+            overlay.remove();
+            if (!wasScrollLocked) document.body.classList.remove('body-scroll-locked');
+            if (returnFocus?.isConnected) returnFocus.focus();
+            resolve(confirmed);
+        };
+        const onKeydown = (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                finish(false);
+                return;
+            }
+            trapFocusWithin(event, dialog);
+        };
+
+        cancelBtn.addEventListener('click', () => finish(false));
+        okBtn.addEventListener('click', () => finish(true));
+        overlay.addEventListener('click', e => { if (e.target === overlay) finish(false); });
+        dialog.addEventListener('keydown', onKeydown);
         document.body.appendChild(overlay);
-        okBtn.focus();
+        document.body.classList.add('body-scroll-locked');
+        requestAnimationFrame(() => cancelBtn.focus());
     });
 }
 
@@ -412,25 +526,33 @@ function initTablist(container) {
  * - loading=false の場合、元のラベルを復元して disabled を解除する。
  * 戻り値はPromiseの解決を待つための補助用（呼び出し側でawait不要）。
  */
+const buttonContentSnapshots = new WeakMap();
+
 function setButtonLoading(btn, loading, label) {
     if (!btn) return;
     if (loading) {
-        if (btn.dataset.loading !== 'true') {
-            btn.dataset.originalHtml = btn.innerHTML;
+        if (btn.dataset.loading !== 'true' && !buttonContentSnapshots.has(btn)) {
+            const content = document.createDocumentFragment();
+            while (btn.firstChild) content.appendChild(btn.firstChild);
+            buttonContentSnapshots.set(btn, { content, wasDisabled: btn.disabled });
         }
         btn.dataset.loading = 'true';
+        btn.setAttribute('aria-busy', 'true');
         btn.disabled = true;
-        btn.textContent = '';
         const icon = createIcon('circle-notch');
         const text = document.createElement('span');
         text.textContent = label || '処理中...';
-        btn.append(icon, text);
+        btn.replaceChildren(icon, text);
     } else {
         btn.dataset.loading = 'false';
-        btn.disabled = false;
-        if (btn.dataset.originalHtml != null) {
-            btn.innerHTML = btn.dataset.originalHtml;
-            delete btn.dataset.originalHtml;
+        btn.removeAttribute('aria-busy');
+        const snapshot = buttonContentSnapshots.get(btn);
+        if (snapshot) {
+            btn.replaceChildren(snapshot.content);
+            btn.disabled = snapshot.wasDisabled;
+            buttonContentSnapshots.delete(btn);
+        } else {
+            btn.disabled = false;
         }
     }
 }

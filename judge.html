@@ -16,11 +16,10 @@
     <script defer src="js/supabase_api.js?v=34"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=6"></script>
-    <script defer src="js/ui.js?v=6"></script>
-    <script defer src="js/custom-select.js?v=5"></script>
-    <script defer src="js/shared.js"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=39">
-    <link rel="stylesheet" href="css/pages.css?v=63">
+    <script defer src="js/ui.js?v=7"></script>
+    <script defer src="js/shared.js?v=2"></script>
+    <link rel="stylesheet" href="css/design_system.css?v=40">
+    <link rel="stylesheet" href="css/pages.css?v=64">
 </head>
 
 <body class="page-judge">
@@ -31,16 +30,16 @@
             <h1 id="project-title"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</h1>
         </div>
         <div class="header-right">
-            <button class="menu-trigger" data-toggle-menu type="button" aria-label="メニューを開く">
+            <button class="menu-trigger" data-toggle-menu type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="menu-panel">
                 <span class="trigger-icon" data-icon="line-3-horizontal" aria-hidden="true"></span>
             </button>
         </div>
     </div>
 
     <!-- 運営共通シェル: ドロワー(ロール別) -->
-    <div class="menu-backdrop" id="menu-backdrop" data-toggle-menu></div>
-    <div class="menu-panel" id="menu-panel">
-        <button class="menu-panel-close" data-toggle-menu><span data-icon="xmark" aria-hidden="true"></span></button>
+    <div class="menu-backdrop" id="menu-backdrop" data-toggle-menu aria-hidden="true"></div>
+    <div class="menu-panel" id="menu-panel" aria-hidden="true">
+        <button type="button" class="menu-panel-close" data-toggle-menu aria-label="メニューを閉じる"><span data-icon="xmark" aria-hidden="true"></span></button>
 
         <div class="menu-profile">
             <div class="menu-avatar"><span data-icon="user" aria-hidden="true"></span></div>
@@ -97,7 +96,7 @@
         <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
     </main>
 
-    <script defer src="js/judge.js?v=7"></script>
+    <script defer src="js/judge.js?v=8"></script>
 </body>
 
 </html>

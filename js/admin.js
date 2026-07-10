@@ -495,7 +495,10 @@
             const activeBtn = document.querySelector(`.tab-btn[data-tab-target="${tabId}"]`);
             activeBtn?.classList.add('active');
             document.querySelectorAll('.phase-quick-btn[data-tab-target]').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.tabTarget === tabId);
+                const isActive = btn.dataset.tabTarget === tabId;
+                btn.classList.toggle('active', isActive);
+                if (isActive) btn.setAttribute('aria-current', 'step');
+                else btn.removeAttribute('aria-current');
             });
             // ARIA 同期（initTablist が未初期化の場合のフォールバック込み）
             btns.forEach(b => {

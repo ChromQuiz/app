@@ -127,6 +127,8 @@
 
         let lastAdminEntryReceipt = null;
         let lastAdminEntryReceiptUrl = '';
+        let adminEntryReturnFocus = null;
+        let adminEntryWasScrollLocked = false;
 
         function getAdminEntryModal() {
             return document.getElementById('admin-entry-modal');
@@ -173,19 +175,45 @@
         function openAdminEntryModal() {
             const modal = getAdminEntryModal();
             if (!modal) return;
+            adminEntryReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+            adminEntryWasScrollLocked = document.body.classList.contains('body-scroll-locked');
             resetAdminEntryForm();
             modal.hidden = false;
+            document.body.classList.add('body-scroll-locked');
+            modal.addEventListener('keydown', handleAdminEntryModalKeydown);
+            if (modal.dataset.backdropBound !== 'true') {
+                modal.dataset.backdropBound = 'true';
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) closeAdminEntryModal();
+                });
+            }
             requestAnimationFrame(() => modal.classList.add('visible'));
             document.getElementById('admin-entry-family-name')?.focus();
+        }
+
+        function handleAdminEntryModalKeydown(event) {
+            const modal = getAdminEntryModal();
+            const dialog = modal?.querySelector('[role="dialog"]');
+            if (!modal || !dialog) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeAdminEntryModal();
+                return;
+            }
+            if (typeof trapFocusWithin === 'function') trapFocusWithin(event, dialog);
         }
 
         function closeAdminEntryModal() {
             const modal = getAdminEntryModal();
             if (!modal) return;
+            modal.removeEventListener('keydown', handleAdminEntryModalKeydown);
             modal.classList.remove('visible');
             setTimeout(() => {
                 modal.hidden = true;
                 resetAdminEntryForm();
+                if (!adminEntryWasScrollLocked) document.body.classList.remove('body-scroll-locked');
+                if (adminEntryReturnFocus?.isConnected) adminEntryReturnFocus.focus();
+                adminEntryReturnFocus = null;
             }, 160);
         }
 
@@ -764,6 +792,8 @@
         let dtScope = 'entry'; // 'entry', 'disclosure', or 'waitlist'
         let dtTarget = null; // 'start' or 'end'
         let dtYear, dtMonth, dtDay, dtHour = 0, dtMin = 0;
+        let dtHost = null;
+        let dtReturnFocus = null;
 
         function formatDtDisplay(val) {
             if (!val) return '未設定';
@@ -792,21 +822,23 @@
         function placeDatePicker(picker, scope, target) {
             const trigger = document.getElementById(getDtTriggerId(scope, target));
             if (!picker || !trigger) return;
+            const host = trigger.parentElement;
+            if (!host) return;
+
+            if (dtHost && dtHost !== host) dtHost.classList.remove('dt-anchor-host');
+            dtHost = host;
+            dtHost.classList.add('dt-anchor-host');
+            dtHost.appendChild(picker);
+            picker.classList.remove('align-end', 'place-above');
+
             const rect = trigger.getBoundingClientRect();
             const margin = 12;
             const pickerWidth = picker.offsetWidth || 300;
             const pickerHeight = picker.offsetHeight || 390;
-            const left = Math.min(
-                Math.max(margin, rect.left),
-                Math.max(margin, window.innerWidth - pickerWidth - margin)
-            );
-            const belowTop = rect.bottom + margin;
-            const aboveTop = rect.top - pickerHeight - margin;
-            const top = belowTop + pickerHeight <= window.innerHeight - margin
-                ? belowTop
-                : Math.max(margin, aboveTop);
-            picker.style.left = `${left}px`;
-            picker.style.top = `${top}px`;
+            if (rect.left + pickerWidth > window.innerWidth - margin) picker.classList.add('align-end');
+            if (rect.bottom + pickerHeight + margin > window.innerHeight && rect.top > pickerHeight + margin) {
+                picker.classList.add('place-above');
+            }
         }
 
         function getDtTimeInput() {
@@ -889,6 +921,7 @@
         function openDatePicker(scopeOrTarget, maybeTarget) {
             dtScope = maybeTarget ? scopeOrTarget : 'entry';
             dtTarget = maybeTarget || scopeOrTarget;
+            dtReturnFocus = document.getElementById(getDtTriggerId(dtScope, dtTarget));
             const prefix = getPeriodPrefix(dtScope);
             const existing = document.getElementById(`${prefix}-period-${dtTarget}`).value;
             const now = existing ? new Date(existing) : new Date();
@@ -903,19 +936,32 @@
             const picker = document.getElementById('dt-picker');
             picker.hidden = false;
             placeDatePicker(picker, dtScope, dtTarget);
+            picker.setAttribute('role', 'dialog');
+            picker.setAttribute('aria-modal', 'true');
+            picker.setAttribute('aria-label', '日時を選択');
+            dtReturnFocus?.setAttribute('aria-expanded', 'true');
+            dtReturnFocus?.setAttribute('aria-controls', picker.id);
             const overlay = document.getElementById('dt-picker-overlay');
             overlay.hidden = false;
             overlay.classList.add('active');
+            requestAnimationFrame(() => {
+                (picker.querySelector('.dt-day.selected') || getDtTimeInput() || picker).focus();
+            });
         }
 
         function closeDatePicker() {
             const picker = document.getElementById('dt-picker');
             const overlay = document.getElementById('dt-picker-overlay');
             picker.hidden = true;
-            picker.style.left = '';
-            picker.style.top = '';
+            picker.classList.remove('align-end', 'place-above');
             overlay.classList.remove('active');
             overlay.hidden = true;
+            dtHost?.classList.remove('dt-anchor-host');
+            document.body.appendChild(picker);
+            dtHost = null;
+            dtReturnFocus?.setAttribute('aria-expanded', 'false');
+            if (dtReturnFocus?.isConnected) dtReturnFocus.focus();
+            dtReturnFocus = null;
         }
 
         function dtNavMonth(delta) {
@@ -943,6 +989,7 @@
                 const btn = document.createElement('button');
                 btn.type = 'button'; btn.className = 'dt-day other';
                 btn.textContent = prevDays - i;
+                btn.disabled = true;
                 container.appendChild(btn);
             }
             // Current month
@@ -955,7 +1002,10 @@
                 } else if (d === today.getDate() && dtMonth === today.getMonth() && dtYear === today.getFullYear()) {
                     btn.classList.add('today');
                 }
-                if (d === dtDay) btn.classList.add('selected');
+                const isSelected = d === dtDay;
+                if (isSelected) btn.classList.add('selected');
+                btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+                btn.setAttribute('aria-label', `${dtYear}年${dtMonth + 1}月${d}日`);
                 btn.onclick = () => { dtDay = d; renderDtDays(); };
                 container.appendChild(btn);
             }
@@ -966,6 +1016,7 @@
                 const btn = document.createElement('button');
                 btn.type = 'button'; btn.className = 'dt-day other';
                 btn.textContent = i;
+                btn.disabled = true;
                 container.appendChild(btn);
             }
         }
@@ -1058,6 +1109,19 @@
                 timeInput.addEventListener('paste', (event) => handleDtTimePaste(event));
             }
 
+            const picker = document.getElementById('dt-picker');
+            if (picker && picker.dataset.dtKeyboardBound !== 'true') {
+                picker.dataset.dtKeyboardBound = 'true';
+                picker.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        closeDatePicker();
+                        return;
+                    }
+                    if (typeof trapFocusWithin === 'function') trapFocusWithin(event, picker);
+                });
+            }
+
             if (document.body.dataset.dtOutsideBound !== 'true') {
                 document.body.dataset.dtOutsideBound = 'true';
                 document.addEventListener('pointerdown', (event) => {
@@ -1066,6 +1130,16 @@
                     const target = event.target;
                     if (picker.contains(target) || target.closest?.('[data-dt-target]')) return;
                     closeDatePicker();
+                });
+            }
+
+            if (document.body.dataset.dtResizeBound !== 'true') {
+                document.body.dataset.dtResizeBound = 'true';
+                window.addEventListener('resize', () => {
+                    const currentPicker = document.getElementById('dt-picker');
+                    if (!currentPicker || currentPicker.hidden || !dtTarget) return;
+                    // ASVS 3.4.3: positioning is class-based; no CSP-blocked inline styles are created.
+                    placeDatePicker(currentPicker, dtScope, dtTarget);
                 });
             }
         };

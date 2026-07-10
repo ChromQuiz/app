@@ -26,6 +26,38 @@ function setStatus(statusEl, className, iconClass, text) {
     statusEl.append(icon, ` ${text}`);
 }
 
+function getQuestionGridColumns() {
+    const grid = document.getElementById('q-grid');
+    if (!grid) return 1;
+    return Math.max(1, getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length);
+}
+
+function focusQuestionCard(index) {
+    const cards = Array.from(document.querySelectorAll('.q-card'));
+    if (index < 0 || index >= cards.length) return;
+    cards.forEach((card, cardIndex) => { card.tabIndex = cardIndex === index ? 0 : -1; });
+    cards[index].focus({ preventScroll: true });
+    cards[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+function handleQuestionCardKeydown(event, index, questionNumber) {
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        enterQ(questionNumber);
+        return;
+    }
+    const columns = getQuestionGridColumns();
+    const offsets = {
+        ArrowRight: 1,
+        ArrowLeft: -1,
+        ArrowDown: columns,
+        ArrowUp: -columns,
+    };
+    if (offsets[event.key] == null) return;
+    event.preventDefault();
+    focusQuestionCard(index + offsets[event.key]);
+}
+
 function setupJudgeEvents() {
     document.querySelectorAll('[data-toggle-menu]').forEach((el) => {
         el.addEventListener('click', toggleMenu);
@@ -87,6 +119,8 @@ function renderQuestionCards() {
         const card = document.createElement('div');
         card.className = 'q-card';
         card.id = `qcard-${i}`;
+        card.setAttribute('role', 'gridcell');
+        card.tabIndex = i === 1 ? 0 : -1;
         const qNum = document.createElement('div');
         qNum.className = 'q-num';
         qNum.textContent = `${i}問`;
@@ -96,6 +130,10 @@ function renderQuestionCards() {
         status.textContent = '未着手';
         card.append(qNum, status);
         card.addEventListener('click', () => enterQ(i));
+        card.addEventListener('focus', () => {
+            document.querySelectorAll('.q-card').forEach((item) => { item.tabIndex = item === card ? 0 : -1; });
+        });
+        card.addEventListener('keydown', (event) => handleQuestionCardKeydown(event, i - 1, i));
         qGrid.appendChild(card);
     }
 }
@@ -144,6 +182,7 @@ function updateGrid(rows) {
         if (isFull) card.classList.add('locked');
         if (allDone) card.classList.add('done');
         else if (scorerIds.length > 0) card.classList.add('inprogress');
+        card.setAttribute('aria-disabled', isFull ? 'true' : 'false');
 
         if (allDone) {
             setStatus(statusEl, 'status-done', 'circle-check', '完了');
@@ -152,6 +191,7 @@ function updateGrid(rows) {
         } else {
             setStatus(statusEl, 'status-open', 'minus', '未着手');
         }
+        card.setAttribute('aria-label', `${q}問、${statusEl.textContent.trim()}`);
     }
 
     updateResumeHero(mineResumeQ || availableQ, mineResumeQ, hasAnyMine);

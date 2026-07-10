@@ -1,6 +1,6 @@
 # CIQ Design System — MASTER (Global Source of Truth)
 
-> 2026-07 全面再構築(v3計画・承認済み)。このファイルが全ページ・全コンポーネント・HTMLメールの唯一の設計根拠。
+> 2026-07 Apple UI/UX 全面刷新(v4・承認済み)。このファイルが全ページ・全コンポーネント・HTMLメールの唯一の設計根拠。
 
 ---
 
@@ -60,15 +60,27 @@
 紫・青紫・グラデーション・グロー・ガラス風・ネオン・カード乱用・アイコン過多・影の多用は**禁止**。
 装飾ではなく、余白・罫線・タイポグラフィ・階層で見せる。1画面1主役。CTAは少数精鋭。
 
+### 用途別ハイブリッド
+
+- 公開・参加者画面は Apple.com のように静かな余白、強い見出し、単一の主操作で迷わせない。
+- 運営・採点画面は macOS / iPadOS のように情報密度と操作効率を優先し、状態と次の操作を同時に把握できる構成とする。
+- 両者は同じトークン、フォーム、状態、フォーカスの契約を共有する。Liquid Glass は採用せず、不透明な面と hairline で階層を作る。
+
 ### Color Tokens(light / dark, `prefers-color-scheme`)
 ```
 Background  #FFFFFF / #111113        Surface-2  #F5F5F7 / #242428
 Text        #1A1A1E / #F5F5F7        Sub        #6E6E76 / #A1A1A8
 Border      #E6E6EA / #333338        強調線     #D2D2D7 / #44444A
-Accent(1色) #1A1A1E(dark #F5F5F7) — 主CTA・リンク・フォーカスのみ
+Primary     #1A1A1E / #F5F5F7        — 主CTAのみ(白黒を維持)
+Apple Blue #0066CC / #2997FF        — リンク・選択・フォーカスのみ
+Accent Soft #E8F2FF / #102B46       — 選択状態の背景のみ
 Success #1E7A44 / Warning #9A6200 / Error #C22945 — 状態表示限定・面塗り最小(左罫+文字中心)
+On semantic #FFFFFF / #111113 — 状態色を面に使う場合の前景色
 Gold #9A6A00 — 成績・順位の1点のみ
 ```
+
+- `ink-2` を意味のある補足文とplaceholderに使う。`ink-3` は disabled、装飾、非主要アイコンに限定する。
+- 状態は色だけで伝えず、テキスト、アイコン、罫線のいずれかを必ず併用する。
 
 ### Typography(Webフォント読込なし・システムフォントスタック)
 ```css
@@ -76,23 +88,33 @@ font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
              "Hiragino Sans", "Noto Sans JP", sans-serif;          /* 基本 */
 font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace; /* 数値専用 */
 ```
-- H1 26–32px/700(1画面1つ) / H2 18–21px/600 / H3 16–17px/600(H4以下は使わない)
+- H1 26–32px/700(1画面1つ) / H2 18–24px/600 / H3 16–22px/600(H4以下は使わない)
 - 本文 16px/400/lh1.7、補足 13px/400/Sub色、ボタン 15px/500–600、フォーム入力 ≥16px
 - テーブル: セル14px、ヘッダ12px/600/+0.06em
 - **mono は数値専用**(受付番号 56px/600、スコア 56px、判定 No. 56px、ID・コード 13–15px、`tabular-nums`)。本文・見出し禁止
 - 優先順位はサイズではなく余白・ウェイト・濃淡で。見出し前の余白は後ろの2倍
 
 ### Radius / Elevation / Motion / Layout
-- 角丸 6/8/10/12px。影は実質廃止(`--sh-3`のオーバーレイのみ)。区切りは1px罫線と余白
+- 角丸 6/8/10/12px。意味別に control=8px / grouped surface=10px / overlay=12px / pill=999px とする。
+- 面は plain section / grouped surface / overlay の3役に限定する。Grouped list は単一の外枠と行間の hairline で構成し、行ごとの入れ子カードを作らない。
+- 影は実質廃止(`--sh-3`のオーバーレイのみ)。区切りは1px罫線と余白で表す。
 - Motion 150–250ms fade/slide のみ。`prefers-reduced-motion` 全停止
 - 幅: 参加者640px(リスト960px) / admin 880px / ボード類 1280px。タッチターゲット44px。フォーカスリング3px
 - Z: sticky10 / appbar20 / dropdown30 / drawer40 / modal50 / toast60 / max70
+
+### Accessibility
+
+- 全ての操作はキーボードで到達・実行でき、見た目が小さい操作もヒット領域を44px以上にする。
+- フォーカスは Apple Blue の3px outline + 2px offset。複合入力は `:focus-within` でグループの焦点も示す。
+- 本文は4.5:1以上、非テキストとフォーカスは3:1以上を維持する。意味のある補足に低コントラスト色を使わない。
+- `prefers-reduced-motion: reduce`、`prefers-contrast: more`、`forced-colors: active` に対応し、200%ズームで情報や操作を欠落させない。
 
 ### Icons
 - Web上ではSF Symbols本体を同梱しない。`js/icons.js` の自前SVGを唯一のアイコンソースとし、SF Symbols風の24pxグリッド・細い丸線・十分な内側余白で統一する。
 - 外部アイコンセット名や旧クラス文字列をコードに残さない。`createIcon()` にはCIQ Symbol名だけを渡す。
 - 新しいアイコンが必要な場合は `ICON_PATHS` に追加し、`currentColor` / `fill="none"` / `stroke-width: 1.8` / `round cap+join` に従う。
 - 欠落アイコンを `circle-question` のまま放置しない。四角表示・途切れ・異なる太さを見つけたらレジストリ側で直す。
+- Apple UI/UX 刷新ではアイコンは別トラックの制作対象とし、`js/icons.js`、SVG、ギャラリー、faviconは変更しない。
 
 ## 6. 運営共通シェル
 
@@ -103,7 +125,7 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 
 ## 7. HTMLメール
 
-- サイトと同一トークン(白ボディ・near-black見出し・neutral罫線・アクセント1色のCTA)。600pxテーブル+インラインCSS。
+- サイトと同一トークン(白ボディ・near-black見出し・neutral罫線・白黒の主CTA・Apple Blueのリンク)。600pxテーブル+インラインCSS。
 - 基本CTAは[マイエントリー]に集約。エントリー完了メールのみ[マイエントリー]と[エントリーリスト]を横並びで置く。キャンセル完了はCTAなし。
 - エントリー完了メールに必須: 受付番号(mono大) / 当日受付QR / パスワード / マイエントリーCTA /
   保存文言「このメールには受付QRとマイエントリー用の情報が含まれます。大会当日まで保存してください。」
@@ -121,6 +143,7 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 ### CSS Ownership
 
 - `css/design_system.css` owns generic UI: buttons, cards, form controls, badges, messages, steps, definition lists, modals, tables, empty/loading states, workbench cards, scoring controls, and touch/focus behavior.
+- 小規模な選択はネイティブ `<select>` を使い、カスタムdropdownは作らない。ブラウザ標準の `change` 契約を維持する。
 - `css/pages.css` may only define page shells, page layout, content typography, and workflow exceptions that cannot be expressed as a shared component variant.
 - Allowed page-specific exceptions include: index/login composition, admin phase layout, entry list responsive layout, terms Markdown article layout, check-in camera/result workflow, answer-prep PDF tooling, and one-off spacing overrides around shared components.
 - If a page-specific class starts looking reusable across two pages, promote it to `css/design_system.css` before adding a second definition.

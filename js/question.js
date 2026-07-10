@@ -160,6 +160,8 @@ function setAnswerGridMessage(message, iconClass = '') {
 
 function updateAnswerCardClass(card, result, isSelected) {
     card.className = `answer-card ${result === 'correct' ? 'correct' : result === 'wrong' ? 'wrong' : result === 'hold' ? 'hold' : ''} ${isSelected ? 'selected' : ''}`;
+    card.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    card.tabIndex = isSelected ? 0 : -1;
 }
 
 function setInitialSelectionToFirstUnscored() {
@@ -184,8 +186,8 @@ function createAnswerCard(cardData, idx) {
     const myScore = myScores[cardData.entryId];
     const card = document.createElement('div');
     updateAnswerCardClass(card, myScore, idx === selectedIndex);
+    card.setAttribute('role', 'gridcell');
     card.setAttribute('aria-label', `${cardData.displayName} の答案`);
-    card.setAttribute('aria-selected', idx === selectedIndex ? 'true' : 'false');
     if (cardData.cellUrl || (cardData.pageUrl && cardData.cellRegion) || (cardData.storagePath && cardData.cellRegion)) {
         const image = document.createElement('img');
         image.alt = cardData.displayName;
@@ -213,7 +215,13 @@ function createAnswerCard(cardData, idx) {
     entryNum.className = 'entry-num';
     entryNum.textContent = cardData.displayName;
     card.appendChild(entryNum);
-    card.addEventListener('click', () => selectCard(idx));
+    card.addEventListener('click', () => selectCard(idx, { focus: true }));
+    card.addEventListener('focus', () => selectCard(idx));
+    card.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        selectCard(idx, { focus: true });
+    });
     card.addEventListener('dblclick', () => showPreview(projectId, null, cardData.entryNumber));
     return card;
 }
@@ -661,7 +669,7 @@ async function mark(entryId, result) {
     }
 }
 
-function selectCard(idx) {
+function selectCard(idx, options = {}) {
     if (idx < 0 || idx >= answerCards.length) return;
     selectedIndex = idx;
     const cards = document.querySelectorAll('.answer-card');
@@ -669,7 +677,9 @@ function selectCard(idx) {
         const selected = i === selectedIndex;
         card.classList.toggle('selected', selected);
         card.setAttribute('aria-selected', selected ? 'true' : 'false');
+        card.tabIndex = selected ? 0 : -1;
     });
+    if (options.focus) cards[selectedIndex]?.focus({ preventScroll: true });
     scrollToSelected();
 }
 
@@ -763,16 +773,16 @@ document.addEventListener('keydown', (e) => {
         }
     } else if (key === 'ArrowRight') {
         e.preventDefault();
-        selectCard(selectedIndex + 1);
+        selectCard(selectedIndex + 1, { focus: true });
     } else if (key === 'ArrowLeft') {
         e.preventDefault();
-        selectCard(selectedIndex - 1);
+        selectCard(selectedIndex - 1, { focus: true });
     } else if (key === 'ArrowDown') {
         e.preventDefault();
-        selectCard(selectedIndex + getGridCols());
+        selectCard(selectedIndex + getGridCols(), { focus: true });
     } else if (key === 'ArrowUp') {
         e.preventDefault();
-        selectCard(selectedIndex - getGridCols());
+        selectCard(selectedIndex - getGridCols(), { focus: true });
     }
 });
 

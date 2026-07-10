@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>C3 回転・時間 レビューギャラリー</title>
+<style>
+  body { margin: 0; font-family: -apple-system, system-ui, sans-serif; font-size: 12px; }
+  .panel { padding: 12px 16px; }
+  .panel.light { background: #fff; color: #1c1c1e; }
+  .panel.dark { background: #1c1c1e; color: #f2f2f7; }
+  h2 { font-size: 13px; margin: 8px 0 6px; }
+  table { border-collapse: collapse; color: inherit; }
+  th, td { padding: 3px 10px; text-align: center; vertical-align: middle; }
+  th { font-weight: 500; opacity: .6; font-size: 10px; }
+  td.name { text-align: left; font-family: ui-monospace, monospace; font-size: 10px; }
+  canvas { image-rendering: pixelated; vertical-align: middle; }
+  .row { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin: 4px 0 10px; }
+  .row .item { text-align: center; font-family: ui-monospace, monospace; font-size: 9px; }
+  .row .item span { display: block; margin-top: 2px; }
+</style>
+<script src="js/icons.js" defer></script>
+</head>
+<body>
+<div class="panel light" id="light"></div>
+<div class="panel dark" id="dark"></div>
+<script>
+const KEYS = [
+  'rotate','rotate-left','arrows-rotate','history','clock',
+  'hourglass','calendar','calendar-days',
+];
+const QUARTET = ['rotate','rotate-left','arrows-rotate','history'];
+const BIG = ['rotate','arrows-rotate','history','clock'];
+
+function buildPanel(root, mode) {
+  const color = mode === 'light' ? '#000' : '#fff';
+  const h0 = document.createElement('h2');
+  h0.textContent = (mode === 'light' ? 'Light' : 'Dark') + ' — 回転4種比較 16/24/32';
+  root.appendChild(h0);
+  const q = document.createElement('div');
+  q.className = 'row';
+  QUARTET.forEach((k) => {
+    const item = document.createElement('div');
+    item.className = 'item';
+    [16, 24, 32].forEach((s) => item.appendChild(window.createIcon(k, { size: s })));
+    const label = document.createElement('span');
+    label.textContent = k;
+    item.appendChild(label);
+    q.appendChild(item);
+  });
+  root.appendChild(q);
+
+  const h1 = document.createElement('h2');
+  h1.textContent = '112px 接合確認（弧→頭が一本の面か）';
+  root.appendChild(h1);
+  const bigRow = document.createElement('div');
+  bigRow.className = 'row';
+  BIG.forEach((k) => {
+    const item = document.createElement('div');
+    item.className = 'item';
+    item.appendChild(window.createIcon(k, { size: 112 }));
+    const label = document.createElement('span');
+    label.textContent = k;
+    item.appendChild(label);
+    bigRow.appendChild(item);
+  });
+  root.appendChild(bigRow);
+
+  const h2el = document.createElement('h2');
+  h2el.textContent = '全キー 16 / 24 / 32 / 16px実寸×8';
+  root.appendChild(h2el);
+  const table = document.createElement('table');
+  KEYS.forEach((key) => {
+    const tr = document.createElement('tr');
+    const name = document.createElement('td');
+    name.className = 'name';
+    name.textContent = key;
+    tr.appendChild(name);
+    [16, 24, 32].forEach((size) => {
+      const td = document.createElement('td');
+      td.appendChild(window.createIcon(key, { size }));
+      tr.appendChild(td);
+    });
+    const magTd = document.createElement('td');
+    magTd.dataset.magKey = key;
+    tr.appendChild(magTd);
+    table.appendChild(tr);
+  });
+  root.appendChild(table);
+}
+
+function magnify(td, key, color) {
+  const svg = window.createIcon(key, { size: 16 });
+  const xml = new XMLSerializer().serializeToString(svg).replaceAll('currentColor', color);
+  const img = new Image();
+  img.onload = () => {
+    const small = document.createElement('canvas');
+    small.width = 16; small.height = 16;
+    small.getContext('2d').drawImage(img, 0, 0, 16, 16);
+    const big = document.createElement('canvas');
+    big.width = 128; big.height = 128;
+    const bctx = big.getContext('2d');
+    bctx.imageSmoothingEnabled = false;
+    bctx.drawImage(small, 0, 0, 128, 128);
+    big.style.width = '72px';
+    big.style.height = '72px';
+    td.appendChild(big);
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  buildPanel(document.getElementById('light'), 'light');
+  buildPanel(document.getElementById('dark'), 'dark');
+  document.querySelectorAll('#light [data-mag-key]').forEach((td) => magnify(td, td.dataset.magKey, '#000'));
+  document.querySelectorAll('#dark [data-mag-key]').forEach((td) => magnify(td, td.dataset.magKey, '#fff'));
+});
+</script>
+</body>
+</html>

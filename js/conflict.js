@@ -341,8 +341,10 @@ function getConflictRenderSignature(conflicts) {
 
 function updateConflictSelectionClasses() {
     document.querySelectorAll('.conflict-card').forEach((card, i) => {
-        card.classList.toggle('selected', i === selectedIndex);
-        card.setAttribute('aria-selected', i === selectedIndex ? 'true' : 'false');
+        const selected = i === selectedIndex;
+        card.classList.toggle('selected', selected);
+        card.setAttribute('aria-selected', selected ? 'true' : 'false');
+        card.tabIndex = selected ? 0 : -1;
     });
 }
 
@@ -423,7 +425,13 @@ async function render() {
     const fragment = document.createDocumentFragment();
     currentConflicts.forEach((conflict, idx) => {
         const card = createConflictCard(conflict, idx);
-        card.addEventListener('click', () => selectConflictCard(idx));
+        card.addEventListener('click', () => selectConflictCard(idx, { focus: true }));
+        card.addEventListener('focus', () => selectConflictCard(idx));
+        card.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            selectConflictCard(idx, { focus: true });
+        });
         card.addEventListener('dblclick', () => showPreview(projectId, null, conflict.entryNumber));
         fragment.appendChild(card);
     });
@@ -458,8 +466,10 @@ function createConflictCard(conflict, idx) {
 
     const card = document.createElement('div');
     card.className = `answer-card conflict-card ${conflict.finalResult ? 'resolved ' + conflict.finalResult : ''} ${idx === selectedIndex ? 'selected' : ''}`;
+    card.setAttribute('role', 'gridcell');
     card.setAttribute('aria-label', `${conflict.displayName} ${conflict.q}問 要確認`);
     card.setAttribute('aria-selected', idx === selectedIndex ? 'true' : 'false');
+    card.tabIndex = idx === selectedIndex ? 0 : -1;
     card._ciqConflict = conflict;
     if (cellUrl) {
         const image = document.createElement('img');
@@ -667,10 +677,11 @@ async function setFinal(q, entryId, result) {
     await refreshData();
 }
 
-function selectConflictCard(idx) {
+function selectConflictCard(idx, options = {}) {
     if (idx < 0 || idx >= currentConflicts.length) return;
     selectedIndex = idx;
     updateConflictSelectionClasses();
+    if (options.focus) document.querySelectorAll('.conflict-card')[selectedIndex]?.focus({ preventScroll: true });
     scrollToSelectedConflict();
 }
 
@@ -726,16 +737,16 @@ document.addEventListener('keydown', (e) => {
         }
     } else if (key === 'ArrowRight') {
         e.preventDefault();
-        selectConflictCard(selectedIndex + 1);
+        selectConflictCard(selectedIndex + 1, { focus: true });
     } else if (key === 'ArrowLeft') {
         e.preventDefault();
-        selectConflictCard(selectedIndex - 1);
+        selectConflictCard(selectedIndex - 1, { focus: true });
     } else if (key === 'ArrowDown') {
         e.preventDefault();
-        selectConflictCard(selectedIndex + getConflictGridCols());
+        selectConflictCard(selectedIndex + getConflictGridCols(), { focus: true });
     } else if (key === 'ArrowUp') {
         e.preventDefault();
-        selectConflictCard(selectedIndex - getConflictGridCols());
+        selectConflictCard(selectedIndex - getConflictGridCols(), { focus: true });
     }
 });
 

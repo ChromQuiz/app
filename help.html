@@ -8,12 +8,12 @@
     <title>CIQ - 運営ヘルプ</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="icon" type="image/png" href="favicon.png?v=3">
-    <link rel="stylesheet" href="css/design_system.css?v=39">
-    <link rel="stylesheet" href="css/pages.css?v=63">
+    <link rel="stylesheet" href="css/design_system.css?v=40">
+    <link rel="stylesheet" href="css/pages.css?v=64">
 </head>
 <body class="page-help">
     <div class="help-container">
-        <a href="index.html" class="help-back"><span data-icon="arrow-left" aria-hidden="true"></span> トップページに戻る</a>
+        <a href="index.html" class="help-back" id="help-back-link"><span data-icon="arrow-left" aria-hidden="true"></span> <span id="help-back-label">トップページに戻る</span></a>
         <div class="help-header">
             <h1><span data-icon="circle-question" aria-hidden="true"></span> 運営ヘルプ</h1>
             <p>大会準備から採点、成績照会までの運用手順をまとめています</p>
@@ -23,32 +23,32 @@
             <div class="qa-category-title"><span data-icon="flag-checkered" aria-hidden="true"></span> 最初にやること</div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-1" aria-expanded="false" aria-controls="qa-answer-1">
                     大会用プロジェクトを作る流れ
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-1" role="region" aria-labelledby="qa-question-1" aria-hidden="true"><div class="qa-answer-inner">
                     「新規作成」からGoogleでログインし、大会名・プロジェクトID・採点者用パスワードを設定します。作成したユーザーは最初の管理者になります。プロジェクトIDは管理者・採点者が入室するための識別子なので、参加者向けの案内には原則含めません。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-2" aria-expanded="false" aria-controls="qa-answer-2">
                     参加者に公開する前に確認する設定
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-2" role="region" aria-labelledby="qa-question-2" aria-hidden="true"><div class="qa-answer-inner">
                     管理画面で大会名、問題数、エントリー期間、定員、参加規約、メール送信設定を確認します。成績照会を使う場合は、照会期間も別途設定してください。期間外のページは参加者から操作できないため、公開前に一度リンクを開いて表示を確認しておくと安全です。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-3" aria-expanded="false" aria-controls="qa-answer-3">
                     参加者向けリンクの扱い
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
-                    管理画面のリンク一覧から、エントリー、参加者一覧、参加規約、編集、キャンセル、遅刻連絡、成績照会のリンクをコピーできます。QRコードやメールに使う場合は、必ず本番で使うプロジェクトのリンクか確認してください。
+                </button>
+                <div class="qa-answer" id="qa-answer-3" role="region" aria-labelledby="qa-question-3" aria-hidden="true"><div class="qa-answer-inner">
+                    管理画面のリンク一覧から、エントリーフォーム、エントリーリスト、マイエントリー、参加規約の4つのリンクをコピーできます。登録内容の確認・編集、キャンセル、遅刻連絡、成績照会はマイエントリーに集約されています。QRコードやメールに使う場合は、必ず本番で使うプロジェクトのリンクか確認してください。
                 </div></div>
             </div>
         </div>
@@ -57,31 +57,31 @@
             <div class="qa-category-title"><span data-icon="users-gear" aria-hidden="true"></span> 権限とログイン</div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-4" aria-expanded="false" aria-controls="qa-answer-4">
                     管理者と採点者の違い
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-4" role="region" aria-labelledby="qa-question-4" aria-hidden="true"><div class="qa-answer-inner">
                     管理者は設定変更、参加者管理、答案アップロード、競合解決、集計出力を行えます。採点者は採点画面で割り当てられた問題を採点します。採点者には原則として参加者の個人情報や管理機能を見せない設計です。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-5" aria-expanded="false" aria-controls="qa-answer-5">
                     採点者を参加させる方法
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-5" role="region" aria-labelledby="qa-question-5" aria-hidden="true"><div class="qa-answer-inner">
                     採点者にはログインページ、プロジェクトID、採点者用パスワードを共有します。Googleログイン後、プロジェクトIDとパスワードを入力すると採点者として参加します。最初は採点者権限で入り、必要な人だけ既存管理者が管理者へ変更します。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-6" aria-expanded="false" aria-controls="qa-answer-6">
                     管理者を増やす・外すとき
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-6" role="region" aria-labelledby="qa-question-6" aria-hidden="true"><div class="qa-answer-inner">
                     管理画面のメンバー管理で、参加済みメンバーの権限変更やキックができます。誤って外した場合は復帰操作を使います。知らないアカウントや不要になった採点者は、セキュリティ上そのまま残さず整理してください。
                 </div></div>
             </div>
@@ -91,31 +91,31 @@
             <div class="qa-category-title"><span data-icon="user-check" aria-hidden="true"></span> エントリーと当日受付</div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-7" aria-expanded="false" aria-controls="qa-answer-7">
                     エントリー受付を開始・停止する
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-7" role="region" aria-labelledby="qa-question-7" aria-hidden="true"><div class="qa-answer-inner">
                     管理画面でエントリーの公開状態と期間を設定します。期間を指定した場合、開始前・終了後は参加者がエントリーできません。定員制限を使う場合は人数を1人単位で調整できます。キャンセル待ちから繰り上がった参加者には、必要に応じて通知を送ります。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-8" aria-expanded="false" aria-controls="qa-answer-8">
                     参加者情報を確認・管理する
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-8" role="region" aria-labelledby="qa-question-8" aria-hidden="true"><div class="qa-answer-inner">
                     管理者は参加者一覧でエントリー状況、当日受付状態、キャンセル待ち、連絡に必要な情報を確認します。参加者のメールアドレスや氏名などの個人情報は慎重に扱い、公開ページや採点者向け画面へ出さないようにします。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-9" aria-expanded="false" aria-controls="qa-answer-9">
                     当日受付で使うもの
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-9" role="region" aria-labelledby="qa-question-9" aria-hidden="true"><div class="qa-answer-inner">
                     当日受付ページでは参加者のQRコードを読み取り、受付済みにできます。カメラを使う端末ではブラウザのカメラ許可が必要です。読み取りできない場合は、管理画面の参加者一覧から状態を確認してください。
                 </div></div>
             </div>
@@ -125,31 +125,31 @@
             <div class="qa-category-title"><span data-icon="file-pen" aria-hidden="true"></span> 答案準備</div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-10" aria-expanded="false" aria-controls="qa-answer-10">
                     解答用紙PDFを作る
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-10" role="region" aria-labelledby="qa-question-10" aria-hidden="true"><div class="qa-answer-inner">
                     管理画面で問題数を設定し、解答用紙PDFを生成します。参加者ごとに受付番号をマークして印刷・配布します。答案の読み取りでは受付番号が重要なので、印刷時にマーカーや番号欄が欠けないよう確認してください。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-11" aria-expanded="false" aria-controls="qa-answer-11">
                     採点準備で模範解答を入れる
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-11" role="region" aria-labelledby="qa-question-11" aria-hidden="true"><div class="qa-answer-inner">
                     模範解答は管理画面から入力・保存します。CSVを使う場合は、問題番号と解答の対応がずれないよう確認してください。表記ゆれが採点判断に影響する場合は、採点者へ事前に基準を共有します。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-12" aria-expanded="false" aria-controls="qa-answer-12">
                     答案PDFをアップロードする
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-12" role="region" aria-labelledby="qa-question-12" aria-hidden="true"><div class="qa-answer-inner">
                     スキャンした答案PDFを答案管理からアップロードします。1ページが1人分の答案として扱われ、受付番号を読み取って参加者に紐づけます。読み取り失敗や受付番号不一致が出た場合は、参加者一覧とPDF上の番号を確認してください。
                 </div></div>
             </div>
@@ -159,31 +159,31 @@
             <div class="qa-category-title"><span data-icon="check-double" aria-hidden="true"></span> 採点と競合解決</div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-13" aria-expanded="false" aria-controls="qa-answer-13">
                     採点者は何をするか
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-13" role="region" aria-labelledby="qa-question-13" aria-hidden="true"><div class="qa-answer-inner">
                     採点者は問題一覧から担当する問題を開き、各答案を正解・不正解・保留で判定します。保存は答案ごとに行われます。担当問題の採点が終わったら完了操作を行い、管理者が全体の進行状況を確認します。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-14" aria-expanded="false" aria-controls="qa-answer-14">
                     競合とは何か
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-14" role="region" aria-labelledby="qa-question-14" aria-hidden="true"><div class="qa-answer-inner">
                     同じ答案に対して採点者の判断が分かれ、必要人数の一致に達していない状態を競合として扱います。競合ページでは、管理者が該当答案、模範解答、採点者の投票を見て最終判定を決めます。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-15" aria-expanded="false" aria-controls="qa-answer-15">
                     集計と順位の考え方
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-15" role="region" aria-labelledby="qa-question-15" aria-hidden="true"><div class="qa-answer-inner">
                     採点結果は問題ごとの最終判定から集計されます。同点の場合は連答などの順位決定ルールを使います。連答が完全一致した場合は、CSV上で判別できるように出力されます。公開前にCSVを確認し、想定外の未確定答案が残っていないか見てください。
                 </div></div>
             </div>
@@ -193,21 +193,21 @@
             <div class="qa-category-title"><span data-icon="ranking-star" aria-hidden="true"></span> 成績照会と出力</div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-16" aria-expanded="false" aria-controls="qa-answer-16">
                     成績照会を公開する
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-16" role="region" aria-labelledby="qa-question-16" aria-hidden="true"><div class="qa-answer-inner">
                     成績照会はエントリーとは別に公開状態と期間を設定します。公開すると、参加者本人だけが照会用情報を使って自分の成績を確認できます。大会中や採点未完了の状態で誤って公開しないよう、公開前に設定を確認してください。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-17" aria-expanded="false" aria-controls="qa-answer-17">
                     CSV・採点済みPDFを出力する
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-17" role="region" aria-labelledby="qa-question-17" aria-hidden="true"><div class="qa-answer-inner">
                     管理画面から成績CSV、問題別分析、採点済みPDFを出力できます。外部に共有する前に、参加者名、受付番号、順位、未確定答案の有無を確認してください。個人情報を含むファイルは共有先を限定して扱います。
                 </div></div>
             </div>
@@ -217,21 +217,21 @@
             <div class="qa-category-title"><span data-icon="shield-halved" aria-hidden="true"></span> 安全に使うために</div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-18" aria-expanded="false" aria-controls="qa-answer-18">
                     漏洩・改ざんを避ける基本
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-18" role="region" aria-labelledby="qa-question-18" aria-hidden="true"><div class="qa-answer-inner">
                     管理者権限は必要な人にだけ付与します。採点者用パスワードを不要な場所に貼らない、公開リンクと管理者向け情報を混ぜない、不要になったメンバーを外す、出力ファイルを公開ストレージに置かない、という運用を徹底してください。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-19" aria-expanded="false" aria-controls="qa-answer-19">
                     答案画像と個人情報の扱い
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-19" role="region" aria-labelledby="qa-question-19" aria-hidden="true"><div class="qa-answer-inner">
                     答案画像と参加者情報は大会運営に必要な範囲でだけ利用します。採点者に不要な個人情報は見せず、参加者本人向けの成績照会でも本人以外の成績が見えないことを前提に運用します。大会後に不要になった答案画像は削除対象です。
                 </div></div>
             </div>
@@ -241,31 +241,31 @@
             <div class="qa-category-title"><span data-icon="triangle-exclamation" aria-hidden="true"></span> 困ったとき</div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-20" aria-expanded="false" aria-controls="qa-answer-20">
                     ログイン・プロジェクト参加ができない
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-20" role="region" aria-labelledby="qa-question-20" aria-hidden="true"><div class="qa-answer-inner">
                     Googleログイン状態、プロジェクトID、採点者用パスワードを確認します。別のGoogleアカウントでログインしている場合は、一度Googleログアウトして入り直してください。管理者がキックしたメンバーは、復帰操作が必要な場合があります。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-21" aria-expanded="false" aria-controls="qa-answer-21">
                     答案画像が表示されない・重い
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-21" role="region" aria-labelledby="qa-question-21" aria-hidden="true"><div class="qa-answer-inner">
                     まずページを再読み込みします。直らない場合は、答案PDFの保存が完了しているか、対象参加者の答案が登録されているかを管理画面で確認します。ブラウザの通信が不安定な場合、画像の読み込みに時間がかかることがあります。
                 </div></div>
             </div>
 
             <div class="qa-item">
-                <div class="qa-question">
+                <button type="button" class="qa-question" id="qa-question-22" aria-expanded="false" aria-controls="qa-answer-22">
                     データをリセットしたい
                     <span data-icon="chevron-down" aria-hidden="true"></span>
-                </div>
-                <div class="qa-answer"><div class="qa-answer-inner">
+                </button>
+                <div class="qa-answer" id="qa-answer-22" role="region" aria-labelledby="qa-question-22" aria-hidden="true"><div class="qa-answer-inner">
                     リセットは復元できない操作です。エントリー、答案、採点、成績など何を消すのかを確認し、必要なCSVやPDFを先に保存してください。大会本番のプロジェクトでは、誤操作を避けるため複数人で確認してから実行します。
                 </div></div>
             </div>
@@ -275,10 +275,10 @@
             <p>CIQ Help</p>
         </div>
     </div>
+    <script defer src="js/config.js"></script>
     <script defer src="js/icons.js?v=6"></script>
-    <script defer src="js/ui.js?v=6"></script>
-    <script defer src="js/custom-select.js?v=5"></script>
-    <script defer src="js/shared.js"></script>
-    <script defer src="js/help.js?v=2"></script>
+    <script defer src="js/ui.js?v=7"></script>
+    <script defer src="js/shared.js?v=2"></script>
+    <script defer src="js/help.js?v=3"></script>
 </body>
 </html>
