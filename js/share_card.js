@@ -2,6 +2,8 @@
 
 const ShareCard = (() => {
     const W = 1200, H = 630;
+    const FONT_TEXT = '"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
+    const FONT_DISPLAY = '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
 
     // design-system/MASTER.md "Calm Command" / Apple neutral tokens と同期
     const C = {
@@ -124,7 +126,7 @@ const ShareCard = (() => {
 
         ctx.save();
         ctx.textBaseline = 'middle';
-        ctx.font = 'bold 44px "IBM Plex Sans JP", sans-serif';
+        ctx.font = `700 44px ${FONT_DISPLAY}`;
 
         const match = projectName.match(/^(.+?the\s*)(\d+\w*)(.*)/i);
         if (match) {
@@ -132,28 +134,28 @@ const ShareCard = (() => {
             const part2 = match[2];
             const part3 = match[3] + suffix;
 
-            ctx.font = 'bold 44px "IBM Plex Sans JP", sans-serif';
+            ctx.font = `700 44px ${FONT_DISPLAY}`;
             const w1 = ctx.measureText(part1).width;
-            ctx.font = 'bold 54px "IBM Plex Sans JP", sans-serif';
+            ctx.font = `800 54px ${FONT_DISPLAY}`;
             const w2 = ctx.measureText(part2).width;
-            ctx.font = 'bold 44px "IBM Plex Sans JP", sans-serif';
+            ctx.font = `700 44px ${FONT_DISPLAY}`;
             const w3 = ctx.measureText(part3).width;
             const totalW = w1 + w2 + w3;
             let x = centerX - totalW / 2;
 
             ctx.textAlign = 'left';
-            ctx.font = 'bold 44px "IBM Plex Sans JP", sans-serif';
+            ctx.font = `700 44px ${FONT_DISPLAY}`;
             ctx.fillStyle = C.white;
             ctx.fillText(part1, x, textY);
             x += w1;
 
             // 数字部分 — ゴールド（祝祭色）で目立たせる
-            ctx.font = 'bold 54px "IBM Plex Sans JP", sans-serif';
+            ctx.font = `800 54px ${FONT_DISPLAY}`;
             ctx.fillStyle = C.gold;
             ctx.fillText(part2, x, textY);
             x += w2;
 
-            ctx.font = 'bold 44px "IBM Plex Sans JP", sans-serif';
+            ctx.font = `700 44px ${FONT_DISPLAY}`;
             ctx.fillStyle = C.white;
             ctx.fillText(part3, x, textY);
         } else {
@@ -198,7 +200,7 @@ const ShareCard = (() => {
 
         // ヘッダーテキスト
         ctx.fillStyle = C.white;
-        ctx.font = 'bold 13px "IBM Plex Sans JP", sans-serif';
+        ctx.font = `700 13px ${FONT_TEXT}`;
         ctx.textBaseline = 'middle';
         ctx.fillText(label, x + topSkew + 20, y + headerH / 2);
         ctx.restore();
@@ -235,28 +237,28 @@ const ShareCard = (() => {
         let fontSize = options.fontSize || 80;
 
         // テキスト幅を測って、はみ出す場合だけ縮小
-        ctx.font = `800 ${fontSize}px "IBM Plex Sans JP", sans-serif`;
+        ctx.font = `800 ${fontSize}px ${FONT_DISPLAY}`;
         ctx.fillStyle = C.textMain;
 
         if (options.suffix) {
             const suffixRatio = 0.32;
             // 全体幅を計算
             let valW = ctx.measureText(value).width;
-            let sufFont = `600 ${Math.round(fontSize * suffixRatio)}px "IBM Plex Sans JP", sans-serif`;
+            let sufFont = `600 ${Math.round(fontSize * suffixRatio)}px ${FONT_TEXT}`;
             ctx.save(); ctx.font = sufFont; let sufW = ctx.measureText(options.suffix).width; ctx.restore();
             let totalW = valW + 6 + sufW;
 
             while (totalW > maxTextW && fontSize > 40) {
                 fontSize -= 4;
-                ctx.font = `800 ${fontSize}px "IBM Plex Sans JP", sans-serif`;
+                ctx.font = `800 ${fontSize}px ${FONT_DISPLAY}`;
                 valW = ctx.measureText(value).width;
-                sufFont = `600 ${Math.round(fontSize * suffixRatio)}px "IBM Plex Sans JP", sans-serif`;
+                sufFont = `600 ${Math.round(fontSize * suffixRatio)}px ${FONT_TEXT}`;
                 ctx.save(); ctx.font = sufFont; sufW = ctx.measureText(options.suffix).width; ctx.restore();
                 totalW = valW + 6 + sufW;
             }
 
             const startX = cardCenterX - totalW / 2;
-            ctx.font = `800 ${fontSize}px "IBM Plex Sans JP", sans-serif`;
+            ctx.font = `800 ${fontSize}px ${FONT_DISPLAY}`;
             ctx.textAlign = 'left';
             ctx.fillText(value, startX, bodyCenter);
 
@@ -267,7 +269,7 @@ const ShareCard = (() => {
             let textW = ctx.measureText(value).width;
             while (textW > maxTextW && fontSize > 40) {
                 fontSize -= 4;
-                ctx.font = `800 ${fontSize}px "IBM Plex Sans JP", sans-serif`;
+                ctx.font = `800 ${fontSize}px ${FONT_DISPLAY}`;
                 textW = ctx.measureText(value).width;
             }
             ctx.textAlign = 'center';
@@ -324,7 +326,7 @@ const ShareCard = (() => {
         // CIQ ウォーターマーク（小さめ・さりげなく）
         ctx.save();
         ctx.globalAlpha = 0.04;
-        ctx.font = 'bold 80px "IBM Plex Sans JP", sans-serif';
+        ctx.font = `700 80px ${FONT_DISPLAY}`;
         ctx.fillStyle = C.dark;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';

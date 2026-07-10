@@ -64,9 +64,13 @@
   --on-warn: #000000;
   --on-bad: #ffffff;
 
-  /* --- Typography(SF Pro 前提のシステムフォントスタック) --- */
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
-    "Hiragino Sans", "Noto Sans JP", sans-serif;
+  /* --- Typography(Apple system stack / Webフォント読込なし) --- */
+  --font-jp: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP";
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+    var(--font-jp), sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", var(--font-jp), sans-serif;
+  --font-sans: var(--font-text);
   --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
   --fs-12: 0.75rem;
   --fs-13: 0.8125rem;
@@ -227,6 +231,7 @@ h1,
 h2,
 h3,
 h4 {
+  font-family: var(--font-display);
   line-height: var(--lh-tight);
   letter-spacing: -0.015em;
   overflow-wrap: anywhere;

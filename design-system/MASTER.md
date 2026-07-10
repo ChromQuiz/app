@@ -83,16 +83,21 @@ Gold #A05A00 / #FFD60A — 成績・順位の1点のみ
 - `ink-2` を意味のある補足文とplaceholderに使う。`ink-3` は disabled、装飾、非主要アイコンに限定する。
 - 状態は色だけで伝えず、テキスト、アイコン、罫線のいずれかを必ず併用する。
 
-### Typography(Webフォント読込なし・システムフォントスタック)
+### Typography(Webフォント読込なし・Apple system stack)
 ```css
+font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+             "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+             "Yu Gothic", "Noto Sans JP", sans-serif;              /* 見出し */
 font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
-             "Hiragino Sans", "Noto Sans JP", sans-serif;          /* 基本 */
+             "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+             "Yu Gothic", "Noto Sans JP", sans-serif;              /* 本文 */
 font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace; /* 数値専用 */
 ```
 - H1 26–32px/700(1画面1つ) / H2 18–24px/600 / H3 16–22px/600(H4以下は使わない)
 - 本文 16px/400/lh1.7、補足 13px/400/Sub色、ボタン 15px/500–600、フォーム入力 ≥16px
 - テーブル: セル14px、ヘッダ12px/600/+0.06em
-- **mono は数値専用**(受付番号 56px/600、スコア 56px、判定 No. 56px、ID・コード 13–15px、`tabular-nums`)。本文・見出し禁止
+- Canvas生成画像も同じApple stackを使い、`IBM Plex` / `Inter` などの外部フォント前提にしない。
+- **mono は数値・ID専用**(受付番号、スコア、判定 No.、ID・コード、`tabular-nums`)。本文・見出し禁止
 - 優先順位はサイズではなく余白・ウェイト・濃淡で。見出し前の余白は後ろの2倍
 
 ### Radius / Elevation / Motion / Layout

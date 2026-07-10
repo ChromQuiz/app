@@ -320,6 +320,8 @@
         }
 
         async function renderAdminEntryReceiptImage(receipt, qrSvg) {
+            const appleTextFont = '"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
+            const appleDisplayFont = '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
             const qrImage = await loadImageFromBlob(new Blob([qrSvg], { type: 'image/svg+xml;charset=utf-8' }));
             const canvas = document.createElement('canvas');
             canvas.width = 900;
@@ -334,10 +336,10 @@
             ctx.fillRect(0, 0, canvas.width, 170);
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
-            ctx.font = '800 38px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.font = `800 38px ${appleDisplayFont}`;
             ctx.fillText('エントリー受付完了', canvas.width / 2, 72);
             ctx.fillStyle = '#d2d2d7';
-            ctx.font = '600 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.font = `600 24px ${appleTextFont}`;
             ctx.fillText(receipt.projectName, canvas.width / 2, 116);
 
             ctx.fillStyle = '#ffffff';
@@ -349,19 +351,19 @@
 
             ctx.textAlign = 'left';
             ctx.fillStyle = '#1d1d1f';
-            ctx.font = '600 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.font = `600 24px ${appleTextFont}`;
             drawReceiptText(ctx, `${receipt.familyName} ${receipt.firstName} 様`, 110, 270, 680, 36);
 
             ctx.fillStyle = '#f5f5f7';
             drawRoundedRect(ctx, 110, 315, 680, 150, 16);
             ctx.fill();
             ctx.fillStyle = '#6e6e73';
-            ctx.font = '700 22px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.font = `700 22px ${appleTextFont}`;
             ctx.fillText('受付番号', 145, 370);
             ctx.fillText('パスワード', 145, 430);
             ctx.fillStyle = '#1d1d1f';
             ctx.textAlign = 'right';
-            ctx.font = '800 34px "Inter", "Noto Sans JP", sans-serif';
+            ctx.font = `800 34px ${appleDisplayFont}`;
             ctx.fillText(receipt.entryNumber, 750, 374);
             ctx.fillText(receipt.password, 750, 434);
 
@@ -371,7 +373,7 @@
                 drawRoundedRect(ctx, 110, 490, 680, 62, 14);
                 ctx.fill();
                 ctx.fillStyle = '#bf6a02';
-                ctx.font = '800 22px "Noto Sans JP", "Hiragino Sans", sans-serif';
+                ctx.font = `800 22px ${appleTextFont}`;
                 ctx.fillText('現在はキャンセル待ちです', canvas.width / 2, 530);
             }
 
@@ -383,16 +385,16 @@
 
             ctx.textAlign = 'center';
             ctx.fillStyle = '#1d1d1f';
-            ctx.font = '800 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.font = `800 24px ${appleTextFont}`;
             ctx.fillText('当日受付にはこのQRコードが必要です', canvas.width / 2, 970);
             ctx.fillStyle = '#6e6e73';
-            ctx.font = '500 18px "Noto Sans JP", "Hiragino Sans", sans-serif';
+            ctx.font = `500 18px ${appleTextFont}`;
             ctx.fillText('この画像とパスワードを大会当日まで保管してください', canvas.width / 2, 1005);
 
             ctx.fillStyle = '#f5f5f7';
             ctx.fillRect(0, 1080, canvas.width, 100);
             ctx.fillStyle = '#6e6e73';
-            ctx.font = '600 18px "Inter", "Noto Sans JP", sans-serif';
+            ctx.font = `600 18px ${appleDisplayFont}`;
             ctx.fillText('CIQ', canvas.width / 2, 1138);
 
             return new Promise((resolve, reject) => {

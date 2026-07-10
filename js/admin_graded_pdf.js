@@ -125,7 +125,7 @@
                     // スコア情報をマークシート上部に描画（赤文字）
                     const fontSize = Math.round(canvas.width * 0.022);
                     ctx.save();
-                    ctx.font = `bold ${fontSize}px "IBM Plex Sans JP", sans-serif`;
+                    ctx.font = `700 ${fontSize}px "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif`;
                     ctx.fillStyle = '#d70015';
                     ctx.globalAlpha = 0.9;
 
