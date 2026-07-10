@@ -632,9 +632,10 @@ svg[width="24"][stroke="currentColor"] {
   width: 84px;
   border: 0;
   text-align: center;
-  font-family: var(--font-mono);
-  font-weight: 600;
+  font-family: var(--font-text);
+  font-weight: 500;
   font-size: var(--fs-16);
+  font-variant-numeric: tabular-nums;
   min-height: var(--control-h);
   background: transparent;
   border-radius: 0;
