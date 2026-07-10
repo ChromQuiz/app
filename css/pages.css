@@ -1324,13 +1324,13 @@ body.page-wrapper:has(#terms-card) .page-container {
   z-index: var(--z-sticky);
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: var(--sp-2);
+  gap: 4px;
   margin-bottom: var(--sp-5);
-  padding: var(--sp-2);
-  background: var(--canvas);
+  padding: 4px;
+  background: var(--surface-2);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: 0 1px 0 var(--line);
+  border-radius: var(--radius-grouped);
+  box-shadow: none;
 }
 
 .phase-quick-btn {
@@ -1341,7 +1341,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   min-height: var(--control-h);
   padding: 0 var(--sp-2);
   border: 1px solid transparent;
-  border-radius: var(--r-md);
+  border-radius: var(--radius-control);
   color: var(--ink-2);
   font-size: var(--fs-13);
   font-weight: 600;
@@ -1363,19 +1363,20 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 .phase-quick-btn:hover {
-  background: var(--surface-2);
+  background: var(--surface);
   color: var(--ink);
 }
 
 .phase-quick-btn.active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--canvas);
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink);
 }
 
 .phase-quick-btn.active span:first-child {
-  border-color: color-mix(in srgb, var(--canvas) 42%, transparent);
-  color: var(--canvas);
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
 }
 
 .phase-list {
@@ -1696,7 +1697,8 @@ body.page-wrapper:has(#terms-card) .page-container {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-2);
+  min-height: var(--control-h);
+  padding: var(--sp-3) var(--sp-4);
   border-bottom: 1px solid var(--line);
   background: var(--surface);
   transition: background var(--t-micro) var(--ease);
@@ -1707,7 +1709,8 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 .entry-card.selected {
-  background: var(--brand-50);
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .scan-cb-wrap {

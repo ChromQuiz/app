@@ -113,6 +113,7 @@
   --radius-grouped: var(--r-lg);
   --radius-overlay: var(--r-xl);
   --radius-pill: var(--r-full);
+  --control-pressed: 0.92;
 
   /* --- Elevation(影はほぼ廃止: 罫線と余白で階層を作る) --- */
   --sh-1: 0 0 0 rgba(0, 0, 0, 0);
@@ -437,25 +438,25 @@ svg[width="24"][stroke="currentColor"] {
   justify-content: center;
   gap: var(--sp-2);
   min-height: var(--control-h);
-  padding: 0 var(--sp-5);
+  padding: 0 18px;
   border-radius: var(--radius-control);
   font-size: var(--fs-15);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.2;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   background: var(--primary);
   color: var(--on-primary);
   border: 1px solid transparent;
   cursor: pointer;
   user-select: none;
   transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease),
-    border-color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease),
+    border-color var(--t-micro) var(--ease), opacity var(--t-micro) var(--ease),
     transform var(--t-micro) var(--ease);
 }
 
 .page-btn {
   width: 100%;
-  min-height: 50px;
+  min-height: 46px;
   font-size: var(--fs-16);
 }
 
@@ -467,7 +468,8 @@ svg[width="24"][stroke="currentColor"] {
 
 .btn:active,
 .page-btn:active {
-  transform: translateY(1px);
+  opacity: var(--control-pressed);
+  transform: scale(0.995);
 }
 
 .btn:disabled,
@@ -500,9 +502,9 @@ svg[width="24"][stroke="currentColor"] {
 .btn.standard,
 .page-btn.secondary,
 .page-btn.standard {
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--ink);
-  border-color: var(--line-strong);
+  border-color: var(--line);
 }
 
 .btn.secondary:hover,
@@ -511,21 +513,21 @@ svg[width="24"][stroke="currentColor"] {
 .page-btn.standard:hover {
   border-color: var(--ink-3);
   color: var(--ink);
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 /* Ghost — 補助動線 */
 .btn.ghost,
 .page-btn.ghost {
   background: transparent;
-  color: var(--ink-2);
+  color: var(--accent);
   border-color: transparent;
 }
 
 .btn.ghost:hover,
 .page-btn.ghost:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* Danger — 破壊的操作のみ */
@@ -573,14 +575,20 @@ svg[width="24"][stroke="currentColor"] {
   justify-content: center;
   width: var(--control-h);
   height: var(--control-h);
-  border-radius: var(--radius-control);
+  border-radius: var(--r-full);
   color: var(--ink-2);
-  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease),
+    opacity var(--t-micro) var(--ease), transform var(--t-micro) var(--ease);
 }
 
 .icon-button:hover {
   background: var(--surface-2);
   color: var(--ink);
+}
+
+.icon-button:active {
+  opacity: var(--control-pressed);
+  transform: scale(0.96);
 }
 
 /* Back navigation */
@@ -991,11 +999,11 @@ textarea,
 select {
   width: 100%;
   min-height: var(--control-h);
-  padding: var(--sp-2) var(--sp-4);
+  padding: 0 14px;
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-md);
+  border-radius: var(--radius-control);
   font-size: var(--fs-16); /* iOS ズーム防止のため 16px 未満禁止 */
   transition: border-color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease),
     background var(--t-micro) var(--ease);
@@ -1016,6 +1024,7 @@ textarea::placeholder {
 input:hover,
 textarea:hover,
 select:hover {
+  background: var(--surface-2);
   border-color: var(--line-strong);
 }
 
@@ -1070,11 +1079,11 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
-  padding: var(--sp-2) var(--sp-4);
+  padding: 0 14px;
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-md);
+  border-radius: var(--radius-control);
   text-align: left;
   font-size: var(--fs-16);
   transition: border-color var(--t-micro) var(--ease), background var(--t-micro) var(--ease);
@@ -1102,24 +1111,24 @@ select {
 .ciq-select-menu {
   position: absolute;
   z-index: var(--z-dropdown);
-  top: calc(100% + 6px);
+  top: calc(100% + 5px);
   left: 0;
   right: 0;
   max-height: min(280px, 48dvh);
   overflow: auto;
-  padding: var(--sp-1);
+  padding: 5px;
   background: var(--surface);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-md);
-  box-shadow: var(--sh-3);
+  border-radius: var(--radius-overlay);
+  box-shadow: var(--sh-2);
 }
 
 .ciq-select-option {
-  min-height: 38px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-sm);
+  border-radius: var(--radius-control);
   color: var(--ink);
   font-size: var(--fs-15);
   cursor: pointer;
@@ -1133,7 +1142,7 @@ select {
 .ciq-select-option.is-selected {
   background: var(--accent-soft);
   color: var(--ink);
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .ciq-select-option.is-disabled {
@@ -1192,11 +1201,11 @@ select:user-invalid {
 
 .checkbox-mark {
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   margin-top: 0.1em;
-  border: 2px solid var(--line-strong);
-  border-radius: 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
   background: var(--surface);
   display: inline-flex;
   align-items: center;
@@ -1219,8 +1228,8 @@ select:user-invalid {
 }
 
 .custom-checkbox input:checked + .checkbox-mark {
-  background: var(--ink);
-  border-color: var(--ink);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .custom-checkbox input:checked + .checkbox-mark [data-icon],
@@ -1275,9 +1284,9 @@ select:user-invalid {
   min-height: var(--control-h);
   padding: var(--sp-2) var(--sp-4);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  font-weight: 600;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  font-weight: 500;
   font-size: var(--fs-15);
   cursor: pointer;
   margin-bottom: 0;
@@ -1297,7 +1306,7 @@ select:user-invalid {
 }
 
 .choice-option:has(input:checked) {
-  background: var(--surface-2);
+  background: var(--surface);
   border-color: var(--ink);
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--ink);
