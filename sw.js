@@ -4,7 +4,7 @@
  * HTML/CSS/JS/Auth/API は常にライブデータを使用する。
  */
 
-const CACHE_NAME = 'ciq-v9';
+const CACHE_NAME = 'ciq-v11';
 const STATIC_ASSETS = [
     'favicon.png',
     '404.html',

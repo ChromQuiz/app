@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -163,6 +163,20 @@ describe('production UI contracts', () => {
       expect(source, `${path}: legacy icon path registry`).not.toContain('ICON_PATHS');
       expect(source, `${path}: legacy symbol style marker`).not.toContain('data-ciq-symbol-style');
       expect(source, `${path}: temporary percent ring icon`).not.toContain('percent-ring');
+    }
+  });
+
+  it('uses the provided PNG favicon and removes the legacy OG image asset', () => {
+    expect(existsSync(resolve(ROOT, 'favicon.png'))).toBe(true);
+    expect(existsSync(resolve(ROOT, 'favicon.svg'))).toBe(false);
+    expect(existsSync(resolve(ROOT, 'og-image.png'))).toBe(false);
+    expect(read('sw.js')).toContain("'favicon.png'");
+    expect(read('sw.js')).not.toContain('favicon.svg');
+
+    for (const { path, source } of pageSources()) {
+      expect(source, `${path}: png favicon`).toContain('rel="icon" type="image/png" href="favicon.png?v=4"');
+      expect(source, `${path}: svg favicon`).not.toContain('favicon.svg');
+      expect(source, `${path}: og-image`).not.toMatch(/og:image|og-image\.png/);
     }
   });
 });
