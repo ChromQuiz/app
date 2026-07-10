@@ -129,6 +129,7 @@
         let lastAdminEntryReceiptUrl = '';
         let adminEntryReturnFocus = null;
         let adminEntryWasScrollLocked = false;
+        let adminEntrySubmitting = false;
 
         function getAdminEntryModal() {
             return document.getElementById('admin-entry-modal');
@@ -143,6 +144,7 @@
         }
 
         function setAdminEntrySubmitting(isSubmitting) {
+            adminEntrySubmitting = Boolean(isSubmitting);
             const submit = document.getElementById('admin-entry-submit');
             if (!submit) return;
             submit.disabled = isSubmitting;
@@ -203,9 +205,20 @@
             if (typeof trapFocusWithin === 'function') trapFocusWithin(event, dialog);
         }
 
-        function closeAdminEntryModal() {
+        function canDismissAdminEntryModal() {
+            const resultVisible = !document.getElementById('admin-entry-result')?.classList.contains('u-hidden');
+            return !adminEntrySubmitting && !resultVisible;
+        }
+
+        function closeAdminEntryModal(force = false) {
             const modal = getAdminEntryModal();
             if (!modal) return;
+            if (!force && !canDismissAdminEntryModal()) {
+                if (adminEntrySubmitting) {
+                    setAdminEntryStatus('参加者を追加中です。完了までお待ちください。', 'info');
+                }
+                return;
+            }
             modal.removeEventListener('keydown', handleAdminEntryModalKeydown);
             modal.classList.remove('visible');
             setTimeout(() => {
@@ -218,7 +231,7 @@
         }
 
         function finishAdminEntryFlow() {
-            closeAdminEntryModal();
+            closeAdminEntryModal(true);
         }
 
         async function copyAdminEntryPassword() {

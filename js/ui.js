@@ -114,6 +114,121 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.setAttribute('inert', '');
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    initCustomSelects(document);
+});
+
+function initCustomSelects(root = document) {
+    root.querySelectorAll('select:not([multiple]):not([data-native-select]):not([data-custom-select-bound])')
+        .forEach(enhanceSelect);
+}
+
+function enhanceSelect(select) {
+    select.dataset.customSelectBound = 'true';
+    const wrap = document.createElement('div');
+    wrap.className = 'ciq-select';
+    if (select.classList.contains('u-full-width')) wrap.classList.add('u-full-width');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'ciq-select-button';
+    button.setAttribute('aria-haspopup', 'listbox');
+    button.setAttribute('aria-expanded', 'false');
+    if (select.id) {
+        const sourceLabel = document.querySelector(`label[for="${CSS.escape(select.id)}"]`);
+        if (sourceLabel?.textContent) button.setAttribute('aria-label', sourceLabel.textContent.trim());
+    }
+    const label = document.createElement('span');
+    label.className = 'ciq-select-label';
+    button.appendChild(label);
+    const menu = document.createElement('div');
+    menu.className = 'ciq-select-menu';
+    menu.setAttribute('role', 'listbox');
+    menu.hidden = true;
+    select.parentNode.insertBefore(wrap, select);
+    wrap.append(select, button, menu);
+    select.classList.add('ciq-select-native');
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+
+    const optionNodes = [];
+    const close = () => {
+        wrap.classList.remove('is-open');
+        button.setAttribute('aria-expanded', 'false');
+        menu.hidden = true;
+        optionNodes.forEach((node) => node.classList.remove('is-active'));
+    };
+    const sync = () => {
+        const option = select.options[select.selectedIndex];
+        label.textContent = option?.textContent || '';
+        optionNodes.forEach((node, index) => {
+            const isSelected = index === select.selectedIndex;
+            node.classList.toggle('is-selected', isSelected);
+            node.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        });
+    };
+    const choose = (index) => {
+        const option = select.options[index];
+        if (!option || option.disabled) return;
+        select.selectedIndex = index;
+        sync();
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        close();
+        button.focus();
+    };
+    const setActive = (index) => {
+        const next = Math.max(0, Math.min(optionNodes.length - 1, index));
+        optionNodes.forEach((node, nodeIndex) => node.classList.toggle('is-active', nodeIndex === next));
+        optionNodes[next]?.scrollIntoView({ block: 'nearest' });
+        return next;
+    };
+    const open = () => {
+        wrap.classList.add('is-open');
+        button.setAttribute('aria-expanded', 'true');
+        menu.hidden = false;
+        setActive(select.selectedIndex >= 0 ? select.selectedIndex : 0);
+    };
+
+    Array.from(select.options).forEach((option, index) => {
+        const node = document.createElement('div');
+        node.className = 'ciq-select-option';
+        node.setAttribute('role', 'option');
+        node.textContent = option.textContent;
+        if (option.disabled) {
+            node.classList.add('is-disabled');
+            node.setAttribute('aria-disabled', 'true');
+        }
+        node.addEventListener('click', () => choose(index));
+        menu.appendChild(node);
+        optionNodes.push(node);
+    });
+    button.addEventListener('click', () => (menu.hidden ? open() : close()));
+    button.addEventListener('keydown', (event) => {
+        const activeIndex = optionNodes.findIndex((node) => node.classList.contains('is-active'));
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (menu.hidden) open();
+            setActive((activeIndex < 0 ? select.selectedIndex : activeIndex) + (event.key === 'ArrowDown' ? 1 : -1));
+            return;
+        }
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (menu.hidden) open();
+            else choose(activeIndex >= 0 ? activeIndex : select.selectedIndex);
+            return;
+        }
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            close();
+        }
+    });
+    select.addEventListener('change', sync);
+    select.addEventListener('focus', () => button.focus());
+    document.addEventListener('click', (event) => {
+        if (!wrap.contains(event.target)) close();
+    });
+    sync();
+}
+
 function getFocusableElements(container) {
     if (!container) return [];
     return Array.from(container.querySelectorAll(
@@ -269,6 +384,7 @@ function showConfirm(message, confirmText = '削除する') {
         dialog.className = 'confirm-dialog';
         dialog.setAttribute('role', 'alertdialog');
         dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-label', '確認');
         dialog.tabIndex = -1;
         const icon = createIcon('triangle-exclamation', { className: 'confirm-icon' });
         const messageEl = document.createElement('div');

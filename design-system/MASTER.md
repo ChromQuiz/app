@@ -72,9 +72,10 @@ Background  #FFFFFF / #111113        Surface-2  #F5F5F7 / #242428
 Text        #1A1A1E / #F5F5F7        Sub        #6E6E76 / #A1A1A8
 Border      #E6E6EA / #333338        強調線     #D2D2D7 / #44444A
 Primary     #1A1A1E / #F5F5F7        — 主CTAのみ(白黒を維持)
-Apple Blue #0066CC / #2997FF        — リンク・選択・フォーカスのみ
-Accent Soft #E8F2FF / #102B46       — 選択状態の背景のみ
-Success #1E7A44 / Warning #9A6200 / Error #C22945 — 状態表示限定・面塗り最小(左罫+文字中心)
+Apple Blue #0066CC / #2997FF        — リンク・選択・フォーカスのみ。面では広く塗らない
+Accent Soft #EDF5FF / #102235       — 選択状態の背景のみ。強い青面を避ける
+Switch On #34C759 / #30D158         — iOS/macOS標準に合わせ、トグルONのみ緑
+Success #1E7A44 / Warning #9A6200 / Destructive #D70015 — 状態表示限定・面塗り最小(左罫+文字中心)
 On semantic #FFFFFF / #111113 — 状態色を面に使う場合の前景色
 Gold #9A6A00 — 成績・順位の1点のみ
 ```
@@ -99,7 +100,7 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - 面は plain section / grouped surface / overlay の3役に限定する。Grouped list は単一の外枠と行間の hairline で構成し、行ごとの入れ子カードを作らない。
 - 影は実質廃止(`--sh-3`のオーバーレイのみ)。区切りは1px罫線と余白で表す。
 - Motion 150–250ms fade/slide のみ。`prefers-reduced-motion` 全停止
-- 幅: 参加者640px(リスト960px) / admin 880px / ボード類 1280px。タッチターゲット44px。フォーカスリング3px
+- 幅: 参加者720px(リスト・ボード類1600px) / admin本文980px / wide breakout1600px。Macの高解像度・広幅画面では表、答案、採点グリッドを伸ばし、本文読み幅は広げすぎない。タッチターゲット44px。フォーカスリング3px
 - Z: sticky10 / appbar20 / dropdown30 / drawer40 / modal50 / toast60 / max70
 
 ### Accessibility
@@ -143,7 +144,7 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 ### CSS Ownership
 
 - `css/design_system.css` owns generic UI: buttons, cards, form controls, badges, messages, steps, definition lists, modals, tables, empty/loading states, workbench cards, scoring controls, and touch/focus behavior.
-- 小規模な選択はネイティブ `<select>` を使い、カスタムdropdownは作らない。ブラウザ標準の `change` 契約を維持する。
+- 小規模な選択は実体としての `<select>` を保持しつつ、共有JSでApple風のカスタムselect表示にenhanceする。元selectの `change` 契約、required、フォーム値は維持する。
 - `css/pages.css` may only define page shells, page layout, content typography, and workflow exceptions that cannot be expressed as a shared component variant.
 - Allowed page-specific exceptions include: index/login composition, admin phase layout, entry list responsive layout, terms Markdown article layout, check-in camera/result workflow, answer-prep PDF tooling, and one-off spacing overrides around shared components.
 - If a page-specific class starts looking reusable across two pages, promote it to `css/design_system.css` before adding a second definition.

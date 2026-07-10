@@ -42,7 +42,7 @@ body.page-index > h1 {
 }
 
 body.page-index .card {
-  width: min(460px, 100%);
+  width: min(560px, 100%);
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -284,7 +284,7 @@ body.page-wrapper {
 }
 
 .page-container.full {
-  width: min(var(--container-mid), 100%);
+  width: min(var(--container-wide), 100%);
 }
 
 /* 大会名ヘッダー — 大会が主役、CIQ は黒衣 */
@@ -1300,7 +1300,7 @@ body.page-wrapper:has(#terms-card) .page-container {
    admin.html — フェーズタイムライン
    ============================================================ */
 .admin-container {
-  width: min(880px, calc(100vw - var(--sp-8)));
+  width: min(980px, calc(100vw - var(--sp-8)));
   max-width: 100%;
   margin: 0 auto;
   padding:
@@ -1315,7 +1315,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   width: min(var(--container-wide), calc(100vw - var(--sp-8)));
   max-width: none;
   margin-inline:
-    calc(50% - min(calc(50vw - var(--sp-4)), 640px));
+    calc(50% - min(calc(50vw - var(--sp-4)), 800px));
 }
 
 .phase-quick-nav {

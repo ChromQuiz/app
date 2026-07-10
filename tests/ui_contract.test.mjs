@@ -76,11 +76,11 @@ describe('production UI contracts', () => {
     }
   });
 
-  it('uses native selects and accessible disclosure controls', () => {
-    for (const { path, source } of pageSources()) {
-      expect(source, `${path}: custom select script`).not.toContain('js/custom-select.js');
-      expect(source, `${path}: custom select class`).not.toMatch(/class=["'][^"']*\bcustom-select\b/);
-    }
+  it('keeps real selects enhanced by the shared accessible custom control', () => {
+    const ui = read('js/ui.js');
+    expect(ui).toContain('function initCustomSelects');
+    expect(ui).toContain("button.setAttribute('aria-haspopup', 'listbox')");
+    expect(ui).toContain("select.dispatchEvent(new Event('change', { bubbles: true }))");
 
     const help = read('help.html');
     expect(help.match(/<button[^>]+class="qa-question"/g)).toHaveLength(22);
@@ -129,7 +129,7 @@ describe('design-system contracts', () => {
     expect(designCss).toContain('@media (forced-colors: active)');
   });
 
-  it('does not reintroduce glass, gradients, or the removed custom dropdown', () => {
+  it('does not reintroduce glass, gradients, or legacy dropdown implementations', () => {
     expect(css).not.toMatch(/backdrop-filter\s*:/);
     expect(css).not.toMatch(/(?:linear|radial|conic)-gradient\s*\(/);
     expect(designCss).not.toContain('.custom-dropdown');
