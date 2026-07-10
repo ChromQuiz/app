@@ -68,16 +68,16 @@
 
 ### Color Tokens(light / dark, `prefers-color-scheme`)
 ```
-Background  #FFFFFF / #111113        Surface-2  #F5F5F7 / #242428
-Text        #1A1A1E / #F5F5F7        Sub        #6E6E76 / #A1A1A8
-Border      #E6E6EA / #333338        強調線     #D2D2D7 / #44444A
-Primary     #1A1A1E / #F5F5F7        — 主CTAのみ(白黒を維持)
+Background  #FFFFFF / #000000        Surface-2  #F5F5F7 / #2C2C2E
+Text        #1D1D1F / #F5F5F7        Sub        #6E6E73 / #AEAEB2
+Border      #E5E5EA / #38383A        強調線     #D2D2D7 / #48484A
+Primary     #1D1D1F / #F5F5F7        — 主CTAのみ(白黒を維持)
 Apple Blue #0066CC / #2997FF        — リンク・選択・フォーカスのみ。面では広く塗らない
-Accent Soft #EDF5FF / #102235       — 選択状態の背景のみ。強い青面を避ける
+Accent Soft #F5F9FF / #071D33       — 選択状態の背景のみ。強い青面を避ける
 Switch On #34C759 / #30D158         — iOS/macOS標準に合わせ、トグルONのみ緑
-Success #1E7A44 / Warning #9A6200 / Destructive #D70015 — 状態表示限定・面塗り最小(左罫+文字中心)
-On semantic #FFFFFF / #111113 — 状態色を面に使う場合の前景色
-Gold #9A6A00 — 成績・順位の1点のみ
+Success #248A3D / Warning #BF6A02 / Destructive #D70015 — 状態表示限定・面塗り最小(左罫+文字中心)
+On semantic #FFFFFF / #000000 — 状態色を面に使う場合の前景色
+Gold #A05A00 / #FFD60A — 成績・順位の1点のみ
 ```
 
 - `ink-2` を意味のある補足文とplaceholderに使う。`ink-3` は disabled、装飾、非主要アイコンに限定する。

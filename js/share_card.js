@@ -3,16 +3,17 @@
 const ShareCard = (() => {
     const W = 1200, H = 630;
 
-    // design-system/MASTER.md "Calm Command" トークンと同期
+    // design-system/MASTER.md "Calm Command" / Apple neutral tokens と同期
     const C = {
-        bg: '#f8fafc',
-        bgLine: '#e2e8f0',
-        accent: '#1a1a1e',
-        dark: '#0f172a',
-        darkSub: '#334155',
+        bg: '#f5f5f7',
+        bgLine: '#d2d2d7',
+        accent: '#1d1d1f',
+        dark: '#1d1d1f',
+        darkSub: '#6e6e73',
         white: '#ffffff',
-        textMain: '#0f172a',
-        textSub: '#64748b',
+        textMain: '#1d1d1f',
+        textSub: '#6e6e73',
+        gold: '#ffb340',
     };
 
     // 平行四辺形の頂点計算（skew = 左方向オフセット）
@@ -148,7 +149,7 @@ const ShareCard = (() => {
 
             // 数字部分 — ゴールド（祝祭色）で目立たせる
             ctx.font = 'bold 54px "IBM Plex Sans JP", sans-serif';
-            ctx.fillStyle = '#e8a317';
+            ctx.fillStyle = C.gold;
             ctx.fillText(part2, x, textY);
             x += w2;
 

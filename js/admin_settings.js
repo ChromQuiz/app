@@ -330,7 +330,7 @@
 
             ctx.fillStyle = '#f5f5f7';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#1a1a1e';
+            ctx.fillStyle = '#1d1d1f';
             ctx.fillRect(0, 0, canvas.width, 170);
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
@@ -343,23 +343,23 @@
             ctx.fillStyle = '#ffffff';
             drawRoundedRect(ctx, 70, 215, 760, 820, 24);
             ctx.fill();
-            ctx.strokeStyle = '#e6e6ea';
+            ctx.strokeStyle = '#e5e5ea';
             ctx.lineWidth = 2;
             ctx.stroke();
 
             ctx.textAlign = 'left';
-            ctx.fillStyle = '#1a1a1e';
+            ctx.fillStyle = '#1d1d1f';
             ctx.font = '600 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
             drawReceiptText(ctx, `${receipt.familyName} ${receipt.firstName} 様`, 110, 270, 680, 36);
 
             ctx.fillStyle = '#f5f5f7';
             drawRoundedRect(ctx, 110, 315, 680, 150, 16);
             ctx.fill();
-            ctx.fillStyle = '#6e6e76';
+            ctx.fillStyle = '#6e6e73';
             ctx.font = '700 22px "Noto Sans JP", "Hiragino Sans", sans-serif';
             ctx.fillText('受付番号', 145, 370);
             ctx.fillText('パスワード', 145, 430);
-            ctx.fillStyle = '#1a1a1e';
+            ctx.fillStyle = '#1d1d1f';
             ctx.textAlign = 'right';
             ctx.font = '800 34px "Inter", "Noto Sans JP", sans-serif';
             ctx.fillText(receipt.entryNumber, 750, 374);
@@ -367,10 +367,10 @@
 
             if (receipt.status === 'waitlist') {
                 ctx.textAlign = 'center';
-                ctx.fillStyle = '#fffbeb';
+                ctx.fillStyle = '#fff7e8';
                 drawRoundedRect(ctx, 110, 490, 680, 62, 14);
                 ctx.fill();
-                ctx.fillStyle = '#92400e';
+                ctx.fillStyle = '#bf6a02';
                 ctx.font = '800 22px "Noto Sans JP", "Hiragino Sans", sans-serif';
                 ctx.fillText('現在はキャンセル待ちです', canvas.width / 2, 530);
             }
@@ -382,16 +382,16 @@
             ctx.stroke();
 
             ctx.textAlign = 'center';
-            ctx.fillStyle = '#1a1a1e';
+            ctx.fillStyle = '#1d1d1f';
             ctx.font = '800 24px "Noto Sans JP", "Hiragino Sans", sans-serif';
             ctx.fillText('当日受付にはこのQRコードが必要です', canvas.width / 2, 970);
-            ctx.fillStyle = '#6e6e76';
+            ctx.fillStyle = '#6e6e73';
             ctx.font = '500 18px "Noto Sans JP", "Hiragino Sans", sans-serif';
             ctx.fillText('この画像とパスワードを大会当日まで保管してください', canvas.width / 2, 1005);
 
             ctx.fillStyle = '#f5f5f7';
             ctx.fillRect(0, 1080, canvas.width, 100);
-            ctx.fillStyle = '#6e6e76';
+            ctx.fillStyle = '#6e6e73';
             ctx.font = '600 18px "Inter", "Noto Sans JP", sans-serif';
             ctx.fillText('CIQ', canvas.width / 2, 1138);
 
@@ -1283,8 +1283,8 @@
                 }));
             } else if (entry.status === 'late') {
                 statusTd.appendChild(createBadge('badge', 'clock-rotate-left', '遅刻', {
-                    background: 'rgba(168,85,247,0.2)',
-                    color: '#a855f7',
+                    background: 'var(--warn-100)',
+                    color: 'var(--warn-600)',
                 }));
             } else if (entry.checked_in) {
                 statusTd.appendChild(createBadge('badge success', 'check', '受付済'));

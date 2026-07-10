@@ -204,7 +204,7 @@ body.page-index .card {
 }
 
 .index-help-link:hover {
-  color: var(--accent, #0066cc);
+  color: var(--accent);
 }
 
 /* 作成完了 — 資格情報の提示 */
@@ -345,7 +345,7 @@ body.page-wrapper {
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
-  color: var(--accent, #0066cc);
+  color: var(--accent);
 }
 
 /* ============================================================
@@ -370,7 +370,7 @@ body.page-wrapper {
 }
 
 .verify-code-box:focus {
-  border-color: var(--accent, #0066cc);
+  border-color: var(--accent);
   box-shadow: none;
 }
 
@@ -395,7 +395,7 @@ body.page-wrapper {
   border-radius: var(--r-md);
   font-size: var(--fs-14);
   font-weight: 500;
-  color: var(--accent, #0066cc);
+  color: var(--accent);
 }
 
 .entry-resend-btn:hover {
@@ -556,7 +556,7 @@ body.page-wrapper {
 
 .my-footer-actions a:hover,
 .my-footer-actions button:hover {
-  color: var(--accent, #0066cc);
+  color: var(--accent);
 }
 
 /* 成績表示(my内) */
@@ -754,7 +754,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 .terms-toc a:hover {
-  color: var(--accent, #0066cc);
+  color: var(--accent);
 }
 
 .terms-toc-depth-3 {
@@ -818,7 +818,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 .terms-body mark {
   padding: 1px 4px;
   border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--gold-100) 75%, white);
+  background: color-mix(in srgb, var(--gold-100) 75%, var(--surface));
   color: var(--ink);
 }
 
@@ -1815,13 +1815,13 @@ body.page-wrapper:has(#terms-card) .page-container {
   justify-content: center;
   font-size: var(--fs-12);
   font-weight: 600;
-  color: #fff;
+  color: var(--ink);
   min-width: 0;
 }
 
-.stats-bar-seg.confirmed { background: var(--ok-500); }
-.stats-bar-seg.conflict  { background: var(--warn-500); }
-.stats-bar-seg.inprogress { background: var(--ink-3); }
+.stats-bar-seg.confirmed { background: var(--ok-600); color: var(--on-ok); }
+.stats-bar-seg.conflict  { background: var(--warn-500); color: var(--on-warn); }
+.stats-bar-seg.inprogress { background: var(--ink-3); color: var(--surface); }
 .stats-bar-seg.untouched { background: var(--line-strong); color: var(--ink-2); }
 
 .stats-legend {
@@ -2109,7 +2109,7 @@ body.page-checkin .left-col {
   min-height: min(58vh, 560px);
   border-radius: var(--r-lg);
   overflow: hidden;
-  background: #0b0b0d;
+  background: #000000;
   border: 1px solid var(--line);
 }
 
@@ -2317,7 +2317,7 @@ body.page-help {
 }
 
 .help-back:hover {
-  color: var(--accent, #0066cc);
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -2386,7 +2386,7 @@ body.page-help {
 }
 
 .qa-question:hover {
-  color: var(--accent, #0066cc);
+  color: var(--accent);
 }
 
 .qa-question [data-icon] {

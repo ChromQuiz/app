@@ -17,11 +17,11 @@
   --canvas: #ffffff;
   --surface: #ffffff;
   --surface-2: #f5f5f7;
-  --surface-3: #ececef;
-  --ink: #1a1a1e;
-  --ink-2: #6e6e76;
-  --ink-3: #98989f;
-  --line: #e6e6ea;
+  --surface-3: #e8e8ed;
+  --ink: #1d1d1f;
+  --ink-2: #6e6e73;
+  --ink-3: #86868b;
+  --line: #e5e5ea;
   --line-strong: #d2d2d7;
   --scrim: rgba(26, 26, 30, 0.5);
 
@@ -40,28 +40,28 @@
 
   /* --- Color: Apple Blue (リンク・選択・フォーカス限定) --- */
   --accent: #0066cc;
-  --accent-hover: #0055b3;
-  --accent-soft: #edf5ff;
+  --accent-hover: #0071e3;
+  --accent-soft: #f5f9ff;
   --on-accent: #ffffff;
   --switch-on: #34c759;
 
   /* --- Color: semantic(状態表示限定・面塗り最小) --- */
-  --ok-600: #1e7a44;
-  --ok-500: #22884d;
-  --ok-100: #e8f3ec;
-  --warn-600: #9a6200;
-  --warn-500: #a86e0a;
-  --warn-100: #f7efde;
+  --ok-600: #248a3d;
+  --ok-500: #34c759;
+  --ok-100: #eef8f1;
+  --warn-600: #bf6a02;
+  --warn-500: #ff9500;
+  --warn-100: #fff7e8;
   --bad-600: #d70015;
   --bad-500: #ff3b30;
-  --bad-100: #fff0f0;
+  --bad-100: #fff2f2;
   --info-600: var(--ink);
   --info-100: var(--surface-2);
-  --gold-600: #9a6a00;
-  --gold-400: #e8a317;
-  --gold-100: #f8f0da;
+  --gold-600: #a05a00;
+  --gold-400: #ffb340;
+  --gold-100: #fff7df;
   --on-ok: #ffffff;
-  --on-warn: #ffffff;
+  --on-warn: #000000;
   --on-bad: #ffffff;
 
   /* --- Typography(SF Pro 前提のシステムフォントスタック) --- */
@@ -145,15 +145,15 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* 同構造の無彩色反転(装飾なし) */
-    --canvas: #111113;
-    --surface: #1a1a1e;
-    --surface-2: #242428;
-    --surface-3: #2e2e33;
+    --canvas: #000000;
+    --surface: #1c1c1e;
+    --surface-2: #2c2c2e;
+    --surface-3: #3a3a3c;
     --ink: #f5f5f7;
-    --ink-2: #a1a1a8;
-    --ink-3: #7c7c84;
-    --line: #333338;
-    --line-strong: #44444a;
+    --ink-2: #aeaeb2;
+    --ink-3: #8e8e93;
+    --line: #38383a;
+    --line-strong: #48484a;
     --scrim: rgba(0, 0, 0, 0.6);
 
     --brand-50: var(--surface-2);
@@ -169,26 +169,26 @@
     --on-primary: var(--surface);
 
     --accent: #2997ff;
-    --accent-hover: #64b5ff;
-    --accent-soft: #102235;
-    --on-accent: #111113;
+    --accent-hover: #5ac8fa;
+    --accent-soft: #071d33;
+    --on-accent: #000000;
     --switch-on: #30d158;
 
-    --ok-600: #4cc07a;
-    --ok-500: #3daf6b;
-    --ok-100: #16281d;
-    --warn-600: #dda43c;
-    --warn-500: #c7922f;
-    --warn-100: #2c2413;
-    --bad-600: #ff6961;
+    --ok-600: #30d158;
+    --ok-500: #32d74b;
+    --ok-100: #102616;
+    --warn-600: #ff9f0a;
+    --warn-500: #ffd60a;
+    --warn-100: #2d2108;
+    --bad-600: #ff453a;
     --bad-500: #ff453a;
-    --bad-100: #341816;
-    --gold-600: #e2a63a;
-    --gold-400: #ecb95f;
-    --gold-100: #2c2513;
-    --on-ok: #111113;
-    --on-warn: #111113;
-    --on-bad: #111113;
+    --bad-100: #301311;
+    --gold-600: #ffd60a;
+    --gold-400: #ffd60a;
+    --gold-100: #2d2508;
+    --on-ok: #000000;
+    --on-warn: #000000;
+    --on-bad: #000000;
 
     --sh-1: 0 0 0 rgba(0, 0, 0, 0);
     --sh-2: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -1338,7 +1338,7 @@ select:user-invalid {
   left: 3px;
   width: 24px;
   height: 24px;
-  background: #fff;
+  background: var(--surface);
   border-radius: 50%;
   box-shadow: var(--sh-1);
   transition: transform var(--t-enter) var(--ease);
@@ -2535,7 +2535,7 @@ tbody tr:hover {
 }
 
 .btn.score-correct:hover {
-  background: color-mix(in srgb, var(--ok-600) 85%, #000);
+  background: color-mix(in srgb, var(--ok-600) 88%, black);
 }
 
 .btn.score-wrong {
@@ -2544,7 +2544,7 @@ tbody tr:hover {
 }
 
 .btn.score-wrong:hover {
-  background: color-mix(in srgb, var(--bad-600) 85%, #000);
+  background: color-mix(in srgb, var(--bad-600) 88%, black);
 }
 
 .btn.score-hold {
@@ -3070,7 +3070,7 @@ tbody tr:hover {
   z-index: var(--z-modal);
   display: none;
   flex-direction: column;
-  background: #111113;
+  background: #000000;
   padding: var(--sp-4);
 }
 
@@ -3086,7 +3086,7 @@ tbody tr:hover {
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
-  color: #fff;
+  color: #ffffff;
   padding-bottom: var(--sp-3);
 }
 
@@ -3102,12 +3102,12 @@ tbody tr:hover {
   align-items: center;
   justify-content: center;
   border-radius: var(--r-md);
-  color: #fff;
-  background: #242428;
+  color: #ffffff;
+  background: #2c2c2e;
 }
 
 .preview-close:hover {
-  background: #333338;
+  background: #3a3a3c;
 }
 
 .preview-overlay-content {
@@ -3122,7 +3122,7 @@ tbody tr:hover {
   max-width: 100%;
   max-height: 100%;
   border-radius: var(--r-md);
-  background: #fff;
+  background: #ffffff;
 }
 
 /* --- Keyboard help modal --- */
