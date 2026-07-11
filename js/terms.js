@@ -55,11 +55,53 @@ function customBlockMarker(index) {
     return `CIQ_CUSTOM_BLOCK_${index}`;
 }
 
+function stripFrontMatter(markdown) {
+    const value = String(markdown || '').replace(/\r\n?/g, '\n');
+    if (!value.startsWith('---\n')) return value;
+    const lines = value.split('\n');
+    for (let i = 1; i < Math.min(lines.length, 80); i += 1) {
+        if (/^(---|\.\.\.)\s*$/.test(lines[i])) {
+            return lines.slice(i + 1).join('\n').replace(/^\n+/, '');
+        }
+    }
+    return value;
+}
+
 function parseHeadingId(text) {
     const value = String(text || '');
     const match = value.match(/\s*\{#([A-Za-z][A-Za-z0-9_-]*)\}\s*$/);
     if (!match) return { text: value, id: '' };
     return { text: value.slice(0, match.index).trim(), id: match[1] };
+}
+
+function parseCodeMeta(raw) {
+    const value = String(raw || '').trim();
+    if (!value) return { lang: '', title: '', highlight: '' };
+    const titleMatch = value.match(/\s+title=(?:"([^"]+)"|'([^']+)'|([^\s{}]+))/i);
+    const highlightMatch = value.match(/\s+(\{[^}]+\})/);
+    const lang = value
+        .replace(/\s+title=(?:"[^"]+"|'[^']+'|[^\s{}]+)/i, '')
+        .replace(/\s+\{[^}]+\}/, '')
+        .trim()
+        .split(/\s+/)[0] || '';
+    return {
+        lang,
+        title: (titleMatch?.[1] || titleMatch?.[2] || titleMatch?.[3] || '').trim(),
+        highlight: (highlightMatch?.[1] || '').trim(),
+    };
+}
+
+function appendSafeHtmlInline(parent, raw) {
+    const value = String(raw || '');
+    const match = value.match(/^<(mark|small|sup|sub|u)>([\s\S]*?)<\/\1>$/i);
+    if (!match || /<[^>]+>/.test(match[2])) {
+        appendText(parent, value);
+        return;
+    }
+    const tag = match[1].toLowerCase();
+    const element = document.createElement(tag);
+    element.textContent = match[2];
+    parent.appendChild(element);
 }
 
 function appendAbbreviationAwareText(parent, text) {
@@ -237,7 +279,7 @@ function appendInlineTokens(parent, tokens = []) {
                 appendText(parent, token.text || '');
             }
         } else if (token.type === 'html') {
-            appendText(parent, token.text || token.raw || '');
+            appendSafeHtmlInline(parent, token.text || token.raw || '');
         } else if (token.tokens) {
             appendInlineTokens(parent, token.tokens);
         } else {
@@ -331,7 +373,10 @@ function appendBlockToken(parent, token) {
 
     if (token.type === 'code') {
         const pre = document.createElement('pre');
-        if (token.lang) pre.dataset.lang = String(token.lang);
+        const meta = parseCodeMeta(token.lang);
+        if (meta.lang) pre.dataset.lang = meta.lang;
+        if (meta.title) pre.dataset.title = meta.title;
+        if (meta.highlight) pre.dataset.highlight = meta.highlight;
         const code = document.createElement('code');
         code.textContent = token.text || '';
         pre.appendChild(code);
@@ -470,6 +515,11 @@ function appendCustomBlock(parent, block) {
         tokens.forEach(token => appendBlockToken(body, token));
         aside.append(title, body);
         parent.appendChild(aside);
+        return;
+    }
+
+    if (block.type === 'definitionList') {
+        appendDefinitionList(parent, block.items || []);
     }
 }
 
@@ -590,6 +640,27 @@ function extractCustomBlocks(markdown) {
             continue;
         }
 
+        if (lines[i]?.trim() && /^\s*:\s+/.test(lines[i + 1] || '')) {
+            const items = [];
+            while (i < lines.length && lines[i]?.trim() && /^\s*:\s+/.test(lines[i + 1] || '')) {
+                const term = lines[i].trim();
+                i += 1;
+                const definition = [lines[i].replace(/^\s*:\s+/, '')];
+                i += 1;
+                while (i < lines.length && /^( {2,}|\t)\S/.test(lines[i])) {
+                    definition.push(lines[i].replace(/^( {2,}|\t)/, ''));
+                    i += 1;
+                }
+                items.push({ term, definition: definition.join('\n').trim() });
+                if (!lines[i]?.trim()) break;
+            }
+            i -= 1;
+            const marker = customBlockMarker(index++);
+            blocks.set(marker, { type: 'definitionList', items });
+            output.push(marker);
+            continue;
+        }
+
         output.push(lines[i]);
     }
 
@@ -661,7 +732,8 @@ function renderDefinitionLists(container) {
 function renderMarkdown(container, markdown) {
     container.textContent = '';
     usedHeadingIds = new Set();
-    const abbreviations = extractAbbreviations(markdown || '');
+    const withoutFrontMatter = stripFrontMatter(markdown || '');
+    const abbreviations = extractAbbreviations(withoutFrontMatter);
     currentAbbreviations = abbreviations.abbreviations;
     const prepared = extractFootnotes(abbreviations.markdown);
     currentFootnotes = prepared.footnotes;

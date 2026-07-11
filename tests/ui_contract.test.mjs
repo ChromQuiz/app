@@ -106,6 +106,20 @@ describe('production UI contracts', () => {
     }
   });
 
+  it('keeps participant terms markdown extensions safe and styled', () => {
+    const terms = read('js/terms.js');
+    expect(terms).toContain('function stripFrontMatter');
+    expect(terms).toContain('function parseCodeMeta');
+    expect(terms).toContain('function appendSafeHtmlInline');
+    expect(terms).toContain("block.type === 'definitionList'");
+    expect(terms).not.toMatch(/innerHTML\s*=/);
+
+    const css = read('css/pages.css');
+    expect(css).toContain('.terms-task-checkbox:checked::after');
+    expect(css).toContain('.terms-body pre[data-title]');
+    expect(css).toContain('.terms-body small');
+  });
+
   it('maps all product icon names to bundled Lucide icons', () => {
     const icons = read('js/icons.js');
     expect(icons).toContain('Lucide adapter');
