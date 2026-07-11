@@ -1929,50 +1929,89 @@ tbody tr:hover {
 /* --- Toast --- */
 .toast-container {
   position: fixed;
-  bottom: calc(var(--sp-5) + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(var(--sp-4) + env(safe-area-inset-top));
+  right: max(var(--sp-4), env(safe-area-inset-right));
   z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  width: min(92vw, 420px);
+  width: min(420px, calc(100vw - 32px));
   pointer-events: none;
 }
 
 .toast {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--radius-overlay);
-  background: var(--primary);
-  color: var(--on-primary);
+  gap: var(--sp-3);
+  min-height: 54px;
+  padding: 11px 14px 11px 12px;
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--ink);
   font-size: var(--fs-14);
   font-weight: 600;
-  box-shadow: var(--sh-3);
-  border-left: 4px solid var(--accent);
+  line-height: 1.35;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--line);
   pointer-events: auto;
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(-8px) scale(0.98);
   transition: opacity var(--t-enter) var(--ease-out), transform var(--t-enter) var(--ease-out);
+}
+
+.toast [data-icon],
+.toast svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  color: var(--accent);
+}
+
+.toast span {
+  min-width: 0;
 }
 
 .toast.show {
   opacity: 1;
-  transform: none;
+  transform: translateY(0) scale(1);
 }
 
 .toast.hide {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(-8px) scale(0.98);
   transition-duration: 160ms;
 }
 
-.toast.toast-success { border-left-color: var(--ok-500); }
-.toast.toast-error   { border-left-color: var(--bad-500); }
-.toast.toast-warning { border-left-color: var(--warn-500); }
-.toast.toast-info    { border-left-color: var(--accent); }
+.toast.toast-success [data-icon],
+.toast.toast-success svg { color: var(--ok-600); }
+
+.toast.toast-error [data-icon],
+.toast.toast-error svg { color: var(--bad-600); }
+
+.toast.toast-warning [data-icon],
+.toast.toast-warning svg { color: var(--warn-600); }
+
+.toast.toast-info [data-icon],
+.toast.toast-info svg { color: var(--accent); }
+
+@media (max-width: 640px) {
+  .toast-container {
+    top: auto;
+    right: auto;
+    bottom: calc(var(--sp-4) + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .toast {
+    border-radius: 17px;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  .toast.hide {
+    transform: translateY(8px) scale(0.98);
+  }
+}
 
 /* --- ページ内メッセージ --- */
 .page-msg,
@@ -2955,19 +2994,23 @@ tbody tr:hover {
 .offline-banner,
 .online-banner {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: calc(var(--sp-3) + env(safe-area-inset-top));
+  left: 50%;
   z-index: var(--z-max);
   display: none;
   align-items: center;
   justify-content: center;
   gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-4);
-  font-size: var(--fs-14);
-  font-weight: 700;
+  min-height: 40px;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 8px 14px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-2);
+  font-size: var(--fs-13);
+  font-weight: 600;
   opacity: 0;
-  transform: translateY(-100%);
+  transform: translate(-50%, -8px) scale(0.98);
   transition: opacity var(--t-enter) var(--ease-out), transform var(--t-enter) var(--ease-out);
 }
 
@@ -2975,21 +3018,21 @@ tbody tr:hover {
 .online-banner.visible {
   display: flex;
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, 0) scale(1);
   @starting-style {
     opacity: 0;
-    transform: translateY(-100%);
+    transform: translate(-50%, -8px) scale(0.98);
   }
 }
 
 .offline-banner {
-  background: var(--warn-600);
-  color: var(--on-warn);
+  background: var(--surface);
+  color: var(--warn-600);
 }
 
 .online-banner {
-  background: var(--ok-600);
-  color: var(--on-ok);
+  background: var(--surface);
+  color: var(--ok-600);
 }
 
 /* 期限切れ画像表示 */
