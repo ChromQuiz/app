@@ -48,17 +48,18 @@ async function signedQrUrl(value: string) {
 const MAIL_FONT = "-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif";
 const MAIL_MONO = "'SF Mono','SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
 const MAIL = {
-  canvas: '#f5f5f5',
-  paper: '#f5f5f5',
+  canvas: '#f5f5f7',
+  paper: '#f5f5f7',
   surface: '#ffffff',
-  surface2: '#eeeeee',
-  text: '#111111',
-  sub: '#555555',
-  muted: '#777777',
-  border: '#dddddd',
-  borderStrong: '#c6c6c6',
-  accent: '#111111',
+  surface2: '#f5f5f7',
+  text: '#1d1d1f',
+  sub: '#6e6e73',
+  muted: '#86868b',
+  border: '#e5e5ea',
+  borderStrong: '#d2d2d7',
+  accent: '#1d1d1f',
   accentInk: '#ffffff',
+  blue: '#0066cc',
 };
 
 function shell(title: string, subtitle: string, body: string) {
@@ -73,19 +74,19 @@ function shell(title: string, subtitle: string, body: string) {
   <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:28px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:720px;margin:0 auto;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;margin:0 auto;">
           <tr>
-            <td style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:24px;line-height:1.25;font-weight:800;padding:0 2px 6px;text-align:center;" align="center">
+            <td style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:30px;line-height:1.15;font-weight:800;letter-spacing:-0.02em;padding:0 2px 8px;text-align:center;" align="center">
               ${escapeHtml(subtitle)}
             </td>
           </tr>
           <tr>
-            <td style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:700;padding:0 2px 22px;text-align:center;" align="center">
+            <td style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:600;padding:0 2px 24px;text-align:center;" align="center">
               ${escapeHtml(title)}
             </td>
           </tr>
           <tr>
-            <td class="ciq-mail-card" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:8px;padding:28px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.8;text-align:left;" align="left">${body}</td>
+            <td class="ciq-mail-card" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:20px;padding:30px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.75;text-align:left;" align="left">${body}</td>
           </tr>
           <tr>
             <td style="font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:${MAIL.muted};padding:22px 8px 0;">
@@ -109,7 +110,7 @@ function panel(body: string, tone = 'info') {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td style="border:1px solid ${MAIL.border};border-radius:8px;background:${MAIL.surface};padding:14px 16px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:14px;line-height:1.75;">
+      <td style="border:1px solid ${MAIL.border};border-left:3px solid ${tone === 'success' ? '#248a3d' : tone === 'warning' ? '#bf6a02' : tone === 'danger' ? '#d70015' : MAIL.borderStrong};border-radius:16px;background:${MAIL.surface};padding:14px 16px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:14px;line-height:1.75;">
         <div style="font-size:12px;font-weight:800;color:${MAIL.sub};margin-bottom:4px;">${escapeHtml(labels[tone] || labels.info)}</div>
         <div style="font-weight:600;">${body}</div>
       </td>
@@ -127,7 +128,7 @@ function detailsTable(rows: Array<[string, unknown]>) {
     </tr>
   `).join('');
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${MAIL.border};border-radius:8px;margin:16px 0;background:${MAIL.surface};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${MAIL.border};border-radius:16px;margin:16px 0;background:${MAIL.surface};">
     ${tableRows}
   </table>
   `;
@@ -137,7 +138,7 @@ function numberCard(label: string, value: string) {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td align="center" style="border:1px solid ${MAIL.border};border-radius:8px;padding:18px;background:${MAIL.surface2};">
+      <td align="center" style="border:1px solid ${MAIL.border};border-radius:18px;padding:20px;background:${MAIL.surface2};">
         <div style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;font-weight:800;margin-bottom:4px;">${escapeHtml(label)}</div>
         <div style="font-family:${MAIL_MONO};color:${MAIL.text};font-size:36px;font-weight:800;letter-spacing:.04em;line-height:1.1;">${escapeHtml(value)}</div>
       </td>
@@ -151,7 +152,7 @@ function qrCard(qrImageUrl: string) {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td align="center" style="border:1px solid ${MAIL.border};border-radius:8px;padding:18px;background:${MAIL.surface};">
+      <td align="center" style="border:1px solid ${MAIL.border};border-radius:18px;padding:20px;background:${MAIL.surface};">
         <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
         <div style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:800;margin-top:12px;">当日受付用QRコード</div>
         <div style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;margin-top:2px;">当日受付で提示してください。</div>
@@ -166,8 +167,8 @@ function primaryButton(label: string, href: string) {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
     <tr>
-      <td align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:8px;">
-        <a href="${escapeHtml(href)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:12px 18px;">${escapeHtml(label)}</a>
+      <td align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
+        <a href="${escapeHtml(href)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 20px;border-radius:999px;">${escapeHtml(label)}</a>
       </td>
     </tr>
   </table>
@@ -179,8 +180,8 @@ function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: s
     <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 6px 0 0;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:8px;">
-            <a href="${escapeHtml(primaryHref)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:12px 18px;">${escapeHtml(primaryLabel)}</a>
+          <td align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
+            <a href="${escapeHtml(primaryHref)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 18px;border-radius:999px;">${escapeHtml(primaryLabel)}</a>
           </td>
         </tr>
       </table>
@@ -190,8 +191,8 @@ function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: s
     <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 0 0 6px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td align="center" style="background:${MAIL.surface};border:1px solid ${MAIL.borderStrong};border-radius:8px;">
-            <a href="${escapeHtml(secondaryHref)}" style="display:block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:800;padding:12px 18px;">${escapeHtml(secondaryLabel)}</a>
+          <td align="center" style="background:${MAIL.surface};border:1px solid ${MAIL.borderStrong};border-radius:999px;">
+            <a href="${escapeHtml(secondaryHref)}" style="display:block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 18px;border-radius:999px;">${escapeHtml(secondaryLabel)}</a>
           </td>
         </tr>
       </table>

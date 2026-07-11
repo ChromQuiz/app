@@ -362,17 +362,30 @@ function showToast(msg, type = 'info', duration = 3000) {
         container.setAttribute('aria-atomic', 'false');
         document.body.appendChild(container);
     }
+    container.querySelectorAll(`.toast-${CSS.escape(type)}`).forEach((existing) => {
+        existing.classList.remove('show');
+        existing.classList.add('hide');
+        window.setTimeout(() => existing.remove(), 180);
+    });
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.setAttribute('role', type === 'error' || type === 'warning' ? 'alert' : 'status');
     toast.setAttribute('aria-live', type === 'error' || type === 'warning' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
     const icons = { success: 'circle-check', error: 'circle-xmark', warning: 'triangle-exclamation', info: 'circle-info' };
+    const titles = { success: 'CIQ・完了', error: 'CIQ・エラー', warning: 'CIQ・注意', info: 'CIQ' };
     const icon = createIcon(icons[type] || icons.info);
+    const body = document.createElement('span');
+    body.className = 'toast-body';
+    const title = document.createElement('span');
+    title.className = 'toast-title';
+    title.textContent = titles[type] || titles.info;
     const text = document.createElement('span');
+    text.className = 'toast-message';
     // ASVS 1.2.1: status text is rendered as text, never interpreted as markup.
     text.textContent = String(msg || '');
-    toast.append(icon, text);
+    body.append(title, text);
+    toast.append(icon, body);
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => {

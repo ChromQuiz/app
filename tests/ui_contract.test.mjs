@@ -199,7 +199,8 @@ describe('design-system contracts', () => {
 
   it('uses the approved Apple interaction and accessibility tokens', () => {
     for (const token of ['--accent', '--accent-soft', '--on-ok', '--on-warn', '--on-bad', '--fs-22', '--fs-24',
-      '--ease-out', '--ease-in-out', '--ease-drawer', '--t-press', '--t-popover', '--t-panel']) {
+      '--ease-out', '--ease-in-out', '--ease-drawer', '--t-press', '--t-popover', '--t-panel',
+      '--material-toolbar', '--material-popover', '--material-modal', '--material-notification', '--material-blur']) {
       expect(designCss).toContain(`${token}:`);
     }
     expect(designCss).toContain('@media (prefers-reduced-motion: reduce)');
@@ -223,9 +224,36 @@ describe('design-system contracts', () => {
     expect(longTransitions).toEqual([]);
   });
 
-  it('does not reintroduce glass, gradients, or legacy dropdown implementations', () => {
-    expect(css).not.toMatch(/backdrop-filter\s*:/);
+  it('only uses translucent material on approved floating UI surfaces', () => {
+    const approvedSelectors = [
+      '.toast',
+      '.offline-banner',
+      '.online-banner',
+      '.menu-panel',
+      '.confirm-dialog',
+      '.kbd-modal',
+      '.ciq-select-menu',
+      '.dt-picker',
+      '.modal-backdrop',
+      '.fixed-header',
+      '.header-bar',
+      '.ops-standard-bar',
+      '.ops-focus-bar',
+      '.ops-live-bar',
+      '.action-bar',
+      '.workbench-action-bar',
+    ];
+    const blocks = css.match(/[^{}]+{[^{}]*backdrop-filter\s*:[^{}]*}/g) || [];
+    const unapproved = blocks.filter((block) => {
+      const selector = block.split('{')[0].trim();
+      return !approvedSelectors.some((approved) => selector.includes(approved));
+    });
+    expect(unapproved).toEqual([]);
     expect(css).not.toMatch(/(?:linear|radial|conic)-gradient\s*\(/);
+    expect(css).not.toMatch(/\bglow\b/i);
+  });
+
+  it('does not reintroduce legacy dropdown implementations', () => {
     expect(designCss).not.toContain('.custom-dropdown');
     expect(designCss).not.toContain('select.custom-select');
   });

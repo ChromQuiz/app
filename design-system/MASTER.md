@@ -57,14 +57,17 @@
 
 ## 5. ビジュアル方針 — Apple方向の白・黒・グレー
 
-紫・青紫・グラデーション・グロー・ガラス風・ネオン・カード乱用・アイコン過多・影の多用は**禁止**。
+紫・青紫・グラデーション・グロー・ネオン・カード乱用・アイコン過多・影の多用は**禁止**。
 装飾ではなく、余白・罫線・タイポグラフィ・階層で見せる。1画面1主役。CTAは少数精鋭。
+最終的な質感は「SwiftUI/UIKitで作ったプロダクトをWebへ移植したように見える」ことを目指す。
 
 ### 用途別ハイブリッド
 
 - 公開・参加者画面は Apple.com のように静かな余白、強い見出し、単一の主操作で迷わせない。
 - 運営・採点画面は macOS / iPadOS のように情報密度と操作効率を優先し、状態と次の操作を同時に把握できる構成とする。
-- 両者は同じトークン、フォーム、状態、フォーカスの契約を共有する。Liquid Glass は採用せず、不透明な面と hairline で階層を作る。
+- 両者は同じトークン、フォーム、状態、フォーカスの契約を共有する。Liquid Glass 風の装飾は採用しないが、Apple製品UIに近づけるため、`app bar / drawer / notification / modal / popover` のような浮遊UIに限って控えめな半透明materialとblurを許可する。
+- 通常の本文カード、表、フォーム、list row、terms本文、admin phase blockにはblurを使わない。これらは opaque surface + hairline + spacing で階層を作る。
+- Apple.com を公開面の参照、Apple Support/Feedback をフォーム/エラーの参照、HIG buttons / alerts / notifications / materials を操作部品の参照とする。
 
 ### Color Tokens(light / dark, `prefers-color-scheme`)
 ```
@@ -104,10 +107,11 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - **mono は数値・ID専用**(受付番号、スコア、判定 No.、ID・コード、`tabular-nums`)。本文・見出し禁止
 - 優先順位はサイズではなく余白・ウェイト・濃淡で。見出し前の余白は後ろの2倍
 
-### Radius / Elevation / Motion / Layout
-- 角丸 6/8/10/12px。意味別に control=8px / grouped surface=10px / overlay=12px / pill=999px とする。
+### Material / Radius / Elevation / Motion / Layout
+- 角丸 6/8/10/12/16/20px。意味別に control=999px or 12px / grouped surface=12px / overlay=16–20px / pill=999px とする。
 - 面は plain section / grouped surface / overlay の3役に限定する。Grouped list は単一の外枠と行間の hairline で構成し、行ごとの入れ子カードを作らない。
-- 影は実質廃止(`--sh-3`のオーバーレイのみ)。区切りは1px罫線と余白で表す。
+- 浮遊UIのみ material token を使う。`--material-toolbar` / `--material-popover` / `--material-modal` / `--material-notification` と `--material-blur` が許可範囲。
+- 影は浮遊UIの分離用途に限定する。通常面は1px罫線と余白で表す。
 - Motion 150–250ms fade/slide のみ。`prefers-reduced-motion` 全停止
 - 幅: ログイン・本人確認・フォーム・ヘルプ/規約本文は集中できる狭幅(概ね520〜840px)を維持する。admin、一覧、管理表、答案、集計、採点ボード、チェックインなど作業面は1600pxまで広げる。ただし1600px未満の画面でも端ギリギリにはせず、wide系は左右に十分なgutterを取る。タッチターゲット44px。フォーカスリング3px
 - Z: sticky10 / appbar20 / dropdown30 / drawer40 / modal50 / toast60 / max70
@@ -135,7 +139,8 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 
 ## 7. HTMLメール
 
-- サイトと同一トークン(白ボディ・near-black見出し・neutral罫線・白黒の主CTA・Apple Blueのリンク)。600pxテーブル+インラインCSS。
+- サイトと同一トーン(白ボディ・near-black見出し・neutral罫線・白黒の主CTA・Apple Blueのリンク)。Apple Mailで自然に見える600px前後のテーブル+インラインCSS。
+- 角丸は16–20px、CTAはpill、本文は短く、状態パネルは面塗りを避ける。メールクライアント互換のためメール内ではblurを使わない。
 - 基本CTAは[マイエントリー]に集約。エントリー完了メールのみ[マイエントリー]と[エントリーリスト]を横並びで置く。キャンセル完了はCTAなし。
 - エントリー完了メールに必須: 受付番号(mono大) / 当日受付QR / パスワード / マイエントリーCTA /
   保存文言「このメールには受付QRとマイエントリー用の情報が含まれます。大会当日まで保存してください。」

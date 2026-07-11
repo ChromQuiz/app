@@ -24,6 +24,14 @@
   --line: #e5e5ea;
   --line-strong: #d2d2d7;
   --scrim: rgba(26, 26, 30, 0.5);
+  --material-opaque: var(--surface);
+  --material-toolbar: rgba(255, 255, 255, 0.78);
+  --material-popover: rgba(255, 255, 255, 0.86);
+  --material-modal: rgba(255, 255, 255, 0.92);
+  --material-notification: rgba(255, 255, 255, 0.88);
+  --material-line: rgba(0, 0, 0, 0.12);
+  --material-shadow: 0 18px 48px rgba(0, 0, 0, 0.16);
+  --material-blur: blur(22px) saturate(180%);
 
   /* --- Color: monochrome primary CTA (legacy brand aliases retained) --- */
   --brand-50: var(--surface-2);
@@ -173,6 +181,13 @@
     --line: #38383a;
     --line-strong: #48484a;
     --scrim: rgba(0, 0, 0, 0.6);
+    --material-opaque: var(--surface);
+    --material-toolbar: rgba(28, 28, 30, 0.78);
+    --material-popover: rgba(28, 28, 30, 0.88);
+    --material-modal: rgba(28, 28, 30, 0.94);
+    --material-notification: rgba(28, 28, 30, 0.9);
+    --material-line: rgba(255, 255, 255, 0.16);
+    --material-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
 
     --brand-50: var(--surface-2);
     --brand-100: var(--surface-3);
@@ -1223,14 +1238,14 @@ textarea,
 select {
   width: 100%;
   min-height: var(--control-h);
-  padding: 0 14px;
+  padding: 0 15px;
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius-control);
+  border-radius: 12px;
   font-size: var(--fs-16); /* iOS ズーム防止のため 16px 未満禁止 */
-  transition: border-color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease),
-    background var(--t-micro) var(--ease);
+  transition: border-color var(--t-micro) var(--ease-out), box-shadow var(--t-micro) var(--ease-out),
+    background var(--t-micro) var(--ease-out);
 }
 
 textarea {
@@ -1303,11 +1318,11 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
-  padding: 0 14px;
+  padding: 0 15px;
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius-control);
+  border-radius: 12px;
   text-align: left;
   font-size: var(--fs-16);
   transition: border-color var(--t-micro) var(--ease-out), background var(--t-micro) var(--ease-out),
@@ -1346,11 +1361,12 @@ select {
   right: 0;
   max-height: min(280px, 48dvh);
   overflow: auto;
-  padding: 5px;
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-overlay);
-  box-shadow: var(--sh-2);
+  padding: 6px;
+  background: var(--material-popover);
+  backdrop-filter: var(--material-blur);
+  border: 1px solid var(--material-line);
+  border-radius: 16px;
+  box-shadow: var(--material-shadow);
   opacity: 0;
   pointer-events: none;
   transform: translateY(-4px) scale(0.98);
@@ -1381,7 +1397,7 @@ select {
   display: flex;
   align-items: center;
   padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--radius-control);
+  border-radius: 10px;
   color: var(--ink);
   font-size: var(--fs-15);
   cursor: pointer;
@@ -1395,7 +1411,7 @@ select {
 .ciq-select-option.is-selected {
   background: var(--accent-soft);
   color: var(--ink);
-  box-shadow: inset 2px 0 0 var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .ciq-select-option.is-disabled {
@@ -1408,6 +1424,7 @@ input:user-invalid,
 textarea:user-invalid,
 select:user-invalid {
   border-color: var(--bad-500);
+  box-shadow: inset 3px 0 0 var(--bad-600);
 }
 
 .form-group {
@@ -1950,16 +1967,17 @@ tbody tr:hover {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  min-height: 54px;
-  padding: 11px 14px 11px 12px;
-  border-radius: 18px;
-  background: var(--surface);
+  min-height: 64px;
+  padding: 12px 15px 12px 12px;
+  border-radius: 20px;
+  background: var(--material-notification);
+  backdrop-filter: var(--material-blur);
   color: var(--ink);
   font-size: var(--fs-14);
   font-weight: 600;
   line-height: 1.35;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14);
-  border: 1px solid var(--line);
+  box-shadow: var(--material-shadow);
+  border: 1px solid var(--material-line);
   pointer-events: auto;
   opacity: 0;
   transform: translateY(-8px) scale(0.98);
@@ -1974,8 +1992,27 @@ tbody tr:hover {
   color: var(--accent);
 }
 
+.toast-body,
 .toast span {
   min-width: 0;
+}
+
+.toast-body {
+  display: grid;
+  gap: 1px;
+}
+
+.toast-title {
+  font-size: var(--fs-12);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+}
+
+.toast-message {
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .toast.show {
@@ -2011,7 +2048,7 @@ tbody tr:hover {
   }
 
   .toast {
-    border-radius: 17px;
+    border-radius: 19px;
     transform: translateY(8px) scale(0.98);
   }
 
@@ -2027,11 +2064,14 @@ tbody tr:hover {
   align-items: flex-start;
   gap: var(--sp-2);
   margin-top: var(--sp-4);
-  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
   font-size: var(--fs-14);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--accent);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-left: 3px solid currentColor;
+  border-radius: 12px;
 }
 
 .page-msg.is-visible,
@@ -2054,10 +2094,13 @@ tbody tr:hover {
   display: flex;
   align-items: flex-start;
   gap: var(--sp-2);
-  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-left: 3px solid currentColor;
+  border-radius: 12px;
   font-size: var(--fs-14);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .message-line.info,
@@ -2084,8 +2127,11 @@ tbody tr:hover {
 
 .terms-alert {
   margin: var(--sp-4) 0;
-  padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-left: 3px solid var(--line-strong);
+  border-radius: 12px;
 }
 
 .terms-alert-title {
@@ -2807,8 +2853,9 @@ tbody tr:hover {
   gap: var(--sp-3);
   justify-content: center;
   padding: var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom));
-  background: var(--surface);
-  border-top: 1px solid var(--line);
+  background: var(--material-toolbar);
+  backdrop-filter: var(--material-blur);
+  border-top: 1px solid var(--material-line);
 }
 
 .workbench-action-bar .btn,
@@ -3012,10 +3059,11 @@ tbody tr:hover {
   max-width: min(520px, calc(100vw - 32px));
   padding: 8px 14px;
   border-radius: var(--r-full);
-  border: 1px solid var(--line);
-  box-shadow: var(--sh-2);
+  border: 1px solid var(--material-line);
+  box-shadow: var(--material-shadow);
   font-size: var(--fs-13);
   font-weight: 600;
+  backdrop-filter: var(--material-blur);
   opacity: 0;
   transform: translate(-50%, -8px) scale(0.98);
   transition: opacity var(--t-enter) var(--ease-out), transform var(--t-enter) var(--ease-out);
@@ -3033,12 +3081,12 @@ tbody tr:hover {
 }
 
 .offline-banner {
-  background: var(--surface);
+  background: var(--material-notification);
   color: var(--warn-600);
 }
 
 .online-banner {
-  background: var(--surface);
+  background: var(--material-notification);
   color: var(--ok-600);
 }
 
@@ -3129,9 +3177,10 @@ tbody tr:hover {
   bottom: 0;
   z-index: var(--z-drawer);
   width: min(340px, 88vw);
-  background: var(--surface);
-  border-left: 1px solid var(--line);
-  box-shadow: -18px 0 42px rgba(0, 0, 0, 0.12);
+  background: var(--material-popover);
+  backdrop-filter: var(--material-blur);
+  border-left: 1px solid var(--material-line);
+  box-shadow: var(--material-shadow);
   transform: translateX(100%);
   visibility: hidden;
   pointer-events: none;
@@ -3319,10 +3368,11 @@ tbody tr:hover {
 
 .confirm-dialog {
   width: min(440px, 100%);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-overlay);
-  box-shadow: var(--sh-3);
+  background: var(--material-modal);
+  backdrop-filter: var(--material-blur);
+  border: 1px solid var(--material-line);
+  border-radius: 20px;
+  box-shadow: var(--material-shadow);
   padding: var(--sp-6);
   opacity: 0;
   transform: translateY(8px) scale(0.98);
@@ -3479,10 +3529,11 @@ tbody tr:hover {
   transform: translate(-50%, -50%);
   z-index: var(--z-modal);
   width: min(400px, 92vw);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-overlay);
-  box-shadow: var(--sh-3);
+  background: var(--material-modal);
+  backdrop-filter: var(--material-blur);
+  border: 1px solid var(--material-line);
+  border-radius: 20px;
+  box-shadow: var(--material-shadow);
   padding: var(--sp-6);
 }
 
@@ -3522,10 +3573,11 @@ tbody tr:hover {
   left: 0;
   z-index: var(--z-modal);
   width: min(360px, calc(100vw - 24px));
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-overlay);
-  box-shadow: var(--sh-2);
+  background: var(--material-popover);
+  backdrop-filter: var(--material-blur);
+  border: 1px solid var(--material-line);
+  border-radius: 18px;
+  box-shadow: var(--material-shadow);
   padding: var(--sp-5);
   opacity: 0;
   pointer-events: none;
