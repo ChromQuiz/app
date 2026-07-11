@@ -1325,6 +1325,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   background: var(--surface);
   border-bottom-color: var(--line);
   isolation: isolate;
+  box-shadow: none;
 }
 
 /* 集中モードバー(question / checkin) — 現在位置と戻りを常に見せる */
@@ -1378,12 +1379,12 @@ body.page-wrapper:has(#terms-card) .page-container {
   z-index: var(--z-sticky);
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 4px;
+  gap: 3px;
   margin-bottom: var(--sp-5);
-  padding: 4px;
+  padding: 3px;
   background: var(--surface-2);
   border: 1px solid var(--line);
-  border-radius: var(--radius-grouped);
+  border-radius: var(--r-full);
   box-shadow: none;
 }
 
@@ -1395,10 +1396,12 @@ body.page-wrapper:has(#terms-card) .page-container {
   min-height: var(--control-h);
   padding: 0 var(--sp-2);
   border: 1px solid transparent;
-  border-radius: var(--radius-control);
+  border-radius: var(--r-full);
   color: var(--ink-2);
   font-size: var(--fs-13);
   font-weight: 600;
+  transition: background var(--t-micro) var(--ease-out), color var(--t-micro) var(--ease-out),
+    opacity var(--t-press) var(--ease-out), transform var(--t-press) var(--ease-out);
 }
 
 .phase-quick-btn span:first-child {
@@ -1421,10 +1424,16 @@ body.page-wrapper:has(#terms-card) .page-container {
   color: var(--ink);
 }
 
+.phase-quick-btn:active {
+  opacity: var(--control-pressed);
+  transform: scale(0.97);
+}
+
 .phase-quick-btn.active {
   background: var(--surface);
-  border-color: var(--line-strong);
+  border-color: var(--line);
   color: var(--ink);
+  box-shadow: var(--sh-2);
 }
 
 .phase-quick-btn.active span:first-child {
@@ -1457,14 +1466,15 @@ body.page-wrapper:has(#terms-card) .page-container {
   gap: var(--sp-4);
   width: 100%;
   min-height: 72px;
-  padding: var(--sp-4) var(--sp-2);
+  padding: var(--sp-4) var(--sp-3);
   background: transparent;
-  border-radius: 0;
+  border-radius: var(--radius-grouped);
   text-align: left;
   color: var(--ink);
   font-size: var(--fs-16);
   cursor: pointer;
-  transition: background var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease-out), opacity var(--t-press) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
 }
 
 .phase-list .tab-btn:hover,
@@ -1472,8 +1482,14 @@ body.page-wrapper:has(#terms-card) .page-container {
   background: var(--surface-2);
 }
 
+.phase-list .tab-btn:active,
+.phase-goto:active {
+  opacity: var(--control-pressed);
+  transform: scale(0.99);
+}
+
 .phase-list .tab-btn.active {
-  background: transparent;
+  background: var(--surface-2);
   color: var(--ink);
 }
 
