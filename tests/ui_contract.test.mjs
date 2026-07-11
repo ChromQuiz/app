@@ -198,12 +198,29 @@ describe('design-system contracts', () => {
   });
 
   it('uses the approved Apple interaction and accessibility tokens', () => {
-    for (const token of ['--accent', '--accent-soft', '--on-ok', '--on-warn', '--on-bad', '--fs-22', '--fs-24']) {
+    for (const token of ['--accent', '--accent-soft', '--on-ok', '--on-warn', '--on-bad', '--fs-22', '--fs-24',
+      '--ease-out', '--ease-in-out', '--ease-drawer', '--t-press', '--t-popover', '--t-panel']) {
       expect(designCss).toContain(`${token}:`);
     }
     expect(designCss).toContain('@media (prefers-reduced-motion: reduce)');
     expect(designCss).toContain('@media (prefers-contrast: more)');
     expect(designCss).toContain('@media (forced-colors: active)');
+  });
+
+  it('keeps Apple-style motion bounded and component-specific', () => {
+    expect(css).not.toMatch(/transition\s*:\s*all\b/i);
+    expect(css).not.toMatch(/\bease-in(?!-out)\b/i);
+    expect(designCss).toContain('@media (prefers-reduced-motion: reduce)');
+
+    const transitionBlocks = css.match(/transition(?:-[a-z-]+)?\s*:[^;]+;/gi) || [];
+    const longTransitions = transitionBlocks.filter((block) => {
+      const durations = Array.from(block.matchAll(/(\d*\.?\d+)(ms|s)\b/gi), (match) => {
+        const value = Number(match[1]);
+        return match[2].toLowerCase() === 's' ? value * 1000 : value;
+      });
+      return durations.some((duration) => duration > 300);
+    });
+    expect(longTransitions).toEqual([]);
   });
 
   it('does not reintroduce glass, gradients, or legacy dropdown implementations', () => {

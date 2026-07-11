@@ -139,10 +139,16 @@
   --z-max: 70;
 
   /* --- Motion --- */
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease: var(--ease-out);
   --t-micro: 150ms;
+  --t-press: 120ms;
+  --t-popover: 180ms;
   --t-enter: 220ms;
-  --t-drawer: 280ms;
+  --t-panel: 260ms;
+  --t-drawer: var(--t-panel);
 
   /* --- Component metrics --- */
   --control-h: 44px;      /* touch target */
@@ -342,15 +348,53 @@ kbd {
   outline-offset: var(--focus-offset);
 }
 
-/* Reduced motion — 全アニメーション停止 */
+/* Reduced motion — 大きな移動を抑え、短い色/透明度フィードバックは残す */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .menu-panel,
+  .ciq-select-menu,
+  .dt-picker,
+  .confirm-dialog,
+  .toast,
+  .offline-banner,
+  .online-banner,
+  .qa-answer {
+    transition-duration: 80ms !important;
+  }
+
+  .spinner,
+  .btn.is-loading::before,
+  .page-btn.is-loading::before,
+  .btn[aria-busy="true"]::before,
+  .page-btn[aria-busy="true"]::before,
+  .answer-card.score-pop {
+    animation: none !important;
+  }
+
+  .btn:active,
+  .page-btn:active,
+  .icon-button:active,
+  .number-spinner-btn:active,
+  .ciq-select-button:active,
+  .choice-option:active,
+  .dt-trigger:active,
+  .menu-panel,
+  .toast,
+  .offline-banner,
+  .online-banner,
+  .confirm-dialog,
+  .dt-picker,
+  .ciq-select-menu {
+    transform: none !important;
+  }
+
+  .menu-panel {
+    transition-delay: 0s !important;
   }
 }
 
@@ -456,9 +500,9 @@ svg[width="24"][stroke="currentColor"] {
   border: 1px solid transparent;
   cursor: pointer;
   user-select: none;
-  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease),
-    border-color var(--t-micro) var(--ease), opacity var(--t-micro) var(--ease),
-    transform var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease-out), color var(--t-micro) var(--ease-out),
+    border-color var(--t-micro) var(--ease-out), opacity var(--t-press) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
 }
 
 .page-btn {
@@ -476,13 +520,17 @@ svg[width="24"][stroke="currentColor"] {
 .btn:active,
 .page-btn:active {
   opacity: var(--control-pressed);
-  transform: scale(0.995);
+  transform: scale(0.97);
 }
 
 .btn:disabled,
 .btn[aria-disabled="true"],
 .page-btn:disabled,
-.page-btn[aria-disabled="true"] {
+.page-btn[aria-disabled="true"],
+.btn.is-loading,
+.page-btn.is-loading,
+.btn[aria-busy="true"],
+.page-btn[aria-busy="true"] {
   opacity: 0.45;
   cursor: not-allowed;
   transform: none;
@@ -584,8 +632,8 @@ svg[width="24"][stroke="currentColor"] {
   height: var(--control-h);
   border-radius: var(--r-full);
   color: var(--ink-2);
-  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease),
-    opacity var(--t-micro) var(--ease), transform var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease-out), color var(--t-micro) var(--ease-out),
+    opacity var(--t-press) var(--ease-out), transform var(--t-press) var(--ease-out);
 }
 
 .icon-button:hover {
@@ -595,7 +643,7 @@ svg[width="24"][stroke="currentColor"] {
 
 .icon-button:active {
   opacity: var(--control-pressed);
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 /* Back navigation */
@@ -668,7 +716,8 @@ svg[width="24"][stroke="currentColor"] {
   align-items: center;
   justify-content: center;
   color: var(--ink-2);
-  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease-out), color var(--t-micro) var(--ease-out),
+    opacity var(--t-press) var(--ease-out), transform var(--t-press) var(--ease-out);
 }
 
 .number-spinner-btn:first-child {
@@ -682,6 +731,11 @@ svg[width="24"][stroke="currentColor"] {
 .number-spinner-btn:hover {
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+.number-spinner-btn:active {
+  opacity: var(--control-pressed);
+  transform: scale(0.97);
 }
 
 /* ============================================================
@@ -1057,12 +1111,7 @@ svg[width="24"][stroke="currentColor"] {
 
 .role-tile-cta [data-icon],
 .role-tile-cta svg {
-  transition: transform var(--t-micro) var(--ease);
-}
-
-.role-tile:hover .role-tile-cta [data-icon],
-.role-tile:hover .role-tile-cta svg {
-  transform: translateX(2px);
+  transition: transform var(--t-micro) var(--ease-out);
 }
 
 /* 下部の「さらに詳しく」型矢印導線リスト */
@@ -1086,7 +1135,7 @@ svg[width="24"][stroke="currentColor"] {
 
 .nav-tile [data-icon],
 .nav-tile svg {
-  transition: transform var(--t-micro) var(--ease);
+  transition: transform var(--t-micro) var(--ease-out);
 }
 
 .nav-tile:hover {
@@ -1094,9 +1143,13 @@ svg[width="24"][stroke="currentColor"] {
   text-decoration: none;
 }
 
-.nav-tile:hover [data-icon],
-.nav-tile:hover svg {
-  transform: translateX(2px);
+@media (hover: hover) and (pointer: fine) {
+  .role-tile:hover .role-tile-cta [data-icon],
+  .role-tile:hover .role-tile-cta svg,
+  .nav-tile:hover [data-icon],
+  .nav-tile:hover svg {
+    transform: translateX(2px);
+  }
 }
 
 /* ============================================================
@@ -1250,11 +1303,17 @@ select {
   border-radius: var(--radius-control);
   text-align: left;
   font-size: var(--fs-16);
-  transition: border-color var(--t-micro) var(--ease), background var(--t-micro) var(--ease);
+  transition: border-color var(--t-micro) var(--ease-out), background var(--t-micro) var(--ease-out),
+    opacity var(--t-press) var(--ease-out), transform var(--t-press) var(--ease-out);
 }
 
 .ciq-select-button:hover {
   background: var(--surface-2);
+}
+
+.ciq-select-button:active {
+  opacity: var(--control-pressed);
+  transform: scale(0.97);
 }
 
 .ciq-select-button::after {
@@ -1285,6 +1344,29 @@ select {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-overlay);
   box-shadow: var(--sh-2);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top center;
+  transition: opacity var(--t-popover) var(--ease-out),
+    transform var(--t-popover) var(--ease-out);
+}
+
+.ciq-select.is-open .ciq-select-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.ciq-select[data-place="above"] .ciq-select-menu {
+  top: auto;
+  bottom: calc(100% + 5px);
+  transform: translateY(4px) scale(0.98);
+  transform-origin: bottom center;
+}
+
+.ciq-select[data-place="above"].is-open .ciq-select-menu {
+  transform: translateY(0) scale(1);
 }
 
 .ciq-select-option {
@@ -1388,7 +1470,7 @@ select:user-invalid {
   stroke-linejoin: round;
   opacity: 0;
   transform: scale(0.5);
-  transition: opacity var(--t-micro) var(--ease), transform var(--t-micro) var(--ease);
+  transition: opacity var(--t-micro) var(--ease-out), transform var(--t-micro) var(--ease-out);
 }
 
 .custom-checkbox input:checked + .checkbox-mark {
@@ -1454,12 +1536,18 @@ select:user-invalid {
   font-size: var(--fs-15);
   cursor: pointer;
   margin-bottom: 0;
-  transition: border-color var(--t-micro) var(--ease), background var(--t-micro) var(--ease),
-    color var(--t-micro) var(--ease);
+  transition: border-color var(--t-micro) var(--ease-out), background var(--t-micro) var(--ease-out),
+    color var(--t-micro) var(--ease-out), opacity var(--t-press) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
 }
 
 .choice-option:hover {
   border-color: var(--ink-3);
+}
+
+.choice-option:active {
+  opacity: var(--control-pressed);
+  transform: scale(0.97);
 }
 
 .choice-option input[type="radio"] {
@@ -1506,7 +1594,7 @@ select:user-invalid {
   left: 0;
   background: var(--line-strong);
   border-radius: var(--r-full);
-  transition: background var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease-out);
 }
 
 .toggle-slider::before {
@@ -1519,7 +1607,7 @@ select:user-invalid {
   background: var(--surface);
   border-radius: 50%;
   box-shadow: var(--sh-1);
-  transition: transform var(--t-enter) var(--ease);
+  transition: transform var(--t-popover) var(--ease-out);
 }
 
 .toggle-switch input:checked + .toggle-slider {
@@ -1867,7 +1955,7 @@ tbody tr:hover {
   pointer-events: auto;
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity var(--t-enter) var(--ease), transform var(--t-enter) var(--ease);
+  transition: opacity var(--t-enter) var(--ease-out), transform var(--t-enter) var(--ease-out);
 }
 
 .toast.show {
@@ -1878,6 +1966,7 @@ tbody tr:hover {
 .toast.hide {
   opacity: 0;
   transform: translateY(8px);
+  transition-duration: 160ms;
 }
 
 .toast.toast-success { border-left-color: var(--ok-500); }
@@ -2218,7 +2307,7 @@ tbody tr:hover {
   border-bottom: 1.5px solid var(--ink-3);
   transform: rotate(-45deg);
   margin-right: var(--sp-3);
-  transition: transform var(--t-micro) var(--ease);
+  transition: transform var(--t-micro) var(--ease-out);
 }
 
 .confirm-panel[open] summary::before,
@@ -2469,11 +2558,11 @@ tbody tr:hover {
 }
 
 .answer-card.score-pop {
-  animation: score-pop 0.24s var(--ease);
+  animation: score-pop var(--t-press) var(--ease-out);
 }
 
 @keyframes score-pop {
-  40% { transform: scale(1.02); }
+  40% { transform: scale(1.01); }
 }
 
 .q-grid {
@@ -2877,16 +2966,20 @@ tbody tr:hover {
   padding: var(--sp-2) var(--sp-4);
   font-size: var(--fs-14);
   font-weight: 700;
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: opacity var(--t-enter) var(--ease-out), transform var(--t-enter) var(--ease-out);
 }
 
 .offline-banner.visible,
 .online-banner.visible {
   display: flex;
-  animation: banner-in var(--t-enter) var(--ease);
-}
-
-@keyframes banner-in {
-  from { transform: translateY(-100%); }
+  opacity: 1;
+  transform: translateY(0);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
 }
 
 .offline-banner {
@@ -2932,7 +3025,8 @@ tbody tr:hover {
   width: var(--control-h);
   height: var(--control-h);
   border-radius: var(--r-md);
-  transition: background var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease-out), transform var(--t-press) var(--ease-out),
+    opacity var(--t-press) var(--ease-out);
 }
 
 .menu-trigger:hover {
@@ -2949,10 +3043,17 @@ tbody tr:hover {
 .trigger-icon svg {
   width: 100%;
   height: 100%;
-  transition: transform var(--t-micro) var(--ease);
+  transition: transform var(--t-micro) var(--ease-out);
 }
 
-.menu-trigger:hover .trigger-icon svg { transform: translateY(-1px); }
+.menu-trigger:active {
+  opacity: var(--control-pressed);
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menu-trigger:hover .trigger-icon svg { transform: translateY(-1px); }
+}
 
 /* --- Drawer --- */
 .menu-backdrop {
@@ -2962,7 +3063,7 @@ tbody tr:hover {
   background: var(--scrim);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--t-drawer) var(--ease);
+  transition: opacity 200ms var(--ease-out);
 }
 
 .menu-backdrop.active {
@@ -2980,11 +3081,11 @@ tbody tr:hover {
   background: var(--surface);
   border-left: 1px solid var(--line);
   box-shadow: var(--sh-3);
-  transform: translateX(105%);
+  transform: translateX(100%);
   visibility: hidden;
   pointer-events: none;
-  transition: transform var(--t-drawer) var(--ease),
-    visibility 0s linear var(--t-drawer);
+  transition: transform var(--t-panel) var(--ease-drawer),
+    visibility 0s linear var(--t-panel);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -3150,11 +3251,12 @@ tbody tr:hover {
   justify-content: center;
   background: var(--scrim);
   padding: var(--sp-5);
-  animation: fade-in var(--t-enter) var(--ease);
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
+.confirm-overlay.is-visible {
+  opacity: 1;
 }
 
 .confirm-dialog {
@@ -3164,14 +3266,14 @@ tbody tr:hover {
   border-radius: var(--radius-overlay);
   box-shadow: var(--sh-3);
   padding: var(--sp-6);
-  animation: pop-in var(--t-enter) var(--ease);
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  transition: opacity var(--t-enter) var(--ease-out), transform var(--t-enter) var(--ease-out);
 }
 
-@keyframes pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
-  }
+.confirm-overlay.is-visible .confirm-dialog {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .confirm-message {
@@ -3367,6 +3469,18 @@ tbody tr:hover {
   border-radius: var(--radius-overlay);
   box-shadow: var(--sh-2);
   padding: var(--sp-5);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top center;
+  transition: opacity var(--t-popover) var(--ease-out),
+    transform var(--t-popover) var(--ease-out);
+}
+
+.dt-picker.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
 }
 
 .dt-picker.align-end {
@@ -3377,6 +3491,12 @@ tbody tr:hover {
 .dt-picker.place-above {
   top: auto;
   bottom: calc(100% + var(--sp-2));
+  transform: translateY(4px) scale(0.98);
+  transform-origin: bottom center;
+}
+
+.dt-picker.place-above.is-open {
+  transform: translateY(0) scale(1);
 }
 
 @media (max-width: 640px) {
@@ -3466,7 +3586,7 @@ tbody tr:hover {
   color: var(--ink);
   background: transparent;
   cursor: pointer;
-  transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease);
+  transition: background var(--t-micro) var(--ease-out), color var(--t-micro) var(--ease-out), box-shadow var(--t-micro) var(--ease-out);
 }
 
 .dt-day:hover {
@@ -3579,12 +3699,18 @@ tbody tr:hover {
   font-family: var(--font-sans);
   font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--t-micro) var(--ease), background var(--t-micro) var(--ease);
+  transition: border-color var(--t-micro) var(--ease-out), background var(--t-micro) var(--ease-out),
+    opacity var(--t-press) var(--ease-out), transform var(--t-press) var(--ease-out);
 }
 
 .dt-trigger:hover {
   background: var(--surface-2);
   border-color: var(--line-strong);
+}
+
+.dt-trigger:active {
+  opacity: var(--control-pressed);
+  transform: scale(0.97);
 }
 
 .dt-trigger [data-icon] {
@@ -3647,7 +3773,6 @@ tbody tr:hover {
 
 .tab-content.active {
   display: block;
-  animation: fade-in var(--t-enter) var(--ease);
 }
 
 /* ============================================================

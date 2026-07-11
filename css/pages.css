@@ -2449,7 +2449,7 @@ body.page-help {
 
 .qa-question [data-icon] {
   color: var(--ink-3);
-  transition: transform var(--t-enter) var(--ease);
+  transition: transform var(--t-popover) var(--ease-out);
 }
 
 .qa-item.open .qa-question [data-icon] {
@@ -2459,7 +2459,7 @@ body.page-help {
 .qa-answer {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows var(--t-enter) var(--ease);
+  transition: grid-template-rows var(--t-popover) var(--ease-out);
 }
 
 .qa-item.open .qa-answer {

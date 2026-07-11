@@ -808,6 +808,7 @@
         let dtTarget = null; // 'start' or 'end'
         let dtYear, dtMonth, dtDay, dtHour = 0, dtMin = 0;
         let dtHost = null;
+        let dtCloseTimer = 0;
         let dtReturnFocus = null;
 
         function formatDtDisplay(val) {
@@ -949,8 +950,10 @@
             renderDtDays();
 
             const picker = document.getElementById('dt-picker');
+            window.clearTimeout(dtCloseTimer);
             picker.hidden = false;
             placeDatePicker(picker, dtScope, dtTarget);
+            picker.dataset.place = picker.classList.contains('place-above') ? 'above' : 'below';
             picker.setAttribute('role', 'dialog');
             picker.setAttribute('aria-modal', 'true');
             picker.setAttribute('aria-label', '日時を選択');
@@ -960,6 +963,7 @@
             overlay.hidden = false;
             overlay.classList.add('active');
             requestAnimationFrame(() => {
+                picker.classList.add('is-open');
                 (picker.querySelector('.dt-day.selected') || getDtTimeInput() || picker).focus();
             });
         }
@@ -967,13 +971,19 @@
         function closeDatePicker() {
             const picker = document.getElementById('dt-picker');
             const overlay = document.getElementById('dt-picker-overlay');
-            picker.hidden = true;
-            picker.classList.remove('align-end', 'place-above');
+            window.clearTimeout(dtCloseTimer);
+            picker.classList.remove('is-open');
             overlay.classList.remove('active');
-            overlay.hidden = true;
-            dtHost?.classList.remove('dt-anchor-host');
-            document.body.appendChild(picker);
-            dtHost = null;
+            dtCloseTimer = window.setTimeout(() => {
+                if (picker.classList.contains('is-open')) return;
+                picker.hidden = true;
+                picker.classList.remove('align-end', 'place-above');
+                delete picker.dataset.place;
+                overlay.hidden = true;
+                dtHost?.classList.remove('dt-anchor-host');
+                document.body.appendChild(picker);
+                dtHost = null;
+            }, 160);
             dtReturnFocus?.setAttribute('aria-expanded', 'false');
             if (dtReturnFocus?.isConnected) dtReturnFocus.focus();
             dtReturnFocus = null;
@@ -984,7 +994,9 @@
             if (dtMonth < 0) { dtMonth = 11; dtYear--; }
             if (dtMonth > 11) { dtMonth = 0; dtYear++; }
             renderDtDays();
-            placeDatePicker(document.getElementById('dt-picker'), dtScope, dtTarget);
+            const picker = document.getElementById('dt-picker');
+            placeDatePicker(picker, dtScope, dtTarget);
+            picker.dataset.place = picker.classList.contains('place-above') ? 'above' : 'below';
         }
 
         function renderDtDays() {
@@ -1155,6 +1167,7 @@
                     if (!currentPicker || currentPicker.hidden || !dtTarget) return;
                     // ASVS 3.4.3: positioning is class-based; no CSP-blocked inline styles are created.
                     placeDatePicker(currentPicker, dtScope, dtTarget);
+                    currentPicker.dataset.place = currentPicker.classList.contains('place-above') ? 'above' : 'below';
                 });
             }
         };

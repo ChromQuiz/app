@@ -151,10 +151,20 @@ function enhanceSelect(select) {
     select.setAttribute('aria-hidden', 'true');
 
     const optionNodes = [];
+    let closeTimer = 0;
+    const placeMenu = () => {
+        const rect = button.getBoundingClientRect();
+        const below = window.innerHeight - rect.bottom;
+        const above = rect.top;
+        wrap.dataset.place = below < 260 && above > below ? 'above' : 'below';
+    };
     const close = () => {
+        clearTimeout(closeTimer);
         wrap.classList.remove('is-open');
         button.setAttribute('aria-expanded', 'false');
-        menu.hidden = true;
+        closeTimer = window.setTimeout(() => {
+            if (!wrap.classList.contains('is-open')) menu.hidden = true;
+        }, 160);
         optionNodes.forEach((node) => node.classList.remove('is-active'));
     };
     const sync = () => {
@@ -182,9 +192,11 @@ function enhanceSelect(select) {
         return next;
     };
     const open = () => {
-        wrap.classList.add('is-open');
+        clearTimeout(closeTimer);
         button.setAttribute('aria-expanded', 'true');
         menu.hidden = false;
+        placeMenu();
+        requestAnimationFrame(() => wrap.classList.add('is-open'));
         setActive(select.selectedIndex >= 0 ? select.selectedIndex : 0);
     };
 
@@ -201,7 +213,7 @@ function enhanceSelect(select) {
         menu.appendChild(node);
         optionNodes.push(node);
     });
-    button.addEventListener('click', () => (menu.hidden ? open() : close()));
+    button.addEventListener('click', () => (wrap.classList.contains('is-open') ? close() : open()));
     button.addEventListener('keydown', (event) => {
         const activeIndex = optionNodes.findIndex((node) => node.classList.contains('is-active'));
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -412,7 +424,8 @@ function showConfirm(message, confirmText = '削除する') {
             if (settled) return;
             settled = true;
             dialog.removeEventListener('keydown', onKeydown);
-            overlay.remove();
+            overlay.classList.remove('is-visible');
+            window.setTimeout(() => overlay.remove(), 180);
             if (!wasScrollLocked) document.body.classList.remove('body-scroll-locked');
             if (returnFocus?.isConnected) returnFocus.focus();
             resolve(confirmed);
@@ -433,7 +446,10 @@ function showConfirm(message, confirmText = '削除する') {
         dialog.addEventListener('keydown', onKeydown);
         document.body.appendChild(overlay);
         document.body.classList.add('body-scroll-locked');
-        requestAnimationFrame(() => cancelBtn.focus());
+        requestAnimationFrame(() => {
+            overlay.classList.add('is-visible');
+            cancelBtn.focus();
+        });
     });
 }
 
