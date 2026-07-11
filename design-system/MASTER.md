@@ -1,6 +1,6 @@
 # CIQ Design System — MASTER (Global Source of Truth)
 
-> 2026-07 Apple UI/UX 全面刷新(v4・承認済み)。このファイルが全ページ・全コンポーネント・HTMLメールの唯一の設計根拠。
+> 2026-07 Swift App UI 全面刷新(v5・承認済み)。このファイルが全ページ・全コンポーネント・HTMLメールの唯一の設計根拠。
 
 ---
 
@@ -55,19 +55,21 @@
 | my | 受付番号+QR | 目的の1操作(編集/遅刻/成績/キャンセル) |
 | entry_list | ◯名がエントリー(定員) | 自分の枠・出場圏内を確認 |
 
-## 5. ビジュアル方針 — Apple方向の白・黒・グレー
+## 5. ビジュアル方針 — CIQ as a Swift App
 
 紫・青紫・グラデーション・グロー・ネオン・カード乱用・アイコン過多・影の多用は**禁止**。
 装飾ではなく、余白・罫線・タイポグラフィ・階層で見せる。1画面1主役。CTAは少数精鋭。
-最終的な質感は「SwiftUI/UIKitで作ったプロダクトをWebへ移植したように見える」ことを目指す。
+最終的な質感は「SwiftUI/UIKitで作ったCIQアプリをWebへ移植したように見える」ことを目指す。
 
-### 用途別ハイブリッド
+### 全画面共通のSwiftアプリ言語
 
-- 公開・参加者画面は Apple.com のように静かな余白、強い見出し、単一の主操作で迷わせない。
-- 運営・採点画面は macOS / iPadOS のように情報密度と操作効率を優先し、状態と次の操作を同時に把握できる構成とする。
-- 両者は同じトークン、フォーム、状態、フォーカスの契約を共有する。Liquid Glass 風の装飾は採用しないが、Apple製品UIに近づけるため、`app bar / drawer / notification / modal / popover` のような浮遊UIに限って控えめな半透明materialとblurを許可する。
+- 公開・運営・採点で別方針に分けない。全ページを同じSwiftUI/UIKit系CIQアプリの画面として扱う。
+- 入口、フォーム、一覧、採点、受付、ヘルプ、通知、警告、メールは同じ grouped surface / toolbar / sheet / popover / segmented / list row / form section / status panel の言語で統一する。
+- 画面ごとの差は「用途に応じた密度差」だけにする。読む/入力する画面は自然に狭く、一覧/採点/受付/集計は1600pxまで広がるが、部品の見た目や操作感は同じ。
+- Apple.com的な強い見出しや余白、macOS/iPadOS的な作業密度は分離せず、同じSwiftアプリの中で必要に応じて使う。
+- Liquid Glass 風の装飾は採用しないが、Apple製品UIに近づけるため、`app bar / drawer / notification / modal / popover` のような浮遊UIに限って控えめな半透明materialとblurを許可する。
 - 通常の本文カード、表、フォーム、list row、terms本文、admin phase blockにはblurを使わない。これらは opaque surface + hairline + spacing で階層を作る。
-- Apple.com を公開面の参照、Apple Support/Feedback をフォーム/エラーの参照、HIG buttons / alerts / notifications / materials を操作部品の参照とする。
+- 参照軸は Apple HIG / SwiftUI Form / UIKit grouped table / iOS・macOS通知 / Apple Mail の質感。Webランディングと運営UIを別アプリに見せることは禁止。
 
 ### Color Tokens(light / dark, `prefers-color-scheme`)
 ```
@@ -96,11 +98,8 @@ font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
              "Yu Gothic", "Noto Sans JP", sans-serif;              /* 本文 */
 font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace; /* 数値専用 */
 ```
-- H1 26–32px/700(1画面1つ) / H2 18–24px/600 / H3 16–22px/600(H4以下は使わない)
-- **LP/公開画面のヒーローは例外**: `.hero-title`(`clamp(2.5rem, 7vw, 4.5rem)` / `letter-spacing: -0.022em`) と
-  `.hero-subtitle`(`clamp(1.125rem, 2.5vw, 1.5rem)`) を `design_system.css` に共有コンポーネントとして持つ。
-  H1のサイズ制約は管理画面の本文H1に適用し、ヒーローは独立クラスで Apple.com の強い見出しを再現する。
-  適用範囲は index / entry / 404 等の入口・LP 限定。運営・採点画面では使わない。
+- H1 26–40px/700(1画面1つ) / H2 21–26px/600 / H3 18px/600(H4以下は極力使わない)
+- `.hero-title` と `.hero-subtitle` は「入口専用のLP部品」ではなく、強い導入が必要なアプリ画面用の共有見出しとして扱う。運営/採点でも必要なら同じトーンで使える。
 - 本文 16px/400/lh1.7、補足 13px/400/Sub色、ボタン 15px/500–600、フォーム入力 ≥16px
 - テーブル: セル14px、ヘッダ12px/600/+0.06em
 - Canvas生成画像も同じApple stackを使い、`IBM Plex` / `Inter` などの外部フォント前提にしない。
@@ -108,12 +107,12 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - 優先順位はサイズではなく余白・ウェイト・濃淡で。見出し前の余白は後ろの2倍
 
 ### Material / Radius / Elevation / Motion / Layout
-- 角丸 6/8/10/12/16/20px。意味別に control=999px or 12px / grouped surface=12px / overlay=16–20px / pill=999px とする。
+- 角丸 9/12/16/18/22/28px。意味別に control=13px or pill / grouped surface=18px / overlay=22–28px / pill=999px とする。
 - 面は plain section / grouped surface / overlay の3役に限定する。Grouped list は単一の外枠と行間の hairline で構成し、行ごとの入れ子カードを作らない。
 - 浮遊UIのみ material token を使う。`--material-toolbar` / `--material-popover` / `--material-modal` / `--material-notification` と `--material-blur` が許可範囲。
 - 影は浮遊UIの分離用途に限定する。通常面は1px罫線と余白で表す。
 - Motion 150–250ms fade/slide のみ。`prefers-reduced-motion` 全停止
-- 幅: ログイン・本人確認・フォーム・ヘルプ/規約本文は集中できる狭幅(概ね520〜840px)を維持する。admin、一覧、管理表、答案、集計、採点ボード、チェックインなど作業面は1600pxまで広げる。ただし1600px未満の画面でも端ギリギリにはせず、wide系は左右に十分なgutterを取る。タッチターゲット44px。フォーカスリング3px
+- 幅: ログイン・本人確認・フォーム・ヘルプ/規約本文は集中できる狭幅(概ね520〜840px)を維持する。admin、一覧、管理表、答案、集計、採点ボード、チェックインなど作業面は1600pxまで広げる。ただし1600px未満の画面でも端ギリギリにはせず、wide系は左右に十分なgutterを取る。これは方針差ではなく密度差であり、見た目の部品体系は同一。タッチターゲット44px。フォーカスリング3px
 - Z: sticky10 / appbar20 / dropdown30 / drawer40 / modal50 / toast60 / max70
 
 ### Accessibility

@@ -208,6 +208,19 @@ describe('design-system contracts', () => {
     expect(designCss).toContain('@media (forced-colors: active)');
   });
 
+  it('keeps every production HTML class covered by the shared UI styles', () => {
+    const htmlClasses = new Set();
+    for (const { source } of pageSources()) {
+      for (const match of source.matchAll(/class="([^"]+)"/g)) {
+        for (const className of match[1].split(/\s+/).filter(Boolean)) htmlClasses.add(className);
+      }
+    }
+    const missing = Array.from(htmlClasses)
+      .filter((className) => !css.includes(`.${className}`))
+      .sort();
+    expect(missing).toEqual([]);
+  });
+
   it('keeps Apple-style motion bounded and component-specific', () => {
     expect(css).not.toMatch(/transition\s*:\s*all\b/i);
     expect(css).not.toMatch(/\bease-in(?!-out)\b/i);

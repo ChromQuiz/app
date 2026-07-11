@@ -42,22 +42,22 @@ async function signedQrUrl(value: string) {
 }
 
 /* ------------------------------------------------------------
- * HTMLメール — サイト側UIに寄せた静かな白黒グレー基調。
+ * HTMLメール — CIQ Swift App と同じ grouped surface / pill CTA の静かな白黒グレー基調。
  * メールクライアント互換のため table + inline CSS のみを使用する。
  * ------------------------------------------------------------ */
 const MAIL_FONT = "-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif";
 const MAIL_MONO = "'SF Mono','SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
 const MAIL = {
-  canvas: '#f5f5f7',
-  paper: '#f5f5f7',
+  canvas: '#f2f2f7',
+  paper: '#f2f2f7',
   surface: '#ffffff',
-  surface2: '#f5f5f7',
-  text: '#1d1d1f',
-  sub: '#6e6e73',
-  muted: '#86868b',
-  border: '#e5e5ea',
-  borderStrong: '#d2d2d7',
-  accent: '#1d1d1f',
+  surface2: '#f8f8fb',
+  text: '#111113',
+  sub: '#5f6067',
+  muted: '#8a8b93',
+  border: '#d9d9df',
+  borderStrong: '#c7c7cf',
+  accent: '#111113',
   accentInk: '#ffffff',
   blue: '#0066cc',
 };
@@ -71,22 +71,22 @@ function shell(title: string, subtitle: string, body: string) {
       .ciq-mail-button-cell { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
     }
   </style>
-  <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:28px 12px;">
+  <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:32px 12px;">
     <tr>
       <td align="center">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;margin:0 auto;">
           <tr>
-            <td style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:30px;line-height:1.15;font-weight:800;letter-spacing:-0.02em;padding:0 2px 8px;text-align:center;" align="center">
+            <td style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:34px;line-height:1.08;font-weight:800;letter-spacing:-0.035em;padding:0 2px 8px;text-align:center;" align="center">
               ${escapeHtml(subtitle)}
             </td>
           </tr>
           <tr>
-            <td style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:600;padding:0 2px 24px;text-align:center;" align="center">
+            <td style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:600;padding:0 2px 26px;text-align:center;" align="center">
               ${escapeHtml(title)}
             </td>
           </tr>
           <tr>
-            <td class="ciq-mail-card" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:20px;padding:30px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.75;text-align:left;" align="left">${body}</td>
+            <td class="ciq-mail-card" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:26px;padding:32px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.75;text-align:left;" align="left">${body}</td>
           </tr>
           <tr>
             <td style="font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:${MAIL.muted};padding:22px 8px 0;">
@@ -110,8 +110,8 @@ function panel(body: string, tone = 'info') {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td style="border:1px solid ${MAIL.border};border-left:3px solid ${tone === 'success' ? '#248a3d' : tone === 'warning' ? '#bf6a02' : tone === 'danger' ? '#d70015' : MAIL.borderStrong};border-radius:16px;background:${MAIL.surface};padding:14px 16px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:14px;line-height:1.75;">
-        <div style="font-size:12px;font-weight:800;color:${MAIL.sub};margin-bottom:4px;">${escapeHtml(labels[tone] || labels.info)}</div>
+      <td style="border:1px solid ${tone === 'success' ? '#b8e8c4' : tone === 'warning' ? '#f4d7a2' : tone === 'danger' ? '#f2b8b5' : MAIL.border};border-radius:18px;background:${MAIL.surface2};padding:15px 16px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:14px;line-height:1.75;">
+        <div style="font-size:12px;font-weight:800;color:${tone === 'success' ? '#248a3d' : tone === 'warning' ? '#bf6a02' : tone === 'danger' ? '#d70015' : MAIL.sub};margin-bottom:4px;">${escapeHtml(labels[tone] || labels.info)}</div>
         <div style="font-weight:600;">${body}</div>
       </td>
     </tr>
@@ -128,7 +128,7 @@ function detailsTable(rows: Array<[string, unknown]>) {
     </tr>
   `).join('');
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${MAIL.border};border-radius:16px;margin:16px 0;background:${MAIL.surface};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${MAIL.border};border-radius:18px;margin:16px 0;background:${MAIL.surface};">
     ${tableRows}
   </table>
   `;
@@ -138,7 +138,7 @@ function numberCard(label: string, value: string) {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td align="center" style="border:1px solid ${MAIL.border};border-radius:18px;padding:20px;background:${MAIL.surface2};">
+      <td align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface2};">
         <div style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;font-weight:800;margin-bottom:4px;">${escapeHtml(label)}</div>
         <div style="font-family:${MAIL_MONO};color:${MAIL.text};font-size:36px;font-weight:800;letter-spacing:.04em;line-height:1.1;">${escapeHtml(value)}</div>
       </td>
@@ -152,7 +152,7 @@ function qrCard(qrImageUrl: string) {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td align="center" style="border:1px solid ${MAIL.border};border-radius:18px;padding:20px;background:${MAIL.surface};">
+      <td align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface};">
         <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
         <div style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:800;margin-top:12px;">当日受付用QRコード</div>
         <div style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;margin-top:2px;">当日受付で提示してください。</div>
@@ -329,7 +329,7 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
       <p style="margin:0;text-align:left;">エントリーフォームに以下のコードを入力してください。</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
         <tr>
-          <td align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:10px;padding:24px;background:${MAIL.surface};">
+          <td align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:18px;padding:24px;background:${MAIL.surface};">
             <span style="font-family:${MAIL_MONO};font-size:36px;font-weight:600;letter-spacing:10px;color:${MAIL.text};">${escapeHtml(code)}</span>
           </td>
         </tr>

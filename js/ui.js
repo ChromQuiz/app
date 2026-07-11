@@ -373,18 +373,25 @@ function showToast(msg, type = 'info', duration = 3000) {
     toast.setAttribute('aria-live', type === 'error' || type === 'warning' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
     const icons = { success: 'circle-check', error: 'circle-xmark', warning: 'triangle-exclamation', info: 'circle-info' };
-    const titles = { success: 'CIQ・完了', error: 'CIQ・エラー', warning: 'CIQ・注意', info: 'CIQ' };
+    const titles = { success: 'CIQ', error: 'CIQ', warning: 'CIQ', info: 'CIQ' };
+    const subtitles = { success: '完了', error: 'エラー', warning: '注意', info: '通知' };
     const icon = createIcon(icons[type] || icons.info);
     const body = document.createElement('span');
     body.className = 'toast-body';
+    const header = document.createElement('span');
+    header.className = 'toast-header';
     const title = document.createElement('span');
     title.className = 'toast-title';
     title.textContent = titles[type] || titles.info;
+    const subtitle = document.createElement('span');
+    subtitle.className = 'toast-subtitle';
+    subtitle.textContent = subtitles[type] || subtitles.info;
     const text = document.createElement('span');
     text.className = 'toast-message';
     // ASVS 1.2.1: status text is rendered as text, never interpreted as markup.
     text.textContent = String(msg || '');
-    body.append(title, text);
+    header.append(title, subtitle);
+    body.append(header, text);
     toast.append(icon, body);
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
@@ -412,9 +419,14 @@ function showConfirm(message, confirmText = '削除する') {
         dialog.setAttribute('aria-label', '確認');
         dialog.tabIndex = -1;
         const icon = createIcon('triangle-exclamation', { className: 'confirm-icon' });
+        const titleEl = document.createElement('div');
+        titleEl.className = 'confirm-title';
+        titleEl.id = `confirm-title-${confirmDialogSequence + 1}`;
+        titleEl.textContent = '確認';
         const messageEl = document.createElement('div');
         messageEl.className = 'confirm-message';
         messageEl.id = `confirm-message-${++confirmDialogSequence}`;
+        dialog.setAttribute('aria-labelledby', titleEl.id);
         dialog.setAttribute('aria-describedby', messageEl.id);
         // ASVS 1.2.1: untrusted confirmation content is kept in a text node.
         messageEl.textContent = String(message || '');
@@ -429,7 +441,7 @@ function showConfirm(message, confirmText = '削除する') {
         okBtn.className = 'btn danger confirm-ok';
         okBtn.textContent = String(confirmText || '削除する');
         actions.append(cancelBtn, okBtn);
-        dialog.append(icon, messageEl, actions);
+        dialog.append(icon, titleEl, messageEl, actions);
         overlay.appendChild(dialog);
 
         let settled = false;
