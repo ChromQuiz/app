@@ -688,6 +688,14 @@ svg[width="24"][stroke="currentColor"] {
   transform: scale(0.97);
 }
 
+.back-nav-btn.icon-only {
+  justify-content: center;
+  width: var(--control-h-sm);
+  min-width: var(--control-h-sm);
+  padding: 0;
+  gap: 0;
+}
+
 /* 小型リンクボタン (admin 公開リンク行) */
 .link-btn-sm {
   min-height: var(--control-h-sm);

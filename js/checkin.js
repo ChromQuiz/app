@@ -16,12 +16,10 @@ function setPageTitle(projectName) {
 }
 
 if (auth) {
-    // 戻る先はロール別(管理者→運営 / 採点者→採点ボード)
     const backBtn = document.getElementById('checkin-back-btn');
     if (backBtn) {
-        backBtn.appendChild(document.createTextNode(` ${opsBackLabel()}`));
         backBtn.addEventListener('click', () => {
-            location.href = opsBackTarget();
+            navigateBack(opsBackTarget());
         });
     }
 

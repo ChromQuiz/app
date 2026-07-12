@@ -2957,6 +2957,18 @@ body.page-help {
   text-decoration: none;
 }
 
+.help-back.icon-only {
+  justify-content: center;
+  width: var(--control-h-sm);
+  min-width: var(--control-h-sm);
+  padding: 0;
+  border-radius: var(--r-full);
+}
+
+.help-back.icon-only:hover {
+  background: var(--surface-2);
+}
+
 .help-header {
   margin-bottom: var(--sp-8);
 }

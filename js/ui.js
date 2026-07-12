@@ -328,6 +328,29 @@ function opsBackLabel() {
     return session.scorerRole === 'admin' ? '運営' : '採点ボード';
 }
 
+function navigateBack(fallback = 'index.html') {
+    let canUseHistory = window.history.length > 1;
+    if (document.referrer) {
+        try {
+            canUseHistory = canUseHistory && new URL(document.referrer).origin === location.origin;
+        } catch (_) {
+            canUseHistory = false;
+        }
+    }
+    if (canUseHistory) {
+        window.history.back();
+        return;
+    }
+    location.href = fallback;
+}
+
+document.addEventListener('click', (event) => {
+    const trigger = event.target.closest?.('[data-history-back]');
+    if (!trigger) return;
+    event.preventDefault();
+    navigateBack(trigger.dataset.backFallback || trigger.getAttribute('href') || 'index.html');
+});
+
 function requireAuth(opts = {}) {
     const projectId = session.projectId;
     const secretHash = session.get('secretHash');

@@ -741,7 +741,7 @@ function scoreSelected(status) {
 }
 
 document.getElementById('question-back-btn')?.addEventListener('click', () => {
-    location.href = 'judge.html';
+    navigateBack('judge.html');
 });
 document.getElementById('score-correct-btn')?.addEventListener('click', () => scoreSelected('correct'));
 document.getElementById('score-wrong-btn')?.addEventListener('click', () => scoreSelected('wrong'));
