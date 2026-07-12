@@ -2066,6 +2066,129 @@ tbody tr:hover {
   }
 }
 
+/* Final notification HUD: text-only, in-app, quiet. */
+.toast-container {
+  top: calc(14px + env(safe-area-inset-top));
+  right: auto;
+  left: 50%;
+  gap: 8px;
+  width: min(520px, calc(100vw - 24px));
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.toast {
+  position: relative;
+  display: inline-flex;
+  width: auto;
+  max-width: min(520px, calc(100vw - 24px));
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--material-notification) 92%, var(--surface));
+  backdrop-filter: var(--material-blur);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.13),
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 0.5px color-mix(in srgb, var(--material-line) 72%, transparent);
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.985);
+  transition:
+    opacity 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+
+.toast::before,
+.toast::after {
+  content: none;
+}
+
+.toast.toast-success {
+  color: var(--ok-600);
+}
+
+.toast.toast-error {
+  color: var(--bad-600);
+}
+
+.toast.toast-warning {
+  color: var(--warn-600);
+}
+
+.toast.toast-info {
+  color: var(--ink);
+}
+
+.toast > [data-icon],
+.toast > svg,
+.toast-app-icon,
+.toast-header,
+.toast-identity,
+.toast-status-dot,
+.toast-title,
+.toast-subtitle {
+  display: none;
+}
+
+.toast-body {
+  display: contents;
+  min-width: 0;
+  padding: 0;
+}
+
+.toast-message {
+  display: block;
+  max-width: 100%;
+  color: currentColor;
+  font-size: var(--fs-14);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.35;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.toast.hide {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.985);
+  transition-duration: 140ms;
+}
+
+@media (max-width: 640px) {
+  .toast-container {
+    top: auto;
+    right: auto;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    left: 50%;
+    width: min(520px, calc(100vw - 24px));
+    transform: translateX(-50%);
+  }
+
+  .toast {
+    max-width: calc(100vw - 24px);
+    transform: translateY(8px) scale(0.985);
+  }
+
+  .toast.show {
+    transform: translateY(0) scale(1);
+  }
+
+  .toast.hide {
+    transform: translateY(6px) scale(0.985);
+  }
+}
+
 /* In-app status notice: no app identity, no OS-notification chrome. */
 .toast-container {
   top: calc(12px + env(safe-area-inset-top));
