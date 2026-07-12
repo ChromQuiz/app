@@ -96,14 +96,14 @@ font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
 font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
              "Hiragino Sans", "Hiragino Kaku Gothic ProN",
              "Yu Gothic", "Noto Sans JP", sans-serif;              /* 本文 */
-font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace; /* 数値専用 */
+font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace; /* 受付番号・ID・コード専用 */
 ```
 - H1 26–40px/700(1画面1つ) / H2 21–26px/600 / H3 18px/600(H4以下は極力使わない)
 - `.hero-title` と `.hero-subtitle` は「入口専用のLP部品」ではなく、強い導入が必要なアプリ画面用の共有見出しとして扱う。運営/採点でも必要なら同じトーンで使える。
 - 本文 16px/400/lh1.7、補足 13px/400/Sub色、ボタン 15px/500–600、フォーム入力 ≥16px
 - テーブル: セル14px、ヘッダ12px/600/+0.06em
 - Canvas生成画像も同じApple stackを使い、`IBM Plex` / `Inter` などの外部フォント前提にしない。
-- **mono は数値・ID専用**(受付番号、スコア、判定 No.、ID・コード、`tabular-nums`)。本文・見出し禁止
+- **mono は受付番号・パスワード・プロジェクトID・認証コード・技術的ID専用**。人数、問題番号、進捗、スコア、順位、日付時刻、404など通常UIの数字は system font + `tabular-nums` にする。本文・見出しへのmono使用は禁止。
 - 優先順位はサイズではなく余白・ウェイト・濃淡で。見出し前の余白は後ろの2倍
 
 ### Material / Radius / Elevation / Motion / Layout

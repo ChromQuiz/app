@@ -4803,6 +4803,29 @@ select:focus {
   transform: translateX(20px);
 }
 
+/* Numeric typography contract:
+   Mono is reserved for reception numbers, passwords, project IDs, codes and technical IDs.
+   Ordinary UI numbers use the system font with tabular figures. */
+.count-badge,
+.tab-count,
+.stat-num,
+.q-num,
+.q-badge,
+.counter,
+.save-overlay-status,
+.progress-text,
+.dt-time-input,
+.c-time {
+  font-family: var(--font-text);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.q-num,
+.stat-num {
+  font-family: var(--font-display);
+}
+
 /* Final control geometry — keep iOS-style switch internally consistent. */
 .toggle-switch {
   position: relative;
