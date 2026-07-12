@@ -1,15 +1,4 @@
-// help.js - contextual back link and accessible FAQ accordion behavior
-
-const helpBackLink = document.getElementById('help-back-link');
-const hasOpsSession = typeof session !== 'undefined'
-    && Boolean(session.projectId)
-    && Boolean(session.scorerName)
-    && (session.scorerRole === 'admin' || session.scorerRole === 'scorer');
-
-if (helpBackLink && hasOpsSession && typeof opsBackTarget === 'function') {
-    helpBackLink.href = opsBackTarget();
-    helpBackLink.dataset.backFallback = opsBackTarget();
-}
+// help.js - accessible FAQ accordion behavior
 
 document.querySelectorAll('.qa-question').forEach((question) => {
     const answerId = question.getAttribute('aria-controls');

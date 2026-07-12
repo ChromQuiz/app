@@ -3415,34 +3415,6 @@ body.page-help {
   margin: 0 auto;
 }
 
-.help-back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  min-height: var(--control-h-sm);
-  font-size: var(--fs-14);
-  font-weight: 500;
-  color: var(--ink-2);
-  margin-bottom: var(--sp-5);
-}
-
-.help-back:hover {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.help-back.icon-only {
-  justify-content: center;
-  width: var(--control-h-sm);
-  min-width: var(--control-h-sm);
-  padding: 0;
-  border-radius: var(--r-full);
-}
-
-.help-back.icon-only:hover {
-  background: var(--surface-2);
-}
-
 .help-header {
   margin-bottom: var(--sp-8);
 }
