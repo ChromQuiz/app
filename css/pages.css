@@ -3367,6 +3367,16 @@ body.page-admin .phase-jump {
   display: none;
 }
 
+body.page-admin .dt-trigger,
+body.page-admin .number-spinner-wrap {
+  min-height: 44px;
+}
+
+body.page-admin .number-spinner-wrap input[type="number"],
+body.page-admin .number-spinner-btn {
+  min-height: 30px;
+}
+
 .admin-container,
 .judge-main,
 .answer-grid,
