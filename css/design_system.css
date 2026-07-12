@@ -5267,6 +5267,26 @@ select:focus {
   border-radius: var(--r-full);
 }
 
+/* Toggle row language */
+.config-row:has(.toggle-switch) {
+  align-items: center;
+}
+
+.config-row:has(.toggle-switch) .toggle-info {
+  display: grid;
+  min-height: 32px;
+  align-content: center;
+  gap: 0;
+}
+
+.config-row:has(.toggle-switch) .toggle-info-title {
+  color: var(--ink);
+  font-size: var(--fs-15);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+}
+
 .tab-btn.active,
 .phase-quick-btn.active,
 .segmented-control button.active,

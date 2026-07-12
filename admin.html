@@ -16,7 +16,7 @@
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=16"></script>
     <script defer src="js/shared.js?v=2"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=58">
+    <link rel="stylesheet" href="css/design_system.css?v=59">
     <link rel="stylesheet" href="css/pages.css?v=99">
 </head>
 
@@ -147,7 +147,7 @@
                         <div class="config-row">
                             <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked data-action="toggle-entry-open"><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
-                                <div class="toggle-info-title">エントリーを受け付ける</div>
+                                <div class="toggle-info-title">エントリー受付</div>
                             </div>
                             <span id="entry-open-status" class="status-badge status-open">エントリー中</span>
                         </div>
@@ -342,7 +342,7 @@
                         <div class="config-row">
                             <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" data-action="toggle-disclosure-open"><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
-                                <div class="toggle-info-title">成績照会を公開する</div>
+                                <div class="toggle-info-title">成績照会</div>
                             </div>
                             <span id="disclosure-open-status" class="status-badge status-closed">停止中</span>
                         </div>
@@ -414,7 +414,9 @@
                         </div>
                         <div class="config-row mt-sm">
                             <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked data-action="render-analytics"><span class="toggle-slider"></span></label>
-                            <span class="u-muted-note">エントリーネームで表示</span>
+                            <div class="toggle-info">
+                                <div class="toggle-info-title">エントリーネーム表示</div>
+                            </div>
                         </div>
                         <div class="table-container mt-md u-table-scroll-md">
                             <table id="analytics-table">
@@ -480,19 +482,19 @@
                             <div class="config-row email-notification-card">
                                 <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-edit" checked><span class="toggle-slider"></span></label>
                                 <div class="toggle-info">
-                                    <div class="toggle-info-title">編集完了通知</div>
+                                    <div class="toggle-info-title">編集完了メール</div>
                                 </div>
                             </div>
                             <div class="config-row email-notification-card">
                                 <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-cancel" checked><span class="toggle-slider"></span></label>
                                 <div class="toggle-info">
-                                    <div class="toggle-info-title">キャンセル完了通知</div>
+                                    <div class="toggle-info-title">キャンセル完了メール</div>
                                 </div>
                             </div>
                             <div class="config-row email-notification-card">
                                 <label class="toggle-switch"><input type="checkbox" id="setting-notify-late-notice" checked><span class="toggle-slider"></span></label>
                                 <div class="toggle-info">
-                                    <div class="toggle-info-title">遅刻連絡受付通知</div>
+                                    <div class="toggle-info-title">遅刻連絡受付メール</div>
                                 </div>
                             </div>
                         </div>
