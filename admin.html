@@ -17,7 +17,7 @@
     <script defer src="js/ui.js?v=16"></script>
     <script defer src="js/shared.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=59">
-    <link rel="stylesheet" href="css/pages.css?v=99">
+    <link rel="stylesheet" href="css/pages.css?v=100">
 </head>
 
 <body class="page-admin">
@@ -280,19 +280,17 @@
                         </div>
                     </div>
                     <div class="phase-block is-wide saved-answers-section">
-                        <div class="flex-row-spread">
-                            <div class="flex-row">
-                                <h2 class="mb-zero">保存済み答案</h2>
-                                <span id="entry-count-badge" class="count-badge">0件</span>
-                            </div>
-                            <div class="flex-row">
-                                <label class="custom-checkbox" id="select-all-label" hidden>
-                                    <input type="checkbox" id="select-all-cb" data-action="toggle-select-all" />
-                                    <span class="checkbox-mark"><span data-icon="check" aria-hidden="true"></span></span>
-                                    <span>全選択</span>
-                                </label>
-                                <button class="btn danger" id="batch-delete-btn" data-action="batch-delete" disabled hidden><span data-icon="trash" aria-hidden="true"></span> 選択削除</button>
-                            </div>
+                        <div class="saved-answers-heading">
+                            <h2 class="mb-zero">保存済み答案</h2>
+                            <span id="entry-count-badge" class="count-badge">0件</span>
+                        </div>
+                        <div class="saved-answers-actions">
+                            <label class="custom-checkbox" id="select-all-label" hidden>
+                                <input type="checkbox" id="select-all-cb" data-action="toggle-select-all" />
+                                <span class="checkbox-mark"><span data-icon="check" aria-hidden="true"></span></span>
+                                <span>全選択</span>
+                            </label>
+                            <button class="btn danger" id="batch-delete-btn" data-action="batch-delete" disabled hidden><span data-icon="trash" aria-hidden="true"></span> 選択削除</button>
                         </div>
                         <div id="entry-list">
                             <div class="loading-state"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</div>

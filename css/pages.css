@@ -4408,3 +4408,64 @@ body.page-admin .model-answer-section > .file-upload-zone {
   min-height: 116px;
   margin-top: 0;
 }
+
+body.page-admin .email-notification-card.config-row {
+  align-items: center;
+}
+
+body.page-admin .saved-answers-heading {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+body.page-admin .saved-answers-actions {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+body.page-admin .saved-answers-section #entry-list {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-card {
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  min-height: 68px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: inset var(--app-bg-inset);
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-card:hover {
+  background: var(--surface);
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-card.selected {
+  background: color-mix(in srgb, var(--accent-soft) 68%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-num-badge {
+  padding: 4px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: var(--fs-12);
+}
