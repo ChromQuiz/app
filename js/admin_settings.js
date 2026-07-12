@@ -1198,7 +1198,7 @@
                 window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
                 entryNumbers = entries.map(e => e.entry_number || e.entryNumber).sort((a, b) => a - b);
                 if (!entries.length) {
-                    setTableMessage(tbody, 9, '名簿データがありません。');
+                    setTableMessage(tbody, 10, '名簿データがありません。');
                     window.setAdminEntriesCount?.(0);
                     return;
                 }
@@ -1240,7 +1240,7 @@
                     }).catch(e => console.warn('復号鍵の後追い読み込みをスキップ:', e));
                 }
             } catch (e) {
-                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
+                setTableMessage(tbody, 10, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
             }
         }
 
@@ -1324,16 +1324,19 @@
                 statusTd.appendChild(createBadge('badge muted', 'clock', '未受付'));
             }
 
+            const noticeTd = appendAdminEntryCell(row, document.createDocumentFragment());
             const noticeState = entry.waitlist_promotion_notice;
             if (noticeState === 'pending' || noticeState === 'sending') {
-                statusTd.appendChild(createBadge('badge', 'clock', '繰り上げ通知送信待ち', {
+                noticeTd.appendChild(createBadge('badge', 'clock', '繰り上げ通知送信待ち', {
                     background: 'var(--surface-2)',
                     color: 'var(--ink)',
                 }));
             } else if (noticeState === 'sent') {
-                statusTd.appendChild(createBadge('badge success', 'check', '繰り上げ通知送信済み'));
+                noticeTd.appendChild(createBadge('badge success', 'check', '繰り上げ通知送信済み'));
             } else if (noticeState === 'failed') {
-                statusTd.appendChild(createBadge('badge danger', 'triangle-exclamation', '繰り上げ通知未送信'));
+                noticeTd.appendChild(createBadge('badge danger', 'triangle-exclamation', '繰り上げ通知未送信'));
+            } else {
+                noticeTd.textContent = '-';
             }
         }
 
