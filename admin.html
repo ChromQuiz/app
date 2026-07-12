@@ -115,13 +115,11 @@
                                 <input type="number" id="question-count" value="100" min="10" max="200" step="10" />
                                 <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="10" aria-label="10問増やす"><span data-icon="plus" aria-hidden="true"></span></button>
                             </div>
-                            <span class="u-tiny-muted">10の倍数で指定</span>
                         </div>
                         <button class="btn" data-action="generate-pdf"><span data-icon="download" aria-hidden="true"></span> 解答用紙をダウンロード</button>
                     </div>
                     <div class="phase-block model-answer-section">
                         <h2>模範解答の登録</h2>
-                        <p class="desc-text mb-md">模範解答CSVをアップロードして一括登録します。</p>
                         <div class="file-upload-zone" data-file-trigger="csv-file">
                             <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
                             <div class="file-label">模範解答CSVをアップロード</div>
@@ -150,7 +148,6 @@
                             <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked data-action="toggle-entry-open"><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
                                 <div class="toggle-info-title">エントリーを受け付ける</div>
-                                <div class="toggle-info-desc" id="entry-state-meta">OFFにすると期間に関わらず即時停止します</div>
                             </div>
                             <span id="entry-open-status" class="status-badge status-open">エントリー中</span>
                         </div>
@@ -181,7 +178,6 @@
                                 <label class="toggle-switch"><input type="checkbox" id="max-entries-toggle" checked data-action="toggle-max-entries"><span class="toggle-slider"></span></label>
                                 <div class="toggle-info">
                                     <div class="toggle-info-title">定員制限</div>
-                                    <div class="toggle-info-desc">定員を超えたエントリーはキャンセル待ちになります</div>
                                 </div>
                                 <span id="max-entries-status" class="status-badge status-open">120人</span>
                             </div>
@@ -347,7 +343,6 @@
                             <label class="toggle-switch"><input type="checkbox" id="disclosure-open-toggle" data-action="toggle-disclosure-open"><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
                                 <div class="toggle-info-title">成績照会を公開する</div>
-                                <div class="toggle-info-desc" id="disclosure-state-meta">参加者はマイエントリーから成績を確認できます</div>
                             </div>
                             <span id="disclosure-open-status" class="status-badge status-closed">停止中</span>
                         </div>
@@ -399,7 +394,6 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="u-tiny-muted mt-sm">文字数固定: 姓名の合計が指定文字数未満の場合、姓と名の間にスペースを挿入して揃えます。</div>
                         </div>
                         <div class="phase-actions">
                             <button class="btn secondary" id="csv-btn" disabled data-action="export-csv"><span data-icon="download" aria-hidden="true"></span> 採点結果CSV</button>
@@ -455,7 +449,6 @@
                 <div class="tab-content" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-tab" hidden>
                     <div class="phase-block">
                         <h2>メンバー管理</h2>
-                        <p class="desc-text mb-md">採点者はプロジェクトIDとパスワードで参加できます。参加済みメンバーの権限変更、キック、復帰ができます。</p>
                         <div class="table-container mt-md">
                             <table>
                                 <thead>
@@ -475,7 +468,6 @@
 
                     <div class="phase-block">
                         <h2>参加規約</h2>
-                        <p class="desc-text mb-md">大会の参加規約を入力します。設定するとエントリーフォームに同意チェックボックスが表示されます。（Markdown）</p>
                         <div class="name-input-flex u-stack-stretch">
                             <textarea id="setting-terms" class="u-min-h-120 mb-md" placeholder="規約を入力しない場合は空にしてください"></textarea>
                             <button class="btn secondary" data-action="update-terms"><span data-icon="arrows-rotate" aria-hidden="true"></span> 参加規約を更新</button>
@@ -484,27 +476,23 @@
 
                     <div class="phase-block">
                         <h2>メール通知</h2>
-                        <p class="desc-text mb-md">参加者の操作後に控えメールを送信します。</p>
                         <div class="email-notification-grid">
                             <div class="config-row email-notification-card">
                                 <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-edit" checked><span class="toggle-slider"></span></label>
                                 <div class="toggle-info">
                                     <div class="toggle-info-title">編集完了通知</div>
-                                    <div class="toggle-info-desc">エントリー内容を変更した参加者へ控えを送信</div>
                                 </div>
                             </div>
                             <div class="config-row email-notification-card">
                                 <label class="toggle-switch"><input type="checkbox" id="setting-notify-entry-cancel" checked><span class="toggle-slider"></span></label>
                                 <div class="toggle-info">
                                     <div class="toggle-info-title">キャンセル完了通知</div>
-                                    <div class="toggle-info-desc">エントリーをキャンセルした参加者へ控えを送信</div>
                                 </div>
                             </div>
                             <div class="config-row email-notification-card">
                                 <label class="toggle-switch"><input type="checkbox" id="setting-notify-late-notice" checked><span class="toggle-slider"></span></label>
                                 <div class="toggle-info">
                                     <div class="toggle-info-title">遅刻連絡受付通知</div>
-                                    <div class="toggle-info-desc">遅刻を届け出た参加者へ控えを送信</div>
                                 </div>
                             </div>
                         </div>
@@ -512,7 +500,6 @@
 
                     <div class="phase-block danger-zone">
                         <h2 class="danger-title">危険な操作</h2>
-                        <p class="desc-text mb-md">エントリー・採点データなどプロジェクト内の全データを削除し、初期状態に戻します。プロジェクト自体は残ります。</p>
                         <button class="btn danger" data-action="reset-project"><span data-icon="rotate-left" aria-hidden="true"></span> プロジェクトリセット</button>
                     </div>
                 </div>
