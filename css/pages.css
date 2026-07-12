@@ -4398,3 +4398,21 @@ body.page-checkin #camera-container canvas {
 body.page-checkin .checkin-guide {
   z-index: 3;
 }
+
+/* Admin prep spacing: keep description visually attached to the upload control. */
+body.page-admin .model-answer-section {
+  gap: 10px;
+}
+
+body.page-admin .model-answer-section > h2 {
+  margin-bottom: 2px;
+}
+
+body.page-admin .model-answer-section > p.desc-text {
+  margin-bottom: 8px;
+}
+
+body.page-admin .model-answer-section > .file-upload-zone {
+  min-height: 116px;
+  margin-top: 0;
+}
