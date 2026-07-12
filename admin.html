@@ -17,7 +17,7 @@
     <script defer src="js/ui.js?v=13"></script>
     <script defer src="js/shared.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=53">
-    <link rel="stylesheet" href="css/pages.css?v=91">
+    <link rel="stylesheet" href="css/pages.css?v=93">
 </head>
 
 <body class="page-admin">
@@ -42,9 +42,8 @@
     <div class="menu-panel" id="menu-panel" aria-hidden="true">
         <button type="button" class="menu-panel-close" data-toggle-menu aria-label="メニューを閉じる"><span data-icon="xmark" aria-hidden="true"></span></button>
         <div class="menu-profile">
-            <div class="menu-avatar"><span data-icon="crown" aria-hidden="true"></span></div>
             <div class="menu-profile-name" id="menu-scorer-name"></div>
-            <div><span class="menu-role-badge admin">管理者</span></div>
+            <span class="menu-role-badge admin">管理者</span>
         </div>
         <div class="menu-section">
             <div class="menu-section-label">運営</div>
@@ -122,10 +121,10 @@
                     </div>
                     <div class="phase-block model-answer-section">
                         <h2>模範解答の登録</h2>
-                        <p class="desc-text mb-md">CSVファイルをアップロードして一括登録します。</p>
+                        <p class="desc-text mb-md">模範解答CSVをアップロードして一括登録します。</p>
                         <div class="file-upload-zone" data-file-trigger="csv-file">
                             <span data-icon="file-csv" aria-hidden="true"></span>
-                            <div class="file-label">CSVファイルを選択</div>
+                            <div class="file-label">模範解答CSVをアップロード</div>
                             <div class="file-name" id="csv-file-name"></div>
                             <input type="file" id="csv-file" accept=".csv" />
                         </div>
@@ -220,10 +219,9 @@
                         <p class="u-tiny-muted mt-sm">編集・キャンセル・遅刻連絡・成績照会は、すべてマイエントリーから行えます。</p>
                     </div>
 
-                    <div class="phase-block is-wide saved-answers-section">
+                    <div class="phase-block is-wide">
                         <div class="section-header-row">
                             <h2>参加者一覧</h2>
-                            <button class="btn secondary" data-action="open-admin-entry-modal"><span data-icon="user-plus" aria-hidden="true"></span> 参加者を追加</button>
                         </div>
                         <div class="table-container u-table-scroll-md">
                             <table>
@@ -245,7 +243,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <button class="btn secondary mt-md" data-action="export-entries-csv"><span data-icon="download" aria-hidden="true"></span> 参加者名簿CSV</button>
+                        <div class="phase-actions">
+                            <button class="btn secondary" data-action="export-entries-csv"><span data-icon="download" aria-hidden="true"></span> 参加者名簿CSV</button>
+                            <button class="btn secondary" data-action="open-admin-entry-modal"><span data-icon="user-plus" aria-hidden="true"></span> 参加者を追加</button>
+                        </div>
                     </div>
                 </div>
             </li>
@@ -277,12 +278,12 @@
                         <h2>答案の取り込み</h2>
                         <div class="file-upload-zone u-dashed" id="pdf-upload-zone" data-file-trigger="pdf-file">
                             <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
-                            <div class="file-label">スキャンした答案PDFをアップロード</div>
+                            <div class="file-label">答案PDFをアップロード</div>
                             <div class="file-name" id="pdf-file-name"></div>
                             <input type="file" id="pdf-file" accept="application/pdf" />
                         </div>
                     </div>
-                    <div class="phase-block is-wide">
+                    <div class="phase-block is-wide saved-answers-section">
                         <div class="flex-row-spread">
                             <div class="flex-row">
                                 <h2 class="mb-zero">保存済み答案</h2>
@@ -299,14 +300,6 @@
                         </div>
                         <div id="entry-list">
                             <div class="loading-state"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</div>
-                        </div>
-                    </div>
-                    <div class="phase-block">
-                        <h2>採点の進行</h2>
-                        <p class="desc-text mb-md">採点は採点ボードから行います。判定が割れた解答は「要確認」で確定します。</p>
-                        <div class="phase-actions">
-                            <button class="btn" data-nav-target="judge.html"><span data-icon="table-cells-large" aria-hidden="true"></span> 採点ボードへ</button>
-                            <button class="btn secondary" data-nav-target="conflict.html"><span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認を解決する</button>
                         </div>
                     </div>
                 </div>

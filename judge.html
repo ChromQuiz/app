@@ -18,7 +18,7 @@
     <script defer src="js/ui.js?v=13"></script>
     <script defer src="js/shared.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=53">
-    <link rel="stylesheet" href="css/pages.css?v=91">
+    <link rel="stylesheet" href="css/pages.css?v=93">
 </head>
 
 <body class="page-judge">
@@ -41,7 +41,6 @@
         <button type="button" class="menu-panel-close" data-toggle-menu aria-label="メニューを閉じる"><span data-icon="xmark" aria-hidden="true"></span></button>
 
         <div class="menu-profile">
-            <div class="menu-avatar"><span data-icon="user" aria-hidden="true"></span></div>
             <div class="menu-profile-name" id="menu-scorer-name"></div>
             <div id="menu-scorer-role"></div>
         </div>
@@ -63,6 +62,22 @@
             <div class="menu-section-label">ツール</div>
             <button class="menu-item" data-nav-target="checkin.html">
                 <span data-icon="qrcode" aria-hidden="true"></span> 当日受付
+            </button>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-section-label">参加者ページ</div>
+            <button class="menu-item" data-open-page="entry.html">
+                <span data-icon="pen-to-square" aria-hidden="true"></span> エントリーフォーム
+            </button>
+            <button class="menu-item" data-open-page="entry_list.html">
+                <span data-icon="list" aria-hidden="true"></span> エントリーリスト
+            </button>
+            <button class="menu-item" data-open-page="my.html">
+                <span data-icon="user-check" aria-hidden="true"></span> マイエントリー
+            </button>
+            <button class="menu-item" data-open-page="terms.html">
+                <span data-icon="scroll" aria-hidden="true"></span> 参加規約
             </button>
         </div>
 
@@ -95,7 +110,7 @@
         <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
     </main>
 
-    <script defer src="js/judge.js?v=8"></script>
+    <script defer src="js/judge.js?v=9"></script>
 </body>
 
 </html>

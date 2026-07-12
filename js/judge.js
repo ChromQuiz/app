@@ -14,8 +14,7 @@ function setRoleBadge(role) {
     roleEl.textContent = '';
     const badge = document.createElement('span');
     badge.className = role === 'admin' ? 'menu-role-badge admin' : 'menu-role-badge scorer';
-    const icon = createIcon(role === 'admin' ? 'crown' : 'user-check');
-    badge.append(icon, role === 'admin' ? ' 管理者' : ' 採点者');
+    badge.textContent = role === 'admin' ? '管理者' : '採点者';
     roleEl.appendChild(badge);
 }
 

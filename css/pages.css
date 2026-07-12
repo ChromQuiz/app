@@ -1870,6 +1870,108 @@ body.page-checkin #camera-container {
   }
 }
 
+/* Final polish pass — admin/judge menu, saved answers, badges and camera preview */
+.menu-profile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-profile .menu-avatar {
+  display: none;
+}
+
+.menu-profile-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-profile #menu-scorer-role {
+  display: contents;
+}
+
+.menu-role-badge {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.q-status.status-open {
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.entry-list-count {
+  display: inline-flex;
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  align-items: baseline;
+  justify-content: center;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 10px 18px;
+  border-radius: var(--r-full);
+}
+
+.entry-list-count strong {
+  font-size: var(--fs-24);
+}
+
+body.page-admin .saved-answers-section {
+  padding: 22px;
+}
+
+body.page-admin .saved-answers-section > .flex-row-spread:first-child {
+  min-height: 36px;
+  padding: 0;
+  margin-bottom: 14px;
+}
+
+body.page-admin .saved-answers-section h2 {
+  font-size: var(--fs-18);
+}
+
+body.page-admin .saved-answers-section #entry-list {
+  border-radius: 18px;
+  background: var(--surface-2);
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-card {
+  min-height: 50px;
+  padding: 7px 12px;
+  background: transparent;
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-card:hover {
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-num-badge {
+  color: var(--ink-2);
+}
+
+body.page-checkin #camera-container canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000000;
+}
+
+body.page-checkin #video {
+  z-index: 1;
+}
+
+body.page-checkin .checkin-guide {
+  z-index: 3;
+}
+
 /* Check-in camera visibility guard. Keep after legacy layout overrides. */
 body.page-checkin #camera-container {
   position: relative;
@@ -1891,11 +1993,17 @@ body.page-checkin #video {
 }
 
 body.page-checkin #camera-container canvas {
-  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000000;
 }
 
 body.page-checkin .checkin-guide {
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Admin prep — model answer registration as a Swift-style editable list */
