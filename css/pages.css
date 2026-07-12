@@ -3320,6 +3320,30 @@ body.page-404 {
   margin-top: 0;
 }
 
+/* Form/read pages need a compact title rhythm: title -> steps -> form. */
+body.page-wrapper .page-container {
+  gap: 14px;
+}
+
+body.page-wrapper .page-logo {
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+body.page-wrapper .page-logo h1 {
+  font-size: clamp(var(--fs-26), 4vw, var(--fs-40));
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+}
+
+body.page-wrapper .page-logo .logo-sub {
+  margin-top: 4px;
+}
+
+body.page-wrapper .entry-steps {
+  margin-bottom: 12px;
+}
+
 .admin-container,
 .judge-main,
 .answer-grid,
