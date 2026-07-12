@@ -16,8 +16,8 @@
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=16"></script>
     <script defer src="js/shared.js?v=2"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=59">
-    <link rel="stylesheet" href="css/pages.css?v=100">
+    <link rel="stylesheet" href="css/design_system.css?v=60">
+    <link rel="stylesheet" href="css/pages.css?v=101">
 </head>
 <body class="page-wrapper page-my">
     <div class="page-container">
@@ -30,11 +30,11 @@
         <form class="page-card" id="auth-card" novalidate>
             <p class="my-auth-lead">エントリー時のメールアドレスと、完了メールに記載されたパスワードでログインします。</p>
             <div class="form-group">
-                <label for="f-email">メールアドレス</label>
+                <label class="required" for="f-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
                 <input type="email" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
             </div>
             <div class="form-group">
-                <label for="f-password">パスワード</label>
+                <label class="required" for="f-password"><span data-icon="lock" aria-hidden="true"></span> パスワード</label>
                 <input type="text" id="f-password" name="password" required autocomplete="off" placeholder="完了メールに記載のパスワード">
             </div>
             <button type="submit" class="page-btn" id="auth-btn">ログイン</button>
@@ -78,21 +78,21 @@
                     <p class="my-note">確認のため、氏名は毎回入力してください。氏名とメールアドレスは公開されません。</p>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="required" for="e-family-name">姓</label>
+                            <label class="required" for="e-family-name">姓 (全角)</label>
                             <input type="text" id="e-family-name" name="family-name" required autocomplete="family-name" placeholder="山田">
                         </div>
                         <div class="form-group">
-                            <label class="required" for="e-first-name">名</label>
+                            <label class="required" for="e-first-name">名 (全角)</label>
                             <input type="text" id="e-first-name" name="first-name" required autocomplete="given-name" placeholder="太郎">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="required" for="e-family-kana">セイ</label>
+                            <label class="required" for="e-family-kana">セイ (全角カタカナ)</label>
                             <input type="text" id="e-family-kana" required placeholder="ヤマダ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
                         </div>
                         <div class="form-group">
-                            <label class="required" for="e-first-kana">メイ</label>
+                            <label class="required" for="e-first-kana">メイ (全角カタカナ)</label>
                             <input type="text" id="e-first-kana" required placeholder="タロウ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
                         </div>
                     </div>
@@ -130,11 +130,12 @@
                     <div class="form-group">
                         <label class="required" for="e-entry-name">エントリーネーム <span class="visibility-tag">公開</span></label>
                         <input type="text" id="e-entry-name" required placeholder="エントリーリストでの表示名">
+                        <div class="hint">当日は本名（姓名）での表示となります。</div>
                     </div>
                     <div class="form-group">
                         <fieldset class="choice-fieldset">
                             <legend class="required">記録集での本名使用</legend>
-                            <p class="my-note">大会後に発行される記録集への氏名掲載の可否です。</p>
+                            <div class="hint mb-md">大会後に発行される記録集への氏名掲載の可否です。</div>
                             <div class="choice-row">
                                 <label class="choice-option">
                                     <input type="radio" name="e-record-name-permission" value="allow" required>
