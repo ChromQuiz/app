@@ -1881,43 +1881,6 @@ body.page-admin .model-answer-section > .desc-text {
   margin-bottom: 0;
 }
 
-body.page-admin .model-answer-section .file-upload-zone {
-  min-height: 76px;
-  display: grid;
-  grid-template-columns: 34px 1fr;
-  align-items: center;
-  column-gap: 12px;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--surface-2);
-  box-shadow: inset var(--app-bg-inset);
-}
-
-body.page-admin .model-answer-section .file-upload-zone > [data-icon] {
-  width: 34px;
-  height: 34px;
-  margin: 0;
-  padding: 7px;
-  border-radius: 10px;
-  color: var(--accent);
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-body.page-admin .model-answer-section .file-label {
-  font-size: var(--fs-15);
-  font-weight: 700;
-  letter-spacing: -0.012em;
-}
-
-body.page-admin .model-answer-section .file-name {
-  grid-column: 2;
-  min-height: 18px;
-  margin-top: 2px;
-  color: var(--ink-2);
-}
-
 body.page-admin .model-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -3608,9 +3571,31 @@ body.page-entry-list .page-container {
 }
 
 .file-upload-zone {
+  min-height: 132px;
+  padding: 24px 18px;
   border-radius: 22px;
   background: var(--surface-2);
   border-color: var(--line);
+  box-shadow: inset var(--app-bg-inset);
+}
+
+.file-upload-zone > [data-icon] {
+  width: 34px;
+  height: 34px;
+  color: var(--accent);
+}
+
+.file-upload-zone .file-label {
+  font-size: var(--fs-15);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+}
+
+.file-upload-zone .file-name {
+  font-family: var(--font-text);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  letter-spacing: -0.006em;
 }
 
 .save-overlay {
