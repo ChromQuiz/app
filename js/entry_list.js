@@ -176,7 +176,7 @@ const params = new URLSearchParams(location.search);
             numberSpan.textContent = `#${padNum(e.entryNumber)}`;
             timeTd.appendChild(numberSpan);
 
-            tr.append(priorityTd, nameTd, affiliationTd, gradeTd, messageTd, timeTd);
+            tr.append(priorityTd, timeTd, nameTd, affiliationTd, gradeTd, messageTd);
             body.appendChild(tr);
         };
 
