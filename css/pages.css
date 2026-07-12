@@ -2749,11 +2749,17 @@ body.page-admin .saved-answers-section .count-badge {
 }
 
 body.page-admin .saved-answers-section #select-all-label {
-  min-height: 34px;
+  display: flex;
+  align-items: center;
+  min-height: 36px;
   padding: 0 8px;
   color: var(--ink-2);
   font-size: var(--fs-13);
   font-weight: 600;
+}
+
+body.page-admin .saved-answers-section #select-all-label .checkbox-mark {
+  margin-top: 0;
 }
 
 body.page-admin .saved-answers-section #batch-delete-btn {
@@ -4425,8 +4431,15 @@ body.page-admin .saved-answers-actions {
   display: flex;
   min-height: 38px;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 14px;
+}
+
+body.page-admin .saved-answers-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 body.page-admin .saved-answers-section #entry-list {

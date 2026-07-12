@@ -282,15 +282,17 @@
                     <div class="phase-block is-wide saved-answers-section">
                         <div class="saved-answers-heading">
                             <h2 class="mb-zero">保存済み答案</h2>
-                            <span id="entry-count-badge" class="count-badge">0件</span>
                         </div>
                         <div class="saved-answers-actions">
-                            <label class="custom-checkbox" id="select-all-label" hidden>
-                                <input type="checkbox" id="select-all-cb" data-action="toggle-select-all" />
-                                <span class="checkbox-mark"><span data-icon="check" aria-hidden="true"></span></span>
-                                <span>全選択</span>
-                            </label>
-                            <button class="btn danger" id="batch-delete-btn" data-action="batch-delete" disabled hidden><span data-icon="trash" aria-hidden="true"></span> 選択削除</button>
+                            <span id="entry-count-badge" class="count-badge">0件</span>
+                            <div class="saved-answers-actions-right">
+                                <label class="custom-checkbox" id="select-all-label" hidden>
+                                    <input type="checkbox" id="select-all-cb" data-action="toggle-select-all" />
+                                    <span class="checkbox-mark"><span data-icon="check" aria-hidden="true"></span></span>
+                                    <span>全選択</span>
+                                </label>
+                                <button class="btn danger" id="batch-delete-btn" data-action="batch-delete" disabled hidden><span data-icon="trash" aria-hidden="true"></span> 選択削除</button>
+                            </div>
                         </div>
                         <div id="entry-list">
                             <div class="loading-state"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中...</div>
