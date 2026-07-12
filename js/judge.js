@@ -103,7 +103,7 @@ async function initializeApp() {
     setRoleBadge(scorerRole);
 
     if (scorerRole === 'admin') {
-        document.getElementById('admin-menu-section').classList.remove('u-hidden');
+        document.getElementById('admin-menu-home')?.classList.remove('u-hidden');
     }
 
     renderQuestionCards();

@@ -18,7 +18,7 @@
     <script defer src="js/ui.js?v=13"></script>
     <script defer src="js/shared.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=53">
-    <link rel="stylesheet" href="css/pages.css?v=93">
+    <link rel="stylesheet" href="css/pages.css?v=94">
 </head>
 
 <body class="page-judge">
@@ -45,21 +45,15 @@
             <div id="menu-scorer-role"></div>
         </div>
 
-        <div id="admin-menu-section" class="u-hidden">
-            <div class="menu-section">
-                <div class="menu-section-label">運営</div>
-                <button class="menu-item" data-nav-target="admin.html">
-                    <span data-icon="gauge" aria-hidden="true"></span> 運営ホーム
-                </button>
-                <button class="menu-item warn" data-nav-target="conflict.html">
-                    <span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認
-                </button>
-            </div>
-            <div class="menu-divider"></div>
-        </div>
-
-        <div class="menu-section">
-            <div class="menu-section-label">ツール</div>
+        <div class="menu-section" id="admin-menu-section">
+            <div class="menu-section-label">運営</div>
+            <span class="u-hidden" aria-hidden="true"></span>
+            <button class="u-hidden menu-item" id="admin-menu-home" data-nav-target="admin.html">
+                <span data-icon="gauge" aria-hidden="true"></span> 運営ホーム
+            </button>
+            <button class="menu-item warn" data-nav-target="conflict.html">
+                <span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認
+            </button>
             <button class="menu-item" data-nav-target="checkin.html">
                 <span data-icon="qrcode" aria-hidden="true"></span> 当日受付
             </button>
@@ -110,7 +104,7 @@
         <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
     </main>
 
-    <script defer src="js/judge.js?v=9"></script>
+    <script defer src="js/judge.js?v=10"></script>
 </body>
 
 </html>

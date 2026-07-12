@@ -1920,6 +1920,13 @@ body.page-checkin #camera-container {
   font-size: var(--fs-24);
 }
 
+body.page-entry-list .entry-list-count {
+  display: flex;
+  width: fit-content;
+  margin-right: auto;
+  margin-left: auto;
+}
+
 body.page-admin .saved-answers-section {
   padding: 22px;
 }
@@ -1956,8 +1963,8 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 body.page-checkin #camera-container canvas {
   position: absolute;
   inset: 0;
-  z-index: 2;
-  display: block;
+  z-index: 0;
+  display: none;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1965,7 +1972,7 @@ body.page-checkin #camera-container canvas {
 }
 
 body.page-checkin #video {
-  z-index: 1;
+  z-index: 2;
 }
 
 body.page-checkin .checkin-guide {
@@ -1982,7 +1989,7 @@ body.page-checkin #camera-container {
 body.page-checkin #video {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   display: block;
   width: 100%;
   height: 100%;
@@ -1995,8 +2002,8 @@ body.page-checkin #video {
 body.page-checkin #camera-container canvas {
   position: absolute;
   inset: 0;
-  z-index: 2;
-  display: block;
+  z-index: 0;
+  display: none;
   width: 100%;
   height: 100%;
   background: #000000;
