@@ -1326,14 +1326,14 @@
 
             const noticeState = entry.waitlist_promotion_notice;
             if (noticeState === 'pending' || noticeState === 'sending') {
-                statusTd.appendChild(createBadge('badge', 'envelope', '繰り上げ通知送信待ち', {
+                statusTd.appendChild(createBadge('badge', 'clock', '繰り上げ通知送信待ち', {
                     background: 'var(--surface-2)',
                     color: 'var(--ink)',
                 }));
             } else if (noticeState === 'sent') {
-                statusTd.appendChild(createBadge('badge success', 'envelope-circle-check', '繰り上げ通知送信済み'));
+                statusTd.appendChild(createBadge('badge success', 'check', '繰り上げ通知送信済み'));
             } else if (noticeState === 'failed') {
-                statusTd.appendChild(createBadge('badge danger', 'envelope-circle-xmark', '繰り上げ通知未送信'));
+                statusTd.appendChild(createBadge('badge danger', 'triangle-exclamation', '繰り上げ通知未送信'));
             }
         }
 
