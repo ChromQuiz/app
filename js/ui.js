@@ -418,7 +418,7 @@ function showToast(msg, type = 'info', duration = 3000) {
     toast.setAttribute('aria-atomic', 'true');
     const icons = { success: 'circle-check', error: 'circle-xmark', warning: 'triangle-exclamation', info: 'circle-info' };
     const titles = { success: 'CIQ', error: 'CIQ', warning: 'CIQ', info: 'CIQ' };
-    const subtitles = { success: '完了', error: 'エラー', warning: '注意', info: '通知' };
+    const subtitles = { success: '今', error: '今', warning: '今', info: '今' };
     const icon = createIcon(icons[type] || icons.info);
     const body = document.createElement('span');
     body.className = 'toast-body';

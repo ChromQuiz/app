@@ -521,7 +521,8 @@
                         loadEntryList();
                         break;
                     case 'tab-settings':
-                        if (isSupabaseMode && typeof loadProjectMembers === 'function') loadProjectMembers();
+                        if (isSupabaseMode && typeof startProjectMembersAutoRefresh === 'function') startProjectMembersAutoRefresh();
+                        else if (isSupabaseMode && typeof loadProjectMembers === 'function') loadProjectMembers();
                         break;
                 }
             }

@@ -55,6 +55,9 @@
             container.appendChild(button);
         }
 
+        let projectMembersRefreshTimer = 0;
+        let projectMembersLoading = false;
+
         function appendProjectMemberRow(tbody, member, currentUserId) {
             const roleLabel = member.role === 'owner' ? '所有者' : member.role === 'admin' ? '管理者' : '採点者';
             const statusLabel = member.status === 'removed' ? '停止中' : '有効';
@@ -88,7 +91,7 @@
                 });
                 appendMemberActionButton(actionGroup, {
                     label: 'キック',
-                    icon: 'user-slash',
+                    icon: 'user-xmark',
                     variant: 'danger',
                     disabled: !canChange,
                     onClick: () => removeProjectMember(member.id),
@@ -553,8 +556,9 @@
 
         async function loadProjectMembers() {
             const tbody = document.getElementById('project-members-tbody');
-            if (!tbody) return;
-            setMemberTableMessage(tbody, '読み込み中...');
+            if (!tbody || projectMembersLoading) return;
+            projectMembersLoading = true;
+            if (!tbody.children.length) setMemberTableMessage(tbody, '読み込み中...');
             try {
                 const currentSession = await CIQSupabaseAPI.getSession();
                 const currentUserId = currentSession?.user?.id || '';
@@ -567,7 +571,20 @@
                 members.forEach(member => appendProjectMemberRow(tbody, member, currentUserId));
             } catch (e) {
                 setMemberTableMessage(tbody, `読み込みに失敗しました: ${e.message}`, 'td-loading-error');
+            } finally {
+                projectMembersLoading = false;
             }
+        }
+
+        function startProjectMembersAutoRefresh() {
+            if (projectMembersRefreshTimer) return;
+            loadProjectMembers();
+            projectMembersRefreshTimer = window.setInterval(() => {
+                if (document.visibilityState === 'hidden') return;
+                const settingsTab = document.getElementById('tab-settings');
+                if (settingsTab && !settingsTab.classList.contains('active')) return;
+                loadProjectMembers();
+            }, 10000);
         }
 
         async function changeProjectMemberRole(memberId, role) {

@@ -13,11 +13,11 @@
     <script defer src="js/supabase_client.js"></script>
     <script defer src="js/supabase_api.js?v=34"></script>
     <script defer src="js/crypto.js"></script>
-    <script defer src="js/icons.js?v=7"></script>
-    <script defer src="js/ui.js?v=13"></script>
+    <script defer src="js/icons.js?v=8"></script>
+    <script defer src="js/ui.js?v=14"></script>
     <script defer src="js/shared.js?v=2"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=54">
-    <link rel="stylesheet" href="css/pages.css?v=97">
+    <link rel="stylesheet" href="css/design_system.css?v=55">
+    <link rel="stylesheet" href="css/pages.css?v=98">
 </head>
 
 <body class="page-admin">
@@ -216,7 +216,6 @@
                             <div class="link-row"><span class="link-label">マイエントリー</span><a id="my-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="my-link" title="コピー" aria-label="マイエントリーのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="my-link" title="開く" aria-label="マイエントリーを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
                             <div class="link-row"><span class="link-label">参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="terms-link" title="コピー" aria-label="参加規約のリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="terms-link" title="開く" aria-label="参加規約を開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
                         </div>
-                        <p class="u-tiny-muted mt-sm">編集・キャンセル・遅刻連絡・成績照会は、すべてマイエントリーから行えます。</p>
                     </div>
 
                     <div class="phase-block is-wide">
@@ -455,7 +454,7 @@
                         <h2>メンバー管理</h2>
                         <p class="desc-text mb-md">採点者はプロジェクトIDとパスワードで参加できます。参加済みメンバーの権限変更、キック、復帰ができます。</p>
                         <div class="member-management-toolbar">
-                            <button class="btn secondary" data-action="load-project-members"><span data-icon="rotate" aria-hidden="true"></span> 更新</button>
+                            <span class="member-auto-refresh-note"><span data-icon="rotate" aria-hidden="true"></span> 自動更新</span>
                         </div>
                         <div class="table-container mt-md">
                             <table>
@@ -672,11 +671,11 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=35"></script>
+    <script defer src="js/admin.js?v=36"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
     <script defer src="js/admin_scan.js?v=11"></script>
     <script defer src="js/admin_stats.js?v=10"></script>
     <script defer src="js/admin_graded_pdf.js?v=9"></script>
-    <script defer src="js/admin_settings.js?v=31"></script>
+    <script defer src="js/admin_settings.js?v=32"></script>
 </body>
 </html>

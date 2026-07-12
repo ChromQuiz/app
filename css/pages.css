@@ -4416,3 +4416,23 @@ body.page-admin .model-answer-section > .file-upload-zone {
   min-height: 116px;
   margin-top: 0;
 }
+
+body.page-admin .member-auto-refresh-note {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: var(--fs-13);
+  font-weight: 700;
+}
+
+body.page-admin .member-auto-refresh-note [data-icon] {
+  width: 15px;
+  height: 15px;
+  color: var(--accent);
+}
