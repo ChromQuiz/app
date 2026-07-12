@@ -4326,3 +4326,42 @@ body.page-checkin .main-content {
     min-height: 104px;
   }
 }
+
+/* Check-in camera preview must be last: legacy camera rules above are duplicated.
+   Safari can keep the stream active while failing to paint the <video> layer;
+   the scanning loop already draws every frame to this canvas, so the canvas is
+   the visible preview and the video stays underneath only as the stream source. */
+body.page-checkin #camera-container {
+  position: relative;
+  isolation: isolate;
+  background: #000000;
+}
+
+body.page-checkin #video {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.01;
+  visibility: visible;
+  pointer-events: none;
+  background: #000000;
+}
+
+body.page-checkin #camera-container canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000000;
+}
+
+body.page-checkin .checkin-guide {
+  z-index: 3;
+}
