@@ -90,9 +90,19 @@ const CIQEmail = (() => {
         return result;
     }
 
-    async function verifyCode(email, code, signature, expiresAt) {
-        const result = await request('verify_code', email, { code, signature, expiresAt });
-        return result?.verified === true;
+    // 明示的オブジェクトで返す(呼び出し側が誤判定しないよう、失敗時も同型)。
+    // 成功: { verified:true, emailVerifiedToken:'...', emailVerifiedExpiresAt:number }
+    // 失敗: { verified:false, emailVerifiedToken:null, emailVerifiedExpiresAt:0 }
+    async function verifyCode(email, code, signature, expiresAt, projectId) {
+        const result = await request('verify_code', email, { code, signature, expiresAt, projectId });
+        if (result?.verified !== true || !result.emailVerifiedToken) {
+            return { verified: false, emailVerifiedToken: null, emailVerifiedExpiresAt: 0 };
+        }
+        return {
+            verified: true,
+            emailVerifiedToken: String(result.emailVerifiedToken),
+            emailVerifiedExpiresAt: Number(result.emailVerifiedExpiresAt) || 0,
+        };
     }
 
     return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendWaitlistPromotion, sendVerificationCode, verifyCode };

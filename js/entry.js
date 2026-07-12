@@ -8,9 +8,18 @@ let emailVerified = false;
 let verifiedEmail = '';
 let verifySignature = '';
 let verifyExpiresAt = 0;
+let verifiedToken = '';   // メール認証済みトークン(メモリのみ・localStorageへ保存しない)
 let resendCooldown = null;
 let sessionTimer = null;
 const SESSION_TIMEOUT = 10 * 60 * 1000;
+
+// メール認証済み状態・メール・トークンを同時に破棄する(メモリのみ)。
+// メール変更/再送/タイムアウト/登録成功/フォームリセット/認証失敗など全ての破棄点で使う。
+function clearEmailVerification() {
+    emailVerified = false;
+    verifiedEmail = '';
+    verifiedToken = '';
+}
 
 function showEl(el) {
     el?.classList.remove('u-hidden');
@@ -209,6 +218,8 @@ function startResendCooldown() {
 }
 
 async function resendVerification() {
+    // 再送は新しいコードを発行するため、以前の認証済み状態とトークンを破棄する。
+    clearEmailVerification();
     const email = document.getElementById('f-email').value.trim();
     const resendBtn = document.getElementById('resend-code-btn');
     resendBtn.disabled = true;
@@ -236,6 +247,8 @@ async function resendVerification() {
 async function sendVerification() {
     const email = document.getElementById('f-email').value.trim();
     clearStatus();
+    // 新規にコードを送るときは、以前の認証済み状態とトークンを破棄する。
+    clearEmailVerification();
     if (!email) {
         showVerifyMsg('メールアドレスを入力してください。', 'error');
         return;
@@ -289,8 +302,9 @@ async function verifyEmailCode() {
     btn.disabled = true;
     setEntryButton(btn, '確認中...', 'spinner');
 
-    const verified = await CIQEmail.verifyCode(email, code, verifySignature, verifyExpiresAt);
-    if (!verified) {
+    const result = await CIQEmail.verifyCode(email, code, verifySignature, verifyExpiresAt, projectId);
+    if (!result.verified || !result.emailVerifiedToken) {
+        clearEmailVerification();
         showVerifyMsg('認証コードが正しくないか、有効期限が切れています。', 'error');
         btn.disabled = false;
         setEntryButton(btn, '認証する', 'check-circle');
@@ -299,6 +313,7 @@ async function verifyEmailCode() {
 
     emailVerified = true;
     verifiedEmail = email;
+    verifiedToken = result.emailVerifiedToken;
     clearInterval(resendCooldown);
     clearVerifyMsg();
     clearVerifyHelp();
@@ -309,8 +324,7 @@ async function verifyEmailCode() {
     document.getElementById('verified-email').textContent = email;
 
     sessionTimer = setTimeout(() => {
-        emailVerified = false;
-        verifiedEmail = '';
+        clearEmailVerification();
         hideEl(document.getElementById('form-body'));
         showEl(document.getElementById('email-verify-section'));
         document.getElementById('f-email').disabled = false;
@@ -423,6 +437,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             encryptedPii: encryptedPII,
             emailHash,
             disclosurePasswordHash: pwHash,
+            emailVerifiedToken: verifiedToken,
             publicProfile: { entryName, affiliation, grade, message, inquiry, isChubu },
         });
 
@@ -446,6 +461,9 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             senderName: pName + ' 実行委員会'
         }).catch(err => console.warn('メール送信スキップ:', err));
 
+        // 登録成功でトークンは役目を終えるため破棄する。
+        clearEmailVerification();
+        if (sessionTimer) clearTimeout(sessionTimer);
         hideEl(document.getElementById('form-card'));
         showEl(document.getElementById('result-card'));
         setEntryStepState('done');
@@ -477,6 +495,10 @@ function showWaitlistMessage() {
 document.getElementById('send-code-btn')?.addEventListener('click', sendVerification);
 document.getElementById('verify-code-btn')?.addEventListener('click', verifyEmailCode);
 document.getElementById('resend-code-btn')?.addEventListener('click', resendVerification);
+// メールアドレスが編集されたら、保持中の認証済み状態・トークンを破棄する(防御的)。
+document.getElementById('f-email')?.addEventListener('input', () => {
+    if (emailVerified || verifiedToken) clearEmailVerification();
+});
 setupVerifyCodeBoxes();
 
 async function init() {

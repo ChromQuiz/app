@@ -3284,3 +3284,194 @@ body.page-404 {
     border-radius: 22px;
   }
 }
+
+/* ============================================================
+   Final spacing override — must stay at EOF
+   ------------------------------------------------------------
+   上位レイヤーの後に必ず勝たせる余白補正。
+   ============================================================ */
+.admin-container,
+.judge-main,
+.answer-grid,
+.conflict-grid,
+.main-content {
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+}
+
+.admin-container {
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 14px);
+  padding-bottom: calc(56px + env(safe-area-inset-bottom));
+}
+
+.phase-quick-nav {
+  top: calc(var(--appbar-h) + env(safe-area-inset-top) + 10px);
+  margin-bottom: 18px;
+  padding: 6px;
+  gap: 6px;
+  border-radius: 24px;
+}
+
+.phase-quick-btn {
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.phase-list {
+  gap: 18px;
+}
+
+.phase {
+  gap: 12px;
+}
+
+.tab-btn {
+  min-height: 54px;
+  padding: 10px 16px;
+  border-radius: 18px;
+}
+
+.tab-content.active {
+  gap: 16px;
+}
+
+.phase-block,
+.phase-subblock {
+  padding: 22px;
+  border-radius: 22px;
+}
+
+.phase-block > h2 {
+  margin-bottom: 18px;
+}
+
+.phase-subblock {
+  margin-top: 18px;
+}
+
+.config-row {
+  min-height: 52px;
+  padding: 0;
+}
+
+.period-grid {
+  min-height: 0;
+  padding: 0;
+  gap: 16px;
+}
+
+.dt-trigger,
+.number-spinner-wrap,
+.number-spinner-wrap input[type="number"],
+.number-spinner-btn {
+  min-height: 42px;
+}
+
+.public-links,
+.email-notification-grid,
+.stats {
+  gap: 14px;
+}
+
+.admin-container .is-wide,
+.admin-container .wide-breakout {
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+}
+
+.judge-main {
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 28px);
+  padding-bottom: calc(56px + env(safe-area-inset-bottom));
+}
+
+.judge-resume {
+  min-height: 96px;
+  padding: 22px;
+  margin-bottom: 20px;
+  border-radius: 22px;
+}
+
+.judge-summary {
+  min-height: 44px;
+  padding: 10px 18px;
+  margin-bottom: 18px;
+}
+
+.q-grid {
+  gap: 14px;
+}
+
+.q-card {
+  min-height: 118px;
+  padding: 18px;
+  border-radius: 18px;
+}
+
+.q-card h2,
+.q-card .q-number {
+  line-height: 1.05;
+}
+
+.answer-grid,
+.conflict-grid {
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 18px);
+  padding-bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+.answer-card,
+.conflict-card {
+  min-height: 124px;
+  padding: 16px;
+}
+
+body.page-checkin .main-content {
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 18px);
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  gap: 18px;
+}
+
+#camera-container {
+  min-height: min(54dvh, 560px);
+}
+
+.checkin-result-panel {
+  min-height: 240px;
+}
+
+@media (min-width: 1100px) {
+  .q-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+@media (min-width: 1500px) {
+  .q-grid {
+    grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-container,
+  .judge-main,
+  .answer-grid,
+  .conflict-grid,
+  .main-content,
+  body.page-entry-list .page-container {
+    width: min(100%, calc(100vw - 28px));
+  }
+
+  .admin-container,
+  .judge-main,
+  .answer-grid,
+  .conflict-grid,
+  body.page-checkin .main-content {
+    padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 14px);
+  }
+
+  .phase-block,
+  .phase-subblock {
+    padding: 18px;
+  }
+
+  .q-card {
+    min-height: 104px;
+  }
+}
