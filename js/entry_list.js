@@ -139,13 +139,13 @@ const params = new URLSearchParams(location.search);
             const tr = document.createElement('tr');
             if (isWaitlist) tr.classList.add('entry-row-waitlist');
 
-            // 枠 = 順位 + 区分(自分が出場圏内か・どの枠で並んでいるかが行だけで分かる)
+            // 優先順位 = 順位 + 区分(自分が出場圏内か・どの枠で並んでいるかが行だけで分かる)
             const priorityTd = document.createElement('td');
             priorityTd.className = 'entry-priority-cell';
-            priorityTd.dataset.label = '枠';
+            priorityTd.dataset.label = '優先順位';
             const priorityBadge = document.createElement('span');
             priorityBadge.className = 'entry-priority-badge';
-            priorityBadge.textContent = `#${e._priority}`;
+            priorityBadge.textContent = String(e._priority);
             priorityTd.append(priorityBadge);
 
             const nameTd = document.createElement('td');

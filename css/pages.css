@@ -1158,7 +1158,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   padding: var(--sp-8);
 }
 
-/* 枠列 */
+/* 優先順位列 */
 .entry-priority-cell {
   white-space: nowrap;
 }
