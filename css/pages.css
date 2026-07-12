@@ -1683,13 +1683,13 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 .admin-container {
-  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 14px);
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 8px);
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
 }
 
 .phase-quick-nav {
-  top: calc(var(--appbar-h) + env(safe-area-inset-top) + 10px);
-  margin-bottom: 18px;
+  top: calc(var(--appbar-h) + env(safe-area-inset-top) + 8px);
+  margin-bottom: 14px;
   padding: 6px;
   gap: 6px;
   border-radius: 24px;
@@ -1768,12 +1768,12 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 .judge-main {
-  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 28px);
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 12px);
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
 }
 
 .judge-resume {
-  min-height: 96px;
+  min-height: 88px;
   padding: 22px;
   margin-bottom: 20px;
   border-radius: 22px;
@@ -1814,7 +1814,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 
 .answer-grid,
 .conflict-grid {
-  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 18px);
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 10px);
   padding-bottom: calc(86px + env(safe-area-inset-bottom));
 }
 
@@ -1825,7 +1825,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 body.page-checkin .main-content {
-  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 18px);
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 10px);
   padding-bottom: calc(40px + env(safe-area-inset-bottom));
   gap: 18px;
 }
@@ -1853,7 +1853,7 @@ body.page-checkin .main-content {
   .answer-grid,
   .conflict-grid,
   body.page-checkin .main-content {
-    padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 14px);
+    padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 8px);
   }
 
   .phase-block,
@@ -3290,6 +3290,20 @@ body.page-404 {
    ------------------------------------------------------------
    上位レイヤーの後に必ず勝たせる余白補正。
    ============================================================ */
+body.page-wrapper,
+body.page-help,
+body.page-404 {
+  padding-top: calc(24px + env(safe-area-inset-top));
+}
+
+.help-container {
+  padding-top: calc(24px + env(safe-area-inset-top));
+}
+
+.page-container {
+  margin-top: 0;
+}
+
 .admin-container,
 .judge-main,
 .answer-grid,
