@@ -15,7 +15,7 @@
 
         async function loadEntryList() {
             const el = document.getElementById('entry-list');
-            setScanMessage(el, '読み込み中...', { className: 'text-muted-loader' });
+            setScanMessage(el, '読み込み中...', { className: 'text-muted-loader', icon: 'spinner' });
             try {
                 const pages = await CIQSupabaseAPI.listAnswerPages(projectId);
                 entryListData = pages.map(page => Number(page.entries?.entry_number)).filter(Boolean).sort((a, b) => a - b);
@@ -23,7 +23,7 @@
                 document.getElementById('entry-count-badge').textContent = `${entryListData.length}件`;
                 window.setAdminScanCount?.(entryListData.length);
                 if (entryListData.length === 0) {
-                    setScanMessage(el, '保存済み答案はありません', { icon: 'box-open', className: 'text-muted-center icon-empty' });
+                    setScanMessage(el, '保存済み答案はありません。', { icon: 'box-open', className: 'text-muted-center icon-empty' });
                     document.getElementById('select-all-label').hidden = true;
                     document.getElementById('batch-delete-btn').hidden = true;
                     return;

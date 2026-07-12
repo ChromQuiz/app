@@ -43,7 +43,7 @@
         function appendMemberActionButton(container, options) {
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = `btn ${options.variant || 'secondary'} member-action-btn`;
+            button.className = `btn ${options.variant || 'secondary'}`;
             button.disabled = Boolean(options.disabled);
             if (options.icon) {
                 const icon = createIcon(options.icon);
@@ -676,6 +676,14 @@
             saveEntryPeriod();
         }
 
+        function setMaxEntriesStatusSaving() {
+            const badge = document.getElementById('max-entries-status');
+            if (badge) {
+                badge.textContent = '保存中...';
+                badge.className = 'status-badge status-warning';
+            }
+        }
+
 
         // ============================
         // 参加者管理・エントリー管理
@@ -735,6 +743,7 @@
             const waitlistEnd = document.getElementById('waitlist-period-end')?.value || null;
             const hasLimit = document.getElementById('max-entries-toggle').checked;
             const maxEntries = hasLimit ? (parseInt(document.getElementById('setting-max-entries').value) || 100) : 0;
+            setMaxEntriesStatusSaving();
             await CIQSupabaseAPI.updateProject(projectId, {
                 period_start: start ? new Date(start).toISOString() : null,
                 period_end: end ? new Date(end).toISOString() : null,
@@ -742,8 +751,13 @@
                 max_entries: maxEntries
             });
             // トグルONなら人数バッジも更新
+            const badge = document.getElementById('max-entries-status');
             if (hasLimit) {
-                document.getElementById('max-entries-status').textContent = maxEntries + '人';
+                badge.textContent = maxEntries + '人';
+                badge.className = 'status-badge status-open';
+            } else {
+                badge.textContent = '制限なし';
+                badge.className = 'status-badge status-closed';
             }
             showAdminToast('エントリー期間・定員を保存しました', 'success');
         }
@@ -1191,7 +1205,7 @@
 
         async function loadAdminEntries() {
             const tbody = document.getElementById('admin-entries-tbody');
-            setTableMessage(tbody, 8, '読み込み中...');
+            setTableMessage(tbody, 10, '読み込み中...');
 
             try {
                 const entries = getCachedAdminEntries() || await CIQSupabaseAPI.listEntriesForAdmin(projectId);

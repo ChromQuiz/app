@@ -268,7 +268,7 @@
         async function renderAnalytics() {
             const tbody = document.getElementById('analytics-tbody');
             if (!entryNumbers.length) {
-                setAnalyticsMessage(tbody, 'データがありません');
+                setAnalyticsMessage(tbody, 'データがありません。');
                 _lastAnalyticsHash = '';
                 return;
             }

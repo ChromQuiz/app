@@ -538,7 +538,7 @@
                 const hasCount = Number.isFinite(Number(count)) && Number(count) >= 0;
                 el.textContent = hasCount ? count : '-';
                 el.classList.toggle('has-warn', Boolean(warn) && Number(count) > 0);
-                el.hidden = !hasCount || name === 'prep' || name === 'settings';
+                el.hidden = !hasCount;
             });
         }
 

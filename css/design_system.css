@@ -932,19 +932,6 @@ svg[width="24"][stroke="currentColor"] {
   color: var(--ink-3);
 }
 
-.section-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  flex-wrap: wrap;
-  margin-bottom: var(--sp-4);
-}
-
-.section-header-row h2 {
-  margin-bottom: 0;
-}
-
 .section-action-row {
   display: flex;
   align-items: center;
@@ -969,6 +956,7 @@ svg[width="24"][stroke="currentColor"] {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
+  flex-wrap: wrap;
 }
 
 /* 注意面 */
@@ -1789,6 +1777,12 @@ tbody tr:hover {
 .td-loading {
   text-align: center;
   color: var(--ink-2);
+  padding: var(--sp-6);
+}
+
+.td-loading-error {
+  text-align: center;
+  color: var(--bad-600);
   padding: var(--sp-6);
 }
 
@@ -4280,6 +4274,21 @@ tbody tr:hover {
   padding: var(--sp-5);
 }
 
+.text-muted-center.icon-empty,
+.text-muted-loader.icon-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.icon-empty [data-icon],
+.icon-empty svg {
+  width: 32px;
+  height: 32px;
+  opacity: 0.5;
+}
+
 .u-success-icon {
   font-size: var(--fs-40);
   color: var(--ok-500);
@@ -4883,6 +4892,12 @@ select:focus {
   color: var(--bad-600);
   background: var(--bad-100);
   border-color: color-mix(in srgb, var(--bad-600) 28%, transparent);
+}
+
+.badge.muted {
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border-color: var(--line);
 }
 
 .page-msg,

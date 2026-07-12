@@ -16,8 +16,8 @@
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=16"></script>
     <script defer src="js/shared.js?v=2"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=59">
-    <link rel="stylesheet" href="css/pages.css?v=100">
+    <link rel="stylesheet" href="css/design_system.css?v=60">
+    <link rel="stylesheet" href="css/pages.css?v=101">
 </head>
 
 <body class="page-admin">
@@ -110,7 +110,7 @@
                         <h2>解答用紙のPDF生成</h2>
                         <div class="phase-control-row">
                             <label class="u-label-compact" for="question-count">問題数</label>
-                            <div class="number-spinner-wrap">
+                            <div class="number-spinner-wrap u-input-compact">
                                 <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="-10" aria-label="10問減らす"><span data-icon="minus" aria-hidden="true"></span></button>
                                 <input type="number" id="question-count" value="100" min="10" max="200" step="10" />
                                 <button type="button" class="number-spinner-btn" data-adjust-input="question-count" data-adjust-delta="10" aria-label="10問増やす"><span data-icon="plus" aria-hidden="true"></span></button>
@@ -156,7 +156,7 @@
                             <div class="period-grid">
                                 <div>
                                     <label class="period-label">開始</label>
-                                    <button type="button" class="dt-trigger" id="dt-start-trigger" data-dt-target="start" aria-haspopup="dialog" aria-controls="dt-picker">
+                                    <button type="button" class="dt-trigger" id="dt-start-trigger" data-dt-scope="entry" data-dt-target="start" aria-haspopup="dialog" aria-controls="dt-picker">
                                         <span data-icon="calendar" aria-hidden="true"></span>
                                         <span id="dt-start-display">未設定</span>
                                     </button>
@@ -165,7 +165,7 @@
                                 <div class="period-arrow" aria-hidden="true">→</div>
                                 <div>
                                     <label class="period-label">終了</label>
-                                    <button type="button" class="dt-trigger" id="dt-end-trigger" data-dt-target="end" aria-haspopup="dialog" aria-controls="dt-picker">
+                                    <button type="button" class="dt-trigger" id="dt-end-trigger" data-dt-scope="entry" data-dt-target="end" aria-haspopup="dialog" aria-controls="dt-picker">
                                         <span data-icon="calendar" aria-hidden="true"></span>
                                         <span id="dt-end-display">未設定</span>
                                     </button>
@@ -215,9 +215,7 @@
                     </div>
 
                     <div class="phase-block is-wide">
-                        <div class="section-header-row">
-                            <h2>参加者一覧</h2>
-                        </div>
+                        <h2>参加者一覧</h2>
                         <div class="table-container u-table-scroll-md">
                             <table>
                                 <thead>
@@ -272,7 +270,7 @@
                 <div class="tab-content" id="tab-scan" role="tabpanel" aria-labelledby="tab-scan-tab" hidden>
                     <div class="phase-block is-wide">
                         <h2>答案の取り込み</h2>
-                        <div class="file-upload-zone u-dashed" id="pdf-upload-zone" data-file-trigger="pdf-file">
+                        <div class="file-upload-zone" id="pdf-upload-zone" data-file-trigger="pdf-file">
                             <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
                             <div class="file-label">答案PDFをアップロード</div>
                             <div class="file-name" id="pdf-file-name"></div>
@@ -280,9 +278,7 @@
                         </div>
                     </div>
                     <div class="phase-block is-wide saved-answers-section">
-                        <div class="saved-answers-heading">
-                            <h2 class="mb-zero">保存済み答案</h2>
-                        </div>
+                        <h2>保存済み答案</h2>
                         <div class="saved-answers-actions">
                             <span id="entry-count-badge" class="count-badge">0件</span>
                             <div class="saved-answers-actions-right">
@@ -403,9 +399,9 @@
 
                     <div class="phase-block is-wide">
                         <h2>問題アナリティクス</h2>
-                        <div class="analytics-threshold-row">
+                        <div class="config-row">
                             <span>正答数</span>
-                            <div class="number-spinner-wrap">
+                            <div class="number-spinner-wrap u-input-compact">
                                 <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="-1" aria-label="1減らす"><span data-icon="minus" aria-hidden="true"></span></button>
                                 <input type="number" id="analytics-threshold" value="5" min="0" max="100" data-action="render-analytics" />
                                 <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="1" aria-label="1増やす"><span data-icon="plus" aria-hidden="true"></span></button>
@@ -418,7 +414,7 @@
                                 <div class="toggle-info-title">エントリーネーム表示</div>
                             </div>
                         </div>
-                        <div class="table-container mt-md u-table-scroll-md">
+                        <div class="table-container u-table-scroll-md">
                             <table id="analytics-table">
                                 <thead>
                                     <tr>
@@ -449,9 +445,9 @@
                     </span>
                 </button>
                 <div class="tab-content" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-tab" hidden>
-                    <div class="phase-block">
+                    <div class="phase-block is-wide">
                         <h2>メンバー管理</h2>
-                        <div class="table-container mt-md">
+                        <div class="table-container u-table-scroll-md">
                             <table>
                                 <thead>
                                     <tr>
@@ -660,11 +656,11 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=36"></script>
+    <script defer src="js/admin.js?v=37"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
-    <script defer src="js/admin_scan.js?v=11"></script>
-    <script defer src="js/admin_stats.js?v=10"></script>
+    <script defer src="js/admin_scan.js?v=12"></script>
+    <script defer src="js/admin_stats.js?v=11"></script>
     <script defer src="js/admin_graded_pdf.js?v=9"></script>
-    <script defer src="js/admin_settings.js?v=34"></script>
+    <script defer src="js/admin_settings.js?v=35"></script>
 </body>
 </html>
