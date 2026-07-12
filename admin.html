@@ -17,7 +17,7 @@
     <script defer src="js/ui.js?v=15"></script>
     <script defer src="js/shared.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=56">
-    <link rel="stylesheet" href="css/pages.css?v=98">
+    <link rel="stylesheet" href="css/pages.css?v=99">
 </head>
 
 <body class="page-admin">
@@ -421,7 +421,6 @@
                             <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked data-action="render-analytics"><span class="toggle-slider"></span></label>
                             <span class="u-muted-note">エントリーネームで表示</span>
                         </div>
-                        <button class="btn secondary mt-md" data-action="export-analytics-csv"><span data-icon="download" aria-hidden="true"></span> 正答率分析CSV</button>
                         <div class="table-container mt-md u-table-scroll-md">
                             <table id="analytics-table">
                                 <thead>
@@ -435,6 +434,9 @@
                                 </thead>
                                 <tbody id="analytics-tbody"></tbody>
                             </table>
+                        </div>
+                        <div class="phase-actions">
+                            <button class="btn secondary" data-action="export-analytics-csv"><span data-icon="download" aria-hidden="true"></span> 正答率分析CSV</button>
                         </div>
                     </div>
                 </div>
@@ -453,9 +455,6 @@
                     <div class="phase-block">
                         <h2>メンバー管理</h2>
                         <p class="desc-text mb-md">採点者はプロジェクトIDとパスワードで参加できます。参加済みメンバーの権限変更、キック、復帰ができます。</p>
-                        <div class="member-management-toolbar">
-                            <span class="member-auto-refresh-note"><span data-icon="rotate" aria-hidden="true"></span> 自動更新</span>
-                        </div>
                         <div class="table-container mt-md">
                             <table>
                                 <thead>

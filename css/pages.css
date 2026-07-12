@@ -2265,7 +2265,6 @@ body.page-admin .period-arrow {
 }
 
 body.page-admin .phase-actions,
-body.page-admin .member-management-toolbar,
 body.page-admin .member-action-group,
 body.page-admin .admin-entry-result-actions,
 body.page-admin .analytics-threshold-row {
@@ -2273,7 +2272,6 @@ body.page-admin .analytics-threshold-row {
 }
 
 body.page-admin .phase-actions,
-body.page-admin .member-management-toolbar,
 body.page-admin .admin-entry-result-actions {
   margin-top: 14px;
 }
@@ -2561,12 +2559,6 @@ body.page-admin .danger-zone {
   color: var(--ink-3);
   text-decoration: line-through;
   text-decoration-color: var(--ink-3);
-}
-
-.member-management-toolbar {
-  display: flex;
-  gap: var(--sp-3);
-  flex-wrap: wrap;
 }
 
 .member-action-group {
@@ -4415,24 +4407,4 @@ body.page-admin .model-answer-section > p.desc-text {
 body.page-admin .model-answer-section > .file-upload-zone {
   min-height: 116px;
   margin-top: 0;
-}
-
-body.page-admin .member-auto-refresh-note {
-  display: inline-flex;
-  min-height: 36px;
-  align-items: center;
-  gap: 7px;
-  padding: 0 12px;
-  border-radius: var(--r-full);
-  background: var(--surface-2);
-  color: var(--ink-2);
-  box-shadow: inset 0 0 0 1px var(--line);
-  font-size: var(--fs-13);
-  font-weight: 700;
-}
-
-body.page-admin .member-auto-refresh-note [data-icon] {
-  width: 15px;
-  height: 15px;
-  color: var(--accent);
 }
