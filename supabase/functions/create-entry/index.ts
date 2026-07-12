@@ -2,6 +2,7 @@ import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_
 import { createServiceClient } from '../_shared/supabase.ts';
 import { clientIp, clientIpHash, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
+import { emailVerificationRequired, verifyEmailVerifiedToken } from '../_shared/email_verify.ts';
 
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
@@ -10,10 +11,23 @@ Deno.serve(withCors(async (req) => {
 
   try {
     const body = await req.json();
-    const { projectId, encryptedPii, emailHash, disclosurePasswordHash, publicProfile } = body;
+    const { projectId, encryptedPii, emailHash, disclosurePasswordHash, publicProfile, emailVerifiedToken } = body;
     if (!projectId) return jsonResponse({ error: 'プロジェクト情報が見つかりません。URLを確認してください。' }, 400);
     if (!encryptedPii || !emailHash || !disclosurePasswordHash) {
       return jsonResponse({ error: 'エントリー情報が不足しています。入力内容を確認してもう一度送信してください。' }, 400);
+    }
+
+    // 公開登録はメール認証済みトークンを必須にする(フロント検証には依存しない)。
+    // 欠落=400 / 無効・改ざん・期限切れ・メール不一致・projectId不一致=401。理由はサーバログのみ。
+    if (emailVerificationRequired()) {
+      if (!emailVerifiedToken) {
+        return jsonResponse({ error: 'メール認証を確認できませんでした。もう一度メール認証を行ってください。' }, 400);
+      }
+      const ev = await verifyEmailVerifiedToken(String(emailVerifiedToken), String(projectId), String(emailHash));
+      if (!ev.ok) {
+        console.error(`[create-entry] email verification rejected: ${ev.reason}`);
+        return jsonResponse({ error: 'メール認証を確認できませんでした。もう一度メール認証を行ってください。' }, 401);
+      }
     }
 
     const supabase = createServiceClient();
