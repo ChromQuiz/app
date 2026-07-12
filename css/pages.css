@@ -2021,6 +2021,16 @@ body.page-admin .model-move-btn:disabled {
   color: var(--ink-3);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  body.page-admin .model-cell {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  body.page-admin .model-move-controls {
+    display: none;
+  }
+}
+
 /* Admin body sections — Swift-style grouped content grammar */
 body.page-admin .tab-content.active {
   gap: 16px;
