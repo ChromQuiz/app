@@ -31,6 +31,9 @@ if (auth) {
     let processing = false;
     let lastUUID = '';
     let hideTimer = null;
+    let cameraStream = null;
+    let scanFrameId = 0;
+    let cameraStartPromise = null;
 
     init();
 
@@ -46,7 +49,7 @@ if (auth) {
             if (!sessionData?.user) {
                 throw new Error('Googleログインが必要です。');
             }
-            startCamera();
+            await startCamera();
 
             const project = await CIQSupabaseAPI.getProject(projectId).catch(() => null);
             if (project?.name) {
@@ -68,7 +71,13 @@ if (auth) {
         document.getElementById('stats-bar').classList.remove('u-hidden');
     }
 
-    function startCamera() {
+    async function startCamera() {
+        if (cameraStartPromise) return cameraStartPromise;
+        if (cameraStream && video.srcObject === cameraStream) {
+            await video.play().catch(() => {});
+            if (!scanFrameId) scanFrameId = requestAnimationFrame(scanFrame);
+            return;
+        }
         if (!window.isSecureContext) {
             setScanMessage('カメラはHTTPSまたはlocalhostでのみ使用できます。公開URLから開いてください。');
             return;
@@ -79,41 +88,52 @@ if (auth) {
         }
 
         setScanMessage('カメラを起動しています...');
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
-            .then(stream => {
-                video.srcObject = stream;
-                video.muted = true;
-                video.playsInline = true;
-                return video.play();
-            })
-            .then(() => {
-                scanningText.textContent = '';
-                scanningText.append(makeIcon('camera'), ' QRコードをカメラにかざしてください');
-                requestAnimationFrame(scanFrame);
-            })
-            .catch(err => {
-                if (err.name === 'OverconstrainedError') {
-                    retryAnyCamera();
-                    return;
-                }
-                setScanMessage(cameraErrorMessage(err));
-            });
+        cameraStartPromise = (async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+            await attachCameraStream(stream);
+        })();
+        try {
+            await cameraStartPromise;
+        } catch (err) {
+            if (err.name === 'OverconstrainedError') {
+                await retryAnyCamera();
+                return;
+            }
+            setScanMessage(cameraErrorMessage(err));
+        } finally {
+            cameraStartPromise = null;
+        }
     }
 
-    function retryAnyCamera() {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-            .then(stream => {
-                video.srcObject = stream;
-                video.muted = true;
-                video.playsInline = true;
-                return video.play();
-            })
-            .then(() => {
-                scanningText.textContent = '';
-                scanningText.append(makeIcon('camera'), ' QRコードをカメラにかざしてください');
-                requestAnimationFrame(scanFrame);
-            })
-            .catch(err => setScanMessage(cameraErrorMessage(err)));
+    async function retryAnyCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            await attachCameraStream(stream);
+        } catch (err) {
+            setScanMessage(cameraErrorMessage(err));
+        }
+    }
+
+    async function attachCameraStream(stream) {
+        stopCamera();
+        cameraStream = stream;
+        video.muted = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.srcObject = stream;
+        await video.play();
+        scanningText.textContent = '';
+        scanningText.append(makeIcon('camera'), ' QRコードをカメラにかざしてください');
+        scanFrameId = requestAnimationFrame(scanFrame);
+    }
+
+    function stopCamera() {
+        cameraStartPromise = null;
+        if (scanFrameId) cancelAnimationFrame(scanFrameId);
+        scanFrameId = 0;
+        cameraStream?.getTracks?.().forEach((track) => track.stop());
+        cameraStream = null;
+        if (video.srcObject) video.srcObject = null;
     }
 
     function cameraErrorMessage(err) {
@@ -143,8 +163,16 @@ if (auth) {
                 processQR(qrData);
             }
         }
-        requestAnimationFrame(scanFrame);
+        scanFrameId = requestAnimationFrame(scanFrame);
     }
+
+    window.addEventListener('pagehide', stopCamera);
+    window.addEventListener('pageshow', () => {
+        if (document.visibilityState !== 'hidden') startCamera();
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') startCamera();
+    });
 
     function showLoading() {
         if (hideTimer) clearTimeout(hideTimer);

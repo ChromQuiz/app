@@ -315,6 +315,26 @@ function toggleMenu(forceOpen) {
     }
 }
 
+function closeMenuForPageRestore() {
+    const panel = document.getElementById('menu-panel');
+    const backdrop = document.getElementById('menu-backdrop');
+    if (!panel || !backdrop) return;
+    panel.classList.remove('active');
+    backdrop.classList.remove('active');
+    document.body.classList.remove('body-scroll-locked');
+    panel.setAttribute('aria-hidden', 'true');
+    panel.setAttribute('aria-modal', 'false');
+    panel.toggleAttribute('inert', true);
+    backdrop.setAttribute('aria-hidden', 'true');
+    document.querySelectorAll('.menu-trigger[data-toggle-menu]').forEach((trigger) => {
+        trigger.setAttribute('aria-expanded', 'false');
+    });
+    panel.removeEventListener('keydown', handleMenuKeydown);
+    menuReturnFocus = null;
+}
+
+window.addEventListener('pageshow', closeMenuForPageRestore);
+
 /**
  * 運営共通シェルの「戻る」先をロールで決める。
  * 管理者 → 運営ホーム(admin.html) / 採点者 → 採点ボード(judge.html)。
@@ -329,6 +349,7 @@ function opsBackLabel() {
 }
 
 function navigateBack(fallback = 'index.html') {
+    closeMenuForPageRestore();
     let canUseHistory = window.history.length > 1;
     if (document.referrer) {
         try {
