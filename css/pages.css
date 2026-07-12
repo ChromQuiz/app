@@ -3344,6 +3344,29 @@ body.page-wrapper .entry-steps {
   margin-bottom: 12px;
 }
 
+/* Admin uses the top stage bar as the only visible phase navigation.
+   The original vertical tab buttons stay in the DOM for JS/ARIA compatibility. */
+body.page-admin .phase-list {
+  display: block;
+}
+
+body.page-admin .phase {
+  border-bottom: 0;
+}
+
+body.page-admin .phase > .tab-btn,
+body.page-admin .phase-goto {
+  display: none;
+}
+
+body.page-admin .phase-list .tab-content {
+  padding: 0;
+}
+
+body.page-admin .phase-jump {
+  display: none;
+}
+
 .admin-container,
 .judge-main,
 .answer-grid,
