@@ -2169,11 +2169,17 @@ body.page-admin .empty-state {
 }
 
 body.page-admin .table-container {
-  overflow: hidden;
+  overflow: auto;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface);
   box-shadow: inset var(--app-bg-inset);
+  -webkit-overflow-scrolling: touch;
+}
+
+body.page-admin .table-container.u-table-scroll-md {
+  max-height: 480px;
+  overflow: auto;
 }
 
 body.page-admin .phase-block > .table-container,
