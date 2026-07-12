@@ -1979,6 +1979,39 @@ body.page-checkin .checkin-guide {
   z-index: 3;
 }
 
+body.page-question .ops-focus-bar .header-center {
+  gap: 10px;
+}
+
+body.page-question .q-badge {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  border-radius: var(--r-full);
+  background: var(--ink);
+  color: var(--canvas);
+  box-shadow: none;
+  font-family: var(--font-text);
+  font-size: var(--fs-17);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+body.page-question .answer-badge {
+  min-height: 32px;
+  padding: 0 14px;
+  align-content: center;
+  background: var(--surface);
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: var(--fs-14);
+}
+
 /* Check-in camera visibility guard. Keep after legacy layout overrides. */
 body.page-checkin #camera-container {
   position: relative;

@@ -22,7 +22,7 @@ let totalQuestions = 100;
 let requiredScorers = 3;
 let hasSetInitialSelection = false;
 
-document.getElementById('q-badge').textContent = `${currentQ} 問`;
+document.getElementById('q-badge').textContent = `${currentQ}問`;
 
 async function runLimited(items, limit, task) {
     const results = [];
