@@ -89,6 +89,7 @@ if (auth) {
 
         setScanMessage('カメラを起動しています...');
         cameraStartPromise = (async () => {
+            stopCamera();
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
             await attachCameraStream(stream);
         })();
@@ -107,6 +108,7 @@ if (auth) {
 
     async function retryAnyCamera() {
         try {
+            stopCamera();
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
             await attachCameraStream(stream);
         } catch (err) {
@@ -115,16 +117,48 @@ if (auth) {
     }
 
     async function attachCameraStream(stream) {
-        stopCamera();
         cameraStream = stream;
+        video.autoplay = true;
         video.muted = true;
         video.playsInline = true;
+        video.setAttribute('autoplay', '');
+        video.setAttribute('muted', '');
         video.setAttribute('playsinline', '');
         video.srcObject = stream;
+        await waitForVideoReady();
         await video.play();
+        await waitForVideoReady();
         scanningText.textContent = '';
         scanningText.append(makeIcon('camera'), ' QRコードをカメラにかざしてください');
         scanFrameId = requestAnimationFrame(scanFrame);
+    }
+
+    function waitForVideoReady() {
+        if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+            return Promise.resolve();
+        }
+        return new Promise((resolve) => {
+            let done = false;
+            const cleanup = () => {
+                video.removeEventListener('loadedmetadata', onReady);
+                video.removeEventListener('canplay', onReady);
+            };
+            const onReady = () => {
+                if (done) return;
+                if (video.videoWidth <= 0 || video.videoHeight <= 0) return;
+                done = true;
+                cleanup();
+                resolve();
+            };
+            video.addEventListener('loadedmetadata', onReady);
+            video.addEventListener('canplay', onReady);
+            window.setTimeout(() => {
+                if (done) return;
+                done = true;
+                cleanup();
+                resolve();
+            }, 1200);
+        });
     }
 
     function stopCamera() {

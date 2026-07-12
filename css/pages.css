@@ -1870,6 +1870,34 @@ body.page-checkin #camera-container {
   }
 }
 
+/* Check-in camera visibility guard. Keep after legacy layout overrides. */
+body.page-checkin #camera-container {
+  position: relative;
+  isolation: isolate;
+  background: #000000;
+}
+
+body.page-checkin #video {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  visibility: visible;
+  background: #000000;
+}
+
+body.page-checkin #camera-container canvas {
+  display: none;
+}
+
+body.page-checkin .checkin-guide {
+  z-index: 2;
+}
+
 /* Admin prep — model answer registration as a Swift-style editable list */
 body.page-admin .model-answer-section {
   display: grid;
