@@ -2577,6 +2577,98 @@ body.page-admin #entry-list .entry-num-badge {
   font-variant-numeric: tabular-nums;
 }
 
+/* Admin saved answers — align with other phase sections */
+body.page-admin .saved-answers-section > .flex-row-spread:first-child {
+  min-height: 34px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+body.page-admin .saved-answers-section > .flex-row-spread:first-child .flex-row {
+  gap: 10px;
+}
+
+body.page-admin .saved-answers-section h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--fs-18);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+}
+
+body.page-admin .saved-answers-section .count-badge {
+  min-height: 26px;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border-color: var(--line);
+  font-size: var(--fs-13);
+  font-weight: 700;
+}
+
+body.page-admin .saved-answers-section #select-all-label {
+  min-height: 34px;
+  padding: 0 8px;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: 600;
+}
+
+body.page-admin .saved-answers-section #batch-delete-btn {
+  min-height: 36px;
+  padding-inline: 14px;
+}
+
+body.page-admin .saved-answers-section #entry-list {
+  border-radius: 18px;
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-card {
+  grid-template-columns: 30px minmax(0, 1fr) minmax(48px, auto);
+  min-height: 54px;
+  padding: 8px 12px;
+  gap: 10px;
+}
+
+body.page-admin .saved-answers-section #entry-list .scan-cb-wrap {
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+}
+
+body.page-admin .saved-answers-section #entry-list .checkbox-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-name {
+  font-size: var(--fs-14);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-sub {
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+}
+
+body.page-admin .saved-answers-section #entry-list .entry-num-badge {
+  justify-self: end;
+  min-width: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-2);
+  box-shadow: none;
+  font-size: var(--fs-14);
+  font-weight: 700;
+}
+
 .scan-cb-wrap {
   min-height: auto;
   padding: 0;
