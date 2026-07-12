@@ -2150,8 +2150,8 @@ body.page-admin .danger-zone {
 }
 
 .phase-settings {
-  margin-top: var(--sp-6);
-  border-top: 1px solid var(--line-strong);
+  margin-top: 0;
+  border-top: 0;
 }
 
 /* フェーズ見出し内の状態強調(admin.js が is-danger / is-next を切替) */
@@ -2299,6 +2299,50 @@ body.page-admin .danger-zone {
 .entry-card.selected {
   background: var(--accent-soft);
   box-shadow: inset 3px 0 0 var(--accent);
+}
+
+body.page-admin #entry-list {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: inset var(--app-bg-inset);
+}
+
+body.page-admin #entry-list:empty {
+  display: none;
+}
+
+body.page-admin #entry-list .entry-card {
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.page-admin #entry-list .entry-card:last-child {
+  border-bottom: 0;
+}
+
+body.page-admin #entry-list .entry-card:hover {
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+body.page-admin #entry-list .entry-card.selected {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+body.page-admin #entry-list .loading-state,
+body.page-admin #entry-list .empty-state {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .scan-cb-wrap {
