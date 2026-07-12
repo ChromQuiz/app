@@ -126,3 +126,6 @@ revoke all on function public.create_entry_atomic(
 grant execute on function public.create_entry_atomic(
   text, text, text, text, text, text, text, text, text, boolean, text, text
 ) to service_role;
+
+-- 単一関数へ置換したため、PostgREST のスキーマキャッシュを再読込させる。
+notify pgrst, 'reload schema';
