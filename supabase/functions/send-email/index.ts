@@ -3,7 +3,6 @@ import { createServiceClient } from '../_shared/supabase.ts';
 import { emailProviderName, sendProviderEmail } from '../_shared/email_provider.ts';
 import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
-import { issueEmailVerifiedToken } from '../_shared/email_verify.ts';
 
 type EmailTemplate = {
   subject: string;
@@ -474,18 +473,13 @@ Deno.serve(withCors(async (req) => {
     const recipientHash = await sha256Hex(normalizedEmail);
 
     if (type === 'verify_code') {
-      const effectiveProjectId = String(projectId ?? data.projectId ?? '').trim();
-      if (!effectiveProjectId) return jsonResponse({ error: 'Project is required' }, 400);
       const code = String(data.code || '').trim();
       const signature = String(data.signature || '');
       const expiresAt = Number(data.expiresAt || 0);
       if (!code || !signature || !expiresAt) return jsonResponse({ error: 'Missing verification fields' }, 400);
       if (Date.now() > expiresAt) return jsonResponse({ verified: false, error: 'Code expired' }, 400);
       const expected = await hmacHex(signingSecret(), `${code}:${normalizedEmail}:${expiresAt}`);
-      if (!safeEqual(expected, signature)) return jsonResponse({ verified: false });
-      // コード検証成功時のみ、メール認証済みトークンを発行(eh はサーバ側で正規化メールから生成)。
-      const { token, expiresAt: tokenExpiresAt } = await issueEmailVerifiedToken(effectiveProjectId, normalizedEmail);
-      return jsonResponse({ verified: true, emailVerifiedToken: token, emailVerifiedExpiresAt: tokenExpiresAt });
+      return jsonResponse({ verified: safeEqual(expected, signature) });
     }
 
     if (type === 'send_verification') {
