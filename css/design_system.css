@@ -2066,6 +2066,114 @@ tbody tr:hover {
   }
 }
 
+/* In-app status notice: no app identity, no OS-notification chrome. */
+.toast-container {
+  top: calc(12px + env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  gap: 8px;
+  width: min(340px, calc(100vw - 24px));
+  transform: none;
+}
+
+.toast {
+  position: relative;
+  display: block;
+  width: min(340px, calc(100vw - 24px));
+  min-height: 0;
+  padding: 11px 14px 11px 16px;
+  border: 0;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--material-notification) 96%, var(--surface));
+  backdrop-filter: var(--material-blur);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.13),
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 0.5px color-mix(in srgb, var(--material-line) 76%, transparent);
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.99);
+  transition:
+    opacity 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+
+.toast::before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  bottom: 11px;
+  left: 8px;
+  width: 3px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+}
+
+.toast.toast-success::before { background: var(--ok-600); }
+.toast.toast-error::before { background: var(--bad-600); }
+.toast.toast-warning::before { background: var(--warn-600); }
+.toast.toast-info::before { background: var(--accent); }
+
+.toast > [data-icon],
+.toast > svg,
+.toast-app-icon,
+.toast-header,
+.toast-identity,
+.toast-status-dot,
+.toast-title,
+.toast-subtitle {
+  display: none;
+}
+
+.toast-body {
+  display: block;
+  min-width: 0;
+  padding: 0;
+}
+
+.toast-message {
+  display: block;
+  color: var(--ink);
+  font-size: var(--fs-14);
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.toast.hide {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.99);
+  transition-duration: 140ms;
+}
+
+@media (max-width: 640px) {
+  .toast-container {
+    top: auto;
+    right: auto;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 50%;
+    width: min(340px, calc(100vw - 24px));
+    transform: translateX(-50%);
+  }
+
+  .toast {
+    transform: translateY(8px) scale(0.99);
+  }
+
+  .toast.show {
+    transform: translateY(0) scale(1);
+  }
+
+  .toast.hide {
+    transform: translateY(6px) scale(0.99);
+  }
+}
+
 /* --- ページ内メッセージ --- */
 .page-msg,
 .status-msg-box {

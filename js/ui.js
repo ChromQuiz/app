@@ -416,35 +416,14 @@ function showToast(msg, type = 'info', duration = 3000) {
     toast.setAttribute('role', type === 'error' || type === 'warning' ? 'alert' : 'status');
     toast.setAttribute('aria-live', type === 'error' || type === 'warning' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
-    const titles = { success: 'CIQ', error: 'CIQ', warning: 'CIQ', info: 'CIQ' };
-    const subtitles = { success: '今', error: '今', warning: '今', info: '今' };
-    const appIcon = document.createElement('span');
-    appIcon.className = 'toast-app-icon';
-    appIcon.setAttribute('aria-hidden', 'true');
-    appIcon.textContent = 'C';
     const body = document.createElement('span');
     body.className = 'toast-body';
-    const header = document.createElement('span');
-    header.className = 'toast-header';
-    const identity = document.createElement('span');
-    identity.className = 'toast-identity';
-    const title = document.createElement('span');
-    title.className = 'toast-title';
-    title.textContent = titles[type] || titles.info;
-    const subtitle = document.createElement('span');
-    subtitle.className = 'toast-subtitle';
-    subtitle.textContent = subtitles[type] || subtitles.info;
-    const statusDot = document.createElement('span');
-    statusDot.className = 'toast-status-dot';
-    statusDot.setAttribute('aria-hidden', 'true');
     const text = document.createElement('span');
     text.className = 'toast-message';
     // ASVS 1.2.1: status text is rendered as text, never interpreted as markup.
     text.textContent = String(msg || '');
-    identity.append(statusDot, title);
-    header.append(identity, subtitle);
-    body.append(header, text);
-    toast.append(appIcon, body);
+    body.append(text);
+    toast.append(body);
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => {
