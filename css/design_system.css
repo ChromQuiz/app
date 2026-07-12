@@ -5460,3 +5460,198 @@ tbody td {
   background: var(--ink);
   color: var(--surface);
 }
+
+/* iOS-style date sheet polish */
+.dt-picker {
+  width: min(382px, calc(100vw - 24px));
+  padding: 12px 14px 14px;
+  border: 1px solid var(--material-line);
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--material-popover) 92%, var(--surface));
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.18), 0 4px 18px rgba(0, 0, 0, 0.08);
+}
+
+.dt-sheet-handle {
+  width: 38px;
+  height: 5px;
+  margin: 0 auto 10px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--ink-3) 34%, transparent);
+}
+
+.dt-picker-title {
+  margin-bottom: 4px;
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.dt-picker-nav {
+  min-height: 44px;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.dt-picker-nav #dt-picker-month {
+  color: var(--ink);
+  font-size: var(--fs-18);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.dt-picker-nav button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.dt-picker-nav button:active,
+.dt-day:active,
+.dt-clear:active,
+.dt-ok:active {
+  transform: scale(0.96);
+}
+
+.dt-picker-weekdays {
+  margin-bottom: 4px;
+}
+
+.dt-picker-weekdays,
+.dt-picker-days {
+  gap: 4px;
+}
+
+.dt-picker-weekdays span {
+  min-height: 24px;
+  padding: 0;
+  color: var(--ink-3);
+  font-size: var(--fs-12);
+  font-weight: 700;
+}
+
+.dt-day {
+  width: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  margin: 0 auto;
+  border-radius: 50%;
+  font-family: var(--font-text);
+  font-size: var(--fs-17);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  transition: background var(--t-press) var(--ease-out),
+    color var(--t-press) var(--ease-out),
+    transform var(--t-press) var(--ease-out),
+    box-shadow var(--t-press) var(--ease-out);
+}
+
+.dt-day:hover {
+  background: var(--surface-2);
+}
+
+.dt-day.other {
+  color: var(--ink-3);
+  opacity: 0.34;
+}
+
+.dt-day.today {
+  color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.dt-day.selected {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+.dt-picker-time {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 10px;
+  margin: 14px 0 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.dt-picker-time .time-icon {
+  color: var(--accent);
+}
+
+.dt-time-label {
+  color: var(--ink);
+  font-size: var(--fs-15);
+  font-weight: 700;
+}
+
+.dt-time-input {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-family: var(--font-text);
+  font-size: var(--fs-18);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-align: right;
+}
+
+.dt-picker-actions {
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.dt-clear,
+.dt-ok {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--r-full);
+  font-size: var(--fs-15);
+  font-weight: 700;
+  transition: background var(--t-press) var(--ease-out),
+    color var(--t-press) var(--ease-out),
+    transform var(--t-press) var(--ease-out),
+    opacity var(--t-press) var(--ease-out);
+}
+
+.dt-clear {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--ink-2);
+  box-shadow: none;
+}
+
+.dt-ok {
+  min-width: 108px;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--canvas);
+}
+
+@media (max-width: 640px) {
+  .dt-picker,
+  .dt-picker.align-end,
+  .dt-picker.place-above {
+    padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 30px 30px 0 0;
+  }
+
+  .dt-day {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

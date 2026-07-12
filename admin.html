@@ -16,7 +16,7 @@
     <script defer src="js/icons.js?v=7"></script>
     <script defer src="js/ui.js?v=13"></script>
     <script defer src="js/shared.js?v=2"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=53">
+    <link rel="stylesheet" href="css/design_system.css?v=54">
     <link rel="stylesheet" href="css/pages.css?v=97">
 </head>
 
@@ -534,6 +534,8 @@
     <!-- カレンダーポップアップ -->
     <div id="dt-picker-overlay" class="dt-overlay" data-dt-close></div>
     <div id="dt-picker" class="dt-picker" hidden>
+        <div class="dt-sheet-handle" aria-hidden="true"></div>
+        <div class="dt-picker-title">日時を選択</div>
         <div class="dt-picker-nav">
             <button type="button" data-dt-nav="-1" aria-label="前の月"><span data-icon="chevron-left" aria-hidden="true"></span></button>
             <span id="dt-picker-month"></span>
@@ -545,6 +547,7 @@
         <div class="dt-picker-days" id="dt-picker-days"></div>
         <div class="dt-picker-time">
             <span class="time-icon" data-icon="clock" aria-hidden="true"></span>
+            <span class="dt-time-label">時刻</span>
             <input type="text" id="dt-picker-time-input" inputmode="numeric" autocomplete="off" placeholder="00:00" aria-label="時刻(時分4桁)">
         </div>
         <div class="dt-picker-actions">
