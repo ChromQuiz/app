@@ -3313,7 +3313,7 @@ body.page-404 {
 }
 
 .admin-container {
-  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 14px);
+  padding-top: 12px;
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
 }
 
@@ -3392,7 +3392,7 @@ body.page-404 {
 }
 
 .judge-main {
-  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 28px);
+  padding-top: 12px;
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
 }
 
@@ -3426,7 +3426,7 @@ body.page-404 {
 
 .answer-grid,
 .conflict-grid {
-  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 18px);
+  padding-top: 12px;
   padding-bottom: calc(86px + env(safe-area-inset-bottom));
 }
 
@@ -3437,7 +3437,7 @@ body.page-404 {
 }
 
 body.page-checkin .main-content {
-  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 18px);
+  padding-top: 12px;
   padding-bottom: calc(40px + env(safe-area-inset-bottom));
   gap: 18px;
 }
@@ -3477,7 +3477,7 @@ body.page-checkin .main-content {
   .answer-grid,
   .conflict-grid,
   body.page-checkin .main-content {
-    padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 14px);
+    padding-top: 8px;
   }
 
   .phase-block,
