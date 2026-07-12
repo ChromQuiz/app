@@ -3377,6 +3377,19 @@ body.page-admin .number-spinner-btn {
   min-height: 30px;
 }
 
+body.page-admin .phase-block > h2,
+body.page-admin .section-header-row h2 {
+  font-size: var(--fs-18);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  margin-bottom: 18px;
+}
+
+body.page-admin .section-header-row h2 {
+  margin-bottom: 0;
+}
+
 .admin-container,
 .judge-main,
 .answer-grid,
