@@ -1866,6 +1866,157 @@ body.page-checkin .main-content {
   }
 }
 
+/* Admin prep — model answer registration as a Swift-style editable list */
+body.page-admin .model-answer-section {
+  display: grid;
+  gap: 14px;
+}
+
+body.page-admin .model-answer-section > h2,
+body.page-admin .model-answer-section > .desc-text {
+  margin-bottom: 0;
+}
+
+body.page-admin .model-answer-section .file-upload-zone {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  column-gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: inset var(--app-bg-inset);
+}
+
+body.page-admin .model-answer-section .file-upload-zone > [data-icon] {
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 7px;
+  border-radius: 10px;
+  color: var(--accent);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+body.page-admin .model-answer-section .file-label {
+  font-size: var(--fs-15);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+}
+
+body.page-admin .model-answer-section .file-name {
+  grid-column: 2;
+  min-height: 18px;
+  margin-top: 2px;
+  color: var(--ink-2);
+}
+
+body.page-admin .model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 0;
+}
+
+body.page-admin .model-cell {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-2);
+  box-shadow: inset var(--app-bg-inset);
+  cursor: pointer;
+}
+
+body.page-admin .model-cell:hover {
+  background: var(--surface);
+}
+
+body.page-admin .model-cell.dragging {
+  opacity: 0.72;
+  transform: scale(0.985);
+}
+
+body.page-admin .model-cell .q-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 38px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--r-full);
+  color: var(--ink-2);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: var(--fs-13);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+body.page-admin .model-cell .q-label [data-icon] {
+  width: 13px;
+  height: 13px;
+}
+
+body.page-admin .model-cell .q-answer {
+  min-width: 0;
+  color: var(--ink);
+  font-size: var(--fs-16);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.page-admin .model-cell .q-answer.model-answer-empty {
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
+body.page-admin .model-cell .inline-edit-input {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  font-size: var(--fs-15);
+  font-weight: 700;
+}
+
+body.page-admin .model-move-controls {
+  gap: 4px;
+}
+
+body.page-admin .model-move-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--ink-2);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+body.page-admin .model-move-btn:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+body.page-admin .model-move-btn:disabled {
+  opacity: 0.36;
+  color: var(--ink-3);
+}
+
 /* Admin body sections — Swift-style grouped content grammar */
 body.page-admin .tab-content.active {
   gap: 16px;
