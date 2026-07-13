@@ -1,7 +1,11 @@
-// admin-backfill-participant-hash — 一時的な管理者専用バックフィル(P2-e3)
+// admin-backfill-participant-hash — 一時的なバックフィル(P2-e3)
 //
 // 目的: 既存 entries のうち email_hash_v2 / disclosure_password_hash_v2 が NULL の行を、
 //       v2 = HMAC-SHA256(CIQ_PARTICIPANT_HASH_PEPPER, 旧hash) で補完する(dual-write の遡及)。
+//
+// 認証: 一度限りの内部Secret認証。リクエストヘッダ x-ciq-backfill-secret と Edge Secret
+//       CIQ_PARTICIPANT_BACKFILL_SECRET をタイミングセーフ比較(safeEqual)し、不一致・欠落は 401。
+//       Secret値はログ/レスポンスに一切出さない。この経路以外の入力(SQL/行ID/batch)は受け付けない。
 //
 // 原則:
 //  - pepper は Edge Secret 内から出さない(participant_hash.ts 経由で利用・値はログ/レスポンスに出さない)。
@@ -9,10 +13,11 @@
 //  - 既に非NULLの v2 列は絶対に上書きしない(NULL列だけ patch・UPDATE 時も IS NULL ガード)。
 //  - v2 以外の列は更新しない。1行の失敗でバッチ全体を止めない。
 //  - pepper 未設定は設定障害として処理全体を中断し 503(構造上、UPDATE 前に停止)。
-//  - このFunctionは実行後に削除する一時資産。
+//  - 冪等・再実行可能。このFunction・Secretは実行後にすべて撤去する一時資産。
 
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { safeEqual } from '../_shared/signing.ts';
 import { ParticipantHashConfigError, participantPepper, pepperHash } from '../_shared/participant_hash.ts';
 
 type SupabaseClient = ReturnType<typeof createServiceClient>;
@@ -20,30 +25,30 @@ type SupabaseClient = ReturnType<typeof createServiceClient>;
 // サーバ固定のバッチサイズ(クライアントからは受け取らない)。
 const BATCH_SIZE = 25;
 
+// 内部Secretの最小長(32バイト=hex64相当)。短すぎる/未設定は認証不可とする。
+const BACKFILL_SECRET_MIN_LENGTH = 32;
+
 // 旧hashが有効な SHA-256(hex) か(64文字小文字16進)。不正・欠落行は更新せず failed に数える。
 const SHA256_HEX = /^[0-9a-f]{64}$/;
 function isSourceHash(value: unknown): value is string {
   return typeof value === 'string' && SHA256_HEX.test(value);
 }
 
-// 既存の管理者認可パターン(admin-create-entry と同型)。owner/admin の active member を要求。
-async function requireAdminMember(supabase: SupabaseClient, req: Request, projectId: string) {
-  const authHeader = req.headers.get('authorization') || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-  if (!token) throw new Error('Authentication required');
+/** 内部Secret認証の失敗(欠落・不一致・サーバSecret未設定)。呼び出し側は 401 にマップする。 */
+class BackfillAuthError extends Error {
+  constructor() {
+    super('Backfill authentication failed');
+    this.name = 'BackfillAuthError';
+  }
+}
 
-  const { data: userData, error: userError } = await supabase.auth.getUser(token);
-  if (userError || !userData.user) throw new Error('Authentication required');
-
-  const { data: member, error: memberError } = await supabase
-    .from('project_members')
-    .select('id, role, status')
-    .eq('project_id', projectId)
-    .eq('user_id', userData.user.id)
-    .single();
-  if (memberError || !member || member.status !== 'active') throw new Error('Forbidden');
-  if (member.role !== 'owner' && member.role !== 'admin') throw new Error('Forbidden');
-  return member;
+// 一度限りの内部Secret認証。x-ciq-backfill-secret と Edge Secret をタイミングセーフ比較する。
+// サーバSecret未設定/短すぎる場合も認証不可(401)。値はログ・レスポンスに出さない。
+function requireBackfillSecret(req: Request) {
+  const expected = Deno.env.get('CIQ_PARTICIPANT_BACKFILL_SECRET') || '';
+  const provided = req.headers.get('x-ciq-backfill-secret') || '';
+  if (expected.length < BACKFILL_SECRET_MIN_LENGTH) throw new BackfillAuthError();
+  if (!provided || !safeEqual(provided, expected)) throw new BackfillAuthError();
 }
 
 // 同 projectId で v2 のいずれかが NULL の残件数(処理後の remaining 算出用)。
@@ -69,9 +74,10 @@ Deno.serve(withCors(async (req) => {
       return jsonResponse({ error: 'projectId is required' }, 400);
     }
 
+    // 内部Secret認証: 一致した場合のみ以降のバックフィル処理へ進む(不一致・欠落は 401)。
+    requireBackfillSecret(req);
+
     const supabase = createServiceClient();
-    // 認可成功後にのみ対象取得・更新を行う。
-    await requireAdminMember(supabase, req, projectId);
 
     // pepper 事前検証: 未設定なら UPDATE を1件も行わずここで中断(構造上の保証)。
     participantPepper();
@@ -132,12 +138,10 @@ Deno.serve(withCors(async (req) => {
     console.error(`[admin-backfill-participant-hash] done processed=${processed} updated=${updated} failed=${failed} remaining=${remaining}`);
     return jsonResponse({ processed, updated, failed, remaining, done: remaining === 0 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (message === 'Authentication required') {
-      return jsonResponse({ error: 'Googleログインが必要です。' }, 401);
-    }
-    if (message === 'Forbidden') {
-      return jsonResponse({ error: 'この操作を行う権限がありません。' }, 403);
+    if (error instanceof BackfillAuthError) {
+      // Secret値やヘッダ内容はログに出さない(汎用の失敗のみ記録)。
+      console.error('[admin-backfill-participant-hash] backfill authentication failed');
+      return jsonResponse({ error: '認証に失敗しました。' }, 401);
     }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[admin-backfill-participant-hash] participant hash configuration unavailable');
