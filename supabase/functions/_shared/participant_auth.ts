@@ -210,7 +210,9 @@ export async function resolveParticipantAuth(
 
   // 第1検索: v2(移行済み行のみ)。email_hash_v2/disclosure_password_hash_v2 の両方が非NULLで一致する行。
   // 0件(正常な不一致)と DBエラーを区別する(DBエラー時は fallback せずサーバエラーへ)。
-  const { data: v2Entry, error: v2Error } = await supabase
+  // object強制(.single()/.maybeSingle())は 0件時に PostgREST が PGRST116(406)を返すため使わず、
+  // .limit(1) の配列で「DBエラー(error!=null)」と「0件(空配列)」を明確に区別する。
+  const { data: v2Rows, error: v2Error } = await supabase
     .from('entries')
     .select(columns)
     .eq('project_id', projectId)
@@ -218,8 +220,9 @@ export async function resolveParticipantAuth(
     .eq('disclosure_password_hash_v2', passwordHashV2)
     .not('email_hash_v2', 'is', null)
     .not('disclosure_password_hash_v2', 'is', null)
-    .maybeSingle();
+    .limit(1);
   if (v2Error) throw v2Error;
+  const v2Entry = v2Rows && v2Rows.length > 0 ? v2Rows[0] : null;
   if (v2Entry) {
     await recordAuthAttempt(supabase, projectId, emailHash, true);
     return { entry: v2Entry, emailHash, viaToken: false };
@@ -227,15 +230,17 @@ export async function resolveParticipantAuth(
 
   // 第2検索: 未移行行限定 fallback。v2 のいずれかが NULL の行だけを対象とし、旧列で照合する。
   // 両v2非NULLの行は .or(...is.null) により対象外(移行済み行に旧列認証を残さない)。
-  const { data: legacyEntry, error: legacyError } = await supabase
+  // v2検索と同様、object強制を避け .limit(1) 配列で 0件と DBエラーを区別する。
+  const { data: legacyRows, error: legacyError } = await supabase
     .from('entries')
     .select(columns)
     .eq('project_id', projectId)
     .eq('email_hash', emailHash)
     .eq('disclosure_password_hash', passwordHash)
     .or('email_hash_v2.is.null,disclosure_password_hash_v2.is.null')
-    .maybeSingle();
+    .limit(1);
   if (legacyError) throw legacyError;
+  const legacyEntry = legacyRows && legacyRows.length > 0 ? legacyRows[0] : null;
   if (legacyEntry) {
     await recordAuthAttempt(supabase, projectId, emailHash, true);
     return { entry: legacyEntry, emailHash, viaToken: false };
