@@ -3688,6 +3688,138 @@ body.page-entry-list .page-container {
   padding: var(--sp-5);
 }
 
+body.page-my .page-container {
+  gap: clamp(var(--sp-5), 2.4vw, var(--sp-7));
+}
+
+body.page-my #hub {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(var(--sp-5), 2.2vw, var(--sp-7));
+}
+
+body.page-my #hub.u-hidden {
+  display: none;
+}
+
+body.page-my .my-entry-card,
+body.page-my .my-section,
+body.page-my .my-danger-section,
+body.page-my .result-view {
+  padding: clamp(var(--sp-5), 3vw, var(--sp-7));
+}
+
+body.page-my .my-entry-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+body.page-my .my-qr {
+  width: min(100%, 420px);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-6);
+  gap: var(--sp-4);
+}
+
+body.page-my .my-qr img {
+  width: clamp(176px, 34vw, 220px);
+  height: clamp(176px, 34vw, 220px);
+  padding: var(--sp-3);
+}
+
+body.page-my .my-qr-caption {
+  margin: 0;
+  line-height: 1.7;
+}
+
+body.page-my .my-section-head {
+  align-items: center;
+  margin-bottom: var(--sp-5);
+}
+
+body.page-my .my-section-head h2 {
+  margin: 0;
+  font-size: var(--fs-22);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+body.page-my .my-summary {
+  overflow: hidden;
+}
+
+body.page-my .my-summary-row {
+  display: grid;
+  grid-template-columns: minmax(132px, 0.42fr) minmax(0, 1fr);
+  align-items: center;
+  min-height: 58px;
+  gap: 0;
+  padding: 0;
+}
+
+body.page-my .my-summary-row dt,
+body.page-my .my-summary-row dd {
+  width: auto;
+  padding: var(--sp-3) var(--sp-4);
+}
+
+body.page-my .my-summary-row dt {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+body.page-my .my-summary-row dd {
+  color: var(--ink);
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+body.page-my .my-note {
+  margin: var(--sp-4) 0 0;
+  line-height: 1.75;
+}
+
+body.page-my .my-section > .btn,
+body.page-my .my-danger-section > .btn {
+  margin-top: var(--sp-3);
+}
+
+@media (max-width: 560px) {
+  body.page-my .my-entry-card,
+  body.page-my .my-section,
+  body.page-my .my-danger-section,
+  body.page-my .result-view {
+    padding: var(--sp-5);
+  }
+
+  body.page-my .my-section-head {
+    gap: var(--sp-2);
+  }
+
+  body.page-my .my-section-head h2 {
+    font-size: var(--fs-18);
+  }
+
+  body.page-my .my-summary-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+    min-height: 0;
+    padding: var(--sp-3) var(--sp-4);
+  }
+
+  body.page-my .my-summary-row dt,
+  body.page-my .my-summary-row dd {
+    padding: 0;
+  }
+
+  body.page-my .my-summary-row dd {
+    margin-top: var(--sp-1);
+  }
+}
+
 .my-danger-section {
   border-color: color-mix(in srgb, var(--bad-600) 22%, var(--line));
 }
