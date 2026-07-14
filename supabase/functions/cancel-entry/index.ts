@@ -1,6 +1,11 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
+import {
+  PARTICIPANT_CONFIG_ERROR_MESSAGE,
+  ParticipantAuthError,
+  ParticipantHashConfigError,
+  resolveParticipantAuth,
+} from '../_shared/participant_auth.ts';
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
@@ -19,20 +24,19 @@ Deno.serve(withCors(async (req) => {
 
     const supabase = createServiceClient();
 
-    // 認証(トークン or ハッシュ照合)。RPC は従来どおりハッシュ一致を要求するため、
-    // 認証済みエントリー行から保存済みハッシュを引いて渡す。
-    const { entry, emailHash } = await resolveParticipantAuth(
+    // 認証(トークン or v2優先のcredential照合)。認証済みエントリーの id を取得する。
+    // 認可は Edge 側で確定するため、RPC へは projectId + entryId のみを渡す(旧hashは渡さない)。
+    const { entry } = await resolveParticipantAuth(
       supabase,
       body,
-      'id, disclosure_password_hash',
+      'id',
       { ip: clientIp(req) },
     );
 
     const { data, error } = await supabase
-      .rpc('cancel_entry_atomic', {
+      .rpc('cancel_entry_by_id_atomic', {
         p_project_id: projectId,
-        p_email_hash: emailHash,
-        p_disclosure_password_hash: entry.disclosure_password_hash,
+        p_entry_id: entry.id,
       })
       .single();
 
@@ -72,6 +76,10 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof SigningConfigError) {
       console.error('[cancel-entry] signing secret is not configured');
       return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+    }
+    if (error instanceof ParticipantHashConfigError) {
+      console.error('[cancel-entry] participant hash pepper is not configured');
+      return jsonResponse({ error: PARTICIPANT_CONFIG_ERROR_MESSAGE }, 503);
     }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Checked-in entry cannot be canceled') || message.includes('Entry already checked in')) {

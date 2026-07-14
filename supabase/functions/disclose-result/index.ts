@@ -1,6 +1,11 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
+import {
+  PARTICIPANT_CONFIG_ERROR_MESSAGE,
+  ParticipantAuthError,
+  ParticipantHashConfigError,
+  resolveParticipantAuth,
+} from '../_shared/participant_auth.ts';
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp } from '../_shared/rate_limit.ts';
 
@@ -168,6 +173,10 @@ Deno.serve(withCors(async (req) => {
         ? 'Entry not found'
         : error.message;
       return jsonResponse({ error: message }, error.status);
+    }
+    if (error instanceof ParticipantHashConfigError) {
+      console.error('[disclose-result] participant hash pepper is not configured');
+      return jsonResponse({ error: PARTICIPANT_CONFIG_ERROR_MESSAGE }, 503);
     }
     if (error instanceof SigningConfigError) {
       console.error('[disclose-result] signing secret is not configured');

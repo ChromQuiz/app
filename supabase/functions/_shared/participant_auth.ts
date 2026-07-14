@@ -11,10 +11,23 @@
 import { createServiceClient } from './supabase.ts';
 import { hmacHex, safeEqual, signingSecret } from './signing.ts';
 import { enforceIpRateLimit, RateLimitError } from './rate_limit.ts';
+import { ParticipantHashConfigError, pepperHash } from './participant_hash.ts';
 
 const encoder = new TextEncoder();
 
 export { hmacHex, safeEqual, signingSecret };
+// credential 経路の pepper 障害を各 Function が 503 にマップするため再輸出する。
+export { ParticipantHashConfigError };
+
+// pepper 設定障害時に参加者へ返す固定の公開文言(内部情報は含めない)。
+export const PARTICIPANT_CONFIG_ERROR_MESSAGE =
+  'ただいま参加者認証を利用できません。時間をおいて再度お試しください。';
+
+// クライアント SHA-256(hex) の形式検証: 64文字・小文字16進・前後空白なし。
+const CLIENT_HASH_RE = /^[0-9a-f]{64}$/;
+function isClientHash(value: unknown): value is string {
+  return typeof value === 'string' && CLIENT_HASH_RE.test(value);
+}
 
 export const PARTICIPANT_TOKEN_TTL_MS = 30 * 60 * 1000; // 30分(操作ごとにスライド延長)
 
@@ -181,24 +194,54 @@ export async function resolveParticipantAuth(
     return { entry, emailHash: payload.h, viaToken: true };
   }
 
-  const emailHash = String(body.emailHash || '');
-  const passwordHash = String(body.disclosurePasswordHash || '');
-  if (!emailHash || !passwordHash) throw new ParticipantAuthError('メールアドレスまたはパスワードの情報が不足しています。もう一度ログインしてください。', 400);
+  const emailHash = body.emailHash;
+  const passwordHash = body.disclosurePasswordHash;
+  // 形式検証(string/64/小文字hex/前後空白なし)。不正は認証失敗と同一応答へ流し、値はログに出さない。
+  if (!isClientHash(emailHash) || !isClientHash(passwordHash)) {
+    throw new ParticipantAuthError('メールアドレスまたはパスワードが正しくありません。', 404);
+  }
+
+  // v2 は必ず Edge 内で生成する(クライアントからは受け取らない)。
+  // pepper 設定障害(ParticipantHashConfigError)はここで上位へ伝播し、旧列 fallback へは進まない(=503)。
+  const emailHashV2 = await pepperHash(emailHash);
+  const passwordHashV2 = await pepperHash(passwordHash);
 
   await enforceAuthRateLimit(supabase, projectId, emailHash);
 
-  const { data: entry, error } = await supabase
+  // 第1検索: v2(移行済み行のみ)。email_hash_v2/disclosure_password_hash_v2 の両方が非NULLで一致する行。
+  // 0件(正常な不一致)と DBエラーを区別する(DBエラー時は fallback せずサーバエラーへ)。
+  const { data: v2Entry, error: v2Error } = await supabase
+    .from('entries')
+    .select(columns)
+    .eq('project_id', projectId)
+    .eq('email_hash_v2', emailHashV2)
+    .eq('disclosure_password_hash_v2', passwordHashV2)
+    .not('email_hash_v2', 'is', null)
+    .not('disclosure_password_hash_v2', 'is', null)
+    .maybeSingle();
+  if (v2Error) throw v2Error;
+  if (v2Entry) {
+    await recordAuthAttempt(supabase, projectId, emailHash, true);
+    return { entry: v2Entry, emailHash, viaToken: false };
+  }
+
+  // 第2検索: 未移行行限定 fallback。v2 のいずれかが NULL の行だけを対象とし、旧列で照合する。
+  // 両v2非NULLの行は .or(...is.null) により対象外(移行済み行に旧列認証を残さない)。
+  const { data: legacyEntry, error: legacyError } = await supabase
     .from('entries')
     .select(columns)
     .eq('project_id', projectId)
     .eq('email_hash', emailHash)
     .eq('disclosure_password_hash', passwordHash)
-    .single();
-
-  if (error || !entry) {
-    await recordAuthAttempt(supabase, projectId, emailHash, false);
-    throw new ParticipantAuthError('メールアドレスまたはパスワードが正しくありません。', 404);
+    .or('email_hash_v2.is.null,disclosure_password_hash_v2.is.null')
+    .maybeSingle();
+  if (legacyError) throw legacyError;
+  if (legacyEntry) {
+    await recordAuthAttempt(supabase, projectId, emailHash, true);
+    return { entry: legacyEntry, emailHash, viaToken: false };
   }
-  await recordAuthAttempt(supabase, projectId, emailHash, true);
-  return { entry, emailHash, viaToken: false };
+
+  // v2・fallback とも不一致のときだけ、失敗を1回記録する(検索ごとの二重記録はしない)。
+  await recordAuthAttempt(supabase, projectId, emailHash, false);
+  throw new ParticipantAuthError('メールアドレスまたはパスワードが正しくありません。', 404);
 }

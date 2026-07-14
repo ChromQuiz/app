@@ -1,6 +1,11 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { ParticipantAuthError, resolveParticipantAuth } from '../_shared/participant_auth.ts';
+import {
+  PARTICIPANT_CONFIG_ERROR_MESSAGE,
+  ParticipantAuthError,
+  ParticipantHashConfigError,
+  resolveParticipantAuth,
+} from '../_shared/participant_auth.ts';
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
@@ -151,6 +156,10 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof SigningConfigError) {
       console.error('[edit-entry] signing secret is not configured');
       return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+    }
+    if (error instanceof ParticipantHashConfigError) {
+      console.error('[edit-entry] participant hash pepper is not configured');
+      return jsonResponse({ error: PARTICIPANT_CONFIG_ERROR_MESSAGE }, 503);
     }
     return serverErrorResponse(error, 'edit-entry');
   }
