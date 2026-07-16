@@ -1153,18 +1153,11 @@ body.page-wrapper:has(#terms-card) .page-container {
   padding: var(--sp-8);
 }
 
-/* 優先順位列 */
-.entry-priority-cell {
-  white-space: nowrap;
-}
-
-.entry-priority-badge {
-  display: inline-block;
-  min-width: 3em;
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  font-weight: 600;
+/* 受付番号列 */
+.entry-number-cell {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .entry-list-name-cell {
@@ -2558,12 +2551,6 @@ body.page-admin .danger-zone {
   display: flex;
   gap: var(--sp-2);
   flex-wrap: wrap;
-}
-
-.entry-number-mini {
-  font-family: var(--font-mono);
-  font-size: var(--fs-12);
-  color: var(--ink-3);
 }
 
 .entry-num-badge {

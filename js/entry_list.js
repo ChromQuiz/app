@@ -139,14 +139,16 @@ const params = new URLSearchParams(location.search);
             const tr = document.createElement('tr');
             if (isWaitlist) tr.classList.add('entry-row-waitlist');
 
-            // 優先順位 = 順位 + 区分(自分が出場圏内か・どの枠で並んでいるかが行だけで分かる)
-            const priorityTd = document.createElement('td');
-            priorityTd.className = 'entry-priority-cell';
-            priorityTd.dataset.label = '優先順位';
-            const priorityBadge = document.createElement('span');
-            priorityBadge.className = 'entry-priority-badge';
-            priorityBadge.textContent = String(e._priority);
-            priorityTd.append(priorityBadge);
+            // 受付番号
+            const numberTd = document.createElement('td');
+            numberTd.className = 'entry-number-cell';
+            numberTd.dataset.label = '受付番号';
+            numberTd.textContent = padNum(e.entryNumber);
+
+            const timeTd = document.createElement('td');
+            timeTd.className = 'c-time';
+            timeTd.dataset.label = '日時';
+            timeTd.textContent = timeStr;
 
             const nameTd = document.createElement('td');
             nameTd.className = 'entry-list-name-cell';
@@ -167,16 +169,7 @@ const params = new URLSearchParams(location.search);
             messageTd.dataset.label = '意気込み';
             messageTd.textContent = e.message || '';
 
-            const timeTd = document.createElement('td');
-            timeTd.className = 'c-time';
-            timeTd.dataset.label = '日時';
-            timeTd.appendChild(document.createTextNode(`${timeStr} `));
-            const numberSpan = document.createElement('span');
-            numberSpan.className = 'entry-number-mini';
-            numberSpan.textContent = `#${padNum(e.entryNumber)}`;
-            timeTd.appendChild(numberSpan);
-
-            tr.append(priorityTd, timeTd, nameTd, affiliationTd, gradeTd, messageTd);
+            tr.append(numberTd, timeTd, nameTd, affiliationTd, gradeTd, messageTd);
             body.appendChild(tr);
         };
 
