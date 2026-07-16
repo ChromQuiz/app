@@ -26,6 +26,11 @@ function pageSources() {
 }
 
 describe('production UI contracts', () => {
+  it('keeps centered layouts stable when the page scrollbar appears', () => {
+    const css = read('css/design_system.css');
+    expect(css).toMatch(/html\s*\{[\s\S]*?scrollbar-gutter:\s*stable both-edges;/);
+  });
+
   it('uses synchronized shared asset versions on all production pages', () => {
     const pages = pageSources();
     const designVersions = pages.map(({ source }) => source.match(/css\/design_system\.css\?v=([^"']+)/)?.[1]);
