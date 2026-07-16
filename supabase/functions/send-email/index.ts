@@ -4,6 +4,7 @@ import { emailProviderName, sendProviderEmail } from '../_shared/email_provider.
 import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
 import { issueEmailVerifiedToken } from '../_shared/email_verify.ts';
+import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
 
 type EmailTemplate = {
   subject: string;
@@ -421,18 +422,19 @@ async function assertEntryRecipient(
   projectId: string,
   entryId: string,
   recipientHash: string,
-  expectedEmailHash: string,
 ) {
-  if (!entryId || !expectedEmailHash) throw new Error('Missing entry verification fields');
-  if (!safeEqual(recipientHash, expectedEmailHash)) throw new Error('Recipient mismatch');
+  if (!entryId) throw new Error('Missing entry verification fields');
+  // 宛先所有確認(P2-e5 案B): クライアント供給の hash には依存しない。
+  // 送信先メールの sha256(recipientHash) を Edge 内で pepper 化し、DB の email_hash_v2 と直接照合する。
+  const recipientHashV2 = await pepperHash(recipientHash);
   const { data, error } = await supabase
     .from('entries')
-    .select('id, email_hash, project_id')
+    .select('id, email_hash_v2, project_id')
     .eq('id', entryId)
     .eq('project_id', projectId)
     .single();
   if (error || !data) throw new Error('Entry not found');
-  if (!safeEqual(data.email_hash, recipientHash)) throw new Error('Recipient mismatch');
+  if (!safeEqual(String(data.email_hash_v2 ?? ''), recipientHashV2)) throw new Error('Recipient mismatch');
 }
 
 async function recordAndSend(args: {
@@ -546,13 +548,13 @@ Deno.serve(withCors(async (req) => {
     const effectiveProjectId = projectId || String(data.projectId || '');
     if (!effectiveProjectId) return jsonResponse({ error: 'Project is required' }, 400);
     const effectiveEntryId = entryId || String(data.entryId || '');
-    const expectedEmailHash = String(data.emailHash || '');
-    if (!effectiveEntryId || !expectedEmailHash) {
+    // 宛先所有確認は送信先メールと DB の email_hash_v2 のみで行う(クライアント供給 hash は使わない)。
+    if (!effectiveEntryId) {
       return jsonResponse({ error: 'メール送信に必要なエントリー確認情報が不足しています。ページを再読み込みしてからもう一度お試しください。' }, 400);
     }
     const supabase = createServiceClient();
     const project = await getProjectForMail(supabase, effectiveProjectId);
-    await assertEntryRecipient(supabase, effectiveProjectId, effectiveEntryId, recipientHash, expectedEmailHash);
+    await assertEntryRecipient(supabase, effectiveProjectId, effectiveEntryId, recipientHash);
     if (!isNotificationEnabled(project, type)) {
       return jsonResponse({ success: true, skipped: true, reason: 'notification_disabled' });
     }

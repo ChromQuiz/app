@@ -266,6 +266,12 @@ describe('design-system contracts', () => {
     expect(css).not.toMatch(/\bglow\b/i);
   });
 
+  it('keeps toast notifications text-first and readable', () => {
+    expect(designCss).toMatch(/\.toast\s*{[^}]*display:\s*block;[^}]*max-width:\s*min\(420px,\s*calc\(100vw - 24px\)\);/s);
+    expect(designCss).toMatch(/\.toast-message\s*{[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/s);
+    expect(designCss).not.toMatch(/\.toast\s*{[^}]*grid-template-columns:\s*34px/s);
+  });
+
   it('does not reintroduce legacy dropdown implementations', () => {
     expect(designCss).not.toContain('.custom-dropdown');
     expect(designCss).not.toContain('select.custom-select');

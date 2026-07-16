@@ -6074,31 +6074,31 @@ tbody td {
   }
 }
 
-/* Notification rebuild: quiet iOS/macOS notification card, not an alert banner. */
+/* Notification HUD: quiet in-app status, not an OS notification clone. */
 .toast-container {
   top: calc(14px + env(safe-area-inset-top));
   right: max(14px, env(safe-area-inset-right));
-  gap: 8px;
-  width: min(360px, calc(100vw - 24px));
+  gap: 6px;
+  width: min(420px, calc(100vw - 24px));
   transform: none;
+  pointer-events: none;
 }
 
 .toast {
   position: relative;
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
-  align-items: start;
-  gap: 10px;
-  width: min(360px, calc(100vw - 24px));
-  min-height: 64px;
-  padding: 11px 12px;
+  display: block;
+  width: max-content;
+  min-width: min(220px, calc(100vw - 24px));
+  max-width: min(420px, calc(100vw - 24px));
+  min-height: 0;
+  padding: 12px 16px 12px 18px;
   border: 0;
-  border-radius: 19px;
-  background: color-mix(in srgb, var(--material-notification) 94%, var(--surface));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--material-notification) 96%, var(--surface));
   backdrop-filter: var(--material-blur);
   box-shadow:
-    0 18px 44px rgba(0, 0, 0, 0.16),
-    0 2px 7px rgba(0, 0, 0, 0.08),
+    0 14px 36px rgba(0, 0, 0, 0.14),
+    0 1px 4px rgba(0, 0, 0, 0.08),
     inset 0 0 0 0.5px color-mix(in srgb, var(--material-line) 72%, transparent);
   color: var(--ink);
   opacity: 0;
@@ -6108,94 +6108,49 @@ tbody td {
     transform 220ms var(--ease-out);
 }
 
-.toast-app-icon {
-  display: inline-grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border-radius: 9px;
-  background: var(--ink);
-  color: var(--canvas);
-  box-shadow:
-    inset 0 0 0 0.5px color-mix(in srgb, var(--canvas) 20%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.14);
-  font-size: var(--fs-17);
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 1;
+.toast::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: var(--accent);
 }
 
 .toast > [data-icon],
-.toast > svg {
+.toast > svg,
+.toast-app-icon,
+.toast-header,
+.toast-identity,
+.toast-status-dot,
+.toast-title,
+.toast-subtitle {
   display: none;
 }
 
 .toast-body {
-  display: grid;
+  display: block;
   min-width: 0;
-  gap: 3px;
   padding: 0;
 }
 
-.toast-header {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.toast-identity {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 6px;
-}
-
-.toast-status-dot {
-  width: 6px;
-  height: 6px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.toast-title {
-  min-width: 0;
+.toast-message {
+  display: block;
   color: var(--ink);
   font-size: var(--fs-13);
-  font-weight: 700;
-  letter-spacing: -0.012em;
-  line-height: 1.15;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-.toast-subtitle {
-  flex: none;
-  color: var(--ink-3);
-  font-size: var(--fs-12);
-  font-weight: 600;
-  line-height: 1.15;
-}
-
-.toast-message {
-  display: -webkit-box;
-  color: var(--ink);
-  font-size: var(--fs-14);
-  font-weight: 500;
-  letter-spacing: -0.006em;
-  line-height: 1.32;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.toast.toast-success .toast-status-dot { background: var(--ok-600); }
-.toast.toast-error .toast-status-dot { background: var(--bad-600); }
-.toast.toast-warning .toast-status-dot { background: var(--warn-600); }
-.toast.toast-info .toast-status-dot { background: var(--accent); }
+.toast.toast-success::before { background: var(--ok-600); }
+.toast.toast-error::before { background: var(--bad-600); }
+.toast.toast-warning::before { background: var(--warn-600); }
+.toast.toast-info::before { background: var(--accent); }
 
 .toast.show {
   opacity: 1;
@@ -6214,7 +6169,7 @@ tbody td {
     right: auto;
     bottom: calc(12px + env(safe-area-inset-bottom));
     left: 50%;
-    width: min(360px, calc(100vw - 24px));
+    width: min(420px, calc(100vw - 24px));
     transform: translateX(-50%);
   }
 
