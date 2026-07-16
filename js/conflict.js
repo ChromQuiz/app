@@ -378,7 +378,7 @@ async function render() {
         counter.textContent = `全${currentConflicts.length}件 確定済み`;
         counter.className = 'counter all-clear';
     } else {
-        counter.textContent = `残 ${unresolvedCount} / ${currentConflicts.length}件`;
+        counter.textContent = `${unresolvedCount} / ${currentConflicts.length}件`;
         counter.className = 'counter has-conflicts';
     }
 

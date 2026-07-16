@@ -624,7 +624,7 @@ function renderGrid() {
     for (const card of answerCards) {
         if (myScores[card.entryId] !== null) done++;
     }
-    document.getElementById('progress-text').textContent = `${done} / ${total} 件`;
+    updateProgressText(done, total);
 
     let createdCards = false;
     if (grid.children.length === answerCards.length && grid.children[0]?.className?.includes('answer-card')) {
@@ -650,6 +650,13 @@ function renderGrid() {
         cardCount: answerCards.length,
         domChildren: grid.children.length,
     };
+}
+
+function updateProgressText(done, total) {
+    const progress = document.getElementById('progress-text');
+    if (!progress) return;
+    progress.textContent = `${done} / ${total} 件`;
+    progress.className = `counter ${total > 0 && done === total ? 'all-clear' : 'has-conflicts'}`;
 }
 
 async function mark(entryId, result) {
@@ -789,7 +796,7 @@ document.addEventListener('keydown', (e) => {
 async function checkAutoCompletion() {
     const total = answerCards.length;
     const done = answerCards.filter(card => myScores[card.entryId] !== null).length;
-    document.getElementById('progress-text').textContent = `${done} / ${total} 件`;
+    updateProgressText(done, total);
     if (done === total && total > 0 && !isCompleted) {
         isCompleted = true;
         await CIQSupabaseAPI.completeQuestionScoring(projectId, currentQ);
