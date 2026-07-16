@@ -278,4 +278,10 @@ describe('design-system contracts', () => {
     expect(designCss).toMatch(/\.q-card\.inprogress/);
     expect(designCss).toContain('.u-hidden');
   });
+
+  it('keeps the check-in guide transparent over the live camera preview', () => {
+    expect(pagesCss).toMatch(
+      /body\.page-checkin\s+\.checkin-guide\s*{[^}]*background:\s*transparent;[^}]*border:\s*0;[^}]*box-shadow:\s*none;/s,
+    );
+  });
 });

@@ -3670,7 +3670,6 @@ body.page-entry-list .page-container {
 .my-danger-section,
 .result-view,
 .checkin-result-panel,
-.checkin-guide,
 .entry-list-count,
 .list-container {
   background: var(--surface);
@@ -4463,6 +4462,10 @@ body.page-checkin #camera-container canvas {
 
 body.page-checkin .checkin-guide {
   z-index: 3;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Admin prep spacing: keep description visually attached to the upload control. */
