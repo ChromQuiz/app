@@ -154,8 +154,8 @@ export async function recordAuthAttempt(
 
 /**
  * リクエストボディから参加者認証を解決する。
- * - body.token があればトークン検証(entry を id + email_hash で引く)
- * - なければ emailHash + disclosurePasswordHash 照合(レート制限つき)
+ * - body.token があればトークン検証(署名検証済みの entryId を id で引く。旧 email_hash 照合はしない)
+ * - なければ emailHash + disclosurePasswordHash を pepper 化し v2 列で照合(レート制限つき)
  * 返す entry には select で指定した列が含まれる。
  */
 export async function resolveParticipantAuth(
@@ -178,17 +178,19 @@ export async function resolveParticipantAuth(
     }
   }
 
-  const columns = select.includes('email_hash') ? select : `${select}, email_hash`;
+  // 認証済み entry の返却列は呼出側の select のみ(旧 email_hash 列は付加しない)。
+  const columns = select;
 
   if (body.token) {
     const payload = await verifyParticipantToken(String(body.token), projectId);
     if (!payload) throw new ParticipantAuthError('セッションの有効期限が切れました。もう一度ログインしてください。', 401);
+    // トークンは署名検証済みで entryId(payload.e) を認証する。id + project_id で解決し、
+    // 旧 email_hash 列との照合は行わない(P2-e5: token 経路の旧列依存を撤去。token 形式は不変)。
     const { data: entry, error } = await supabase
       .from('entries')
       .select(columns)
       .eq('project_id', projectId)
       .eq('id', payload.e)
-      .eq('email_hash', payload.h)
       .single();
     if (error || !entry) throw new ParticipantAuthError('エントリーが見つかりません。', 404);
     return { entry, emailHash: payload.h, viaToken: true };
@@ -202,16 +204,15 @@ export async function resolveParticipantAuth(
   }
 
   // v2 は必ず Edge 内で生成する(クライアントからは受け取らない)。
-  // pepper 設定障害(ParticipantHashConfigError)はここで上位へ伝播し、旧列 fallback へは進まない(=503)。
+  // pepper 設定障害(ParticipantHashConfigError)はここで上位へ伝播し、認証は 503 で停止する。
   const emailHashV2 = await pepperHash(emailHash);
   const passwordHashV2 = await pepperHash(passwordHash);
 
   await enforceAuthRateLimit(supabase, projectId, emailHash);
 
-  // 第1検索: v2(移行済み行のみ)。email_hash_v2/disclosure_password_hash_v2 の両方が非NULLで一致する行。
-  // 0件(正常な不一致)と DBエラーを区別する(DBエラー時は fallback せずサーバエラーへ)。
-  // object強制(.single()/.maybeSingle())は 0件時に PostgREST が PGRST116(406)を返すため使わず、
-  // .limit(1) の配列で「DBエラー(error!=null)」と「0件(空配列)」を明確に区別する。
+  // v2 認証(P2-e5: 旧列 fallback は撤去。全行 v2 済みのため v2 単独で照合する)。
+  // 0件(正常な不一致)と DBエラーを区別する: object強制(.single()/.maybeSingle())は 0件時に
+  // PGRST116(406)を返すため使わず、.limit(1) 配列で「DBエラー(error!=null)」と「0件(空配列)」を分ける。
   const { data: v2Rows, error: v2Error } = await supabase
     .from('entries')
     .select(columns)
@@ -228,25 +229,7 @@ export async function resolveParticipantAuth(
     return { entry: v2Entry, emailHash, viaToken: false };
   }
 
-  // 第2検索: 未移行行限定 fallback。v2 のいずれかが NULL の行だけを対象とし、旧列で照合する。
-  // 両v2非NULLの行は .or(...is.null) により対象外(移行済み行に旧列認証を残さない)。
-  // v2検索と同様、object強制を避け .limit(1) 配列で 0件と DBエラーを区別する。
-  const { data: legacyRows, error: legacyError } = await supabase
-    .from('entries')
-    .select(columns)
-    .eq('project_id', projectId)
-    .eq('email_hash', emailHash)
-    .eq('disclosure_password_hash', passwordHash)
-    .or('email_hash_v2.is.null,disclosure_password_hash_v2.is.null')
-    .limit(1);
-  if (legacyError) throw legacyError;
-  const legacyEntry = legacyRows && legacyRows.length > 0 ? legacyRows[0] : null;
-  if (legacyEntry) {
-    await recordAuthAttempt(supabase, projectId, emailHash, true);
-    return { entry: legacyEntry, emailHash, viaToken: false };
-  }
-
-  // v2・fallback とも不一致のときだけ、失敗を1回記録する(検索ごとの二重記録はしない)。
+  // v2 不一致のときだけ、失敗を1回記録する。
   await recordAuthAttempt(supabase, projectId, emailHash, false);
   throw new ParticipantAuthError('メールアドレスまたはパスワードが正しくありません。', 404);
 }

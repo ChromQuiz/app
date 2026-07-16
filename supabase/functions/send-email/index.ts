@@ -65,11 +65,41 @@ const MAIL = {
 
 function shell(title: string, subtitle: string, body: string) {
   return `
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <style>
+    :root { color-scheme: light dark; supported-color-schemes: light dark; }
+    html, body { margin: 0 !important; padding: 0 !important; background: ${MAIL.canvas} !important; }
     @media screen and (max-width: 560px) {
       .ciq-mail-canvas { padding: 20px 10px !important; }
       .ciq-mail-card { padding: 22px 18px !important; }
       .ciq-mail-button-cell { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
+    }
+    @media (prefers-color-scheme: dark) {
+      html, body { background: #1c1c1e !important; }
+      .ciq-mail-canvas { background: #1c1c1e !important; }
+      .ciq-mail-title,
+      .ciq-mail-text,
+      .ciq-mail-value,
+      .ciq-mail-label-strong { color: #f5f5f7 !important; }
+      .ciq-mail-sub,
+      .ciq-mail-label,
+      .ciq-mail-footer { color: #aeaeb2 !important; }
+      .ciq-mail-muted { color: #8e8e93 !important; }
+      .ciq-mail-card,
+      .ciq-mail-surface { background: #2c2c2e !important; border-color: #48484a !important; }
+      .ciq-mail-surface-2 { background: #242426 !important; border-color: #48484a !important; }
+      .ciq-mail-line { border-color: #48484a !important; }
+      .ciq-mail-button-primary { background: #f5f5f7 !important; border-color: #f5f5f7 !important; }
+      .ciq-mail-button-primary a { color: #111113 !important; }
+      .ciq-mail-button-secondary { background: #2c2c2e !important; border-color: #5a5a5f !important; }
+      .ciq-mail-button-secondary a { color: #f5f5f7 !important; }
+      .ciq-mail-success { border-color: #30d158 !important; }
+      .ciq-mail-success .ciq-mail-tone { color: #30d158 !important; }
+      .ciq-mail-warning { border-color: #ff9f0a !important; }
+      .ciq-mail-warning .ciq-mail-tone { color: #ff9f0a !important; }
+      .ciq-mail-danger { border-color: #ff453a !important; }
+      .ciq-mail-danger .ciq-mail-tone { color: #ff453a !important; }
     }
   </style>
   <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:32px 12px;">
@@ -77,12 +107,12 @@ function shell(title: string, subtitle: string, body: string) {
       <td align="center">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;margin:0 auto;">
           <tr>
-            <td style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:34px;line-height:1.08;font-weight:800;letter-spacing:-0.035em;padding:0 2px 8px;text-align:center;" align="center">
+            <td class="ciq-mail-title" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:34px;line-height:1.08;font-weight:800;letter-spacing:-0.035em;padding:0 2px 8px;text-align:center;" align="center">
               ${escapeHtml(subtitle)}
             </td>
           </tr>
           <tr>
-            <td style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:600;padding:0 2px 26px;text-align:center;" align="center">
+            <td class="ciq-mail-sub" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:600;padding:0 2px 26px;text-align:center;" align="center">
               ${escapeHtml(title)}
             </td>
           </tr>
@@ -90,7 +120,7 @@ function shell(title: string, subtitle: string, body: string) {
             <td class="ciq-mail-card" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:26px;padding:32px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.75;text-align:left;" align="left">${body}</td>
           </tr>
           <tr>
-            <td style="font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:${MAIL.muted};padding:22px 8px 0;">
+            <td class="ciq-mail-footer" style="font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:${MAIL.muted};padding:22px 8px 0;">
               Powered by CIQ<br>このメールは自動送信されています。
             </td>
           </tr>
@@ -111,9 +141,9 @@ function panel(body: string, tone = 'info') {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td style="border:1px solid ${tone === 'success' ? '#b8e8c4' : tone === 'warning' ? '#f4d7a2' : tone === 'danger' ? '#f2b8b5' : MAIL.border};border-radius:18px;background:${MAIL.surface2};padding:15px 16px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:14px;line-height:1.75;">
-        <div style="font-size:12px;font-weight:800;color:${tone === 'success' ? '#248a3d' : tone === 'warning' ? '#bf6a02' : tone === 'danger' ? '#d70015' : MAIL.sub};margin-bottom:4px;">${escapeHtml(labels[tone] || labels.info)}</div>
-        <div style="font-weight:600;">${body}</div>
+      <td class="ciq-mail-surface-2 ciq-mail-${escapeHtml(tone)}" style="border:1px solid ${tone === 'success' ? '#b8e8c4' : tone === 'warning' ? '#f4d7a2' : tone === 'danger' ? '#f2b8b5' : MAIL.border};border-radius:18px;background:${MAIL.surface2};padding:15px 16px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:14px;line-height:1.75;">
+        <div class="ciq-mail-tone" style="font-size:12px;font-weight:800;color:${tone === 'success' ? '#248a3d' : tone === 'warning' ? '#bf6a02' : tone === 'danger' ? '#d70015' : MAIL.sub};margin-bottom:4px;">${escapeHtml(labels[tone] || labels.info)}</div>
+        <div class="ciq-mail-text" style="font-weight:600;">${body}</div>
       </td>
     </tr>
   </table>
@@ -124,12 +154,12 @@ function detailsTable(rows: Array<[string, unknown]>) {
   const last = rows.length - 1;
   const tableRows = rows.map(([label, value], i) => `
     <tr>
-      <td style="padding:12px 14px;font-family:${MAIL_FONT};font-size:13px;font-weight:700;color:${MAIL.sub};${i === last ? '' : `border-bottom:1px solid ${MAIL.border};`}">${escapeHtml(label)}</td>
-      <td align="right" style="padding:12px 14px;font-family:${MAIL_MONO};font-size:14px;font-weight:700;color:${MAIL.text};letter-spacing:.02em;${i === last ? '' : `border-bottom:1px solid ${MAIL.border};`}">${escapeHtml(value)}</td>
+      <td class="ciq-mail-label ciq-mail-line" style="padding:12px 14px;font-family:${MAIL_FONT};font-size:13px;font-weight:700;color:${MAIL.sub};${i === last ? '' : `border-bottom:1px solid ${MAIL.border};`}">${escapeHtml(label)}</td>
+      <td class="ciq-mail-value ciq-mail-line" align="right" style="padding:12px 14px;font-family:${MAIL_MONO};font-size:14px;font-weight:700;color:${MAIL.text};letter-spacing:.02em;${i === last ? '' : `border-bottom:1px solid ${MAIL.border};`}">${escapeHtml(value)}</td>
     </tr>
   `).join('');
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${MAIL.border};border-radius:18px;margin:16px 0;background:${MAIL.surface};">
+  <table class="ciq-mail-surface" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${MAIL.border};border-radius:18px;margin:16px 0;background:${MAIL.surface};">
     ${tableRows}
   </table>
   `;
@@ -139,9 +169,9 @@ function numberCard(label: string, value: string) {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface2};">
-        <div style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;font-weight:800;margin-bottom:4px;">${escapeHtml(label)}</div>
-        <div style="font-family:${MAIL_MONO};color:${MAIL.text};font-size:36px;font-weight:800;letter-spacing:.04em;line-height:1.1;">${escapeHtml(value)}</div>
+      <td class="ciq-mail-surface-2" align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface2};">
+        <div class="ciq-mail-label" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;font-weight:800;margin-bottom:4px;">${escapeHtml(label)}</div>
+        <div class="ciq-mail-value" style="font-family:${MAIL_MONO};color:${MAIL.text};font-size:36px;font-weight:800;letter-spacing:.04em;line-height:1.1;">${escapeHtml(value)}</div>
       </td>
     </tr>
   </table>
@@ -153,10 +183,10 @@ function qrCard(qrImageUrl: string) {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
     <tr>
-      <td align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface};">
+      <td class="ciq-mail-surface" align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface};">
         <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用QRコード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
-        <div style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:800;margin-top:12px;">当日受付用QRコード</div>
-        <div style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;margin-top:2px;">当日受付で提示してください。</div>
+        <div class="ciq-mail-label-strong" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:800;margin-top:12px;">当日受付用QRコード</div>
+        <div class="ciq-mail-sub" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;margin-top:2px;">当日受付で提示してください。</div>
       </td>
     </tr>
   </table>
@@ -168,7 +198,7 @@ function primaryButton(label: string, href: string) {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
     <tr>
-      <td align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
+      <td class="ciq-mail-button-primary" align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
         <a href="${escapeHtml(href)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 20px;border-radius:999px;">${escapeHtml(label)}</a>
       </td>
     </tr>
@@ -181,7 +211,7 @@ function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: s
     <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 6px 0 0;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
+          <td class="ciq-mail-button-primary" align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
             <a href="${escapeHtml(primaryHref)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 18px;border-radius:999px;">${escapeHtml(primaryLabel)}</a>
           </td>
         </tr>
@@ -192,7 +222,7 @@ function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: s
     <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 0 0 6px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td align="center" style="background:${MAIL.surface};border:1px solid ${MAIL.borderStrong};border-radius:999px;">
+          <td class="ciq-mail-button-secondary" align="center" style="background:${MAIL.surface};border:1px solid ${MAIL.borderStrong};border-radius:999px;">
             <a href="${escapeHtml(secondaryHref)}" style="display:block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 18px;border-radius:999px;">${escapeHtml(secondaryLabel)}</a>
           </td>
         </tr>
