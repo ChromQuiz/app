@@ -5409,15 +5409,22 @@ select:focus {
 .q-card.inprogress,
 .answer-card.is-pending,
 .conflict-card.is-pending {
-  border-color: color-mix(in srgb, var(--warn-600) 30%, var(--line));
-  background: color-mix(in srgb, var(--warn-100) 48%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 54%, var(--surface));
 }
 
+.q-card.done,
 .q-card.is-done,
 .answer-card.is-done,
 .checklist-item.is-done {
   border-color: color-mix(in srgb, var(--ok-600) 24%, var(--line));
   background: color-mix(in srgb, var(--ok-100) 44%, var(--surface));
+}
+
+.q-card.done,
+.q-card.done.mine,
+.q-card.done.mine-active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok-600) 22%, transparent);
 }
 
 .table-container {
