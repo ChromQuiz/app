@@ -142,7 +142,6 @@ function setTab(tab) {
     const title = document.getElementById('index-mode-title');
     if (title) title.textContent = tab === 'create' ? 'プロジェクト作成' : 'ログイン';
     document.title = tab === 'create' ? 'プロジェクト作成 - CIQ' : 'CIQ';
-    document.getElementById('index-create-link')?.classList.toggle('u-hidden', tab === 'create');
     document.getElementById('index-join-link')?.classList.toggle('u-hidden', tab !== 'create');
 
     renderCreateAuthState();
