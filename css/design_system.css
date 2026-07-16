@@ -2418,16 +2418,40 @@ tbody tr:hover {
 }
 
 .entry-mail-notice {
+  align-items: flex-start;
   color: var(--ink);
+}
+
+.entry-mail-notice > [data-icon] {
+  margin-top: 0.15em;
+  color: var(--ink-2);
+}
+
+.entry-mail-notice-content {
+  min-width: 0;
 }
 
 .entry-mail-notice strong {
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: var(--sp-1);
+  color: var(--ink);
+  font-size: var(--fs-14);
+  line-height: 1.35;
+  white-space: nowrap;
 }
 
-.entry-mail-notice div {
+.entry-mail-notice p {
+  margin: 0;
   color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+@media (max-width: 420px) {
+  .entry-mail-notice strong {
+    white-space: normal;
+  }
 }
 
 .entry-verified-box {
