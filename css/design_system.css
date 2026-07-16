@@ -3159,13 +3159,13 @@ tbody tr:hover {
 }
 
 .btn.score-hold {
-  background: var(--surface);
-  color: var(--warn-600);
-  border: 2px solid var(--warn-500);
+  background: var(--warn-500);
+  color: var(--on-warn);
+  border-color: transparent;
 }
 
 .btn.score-hold:hover {
-  background: var(--warn-100);
+  background: color-mix(in srgb, var(--warn-500) 88%, black);
 }
 
 .counter {
