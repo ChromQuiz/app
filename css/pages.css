@@ -2827,7 +2827,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 }
 
 .entry-num {
-  font-family: var(--font-mono);
+  font-family: var(--font-text);
   font-size: var(--fs-15);
   font-weight: 600;
 }
