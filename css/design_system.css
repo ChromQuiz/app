@@ -2295,7 +2295,7 @@ tbody tr:hover {
 .page-msg,
 .status-msg-box {
   display: none;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--sp-2);
   margin-top: var(--sp-4);
   padding: var(--sp-3) var(--sp-4);
@@ -2326,7 +2326,7 @@ tbody tr:hover {
 .waitlist-result-note,
 .csv-status {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-4);
   background: var(--surface);
@@ -2357,6 +2357,23 @@ tbody tr:hover {
 
 .message-line.error {
   color: var(--bad-600);
+}
+
+.page-msg [data-icon],
+.status-msg-box [data-icon],
+.message-line [data-icon],
+.entry-verify-help [data-icon],
+.entry-verified-box [data-icon],
+.entry-mail-notice [data-icon],
+.waitlist-result-note [data-icon],
+.csv-status [data-icon],
+.warning-box [data-icon] {
+  flex: 0 0 auto;
+  width: 1.05em;
+  height: 1.05em;
+  align-self: center;
+  display: inline-flex;
+  margin-top: 0;
 }
 
 .terms-alert {

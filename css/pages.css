@@ -1819,6 +1819,87 @@ body.page-wrapper:has(#terms-card) .page-container {
   padding: 16px;
 }
 
+body.page-question .answer-card,
+body.page-conflict .answer-card,
+body.page-conflict .conflict-card {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: inset var(--app-bg-inset);
+}
+
+body.page-question .answer-card:hover,
+body.page-conflict .answer-card:hover,
+body.page-conflict .conflict-card:hover {
+  background: var(--surface);
+}
+
+body.page-question .answer-card.selected,
+body.page-conflict .answer-card.selected,
+body.page-conflict .conflict-card.selected {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 68%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+body.page-question .answer-card.selected::after,
+body.page-conflict .answer-card.selected::after,
+body.page-conflict .conflict-card.selected::after {
+  border-width: 0;
+}
+
+body.page-question .answer-card img,
+body.page-conflict .answer-card img,
+body.page-conflict .conflict-card img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+body.page-question .img-expired,
+body.page-conflict .img-expired {
+  min-height: 120px;
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+body.page-question .entry-num,
+body.page-conflict .entry-num {
+  margin-top: 10px;
+  color: var(--ink);
+}
+
+body.page-conflict .conflict-review-row {
+  margin-top: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.preview-overlay {
+  background: rgba(0, 0, 0, 0.92);
+}
+
+.preview-header,
+.preview-overlay-header {
+  padding: 0 0 var(--sp-3);
+}
+
+.preview-close {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+.preview-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 body.page-checkin .main-content {
   padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + 10px);
   padding-bottom: calc(40px + env(safe-area-inset-bottom));
