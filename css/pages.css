@@ -4446,10 +4446,8 @@ body.page-checkin .main-content {
   }
 }
 
-/* Check-in camera preview must be last: legacy camera rules above are duplicated.
-   Safari can keep the stream active while failing to paint the <video> layer;
-   the scanning loop already draws every frame to this canvas, so the canvas is
-   the visible preview and the video stays underneath only as the stream source. */
+/* Check-in camera preview must be last because legacy camera rules above overlap.
+   Keep the video as the visible preview. The canvas is only for QR analysis. */
 body.page-checkin #camera-container {
   position: relative;
   isolation: isolate;
@@ -4459,12 +4457,12 @@ body.page-checkin #camera-container {
 body.page-checkin #video {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.01;
+  opacity: 1;
   visibility: visible;
   pointer-events: none;
   background: #000000;
@@ -4473,11 +4471,10 @@ body.page-checkin #video {
 body.page-checkin #camera-container canvas {
   position: absolute;
   inset: 0;
-  z-index: 2;
-  display: block;
+  z-index: 0;
+  display: none;
   width: 100%;
   height: 100%;
-  object-fit: cover;
   background: #000000;
 }
 
