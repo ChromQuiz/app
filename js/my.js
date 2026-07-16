@@ -381,12 +381,11 @@ async function saveEdit(event) {
         });
 
         if (projectSettings?.notifyEntryEdit !== false && window.CIQEmail?.sendEntryEdited) {
-            const emailHash = await AppCrypto.hashPassword(mySession.email.toLowerCase());
+            // 宛先所有確認は send-email がサーバ側で行うため emailHash は送らない(P2-e5 案B)。
             CIQEmail.sendEntryEdited(mySession.email, {
                 projectName: projectSettings?.projectName || projectId,
                 entryNumber: String(result.entry?.entryNumber || myEntryData?.entryNumber || '').padStart(3, '0'),
                 entryId: result.entry?.id || myEntryData?.id,
-                emailHash,
                 familyName,
                 firstName,
                 senderName: (projectSettings?.projectName || projectId) + ' 実行委員会',
@@ -414,12 +413,10 @@ async function markLate() {
         const result = await CIQSupabaseAPI.markLate(getParticipantActionPayload());
 
         if (projectSettings?.notifyLateNotice !== false && window.CIQEmail?.sendLateNotice) {
-            const emailHash = await AppCrypto.hashPassword(mySession.email.toLowerCase());
             CIQEmail.sendLateNotice(mySession.email, {
                 projectName: projectSettings?.projectName || projectId,
                 entryNumber: String(result.entry?.entryNumber || '').padStart(3, '0'),
                 entryId: result.entry?.id,
-                emailHash,
                 familyName: '',
                 firstName: '',
                 senderName: (projectSettings?.projectName || projectId) + ' 実行委員会',
@@ -450,12 +447,10 @@ async function cancelEntry() {
         const result = await CIQSupabaseAPI.cancelEntry(getParticipantActionPayload());
 
         if (projectSettings?.notifyEntryCancel !== false && window.CIQEmail?.sendCancellation) {
-            const emailHash = await AppCrypto.hashPassword(mySession.email.toLowerCase());
             CIQEmail.sendCancellation(mySession.email, {
                 projectName: projectSettings?.projectName || projectId,
                 entryNumber: String(result.canceledEntry?.entryNumber || '').padStart(3, '0'),
                 entryId: result.canceledEntry?.id,
-                emailHash,
                 familyName: '',
                 firstName: '',
                 senderName: (projectSettings?.projectName || projectId) + ' 実行委員会',

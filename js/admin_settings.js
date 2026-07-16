@@ -1383,7 +1383,6 @@
                 projectName: adminProjectName || projectId,
                 entryNumber: String(entry.entry_number).padStart(3, '0'),
                 entryId: entry.id,
-                emailHash: entry.email_hash,
                 familyName: pii.familyName || '',
                 firstName: pii.firstName || '',
                 senderName: (adminProjectName || projectId) + ' 実行委員会'

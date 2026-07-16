@@ -298,7 +298,6 @@
                 ...row,
                 entryNumber: row.entry_number,
                 encryptedPII: row.encrypted_pii,
-                emailHash: row.email_hash,
                 entryName: row.entry_name,
                 isChubu: row.is_chubu,
                 checkedIn: row.checked_in,

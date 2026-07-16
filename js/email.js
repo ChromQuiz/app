@@ -48,38 +48,39 @@ const CIQEmail = (() => {
         return result;
     }
 
-    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, entryListUrl, qrData, senderName }) {
+    async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, familyName, firstName, status, entryListUrl, qrData, senderName }) {
+        // 宛先所有確認は send-email がサーバ側で行うため emailHash は送らない(P2-e5 案B)。
         const result = await request('entry_confirmation', to, {
-            projectName, entryNumber, password, uuid, emailHash, familyName, firstName, status, entryListUrl, qrData, senderName,
+            projectName, entryNumber, password, uuid, familyName, firstName, status, entryListUrl, qrData, senderName,
             entryId: uuid,
         });
         return Boolean(result?.success);
     }
 
-    async function sendCancellation(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
+    async function sendCancellation(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
         const result = await request('entry_cancelled', to, {
-            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
+            projectName, entryNumber, entryId, familyName, firstName, senderName,
         });
         return Boolean(result?.success);
     }
 
-    async function sendEntryEdited(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
+    async function sendEntryEdited(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
         const result = await request('entry_edited', to, {
-            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
+            projectName, entryNumber, entryId, familyName, firstName, senderName,
         });
         return Boolean(result?.success);
     }
 
-    async function sendLateNotice(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
+    async function sendLateNotice(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
         const result = await request('late_notice', to, {
-            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
+            projectName, entryNumber, entryId, familyName, firstName, senderName,
         });
         return Boolean(result?.success);
     }
 
-    async function sendWaitlistPromotion(to, { projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName }) {
+    async function sendWaitlistPromotion(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
         const result = await request('waitlist_promoted', to, {
-            projectName, entryNumber, entryId, emailHash, familyName, firstName, senderName,
+            projectName, entryNumber, entryId, familyName, firstName, senderName,
         });
         return Boolean(result?.success);
     }

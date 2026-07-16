@@ -598,6 +598,10 @@ Deno.serve(withCors(async (req) => {
     if (message.includes('Missing entry verification fields')) {
       return jsonResponse({ error: 'メール送信に必要なエントリー確認情報が不足しています。ページを再読み込みしてからもう一度お試しください。' }, 400);
     }
+    if (error instanceof ParticipantHashConfigError) {
+      console.error('[send-email] participant hash pepper is not configured');
+      return jsonResponse({ error: 'メールを送信できませんでした。運営にお問い合わせください。' }, 503);
+    }
     return serverErrorResponse(error, 'send-email');
   }
 }));

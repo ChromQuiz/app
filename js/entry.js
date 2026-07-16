@@ -452,7 +452,6 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             entryNumber: String(entryNumber).padStart(3, '0'),
             password: pw,
             uuid: entry.id,
-            emailHash,
             familyName,
             firstName,
             status: entryStatus,
