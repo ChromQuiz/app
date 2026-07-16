@@ -2112,11 +2112,6 @@ body.page-admin .model-cell .q-label {
   font-variant-numeric: tabular-nums;
 }
 
-body.page-admin .model-cell .q-label [data-icon] {
-  width: 13px;
-  height: 13px;
-}
-
 body.page-admin .model-cell .q-answer {
   min-width: 0;
   color: var(--ink);

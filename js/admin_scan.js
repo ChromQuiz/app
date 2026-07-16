@@ -171,8 +171,7 @@
                 item.dataset.idx = i;
                 const label = document.createElement('div');
                 label.className = 'q-label';
-                const icon = createIcon('hashtag');
-                label.append(icon, String(i + 1));
+                label.textContent = `${i + 1}問`;
                 const answer = document.createElement('div');
                 answer.className = `q-answer${ans ? '' : ' model-answer-empty'}`;
                 answer.textContent = ans || '—';
