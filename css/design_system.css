@@ -3736,18 +3736,33 @@ tbody tr:hover {
 }
 
 .preview-close {
-  width: var(--control-h);
-  height: var(--control-h);
+  min-width: 0;
+  min-height: var(--control-h);
+  padding: 0 var(--sp-4);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--r-md);
-  color: #ffffff;
-  background: #2c2c2e;
+  gap: var(--sp-2);
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--r-full);
+  color: #111111;
+  background: #ffffff;
+  font-size: var(--fs-14);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.preview-close [data-icon] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 .preview-close:hover {
-  background: #3a3a3c;
+  background: #f5f5f7;
 }
 
 .preview-overlay-content {

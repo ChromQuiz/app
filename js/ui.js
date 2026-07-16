@@ -36,6 +36,26 @@ function getMasterData(projectId) {
     }
 }
 
+function createPreviewHeader(titleText, onClose) {
+    const header = document.createElement('div');
+    header.className = 'preview-overlay-header';
+
+    const title = document.createElement('h2');
+    title.className = 'preview-overlay-title';
+    title.append(createIcon('file-image'), ` ${titleText}`);
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'preview-close';
+    closeButton.setAttribute('aria-label', '閉じる');
+    closeButton.title = '閉じる';
+    closeButton.append(createIcon('xmark', { size: 16 }), ' 閉じる');
+    closeButton.addEventListener('click', onClose);
+
+    header.append(title, closeButton);
+    return header;
+}
+
 async function showPreview(projectId, secretHash, entryNum) {
     let overlay = document.getElementById('preview-overlay');
     if (!overlay) {
@@ -45,19 +65,10 @@ async function showPreview(projectId, secretHash, entryNum) {
         document.body.appendChild(overlay);
     }
     const masterData = getMasterData(projectId);
-    const name = masterData[entryNum]?.name || `受付番号 ${entryNum}`;
+    const name = masterData[entryNum]?.name || `No.${padNum(entryNum)}`;
 
     overlay.textContent = '';
-    const header = document.createElement('div');
-    header.className = 'preview-header';
-    const title = document.createElement('h2');
-    title.append(createIcon('file-image'), ` ${name} の解答用紙`);
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.className = 'preview-close';
-    closeBtn.append(createIcon('xmark', { size: 16 }), ' 閉じる');
-    closeBtn.addEventListener('click', () => { overlay.classList.remove('show'); });
-    header.append(title, closeBtn);
+    const header = createPreviewHeader(`${name} の解答用紙`, () => { overlay.classList.remove('show'); });
 
     const pc = document.createElement('div');
     pc.id = 'preview-content';
