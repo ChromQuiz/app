@@ -217,35 +217,36 @@ if (auth) {
         resultDiv.appendChild(loading);
     }
 
-    function entryLabel(entry) {
-        return `受付番号 ${padNum(entry?.entryNumber || '')}`;
+    function entrySub(entry) {
+        return [entry?.affiliation, entry?.grade].filter(Boolean).join(' / ');
     }
 
     async function processQR(entryId) {
         try {
             const result = await CIQSupabaseAPI.checkInEntry(projectId, entryId);
             const entry = result.entry;
-            const name = entryLabel(entry);
+            const name = entry.entryName || `No.${padNum(entry.entryNumber)}`;
+            const sub = entrySub(entry);
             const number = `受付番号 ${padNum(entry.entryNumber)}`;
 
             if (result.result === 'canceled') {
-                showResultUI('canceled', 'xmark', 'キャンセル済み', name, number);
+                showResultUI('canceled', 'xmark', 'キャンセル済み', name, sub, number);
             } else if (result.result === 'waitlist') {
-                showResultUI('already', 'triangle-exclamation', 'キャンセル待ち', name, number);
+                showResultUI('already', 'triangle-exclamation', 'キャンセル待ち', name, sub, number);
             } else if (result.result === 'already') {
-                showResultUI('already', 'triangle-exclamation', '受付済み', name, number);
+                showResultUI('already', 'triangle-exclamation', '受付済み', name, sub, number);
             } else {
-                showResultUI('success', 'check', '受付完了', name, number);
+                showResultUI('success', 'check', '受付完了', name, sub, number);
                 await loadStats();
             }
         } catch (err) {
-            showResultUI('error', 'xmark', 'エラーが発生しました', err.message, '');
+            showResultUI('error', 'xmark', 'エラーが発生しました', err.message, '', '');
             lastUUID = '';
         }
         processing = false;
     }
 
-    function showResultUI(type, iconClass, title, name, number) {
+    function showResultUI(type, iconClass, title, name, sub, number) {
         if (hideTimer) clearTimeout(hideTimer);
         resultDiv.className = `is-visible ${type}`;
         resultDiv.textContent = '';
@@ -257,6 +258,12 @@ if (auth) {
             nameEl.className = 'name';
             nameEl.textContent = name;
             resultDiv.appendChild(nameEl);
+        }
+        if (sub) {
+            const subEl = document.createElement('div');
+            subEl.className = 'sub';
+            subEl.textContent = sub;
+            resultDiv.appendChild(subEl);
         }
         if (number) {
             const numberEl = document.createElement('div');

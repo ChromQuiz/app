@@ -3349,6 +3349,12 @@ body.page-checkin .right-col {
   font-weight: 600;
 }
 
+#result .sub {
+  color: var(--ink-2);
+  font-size: var(--fs-15);
+  font-weight: 500;
+}
+
 #result .number {
   font-family: var(--font-mono);
   font-size: var(--fs-56);
