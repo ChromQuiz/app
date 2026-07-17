@@ -73,10 +73,9 @@ Deno.serve(withCors(async (req) => {
 
     const { data: entry, error: insertError } = await supabase
       .rpc('create_entry_atomic', {
+        // P2-e5 ②: 旧列(p_email_hash / p_disclosure_password_hash)は送らない。書込は v2 のみ。
         p_project_id: projectId,
         p_encrypted_pii: encryptedPii,
-        p_email_hash: emailHash,
-        p_disclosure_password_hash: disclosurePasswordHash,
         p_entry_name: publicProfile?.entryName || null,
         p_affiliation: publicProfile?.affiliation || null,
         p_grade: publicProfile?.grade || null,
