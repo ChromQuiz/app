@@ -100,6 +100,27 @@ describe('legacy participant-hash columns are dropped in a migration (P2-e5)', (
   });
 });
 
+describe('public_entry_list exposes no PII or credential columns', () => {
+  const src = read('supabase/migrations/202606260003_public_flow_hardening.sql');
+  const block = src.match(/create table if not exists public\.public_entry_list \(([\s\S]*?)\);/);
+
+  it('defines the public entry list table', () => {
+    expect(block).toBeTruthy();
+    // sanity: the intended public profile fields are present
+    expect(block[1]).toMatch(/entry_name/);
+    expect(block[1]).toMatch(/entry_number/);
+  });
+
+  it('never includes encrypted PII or credential hash columns', () => {
+    const cols = block[1];
+    expect(cols).not.toMatch(/encrypted_pii/);
+    expect(cols).not.toMatch(/email_hash/);
+    expect(cols).not.toMatch(/disclosure_password_hash/);
+    // no raw email column either
+    expect(cols).not.toMatch(/\bemail\b/);
+  });
+});
+
 describe('sensitive entry columns are not granted to non-admin roles', () => {
   const restrict = read('supabase/migrations/202606270015_restrict_entry_sensitive_columns.sql');
 
