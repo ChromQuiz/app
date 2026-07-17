@@ -243,6 +243,40 @@ Notes   : 補足・再構成の断り・要確認事項
 - Verification は強度を明示（観測 > 静的 > 状態証跡）。未確認・対象外は Notes に分けて書く。
 - 上記 §1 の P2-e1〜e5 は本テンプレート導入前の記録。内容は等価だが、体裁の統一が要る場合に順次移行する。
 
+## 6. 初期計画（docs/supabase-phase0.md §9「実装フェーズ Phase 1〜5」）の現状整理
+
+**現状整理のみ（新規設計ではない）。** 判定は現在の repo / 本番デプロイ / migration の実証跡に基づく。
+出典の初期計画は Firebase→Supabase 移行の設計書（脅威モデル・RLS・認証フローを含む）。参加者ハッシュ v1→v2 等の
+**セキュリティ強化**はこの移行の先の継続トラックで、本文書 §1〜§4 が担う。
+※ もし別の「セキュリティ専用フェーズ計画」を指す場合は、repo に persisted なのは本 §9 のみのため、その旨ご指摘を。
+
+### Phase 1 — 基盤 ／ Status: Completed
+- [x] Supabase プロジェクト作成・Google OAuth・SQL migration 適用・RLS 適用・Storage バケット+ポリシー・auth JS・index ログイン
+- [x] プロジェクト作成＝`202606260004_auth_project_creation` + RLS で実現（専用 `create-project` Function ではなく別実装）
+
+### Phase 2 — 運営・採点 ／ Status: Completed
+- [x] メンバー管理＝`invite-member` Function ではなく RPC 群（`202607170001` の update/remove/restore_project_member）＋ admin_settings
+- [x] admin JS の Supabase 化・Storage 答案アップロード・judge/question/conflict の Realtime 採点・`final_results`（scoring_flow / conflict_resolution / score_conflicts_rpc）
+
+### Phase 3 — 公開ページ ／ Status: Completed
+- [x] create-entry / cancel-entry / edit-entry(=update) / mark-late / disclose-result(=lookup-disclosure) / check-in / public_entry_list + Realtime / send-email(SES) … 全 Edge Function 実在・稼働
+
+### Phase 4 — 仕上げ ／ Status: Completed（1 項目のみ要確認）
+- [x] 成績開示・PII 復号＝disclose-result / project-key
+- [x] メール認証＝`_shared/email_verify.ts` + verify-code フロー（create-entry がトークン必須）
+- [x] CSP / GitHub Pages＝inline script/style 除去済み
+- [ ] `seed_test_data` の Supabase 版＝**要確認**（本番機能外の開発補助・未確認）
+
+### Phase 5 — 退役 ／ Status: Completed（一部は外部運用で repo 判定外）
+- [x] クライアントの Firebase 撤去＝js/ に firebase 参照 0・README に Firebase 記載なし
+- [x] 旧メール送信の Supabase Edge 移管＝send-email
+- [~] Firebase プロジェクト停止＝**外部運用操作**のため repo からは判定不可（要確認）
+
+### 移行計画の先＝セキュリティ強化トラック（本文書 §1〜§4 が正典）
+- **完了**: 参加者ハッシュ v1→v2 移行（P2-e1〜e5）／機密列制限／public_entry_list PII-free／Edge 認可ゲート回帰／anon RLS・grant マトリクス回帰
+- **進行中**: 全公開/認証データフローのセキュリティレビュー（§3 backlog #3・RLS ポリシー本文の逐条レビューが継続）
+- **未着手/保留**: authenticated 実行時 RLS（#1b・要 JWT フィクスチャ）／`create_entry_atomic` 死引数除去（#5・保留）／anon 非データ権限の最小化（#8）／cache-bust 一元化（#6）／focused テスト（#7）
+
 ## 付記
 - **P2-e2 / P2-e3 / P2-e4 のフェーズ境界ラベルは当時コードに未記載**のため、本文書は commit/migration の実証跡から
   再構成した（e2=dual-write 配線、e3=backfill・v2 移行完了、e4=認証/キャンセルの v2 切替）。migration に "P2-e4" の明記あり。
