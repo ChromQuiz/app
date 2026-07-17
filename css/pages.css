@@ -3567,19 +3567,17 @@ body.page-index {
   padding-right: max(20px, env(safe-area-inset-right));
 }
 
-body.page-index .index-page-logo {
-  padding: clamp(var(--sp-8), 9vh, var(--sp-12)) 0 var(--sp-5);
-}
-
-body.page-index .index-page-logo h1 {
-  font-size: clamp(var(--fs-32), 8vw, 56px);
-  font-weight: 800;
-  line-height: 1;
-}
-
 body.page-index .hero {
   padding-top: clamp(72px, 12vh, 132px);
   padding-bottom: clamp(32px, 5vw, 64px);
+}
+
+body.page-index .index-app-title {
+  margin: 0 0 var(--sp-2);
+  color: var(--ink);
+  font-size: clamp(var(--fs-32), 8vw, 56px);
+  font-weight: 800;
+  line-height: 1;
 }
 
 body.page-index .card {

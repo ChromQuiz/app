@@ -66,7 +66,7 @@ describe('production UI contracts', () => {
   it('keeps the required route and interaction hooks', () => {
     const required = {
       'admin.html': ['id="project-id-display"', 'id="menu-panel"', 'id="dt-picker"', 'data-tab-target=', 'data-action='],
-      'index.html': ['class="page-logo index-page-logo"', '<h1>CIQ</h1>'],
+      'index.html': ['class="index-app-title"', '<h1 class="index-app-title">CIQ</h1>'],
       'entry.html': ['id="entry-form"', 'id="form-card"', 'id="send-code-btn"', 'id="reentry-note"'],
       'my.html': ['id="auth-card"', 'id="hub"', 'id="my-number"', 'id="reentry-section"', 'id="reentry-link"'],
       'entry_list.html': ['id="list-body"', 'id="page-title"'],
