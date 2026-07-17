@@ -350,11 +350,7 @@ function updateConflictSelectionClasses() {
 
 async function render() {
     const previousSelected = currentConflicts[selectedIndex] || null;
-    currentConflicts = buildConflicts().sort((a, b) => {
-        const aResolved = a.finalResult ? 1 : 0;
-        const bResolved = b.finalResult ? 1 : 0;
-        return aResolved - bResolved || a.q - b.q || a.entryNumber - b.entryNumber;
-    });
+    currentConflicts = buildConflicts().sort(compareConflictsByQuestionAndEntry);
     CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, currentConflicts.map(conflict => ({
         ...conflict,
         questionNumber: conflict.q,
@@ -439,6 +435,11 @@ async function render() {
     scheduleBackgroundConflictImages(currentConflicts, initialImageLimit);
 
     scrollToSelectedConflict();
+}
+
+function compareConflictsByQuestionAndEntry(a, b) {
+    return Number(a.q || a.questionNumber || 0) - Number(b.q || b.questionNumber || 0)
+        || Number(a.entryNumber || 0) - Number(b.entryNumber || 0);
 }
 
 function createVoteDot(result) {

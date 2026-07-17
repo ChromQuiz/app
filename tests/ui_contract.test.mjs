@@ -111,6 +111,14 @@ describe('production UI contracts', () => {
     }
   });
 
+  it('keeps conflict cards in question and entry order after resolution', () => {
+    const conflict = read('js/conflict.js');
+    expect(conflict).toContain('function compareConflictsByQuestionAndEntry');
+    expect(conflict).toContain('currentConflicts = buildConflicts().sort(compareConflictsByQuestionAndEntry)');
+    expect(conflict).not.toContain('aResolved');
+    expect(conflict).not.toContain('bResolved');
+  });
+
   it('keeps participant terms markdown extensions safe and styled', () => {
     const terms = read('js/terms.js');
     expect(terms).toContain('function stripFrontMatter');
@@ -275,6 +283,16 @@ describe('design-system contracts', () => {
     expect(designCss).toMatch(/\.toast\s*{[^}]*display:\s*block;[^}]*max-width:\s*min\(420px,\s*calc\(100vw - 24px\)\);/s);
     expect(designCss).toMatch(/\.toast-message\s*{[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/s);
     expect(designCss).not.toMatch(/\.toast\s*{[^}]*grid-template-columns:\s*34px/s);
+  });
+
+  it('keeps email templates readable in dark mode', () => {
+    const email = read('supabase/functions/send-email/index.ts');
+    for (const className of ['ciq-mail-copy', 'ciq-mail-note', 'ciq-mail-code', 'ciq-mail-code-box']) {
+      expect(email).toContain(className);
+    }
+    expect(email).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.ciq-mail-copy,[\s\S]*color:\s*#f5f5f7 !important;/);
+    expect(email).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.ciq-mail-note,[\s\S]*color:\s*#aeaeb2 !important;/);
+    expect(email).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.ciq-mail-code-box\s*{[^}]*background:\s*#2c2c2e !important;[^}]*border-color:\s*#5a5a5f !important;/);
   });
 
   it('does not reintroduce legacy dropdown implementations', () => {

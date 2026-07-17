@@ -80,16 +80,20 @@ function shell(title: string, subtitle: string, body: string) {
       html, body { background: #1c1c1e !important; }
       .ciq-mail-canvas { background: #1c1c1e !important; }
       .ciq-mail-title,
+      .ciq-mail-copy,
       .ciq-mail-text,
       .ciq-mail-value,
+      .ciq-mail-code,
       .ciq-mail-label-strong { color: #f5f5f7 !important; }
       .ciq-mail-sub,
       .ciq-mail-label,
+      .ciq-mail-note,
       .ciq-mail-footer { color: #aeaeb2 !important; }
       .ciq-mail-muted { color: #8e8e93 !important; }
       .ciq-mail-card,
       .ciq-mail-surface { background: #2c2c2e !important; border-color: #48484a !important; }
       .ciq-mail-surface-2 { background: #242426 !important; border-color: #48484a !important; }
+      .ciq-mail-code-box { background: #2c2c2e !important; border-color: #5a5a5f !important; }
       .ciq-mail-line { border-color: #48484a !important; }
       .ciq-mail-button-primary { background: #f5f5f7 !important; border-color: #f5f5f7 !important; }
       .ciq-mail-button-primary a { color: #111113 !important; }
@@ -251,15 +255,15 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     ? panel('現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。', 'warning')
     : panel('エントリーを受け付けました。', 'success');
   const body = `
-    <p style="margin:0 0 4px;text-align:left;">${escapeHtml(person || '参加者')} 様</p>
+    <p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person || '参加者')} 様</p>
     ${waitlistNotice}
     ${numberCard('受付番号', entryNumber)}
     ${detailsTable([['パスワード', password], ['状態', status]])}
-    <p style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;text-align:left;">パスワードはマイエントリー、編集、キャンセルなどに使用します。</p>
+    <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;text-align:left;">パスワードはマイエントリー、編集、キャンセルなどに使用します。</p>
     ${qrCard(qrImageUrl)}
     ${panel('このメールには受付QRとマイエントリー用の情報が含まれます。大会当日まで保存してください。', 'info')}
     ${buttonPair('マイエントリー', myUrl, 'エントリーリスト', entryListUrl)}
-    <p style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">
+    <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">
       マイエントリーでは、登録内容の確認・変更、遅刻の連絡、QRコードの再表示ができます。
     </p>
   `;
@@ -295,7 +299,7 @@ function simpleNotice(args: {
   return {
     subject: `【${name}】${args.subjectLabel}（No.${entryNumber}）`,
     html: shell(args.title, name, `
-      <p style="margin:0 0 4px;text-align:left;">${escapeHtml(person || '参加者')} 様</p>
+      <p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person || '参加者')} 様</p>
       ${panel(args.message, args.tone)}
       ${detailsTable([['受付番号', entryNumber]])}
       ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
@@ -358,15 +362,15 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
   return {
     subject: `【${projectNameValue}】メール認証コード`,
     html: shell('メール認証コード', projectNameValue, `
-      <p style="margin:0;text-align:left;">エントリーフォームに以下のコードを入力してください。</p>
+      <p class="ciq-mail-copy" style="margin:0;text-align:left;color:${MAIL.text};">エントリーフォームに以下のコードを入力してください。</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
         <tr>
-          <td align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:18px;padding:24px;background:${MAIL.surface};">
-            <span style="font-family:${MAIL_MONO};font-size:36px;font-weight:600;letter-spacing:10px;color:${MAIL.text};">${escapeHtml(code)}</span>
+          <td class="ciq-mail-code-box" align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:18px;padding:24px;background:${MAIL.surface};">
+            <span class="ciq-mail-code" style="font-family:${MAIL_MONO};font-size:36px;font-weight:600;letter-spacing:10px;color:${MAIL.text};">${escapeHtml(code)}</span>
           </td>
         </tr>
       </table>
-      <p style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。</p>
+      <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。</p>
     `),
     text: `認証コード: ${code}\nこのコードは10分間有効です。`,
   };
