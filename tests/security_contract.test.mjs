@@ -134,6 +134,21 @@ describe('Edge Function authorization gates stay in place', () => {
   });
 });
 
+describe('RLS policy invariants', () => {
+  it('project_private_keys is fully locked to direct access (using/check false)', () => {
+    const src = read('supabase/migrations/202606290002_project_private_key_store.sql');
+    expect(src).toMatch(/create policy project_private_keys_no_direct_access\s+on public\.project_private_keys for all\s+using \(false\)\s+with check \(false\)/);
+  });
+
+  it('entries has no direct INSERT policy (rows created only via the service-role RPC)', () => {
+    // The RLS policy migration must not grant a direct INSERT path on entries; participant
+    // creation goes through create_entry_atomic (service_role). A permissive insert policy
+    // would let authenticated clients bypass the atomic waitlist/number logic.
+    const rls = read('supabase/migrations/202606260002_rls_policies.sql');
+    expect(rls).not.toMatch(/on public\.entries for insert/i);
+  });
+});
+
 describe('public_entry_list exposes no PII or credential columns', () => {
   const src = read('supabase/migrations/202606260003_public_flow_hardening.sql');
   const block = src.match(/create table if not exists public\.public_entry_list \(([\s\S]*?)\);/);
