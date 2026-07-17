@@ -100,6 +100,40 @@ describe('legacy participant-hash columns are dropped in a migration (P2-e5)', (
   });
 });
 
+describe('Edge Function authorization gates stay in place', () => {
+  const ADMIN_FNS = ['admin-create-entry', 'admin-entry-qr', 'project-key'];
+  for (const fn of ADMIN_FNS) {
+    const src = read(`supabase/functions/${fn}/index.ts`);
+    it(`${fn}: requires an active owner/admin member`, () => {
+      expect(src).toMatch(/requireAdminMember\(/);
+      // owner/admin restriction — JS comparison or SQL `.in('role', [...])` form
+      expect(src).toMatch(/role !== 'owner'|\.in\('role', \['owner', 'admin'\]\)/);
+      // active-status restriction — either form
+      expect(src).toMatch(/status !== 'active'|\.eq\('status', 'active'\)/);
+    });
+  }
+
+  const PARTICIPANT_FNS = ['cancel-entry', 'disclose-result', 'edit-entry', 'mark-late', 'my-entry'];
+  for (const fn of PARTICIPANT_FNS) {
+    const src = read(`supabase/functions/${fn}/index.ts`);
+    it(`${fn}: authenticates the participant via resolveParticipantAuth`, () => {
+      expect(src).toMatch(/resolveParticipantAuth\(/);
+    });
+  }
+
+  it('checkin-qr verifies the HMAC signature before serving', () => {
+    const src = read('supabase/functions/checkin-qr/index.ts');
+    expect(src).toMatch(/safeEqual\(expected, signature\)/);
+  });
+
+  it('check-in requires an authenticated, non-removed project member', () => {
+    const src = read('supabase/functions/check-in/index.ts');
+    expect(src).toMatch(/auth\.getUser\(/);
+    expect(src).toMatch(/from\('project_members'\)/);
+    expect(src).toMatch(/status === 'removed'/);
+  });
+});
+
 describe('public_entry_list exposes no PII or credential columns', () => {
   const src = read('supabase/migrations/202606260003_public_flow_hardening.sql');
   const block = src.match(/create table if not exists public\.public_entry_list \(([\s\S]*?)\);/);
