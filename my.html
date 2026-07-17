@@ -68,6 +68,15 @@
                 <p class="my-note" id="summary-note" hidden></p>
             </section>
 
+            <!-- 再エントリー(キャンセル済みのみ) -->
+            <section class="my-section" id="reentry-section" aria-labelledby="reentry-heading" hidden>
+                <div class="my-section-head">
+                    <h2 id="reentry-heading">再エントリー</h2>
+                </div>
+                <p class="my-note" id="reentry-note"></p>
+                <a class="btn secondary u-full-width" id="reentry-link" href="#">再エントリーする</a>
+            </section>
+
             <!-- 編集フォーム(開いたときだけ) -->
             <section class="my-section u-hidden" id="edit-section" aria-labelledby="edit-heading">
                 <div class="my-section-head">
@@ -219,6 +228,6 @@
 
     <script defer src="js/email.js?v=4"></script>
     <script defer src="js/share_card.js?v=3"></script>
-    <script defer src="js/my.js?v=5"></script>
+    <script defer src="js/my.js?v=6"></script>
 </body>
 </html>

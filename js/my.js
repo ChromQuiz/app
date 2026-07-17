@@ -35,6 +35,26 @@ function setBusy(button, busy, label) {
     if (label) button.textContent = label;
 }
 
+function isEntryCurrentlyOpen() {
+    if (!projectSettings || projectSettings.entryOpen !== true) return false;
+    const now = Date.now();
+    const start = projectSettings.periodStart ? new Date(projectSettings.periodStart).getTime() : null;
+    const end = projectSettings.periodEnd ? new Date(projectSettings.periodEnd).getTime() : null;
+    if (Number.isFinite(start) && start > now) return false;
+    if (Number.isFinite(end) && end < now) return false;
+    return true;
+}
+
+function getEntryClosedReason() {
+    if (!projectSettings || projectSettings.entryOpen !== true) return '現在、エントリー受付は停止中です。';
+    const now = Date.now();
+    const start = projectSettings.periodStart ? new Date(projectSettings.periodStart) : null;
+    const end = projectSettings.periodEnd ? new Date(projectSettings.periodEnd) : null;
+    if (start && start.getTime() > now) return `エントリー受付はまだ開始されていません。開始: ${start.toLocaleString('ja-JP')}`;
+    if (end && end.getTime() < now) return `エントリー受付は終了しました。終了: ${end.toLocaleString('ja-JP')}`;
+    return '現在、再エントリーできません。';
+}
+
 function getParticipantActionPayload() {
     if (!projectId) throw new Error('プロジェクト情報が見つかりません。URLを確認してください。');
     if (!mySession?.token) throw new Error('セッションの有効期限が切れました。もう一度ログインしてください。');
@@ -229,8 +249,35 @@ function applyHubData(data) {
     el('late-section').hidden = !myCapabilities.canMarkLate;
     el('result-section').hidden = !myCapabilities.disclosureOpen;
     el('cancel-section').hidden = !myCapabilities.cancellable;
+    renderReentrySection();
 
     hideEl(el('edit-section'));
+}
+
+function renderReentrySection() {
+    const section = el('reentry-section');
+    const note = el('reentry-note');
+    const link = el('reentry-link');
+    if (!section || !note || !link) return;
+
+    if (myEntryData.status !== 'canceled') {
+        section.hidden = true;
+        return;
+    }
+
+    section.hidden = false;
+    const entryUrl = new URL('entry.html', location.href);
+    entryUrl.searchParams.set('pid', projectId);
+    entryUrl.searchParams.set('reentry', '1');
+    link.href = entryUrl.href;
+
+    if (isEntryCurrentlyOpen()) {
+        note.textContent = 'キャンセル済みの方も、通常と同じ手順で再エントリーできます。新しい受付番号・パスワード・QRコードが発行されます。';
+        link.hidden = false;
+    } else {
+        note.textContent = getEntryClosedReason();
+        link.hidden = true;
+    }
 }
 
 function renderQr() {

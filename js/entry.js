@@ -2,6 +2,7 @@
 
 const params = new URLSearchParams(location.search);
 const projectId = params.get('pid');
+const isReentry = params.get('reentry') === '1';
 let supabasePublicSettingsCache = null;
 
 let emailVerified = false;
@@ -502,6 +503,11 @@ setupVerifyCodeBoxes();
 
 async function init() {
     setEntryStepState('verify');
+    if (isReentry) {
+        const note = document.getElementById('reentry-note');
+        showEl(note);
+        note?.classList.add('is-visible');
+    }
     if (!projectId) {
         showDisabled('プロジェクトが指定されていません', '正しいエントリーURLへアクセスしてください。');
         return;

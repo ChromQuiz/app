@@ -66,8 +66,8 @@ describe('production UI contracts', () => {
   it('keeps the required route and interaction hooks', () => {
     const required = {
       'admin.html': ['id="project-id-display"', 'id="menu-panel"', 'id="dt-picker"', 'data-tab-target=', 'data-action='],
-      'entry.html': ['id="entry-form"', 'id="form-card"', 'id="send-code-btn"'],
-      'my.html': ['id="auth-card"', 'id="hub"', 'id="my-number"'],
+      'entry.html': ['id="entry-form"', 'id="form-card"', 'id="send-code-btn"', 'id="reentry-note"'],
+      'my.html': ['id="auth-card"', 'id="hub"', 'id="my-number"', 'id="reentry-section"', 'id="reentry-link"'],
       'entry_list.html': ['id="list-body"', 'id="page-title"'],
       'judge.html': ['id="q-grid"', 'id="admin-menu-section"', 'class="u-hidden"'],
       'question.html': ['class="page-question"', 'id="answer-grid"', 'id="mobile-action-bar"'],
@@ -131,6 +131,21 @@ describe('production UI contracts', () => {
     expect(css).toContain('.terms-task-checkbox:checked::after');
     expect(css).toContain('.terms-body pre[data-title]');
     expect(css).toContain('.terms-body small');
+  });
+
+  it('keeps canceled entries eligible for a new entry flow', () => {
+    const my = read('js/my.js');
+    expect(my).toContain("myEntryData.status !== 'canceled'");
+    expect(my).toContain("entryUrl.searchParams.set('reentry', '1')");
+    expect(my).toContain('新しい受付番号・パスワード・QRコードが発行されます。');
+
+    const entry = read('js/entry.js');
+    expect(entry).toContain("const isReentry = params.get('reentry') === '1'");
+    expect(entry).toContain("document.getElementById('reentry-note')");
+
+    const migration = read('supabase/migrations/202607140004_create_entry_atomic_v2_only_writes.sql');
+    expect(migration).toContain('entries_active_email_unique_v2_idx');
+    expect(migration).toMatch(/where\s+status\s+<>\s+'canceled'/);
   });
 
   it('maps all product icon names to bundled Lucide icons', () => {

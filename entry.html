@@ -48,6 +48,9 @@
             <form id="entry-form" novalidate>
                 <!-- メール認証ステップ -->
                 <div id="email-verify-section">
+                    <div class="page-msg info u-hidden" id="reentry-note" role="status">
+                        キャンセル済みの方も、通常と同じ手順で再エントリーできます。新しい受付番号・パスワード・QRコードが発行されます。
+                    </div>
                     <div class="form-group">
                         <label class="required" for="f-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
                         <input type="email" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください" aria-describedby="email-hint">
@@ -232,7 +235,7 @@
     </div>
 
     <script defer src="js/email.js?v=5"></script>
-    <script defer src="js/entry.js?v=13"></script>
+    <script defer src="js/entry.js?v=14"></script>
 </body>
 
 </html>
