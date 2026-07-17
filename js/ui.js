@@ -445,6 +445,23 @@ function showToast(msg, type = 'info', duration = 3000) {
     }, Math.max(1000, Number(duration) || 3000));
 }
 
+function setPageMessage(el, message, type = 'info') {
+    if (!el) return;
+    const text = String(message || '');
+    el.textContent = text;
+    el.className = `page-msg ${type || 'info'}`.trim();
+    el.classList.toggle('is-visible', Boolean(text));
+    el.setAttribute('aria-live', type === 'error' || type === 'warning' ? 'assertive' : 'polite');
+    el.setAttribute('role', type === 'error' || type === 'warning' ? 'alert' : 'status');
+}
+
+function clearPageMessage(el) {
+    if (!el) return;
+    el.textContent = '';
+    el.className = 'page-msg';
+    el.classList.remove('is-visible');
+}
+
 let confirmDialogSequence = 0;
 
 function showConfirm(message, confirmText = '削除する') {

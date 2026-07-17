@@ -77,31 +77,25 @@ function showDisabled(title, detail) {
 
 function showVerifyMsg(msg, type) {
     const el = document.getElementById('verify-msg');
-    el.textContent = msg;
-    el.className = `page-msg ${type}`;
-    el.classList.add('is-visible');
+    setPageMessage(el, msg, type || 'info');
     if (type === 'error' && shouldShowVerificationMailboxHelp()) showVerificationMailboxHelp();
 }
 
 function clearVerifyMsg() {
-    const el = document.getElementById('verify-msg');
-    el.textContent = '';
-    el.className = 'page-msg';
-    el.classList.remove('is-visible');
+    clearPageMessage(document.getElementById('verify-msg'));
 }
 
 function showVerifyHelp(msg) {
     const el = document.getElementById('verify-help-msg');
     if (!el) return;
-    el.textContent = '';
-    el.append(entryIcon('triangle-exclamation'), document.createTextNode(msg));
+    setPageMessage(el, msg, 'warning');
     el.classList.remove('u-hidden');
 }
 
 function clearVerifyHelp() {
     const el = document.getElementById('verify-help-msg');
     if (!el) return;
-    el.textContent = '';
+    clearPageMessage(el);
     el.classList.add('u-hidden');
 }
 
@@ -178,17 +172,11 @@ function setupVerifyCodeBoxes() {
 }
 
 function showStatus(msg, type) {
-    const sm = document.getElementById('status-msg');
-    sm.textContent = msg;
-    sm.className = `page-msg ${type}`;
-    sm.classList.add('is-visible');
+    setPageMessage(document.getElementById('status-msg'), msg, type || 'info');
 }
 
 function clearStatus() {
-    const sm = document.getElementById('status-msg');
-    sm.textContent = '';
-    sm.className = 'page-msg';
-    sm.classList.remove('is-visible');
+    clearPageMessage(document.getElementById('status-msg'));
 }
 
 function getPreVerificationSubmitMessage() {
@@ -403,17 +391,9 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     const message = document.getElementById('f-message').value.trim();
     const inquiry = document.getElementById('f-inquiry').value.trim();
     const isChubu = document.getElementById('f-chubu').checked;
-    const tosAccepted = document.getElementById('f-tos').checked;
 
-    if (!familyName || !firstName || !familyNameKana || !firstNameKana || !affiliation || !grade || !entryName || !recordNamePermission || !tosAccepted) {
-        showStatus('必須項目を入力してください。', 'error');
-        return;
-    }
     const form = e.currentTarget;
-    if (!form.reportValidity()) {
-        showStatus('必須項目を入力してください。', 'error');
-        return;
-    }
+    if (!form.reportValidity()) return;
     if (!/^[ァ-ヴー]+$/.test(familyNameKana) || !/^[ァ-ヴー]+$/.test(firstNameKana)) {
         showStatus('カナは全角カタカナで入力してください。', 'error');
         return;

@@ -106,8 +106,7 @@ function setButtonContent(button, text, iconClass = '', iconAfter = true) {
 
 function showError(msg) {
     const el = document.getElementById('status-msg');
-    setIconText(el, 'triangle-exclamation', msg);
-    el.classList.add('is-visible');
+    setPageMessage(el, msg, 'error');
     setTimeout(() => el.classList.remove('is-visible'), 5000);
 }
 

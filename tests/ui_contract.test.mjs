@@ -307,13 +307,26 @@ describe('design-system contracts', () => {
     expect(designCss).not.toMatch(/\.toast\s*{[^}]*grid-template-columns:\s*34px/s);
   });
 
+  it('keeps page messages neutral and avoids redundant form notices', () => {
+    expect(designCss).toMatch(/\.page-msg,[\s\S]*?\.status-msg-box\s*{[\s\S]*?background:\s*var\(--surface\);[\s\S]*?border-left:\s*3px solid var\(--page-msg-accent, var\(--line-strong\)\);/);
+    expect(designCss).toMatch(/\.page-msg\.error,[\s\S]*?\.status-msg-box\.error\s*{\s*--page-msg-accent:\s*var\(--bad-600\);\s*}/);
+    expect(designCss).not.toMatch(/\.page-msg\.(?:error|success|warning)[^{]*\{[^}]*background:\s*color-mix/);
+    expect(read('js/my.js')).not.toContain('ログアウトしました。');
+    for (const path of ['js/entry.js', 'js/my.js', 'js/admin_settings.js']) {
+      expect(read(path), path).not.toContain('必須項目を入力してください。');
+    }
+    expect(read('entry.html')).toContain('class="page-msg info is-visible entry-mail-notice"');
+  });
+
   it('keeps email templates readable in dark mode', () => {
     const email = read('supabase/functions/send-email/index.ts');
-    for (const className of ['ciq-mail-copy', 'ciq-mail-note', 'ciq-mail-code', 'ciq-mail-code-box']) {
+    for (const className of ['ciq-mail-copy', 'ciq-mail-note', 'ciq-mail-code', 'ciq-mail-code-box', 'ciq-mail-label', 'ciq-mail-value']) {
       expect(email).toContain(className);
     }
     expect(email).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.ciq-mail-copy,[\s\S]*color:\s*#f5f5f7 !important;/);
+    expect(email).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.ciq-mail-copy,[\s\S]*-webkit-text-fill-color:\s*#f5f5f7 !important;/);
     expect(email).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.ciq-mail-note,[\s\S]*color:\s*#aeaeb2 !important;/);
+    expect(email).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.ciq-mail-note,[\s\S]*-webkit-text-fill-color:\s*#aeaeb2 !important;/);
     expect(email).toMatch(/@media \(prefers-color-scheme: dark\)[\s\S]*\.ciq-mail-code-box\s*{[^}]*background:\s*#2c2c2e !important;[^}]*border-color:\s*#5a5a5f !important;/);
   });
 

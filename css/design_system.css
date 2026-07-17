@@ -2307,10 +2307,10 @@ tbody tr:hover {
   padding: var(--sp-3) var(--sp-4);
   font-size: var(--fs-14);
   font-weight: 600;
-  color: var(--accent);
+  color: var(--ink);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-left: 3px solid currentColor;
+  border-left: 3px solid var(--page-msg-accent, var(--line-strong));
   border-radius: 12px;
 }
 
@@ -2320,10 +2320,17 @@ tbody tr:hover {
   display: flex;
 }
 
-.page-msg.info { color: var(--accent); }
-.page-msg.success { color: var(--ok-600); }
-.page-msg.error { color: var(--bad-600); }
-.page-msg.warning { color: var(--warn-600); }
+.page-msg.info,
+.status-msg-box.info { --page-msg-accent: var(--accent); }
+
+.page-msg.success,
+.status-msg-box.success { --page-msg-accent: var(--ok-600); }
+
+.page-msg.error,
+.status-msg-box.error { --page-msg-accent: var(--bad-600); }
+
+.page-msg.warning,
+.status-msg-box.warning { --page-msg-accent: var(--warn-600); }
 
 .message-line,
 .entry-verify-help,
@@ -2337,32 +2344,33 @@ tbody tr:hover {
   padding: var(--sp-3) var(--sp-4);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-left: 3px solid currentColor;
+  border-left: 3px solid var(--page-msg-accent, var(--line-strong));
   border-radius: 12px;
   font-size: var(--fs-14);
   font-weight: 600;
+  color: var(--ink);
 }
 
 .message-line.info,
 .csv-status {
-  color: var(--ink-2);
+  --page-msg-accent: var(--accent);
 }
 
 .message-line.success,
 .entry-verified-box,
 .csv-status.ready {
-  color: var(--ok-600);
+  --page-msg-accent: var(--ok-600);
 }
 
 .message-line.warning,
 .entry-verify-help,
 .waitlist-result-note,
 .csv-status.notready {
-  color: var(--warn-600);
+  --page-msg-accent: var(--warn-600);
 }
 
 .message-line.error {
-  color: var(--bad-600);
+  --page-msg-accent: var(--bad-600);
 }
 
 .page-msg [data-icon],
@@ -2380,6 +2388,7 @@ tbody tr:hover {
   align-self: center;
   display: inline-flex;
   margin-top: 0;
+  color: var(--page-msg-accent, currentColor);
 }
 
 .terms-alert {
@@ -2430,7 +2439,7 @@ tbody tr:hover {
 
 .entry-mail-notice > [data-icon] {
   margin-top: 0.15em;
-  color: var(--ink-2);
+  color: var(--page-msg-accent, var(--ink-2));
 }
 
 .entry-mail-notice-content {
@@ -4970,11 +4979,15 @@ select:focus {
 .csv-status,
 .entry-verify-help,
 .entry-verified-box,
+.entry-mail-notice,
+.waitlist-result-note,
 .warning-box {
   border: 1px solid var(--line);
+  border-left: 3px solid var(--page-msg-accent, var(--line-strong));
   border-radius: var(--radius-grouped);
   background: var(--surface);
   box-shadow: inset var(--app-bg-inset);
+  color: var(--ink);
 }
 
 .page-msg,
@@ -4988,25 +5001,16 @@ select:focus {
 }
 
 .page-msg.error,
-.status-msg-box.error,
-.error-state {
-  color: var(--bad-600);
-  background: color-mix(in srgb, var(--bad-100) 68%, var(--surface));
-  border-color: color-mix(in srgb, var(--bad-600) 24%, var(--line));
+.status-msg-box.error {
+  --page-msg-accent: var(--bad-600);
 }
 
-.page-msg.success,
-.success-state {
-  color: var(--ok-600);
-  background: color-mix(in srgb, var(--ok-100) 68%, var(--surface));
-  border-color: color-mix(in srgb, var(--ok-600) 24%, var(--line));
+.page-msg.success {
+  --page-msg-accent: var(--ok-600);
 }
 
-.page-msg.warning,
-.warning-box {
-  color: var(--warn-600);
-  background: color-mix(in srgb, var(--warn-100) 68%, var(--surface));
-  border-color: color-mix(in srgb, var(--warn-600) 24%, var(--line));
+.page-msg.warning {
+  --page-msg-accent: var(--warn-600);
 }
 
 .toast-container {

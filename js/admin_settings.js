@@ -141,9 +141,8 @@
         function setAdminEntryStatus(message, type = '') {
             const el = document.getElementById('admin-entry-status');
             if (!el) return;
-            el.textContent = message || '';
-            el.className = `page-msg ${type || ''}`.trim();
-            el.classList.toggle('is-visible', Boolean(message));
+            if (message) setPageMessage(el, message, type || 'info');
+            else clearPageMessage(el);
         }
 
         function setAdminEntrySubmitting(isSubmitting) {
@@ -170,8 +169,7 @@
             });
             const receiptStatus = document.getElementById('admin-entry-receipt-status');
             if (receiptStatus) {
-                receiptStatus.textContent = 'QRコード入り控え画像を生成しています...';
-                receiptStatus.className = 'page-msg info is-visible';
+                setPageMessage(receiptStatus, 'QRコード入り控え画像を生成しています...', 'info');
             }
             setAdminEntryStatus('');
             setAdminEntrySubmitting(false);
@@ -411,8 +409,7 @@
         function setAdminEntryReceiptStatus(message, type = 'info') {
             const status = document.getElementById('admin-entry-receipt-status');
             if (!status) return;
-            status.textContent = message;
-            status.className = `page-msg ${type} is-visible`;
+            setPageMessage(status, message, type);
         }
 
         async function prepareAdminEntryReceipt(receipt) {
@@ -451,9 +448,6 @@
         }
 
         function validateAdminEntryForm(values) {
-            if (!values.email || !values.familyName || !values.firstName || !values.familyNameKana || !values.firstNameKana || !values.affiliation || !values.grade || !values.entryName || !values.recordNamePermission) {
-                return '必須項目を入力してください。';
-            }
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
                 return '正しいメールアドレスを入力してください。';
             }
@@ -483,10 +477,7 @@
         async function submitAdminEntryForm(event) {
             event?.preventDefault();
             const form = document.getElementById('admin-entry-form');
-            if (form && !form.reportValidity()) {
-                setAdminEntryStatus('必須項目を入力してください。', 'error');
-                return;
-            }
+            if (form && !form.reportValidity()) return;
             const values = readAdminEntryForm();
             const validationMessage = validateAdminEntryForm(values);
             if (validationMessage) {

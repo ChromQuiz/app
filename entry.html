@@ -18,9 +18,9 @@
     <script defer src="js/supabase_api.js?v=34"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=8"></script>
-    <script defer src="js/ui.js?v=19"></script>
+    <script defer src="js/ui.js?v=20"></script>
     <script defer src="js/shared.js?v=2"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=72">
+    <link rel="stylesheet" href="css/design_system.css?v=73">
     <link rel="stylesheet" href="css/pages.css?v=111">
 </head>
 
@@ -85,7 +85,7 @@
 
                 <!-- 認証完了後に表示されるフォーム本体 -->
                 <div id="form-body" class="u-hidden">
-                    <div class="entry-verified-box">
+                    <div class="page-msg success is-visible entry-verified-box">
                         <span data-icon="circle-check" aria-hidden="true"></span> メール認証済: <strong id="verified-email"></strong>
                     </div>
 
@@ -220,7 +220,7 @@
                 <div class="info-value" id="r-entry-number">---</div>
             </div>
 
-            <div class="entry-mail-notice">
+            <div class="page-msg info is-visible entry-mail-notice">
                 <span data-icon="envelope" aria-hidden="true"></span>
                 <div class="entry-mail-notice-content">
                     <strong>メールを保存してください</strong>
@@ -235,7 +235,7 @@
     </div>
 
     <script defer src="js/email.js?v=5"></script>
-    <script defer src="js/entry.js?v=15"></script>
+    <script defer src="js/entry.js?v=16"></script>
 </body>
 
 </html>

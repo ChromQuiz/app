@@ -84,27 +84,51 @@ function shell(title: string, subtitle: string, body: string) {
       .ciq-mail-text,
       .ciq-mail-value,
       .ciq-mail-code,
-      .ciq-mail-label-strong { color: #f5f5f7 !important; }
+      .ciq-mail-label-strong {
+        color: #f5f5f7 !important;
+        -webkit-text-fill-color: #f5f5f7 !important;
+      }
       .ciq-mail-sub,
       .ciq-mail-label,
       .ciq-mail-note,
-      .ciq-mail-footer { color: #aeaeb2 !important; }
-      .ciq-mail-muted { color: #8e8e93 !important; }
+      .ciq-mail-footer {
+        color: #aeaeb2 !important;
+        -webkit-text-fill-color: #aeaeb2 !important;
+      }
+      .ciq-mail-muted {
+        color: #8e8e93 !important;
+        -webkit-text-fill-color: #8e8e93 !important;
+      }
       .ciq-mail-card,
       .ciq-mail-surface { background: #2c2c2e !important; border-color: #48484a !important; }
       .ciq-mail-surface-2 { background: #242426 !important; border-color: #48484a !important; }
       .ciq-mail-code-box { background: #2c2c2e !important; border-color: #5a5a5f !important; }
       .ciq-mail-line { border-color: #48484a !important; }
       .ciq-mail-button-primary { background: #f5f5f7 !important; border-color: #f5f5f7 !important; }
-      .ciq-mail-button-primary a { color: #111113 !important; }
+      .ciq-mail-button-primary a {
+        color: #111113 !important;
+        -webkit-text-fill-color: #111113 !important;
+      }
       .ciq-mail-button-secondary { background: #2c2c2e !important; border-color: #5a5a5f !important; }
-      .ciq-mail-button-secondary a { color: #f5f5f7 !important; }
+      .ciq-mail-button-secondary a {
+        color: #f5f5f7 !important;
+        -webkit-text-fill-color: #f5f5f7 !important;
+      }
       .ciq-mail-success { border-color: #30d158 !important; }
-      .ciq-mail-success .ciq-mail-tone { color: #30d158 !important; }
+      .ciq-mail-success .ciq-mail-tone {
+        color: #30d158 !important;
+        -webkit-text-fill-color: #30d158 !important;
+      }
       .ciq-mail-warning { border-color: #ff9f0a !important; }
-      .ciq-mail-warning .ciq-mail-tone { color: #ff9f0a !important; }
+      .ciq-mail-warning .ciq-mail-tone {
+        color: #ff9f0a !important;
+        -webkit-text-fill-color: #ff9f0a !important;
+      }
       .ciq-mail-danger { border-color: #ff453a !important; }
-      .ciq-mail-danger .ciq-mail-tone { color: #ff453a !important; }
+      .ciq-mail-danger .ciq-mail-tone {
+        color: #ff453a !important;
+        -webkit-text-fill-color: #ff453a !important;
+      }
     }
   </style>
   <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:32px 12px;">

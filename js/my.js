@@ -24,9 +24,8 @@ function hideEl(node) { node?.classList.add('u-hidden'); }
 function setMsg(id, msg, type) {
     const box = el(id);
     if (!box) return;
-    box.textContent = msg || '';
-    box.className = `page-msg ${type || ''}`.trim();
-    box.classList.toggle('is-visible', Boolean(msg));
+    if (msg) setPageMessage(box, msg, type || 'info');
+    else clearPageMessage(box);
 }
 
 function setBusy(button, busy, label) {
@@ -145,10 +144,6 @@ async function authenticate(event) {
 
     const email = el('f-email').value.trim();
     const pw = el('f-password').value.trim();
-    if (!email || !pw) {
-        setMsg('auth-msg', 'メールアドレスとパスワードを入力してください。', 'error');
-        return;
-    }
 
     const btn = el('auth-btn');
     setBusy(btn, true, '確認中...');
@@ -194,7 +189,7 @@ function logout() {
     el('f-password').value = '';
     hideEl(el('result-view'));
     showAuth();
-    setMsg('auth-msg', 'ログアウトしました。', 'success');
+    setMsg('auth-msg', '', '');
 }
 
 // ---------- ハブ描画 ----------
@@ -378,10 +373,7 @@ function openEdit() {
 async function saveEdit(event) {
     event?.preventDefault();
     const form = el('edit-card');
-    if (!form.reportValidity()) {
-        setMsg('edit-msg', '必須項目を入力してください。', 'error');
-        return;
-    }
+    if (!form.reportValidity()) return;
 
     const familyName = el('e-family-name').value.trim();
     const firstName = el('e-first-name').value.trim();
@@ -395,10 +387,6 @@ async function saveEdit(event) {
     const message = el('e-message').value.trim();
     const inquiry = el('e-inquiry').value.trim();
 
-    if (!familyName || !firstName || !familyNameKana || !firstNameKana || !affiliation || !grade || !entryName || !recordNamePermission) {
-        setMsg('edit-msg', '必須項目を入力してください。', 'error');
-        return;
-    }
     if (!/^[ァ-ヴー]+$/.test(familyNameKana) || !/^[ァ-ヴー]+$/.test(firstNameKana)) {
         setMsg('edit-msg', 'カナは全角カタカナで入力してください。', 'error');
         return;
