@@ -111,6 +111,13 @@ describe('production UI contracts', () => {
     }
   });
 
+  it('lets the entry verification code submit with Enter', () => {
+    const entry = read('js/entry.js');
+    expect(entry).toContain("event.key === 'Enter'");
+    expect(entry).toContain('syncVerifyCodeFromBoxes();');
+    expect(entry).toContain('verifyEmailCode();');
+  });
+
   it('keeps conflict cards in question and entry order after resolution', () => {
     const conflict = read('js/conflict.js');
     expect(conflict).toContain('function compareConflictsByQuestionAndEntry');

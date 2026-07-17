@@ -153,6 +153,13 @@ function setupVerifyCodeBoxes() {
             if (digits && index < boxes.length - 1) focusVerifyCodeBox(index + 1);
         });
         input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                syncVerifyCodeFromBoxes();
+                const verifyButton = document.getElementById('verify-code-btn');
+                if (!verifyButton?.disabled) verifyEmailCode();
+                return;
+            }
             if (event.key === 'Backspace' && !input.value && index > 0) {
                 event.preventDefault();
                 boxes[index - 1].value = '';
