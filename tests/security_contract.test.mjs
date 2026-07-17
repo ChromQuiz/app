@@ -134,6 +134,23 @@ describe('Edge Function authorization gates stay in place', () => {
   });
 });
 
+describe('Content-Security-Policy stays hardened on production pages', () => {
+  const PAGES = [
+    '404.html', 'admin.html', 'checkin.html', 'conflict.html', 'entry.html', 'entry_list.html',
+    'help.html', 'index.html', 'judge.html', 'my.html', 'question.html', 'terms.html',
+  ];
+  for (const page of PAGES) {
+    const html = read(page);
+    it(`${page}: declares a CSP with no unsafe-inline / unsafe-eval`, () => {
+      const csp = html.match(/http-equiv=["']Content-Security-Policy["'][^>]*content="([^"]+)"/i);
+      expect(csp).toBeTruthy();
+      expect(csp[1]).not.toMatch(/unsafe-inline/);
+      expect(csp[1]).not.toMatch(/unsafe-eval/);
+      expect(csp[1]).toMatch(/default-src 'self'/);
+    });
+  }
+});
+
 describe('RLS policy invariants', () => {
   it('project_private_keys is fully locked to direct access (using/check false)', () => {
     const src = read('supabase/migrations/202606290002_project_private_key_store.sql');
