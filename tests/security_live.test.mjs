@@ -65,12 +65,42 @@ describe.skipIf(!LIVE)('live RLS / grant enforcement (anon, read-only)', () => {
     if (Array.isArray(body)) expect(body).toHaveLength(0);
   });
 
-  it('anon reads of membership tables are row-hidden by RLS (0 rows, not an error)', async () => {
-    const { status, body } = await anonGet('project_members?select=id&limit=1');
-    // anon has SELECT grant but RLS (auth.uid() is null) must return no rows.
-    expect(status).toBe(200);
-    expect(Array.isArray(body) ? body.length : 0).toBe(0);
-  });
+  // Tables anon has no SELECT grant on at all -> PostgREST must refuse (never 200 with rows).
+  const NO_READ_TABLES = [
+    'entries', 'answer_pages', 'audit_logs', 'email_events', 'final_results',
+    'model_answers', 'question_scorers', 'score_events', 'score_votes',
+    'rate_limit_events', 'participant_auth_events', 'project_private_keys',
+  ];
+  for (const t of NO_READ_TABLES) {
+    it(`anon cannot read ${t}`, async () => {
+      const { status, body } = await anonGet(`${t}?select=*&limit=1`);
+      expect(status).not.toBe(200);
+      if (Array.isArray(body)) expect(body).toHaveLength(0);
+    });
+  }
+
+  // Tables anon may reach but RLS must hide every row (auth.uid() is null).
+  for (const t of ['projects', 'project_members']) {
+    it(`anon reads of ${t} are row-hidden by RLS (0 rows, not an error)`, async () => {
+      const { status, body } = await anonGet(`${t}?select=id&limit=1`);
+      expect(status).toBe(200);
+      expect(Array.isArray(body) ? body.length : 0).toBe(0);
+    });
+  }
+
+  // Privileged RPCs must not be executable by anon (execute granted to service_role/authenticated only).
+  for (const rpc of ['create_entry_atomic', 'list_entries_for_admin', 'cancel_entry_by_id_atomic']) {
+    it(`anon cannot execute rpc ${rpc}`, async () => {
+      const res = await fetch(`${URL}/rest/v1/rpc/${rpc}`, {
+        method: 'POST',
+        headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      // Permission denied / not exposed -> never a 2xx success.
+      expect(res.status).not.toBe(200);
+      expect(res.status).not.toBe(204);
+    });
+  }
 
   it('public_entry_list is readable but PII-free', async () => {
     const { status, body } = await anonGet('public_entry_list?select=*&limit=5');
