@@ -244,6 +244,40 @@ Notes   : 所見=RLS は project スコープ helper で一貫し健全、危険
           未了=authenticated ロールの behavioral 実行時検証（#1b、要 JWT フィクスチャ）。
 ```
 
+### セキュリティ強化計画 Phase 1 監査（親計画 docs/security-hardening-plan.md／V1・V2・V4・V6）
+```
+Status  : Phase 1 = Partially Completed — 2026-07-19（V2 の CAPTCHA が外部サービス判断待ち）
+
+V1 HMAC署名鍵フォールバック : Completed
+  - 実装 : _shared/signing.ts:14,29-34（フォールバック無・未設定/32未満で SigningConfigError）
+  - commit: aa9237f / 本番env: CIQ_EMAIL_SIGNING_SECRET 設定済(2026-07-08)
+  - production: GET /checkin-qr?d=…&s=deadbeef → 404（鍵設定済・長さ充足）
+  - 文書 : docs/security-hardening-plan.md 付録A（鍵ローテーション手順）＝完了条件(d)を充足
+
+V2 メール送信オラクル : Partially Completed
+  - 済 : IP レート(send_verification 5/10min, create_entry 10/60min) _shared/rate_limit.ts:57-61 /
+         create-entry:45 / send-email:555 ; 日次上限 enforceProjectDailyEmailCap（bucket email_daily,
+         既定500/日）を recordAndSend に適用（commit 0d2483c）
+  - 残 : CAPTCHA(Turnstile) 認証コード発行前の必須化 = 未実装（grep 0件）。**外部サービス導入=要ユーザー判断で停止**
+
+V4 参加者認証の IP レート制限 : Completed（改定基準=IP単位・親計画注記2026-07-19）
+  - 実装 : participant_auth.ts:172-179（token/credential 両経路の冒頭で共通適用）/
+           rate_limit.ts enforceIpRateLimit → アトミック RPC rate_limit_hit（migration 202607190001,
+           pg_advisory_xact_lock で count+insert を直列化, service_role限定）
+  - production(before) : 25 並列 → 25×404（非アトミックで上限20を突破）
+  - production(after)  : fresh window 25 並列 → 20×404 + 5×429（上限でちょうど頭打ち＝並列突破を解消）
+                         逐次 → 429、rate_limit_events に participant_auth の記録（運用確認可）
+  - 注 : participant_auth_events への ip_hash 列追加は行わない（IP 追跡は rate_limit_events の HMAC scope_key）
+
+V6 エラーメッセージ内部漏洩 : Completed
+  - 実装 : _shared/http.ts:59-63（serverErrorResponse＝汎用文言+ref、詳細は console.error）。JSON返す11 Edge が使用
+  - production: POST /send-email(bogus) → {"error":"サーバーで問題が発生しました…","ref":"…"}（内部情報なし）
+
+Rollback: 可逆（V4 は additive migration + Edge 再デプロイ、旧挙動は fail-open で温存）
+Notes   : Phase 1 は V2 の CAPTCHA（外部サービス）を除き完了。全 V が Completed/No Longer Applicable
+          になるまで Phase 2/3 へは進まない（親計画の判定規則）。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
@@ -271,7 +305,8 @@ Notes   : 補足・再構成の断り・要確認事項
 **現状整理のみ（新規設計ではない）。** 判定は現在の repo / 本番デプロイ / migration の実証跡に基づく。
 出典の初期計画は Firebase→Supabase 移行の設計書（脅威モデル・RLS・認証フローを含む）。参加者ハッシュ v1→v2 等の
 **セキュリティ強化**はこの移行の先の継続トラックで、本文書 §1〜§4 が担う。
-※ もし別の「セキュリティ専用フェーズ計画」を指す場合は、repo に persisted なのは本 §9 のみのため、その旨ご指摘を。
+※ **訂正（2026-07-19）**: セキュリティ強化の親計画は別に存在し、`docs/security-hardening-plan.md`（V1〜V13・Phase 1〜3）として persist 済み。
+本 §6 は Firebase→Supabase の**移行**計画（supabase-phase0.md §9）の現状であり、セキュリティ親計画ではない。Phase 1（V1/V2/V4/V6）の監査は上記 §4 と親計画を参照。
 
 ### Phase 1 — 基盤 ／ Status: Completed
 - [x] Supabase プロジェクト作成・Google OAuth・SQL migration 適用・RLS 適用・Storage バケット+ポリシー・auth JS・index ログイン
