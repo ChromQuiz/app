@@ -2,7 +2,7 @@ import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_
 import { createServiceClient } from '../_shared/supabase.ts';
 import { emailProviderName, sendProviderEmail } from '../_shared/email_provider.ts';
 import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
-import { clientIp, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
+import { clientIp, enforceIpRateLimit, enforceProjectDailyEmailCap, RateLimitError } from '../_shared/rate_limit.ts';
 import { issueEmailVerifiedToken } from '../_shared/email_verify.ts';
 import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
 
@@ -476,6 +476,8 @@ async function recordAndSend(args: {
   const supabase = createServiceClient();
   if (!args.projectId) throw new Error('Project is required');
   await enforceRateLimit(supabase, args.recipientHash, args.template);
+  // プロジェクト日次の送信上限(V2 backstop・IP 横断のメール爆撃/枠枯渇を抑止)。
+  await enforceProjectDailyEmailCap(supabase, args.projectId);
 
   const { data: queued, error: queueError } = await supabase
     .from('email_events')

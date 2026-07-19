@@ -103,6 +103,28 @@
 
 ---
 
+## 付録A: 署名鍵ローテーション手順（V1 完了条件）
+
+対象秘密: `CIQ_EMAIL_SIGNING_SECRET`（無ければ `CIQ_EDGE_INTERNAL_SECRET`）。用途＝参加者短命トークン・受付 QR・
+メール認証コードの HMAC 署名（`_shared/signing.ts`）。**32byte 以上（`openssl rand -hex 32` = 64 hex 文字）必須。**未設定/短すぎると
+`SigningConfigError` で該当機能は停止する（fail-closed）。
+
+手順（低トラフィック時間帯に実施）:
+1. 新しい鍵を生成: `openssl rand -hex 32`
+2. 本番へ投入: `supabase secrets set CIQ_EMAIL_SIGNING_SECRET=<new> --project-ref pyzdlkwumhreepgkrcyb`
+3. 署名鍵を使う Edge Function を再デプロイして確実に反映:
+   `send-email` / `checkin-qr` / `my-entry` / `edit-entry` / `cancel-entry` / `mark-late` / `disclose-result`
+   （participant_auth 経由のトークン検証・QR 再表示を含む）
+4. 反映確認: `GET /functions/v1/checkin-qr?d=<uuid>&s=deadbeef` が **404**（＝鍵設定済み・長さ充足）を返すこと。503 なら未反映。
+
+影響（不可逆な失効）:
+- 旧鍵で発行済みの**参加者セッショントークンは全て無効化**→ 参加者は my.html で再ログインが必要。
+- 旧鍵で署名済みの**受付 QR URL・メール内 QR は検証不能**になる → my.html は再表示で新 QR を生成。配布済みメール内 QR は無効。
+- よってローテーションは大会当日直前〜当日は避ける（受付 QR 失効を防ぐ）。
+
+ロールバック: 旧鍵を `supabase secrets set` で再投入し、上記 Edge を再デプロイすれば旧トークン/QR が再び有効化する
+（旧鍵を安全に保管している場合のみ）。
+
 ## 注記・変更履歴（親計画の改定ログ）
 
 ### 2026-07-19 — V4 の完了条件を IP 単位へ改定（運用モデルに整合）
