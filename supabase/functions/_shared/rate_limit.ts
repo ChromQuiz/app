@@ -81,22 +81,28 @@ export async function enforceIpRateLimit(
   }
 
   const conf = RATE_LIMITS[opts.bucket];
-  const since = new Date(Date.now() - conf.windowMs).toISOString();
+  const limit = conf.limit();
 
-  const { count, error } = await supabase
-    .from('rate_limit_events')
-    .select('id', { count: 'exact', head: true })
-    .eq('bucket', opts.bucket)
-    .eq('scope_key', scopeKey)
-    .gte('created_at', since);
-  if (error) return; // カウント失敗 → fail-open
-
-  if ((count || 0) >= conf.limit()) {
-    throw new RateLimitError();
+  // カウント判定と記録を1つのアトミック RPC(pg_advisory_xact_lock で直列化)で行う。
+  // 「select count → insert」の2段だと並列バーストが insert 前に count<limit を読んで上限を突破するため、
+  // 直前までの窓内件数(このヒットを含まない)を RPC から受け取り、limit 到達で 429 を投げる。
+  // RPC 障害(error/例外)は握りつぶして通過(fail-open)。
+  let priorCount: number;
+  try {
+    const { data, error } = await supabase.rpc('rate_limit_hit', {
+      p_bucket: opts.bucket,
+      p_scope_key: scopeKey,
+      p_window_seconds: Math.floor(conf.windowMs / 1000),
+      p_limit: limit,
+      p_project_id: opts.projectId ?? null,
+    });
+    if (error) return; // RPC 失敗 → fail-open
+    priorCount = Number(data) || 0;
+  } catch {
+    return; // 例外 → fail-open
   }
 
-  await supabase
-    .from('rate_limit_events')
-    .insert({ bucket: opts.bucket, scope_key: scopeKey, project_id: opts.projectId ?? null })
-    .then(() => undefined, () => undefined); // insert失敗も本処理を止めない(fail-open)
+  if (priorCount >= limit) {
+    throw new RateLimitError();
+  }
 }

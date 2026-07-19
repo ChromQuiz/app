@@ -134,6 +134,23 @@ describe('Edge Function authorization gates stay in place', () => {
   });
 });
 
+describe('IP rate limiting is concurrency-safe (V4)', () => {
+  it('enforceIpRateLimit uses the atomic rate_limit_hit RPC, not a raw count+insert', () => {
+    const src = read('supabase/functions/_shared/rate_limit.ts');
+    expect(src).toMatch(/\.rpc\('rate_limit_hit'/);
+    // the racy "select count then insert" pattern must be gone
+    expect(src).not.toMatch(/count:\s*'exact'/);
+    expect(src).toMatch(/priorCount >= limit/);
+  });
+
+  it('rate_limit_hit serializes with an advisory lock and is service_role-only', () => {
+    const mig = read('supabase/migrations/202607190001_rate_limit_atomic.sql');
+    expect(mig).toMatch(/pg_advisory_xact_lock/);
+    expect(mig).toMatch(/grant execute on function public\.rate_limit_hit[^;]*to service_role/);
+    expect(mig).toMatch(/revoke all on function public\.rate_limit_hit[^;]*from public, anon, authenticated/);
+  });
+});
+
 describe('Content-Security-Policy stays hardened on production pages', () => {
   const PAGES = [
     '404.html', 'admin.html', 'checkin.html', 'conflict.html', 'entry.html', 'entry_list.html',
