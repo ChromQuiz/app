@@ -700,6 +700,38 @@ Evidence（同等性が成立しない根拠）:
   (4) 1 関数で試験デプロイ → (5) 全関数へ展開、の順で、大会日程を避けて行う。
 ```
 
+### V13 追加検証 — 「deno.lock を作れるか」と「Supabase が使えるか」を切り分けて実証
+```
+Status  : 検証完了（V13 の判定は Partially Completed のまま。改訂可否はユーザー判断待ち）— 2026-07-26
+
+【問1】deno.lock を作ること自体 → **可能**（前回の「Deno 未導入だからできない」は不正確だった）
+  - Deno は npm 経由で入手できる（`npx deno@2.9.4` で実行確認: deno 2.9.4 / v8 15.0 / TypeScript 6.0）
+  - 実際に本番と同じ依存（`https://esm.sh/@supabase/supabase-js@2.110.1` + `npm:qrcode@1.5.4`）で lock を生成:
+    * version 5 / 7,274 bytes
+    * **npm: 29 エントリ**（ansi-regex@5.0.1, ansi-styles@4.3.0, camelcase@5.3.1, cliui@6.0.0,
+      color-convert@2.0.1, color-name@1.1.4 … ＝これまで未固定だった qrcode の推移的依存ツリー）
+    * **remote: 11 エントリ**（esm.sh の URL を integrity 付きで固定）
+  → lock を導入できれば、V13 が問題視した「間接依存がデプロイごとに変動する」点は**実際に閉じられる**
+
+【問2】Supabase Functions がそれを利用すること → **不可（実験で確定）**
+  - 使い捨て関数 `zz-lock-probe`（`npm:qrcode@1.5.4` を import）に deno.json + deno.lock を同梱してデプロイ
+  - 観測1: アップロードされた資産は **deno.json と index.ts のみ**。**deno.lock はアップロードされない**
+  - 観測2: 正しい lock でのデプロイ後、関数は正常動作（`{"ok":true,"hasQr":true}`）
+  - 観測3（決定的）: lock 内 `ansi-regex@5.0.1` の integrity を **意図的に破壊**して再デプロイ →
+    **エラーにならずデプロイ成功** ＝ lock は検証に使われていない
+  - CLI にも lock 用オプションは無い（`--import-map` / `--use-api` / `--no-verify-jwt` / `--prune` / `-j` のみ）
+  → **プラットフォーム側の制約**であり、「時間がない」「大会直前だから」という理由ではない
+
+【代替手段の実現可能性】vendoring（"vendor": true）
+  - remote（esm.sh）依存は `vendor/` に取り込める（実測 54 ファイル / 1.1MB）→ 資産としてアップロードされうる
+  - ただし **npm: 依存は `node_modules/` に展開**される（実測 2.4MB）。これは関数資産のアップロード対象ではないため、
+    `npm:qrcode` を残したままでは完全な決定性は得られない
+  - 完全に決定化するには `npm:qrcode@1.5.4` を vendored/esm.sh 版へ置き換える**設計変更**が必要
+
+後始末 : zz-lock-probe は本番から削除済み（invoke 404 / 一覧に非存在 / Function 数 12 に復帰）、ローカルソースも削除
+Evidence: 上記はすべて実行結果に基づく（lock 生成ログ・アップロード資産一覧・破損 lock でのデプロイ成功・削除確認）
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

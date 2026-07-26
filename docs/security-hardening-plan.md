@@ -106,7 +106,10 @@
   素の UUID は拒否。公開リストから entry UUID を列権限で除外し、受付 UI に受付番号フォールバックを追加。
 - **V9 = Completed**（2026-07-26）。RSA 秘密鍵を localStorage から sessionStorage 限定保持へ（旧値は初回読出で移行・削除）。
 - **V11 = Completed**（2026-07-26）。check-in を admin-* と同じ「active かつ owner/admin/scorer」に統一。
-- **V13 = Partially Completed**（2026-07-26 再確認）。直接依存はパッチ版固定（浮動指定 0 件）だが、
+- **V13 = Partially Completed**（2026-07-26 再確認・追加検証済み）。**deno.lock の生成自体は可能**だが、
+  **Supabase Functions のデプロイ経路が lock を利用しない**ことを実験で確定（lock はアップロードされず、
+  integrity を破損させてもデプロイが成功する）。すなわち未実施の理由は工数や時期ではなく**プラットフォーム制約**。
+  直接依存はパッチ版固定（浮動指定 0 件）だが、
   完了条件に明記された **deno.lock 導入が未実施**。`npm:qrcode@1.5.4` の推移的依存が semver 範囲
   （pngjs ^5.0.0 / yargs ^15.3.1 / dijkstrajs ^1.0.1）のため、lock なしではデプロイごとに変動しうる
   ＝版固定だけでは deno.lock と同等の保証にならない（同等性は反証済み。Superseded にはしない）。
