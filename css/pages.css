@@ -4550,3 +4550,34 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   overflow-x: auto;
 }
 .turnstile-box iframe { max-width: 100%; }
+
+/* 当日受付: QRが読めないときの受付番号フォールバック(V7) */
+.checkin-manual {
+    margin-top: 12px;
+    width: 100%;
+    max-width: 420px;
+}
+.checkin-manual-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+}
+.checkin-manual-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.checkin-manual-row input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.checkin-manual-row .btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+@media (max-width: 640px) {
+    .checkin-manual-row { flex-direction: column; align-items: stretch; }
+    .checkin-manual-row .btn { width: 100%; }
+}

@@ -1,6 +1,7 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { clientIpHash } from '../_shared/rate_limit.ts';
+import { verifyQrToken } from '../_shared/qr_token.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
 
 async function requireProjectMember(supabase: ReturnType<typeof createServiceClient>, req: Request, projectId: string) {
@@ -27,7 +28,7 @@ Deno.serve(withCors(async (req) => {
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
   try {
-    const { action, projectId, entryId } = await req.json();
+    const { action, projectId, entryId, qr, entryNumber } = await req.json();
     if (!projectId || !action) return jsonResponse({ error: '当日受付のリクエスト情報が不足しています。ページを開き直してください。' }, 400);
 
     const supabase = createServiceClient();
@@ -52,16 +53,35 @@ Deno.serve(withCors(async (req) => {
       });
     }
 
-    if (action !== 'check' || !entryId) {
+    if (action !== 'check') {
       return jsonResponse({ error: 'Invalid action' }, 400);
     }
 
-    const { data: entry, error: entryError } = await supabase
+    // 受付の識別方法は2つ:
+    //  (a) QR: 署名付きトークン(V7)。素の entry UUID は受け付けない(改ざん・なりすまし防止)。
+    //  (b) 受付番号: 運営が本人の受付番号を目視照合して手入力する運用フォールバック。
+    // 旧形式(素のUUID)の QR は verifyQrToken が null を返すため 400 になる。
+    let query = supabase
       .from('entries')
       .select('id, entry_number, entry_name, affiliation, grade, status, checked_in')
-      .eq('project_id', projectId)
-      .eq('id', entryId)
-      .single();
+      .eq('project_id', projectId);
+
+    const scanned = qr ?? entryId;   // entryId は後方互換の受け口(中身は署名付きトークン)
+    if (scanned !== undefined && scanned !== null && String(scanned).length > 0) {
+      const verifiedId = await verifyQrToken(scanned);
+      if (!verifiedId) {
+        return jsonResponse({
+          error: 'このQRコードは使用できません。マイエントリーで最新のQRコードを表示するか、受付番号で受付してください。',
+        }, 400);
+      }
+      query = query.eq('id', verifiedId);
+    } else if (Number.isFinite(Number(entryNumber)) && Number(entryNumber) > 0) {
+      query = query.eq('entry_number', Number(entryNumber));
+    } else {
+      return jsonResponse({ error: 'QRコードまたは受付番号が必要です。' }, 400);
+    }
+
+    const { data: entry, error: entryError } = await query.single();
     if (entryError || !entry) return jsonResponse({ error: '該当者が見つかりません。' }, 404);
 
     const entryPayload = {

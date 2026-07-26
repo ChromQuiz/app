@@ -18,6 +18,7 @@ import {
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp } from '../_shared/rate_limit.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
+import { issueQrToken } from '../_shared/qr_token.ts';
 
 const ENTRY_COLUMNS = [
   'id',
@@ -77,9 +78,10 @@ Deno.serve(withCors(async (req) => {
     const disclosureOpen = project.disclosure_enabled === true
       && isWithinPeriod(project.disclosure_period_start, project.disclosure_period_end);
 
-    // 当日受付QR — メール(send-email)と同一データ(entry.id)なので受付側でそのまま読める。
+    // 当日受付QR — 署名付きトークン(V7)を埋め込む。素の entry UUID は埋め込まない。
+    // メール(send-email/checkin-qr)と同一形式なので受付側でそのまま読める。
     // キャンセル済みのQRは受付で弾かれるため返さない。
-    const qrSvg = status === 'canceled' ? '' : await makeQrSvg(entryId);
+    const qrSvg = status === 'canceled' ? '' : await makeQrSvg(await issueQrToken(entryId));
 
     const { token, expiresAt } = await issueParticipantToken({ projectId, entryId, emailHash });
 

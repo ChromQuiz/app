@@ -50,6 +50,7 @@ if (auth) {
                 throw new Error('Googleログインが必要です。');
             }
             await startCamera();
+            setupManualCheckIn();
 
             const project = await CIQSupabaseAPI.getProject(projectId).catch(() => null);
             if (project?.name) {
@@ -221,9 +222,45 @@ if (auth) {
         return [entry?.affiliation, entry?.grade].filter(Boolean).join(' / ');
     }
 
-    async function processQR(entryId) {
+    async function processQR(qrValue) {
+        return runCheckIn(() => CIQSupabaseAPI.checkInEntry(projectId, qrValue));
+    }
+
+    // 受付番号による受付(QRが読めない場合の運用フォールバック)。
+    async function processManualNumber(entryNumber) {
+        return runCheckIn(() => CIQSupabaseAPI.checkInEntryByNumber(projectId, entryNumber));
+    }
+
+    // 受付番号フォームの配線。二重送信を防ぎ、送信後は入力を空にして次の受付に備える。
+    function setupManualCheckIn() {
+        const form = document.getElementById('manual-form');
+        const input = document.getElementById('manual-number');
+        const button = document.getElementById('manual-btn');
+        if (!form || !input || !button) return;
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const value = Number(input.value);
+            if (!Number.isFinite(value) || value <= 0) {
+                setScanMessage('受付番号を入力してください。');
+                return;
+            }
+            button.disabled = true;
+            input.disabled = true;
+            try {
+                await processManualNumber(value);
+                input.value = '';
+            } finally {
+                button.disabled = false;
+                input.disabled = false;
+                input.focus();
+            }
+        });
+    }
+
+    async function runCheckIn(invoke) {
         try {
-            const result = await CIQSupabaseAPI.checkInEntry(projectId, entryId);
+            const result = await invoke();
             const entry = result.entry;
             const name = entry.entryName || `No.${padNum(entry.entryNumber)}`;
             const sub = entrySub(entry);

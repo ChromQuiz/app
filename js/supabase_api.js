@@ -296,7 +296,7 @@ const CIQSupabaseAPI = {
 
     mapPublicEntry(row) {
         return {
-            uuid: row.entry_id,
+            // entry UUID は公開しない(V7: 受付QR偽造の材料になるため列権限で非公開)
             entryNumber: row.entry_number,
             entryName: row.entry_name,
             affiliation: row.affiliation,
@@ -312,7 +312,7 @@ const CIQSupabaseAPI = {
     async getPublicEntries(projectId) {
         const { data, error } = await this.client()
             .from('public_entry_list')
-            .select('entry_id, entry_number, entry_name, affiliation, grade, message, is_chubu, status, checked_in, created_at')
+            .select('entry_number, entry_name, affiliation, grade, message, is_chubu, status, checked_in, created_at')
             .eq('project_id', projectId)
             .order('created_at', { ascending: true })
             .order('entry_number', { ascending: true });
@@ -321,7 +321,7 @@ const CIQSupabaseAPI = {
 
         const entries = {};
         for (const row of data || []) {
-            entries[row.entry_id] = this.mapPublicEntry(row);
+            entries[row.entry_number] = this.mapPublicEntry(row);
         }
         return entries;
     },
@@ -438,11 +438,23 @@ const CIQSupabaseAPI = {
         return data.stats;
     },
 
-    async checkInEntry(projectId, entryId) {
+    // QR(署名付きトークン)で受付する。素の entry UUID はサーバ側で拒否される(V7)。
+    async checkInEntry(projectId, qr) {
         const data = await this.invokeAuthedFunction('check-in', {
             action: 'check',
             projectId,
-            entryId,
+            qr,
+        });
+        if (!data?.ok) throw new Error(data?.error || 'Check-in failed');
+        return data;
+    },
+
+    // 受付番号で受付する(QRが読めない場合の運用フォールバック。運営が本人の番号を目視照合して入力)。
+    async checkInEntryByNumber(projectId, entryNumber) {
+        const data = await this.invokeAuthedFunction('check-in', {
+            action: 'check',
+            projectId,
+            entryNumber,
         });
         if (!data?.ok) throw new Error(data?.error || 'Check-in failed');
         return data;

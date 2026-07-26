@@ -1,5 +1,6 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
+import { issueQrToken } from '../_shared/qr_token.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 
 type SupabaseClient = ReturnType<typeof createServiceClient>;
@@ -42,7 +43,8 @@ Deno.serve(withCors(async (req) => {
       .single();
     if (error || !entry) return jsonResponse({ error: 'エントリーが見つかりません。' }, 404);
 
-    const svg = await makeQrSvg(entry.id);
+    // 署名付きトークン(V7)。素の entry UUID は QR に埋め込まない。
+    const svg = await makeQrSvg(await issueQrToken(entry.id));
     return jsonResponse({ ok: true, svg });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
