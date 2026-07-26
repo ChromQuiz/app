@@ -278,6 +278,35 @@ Notes   : Phase 1 は V2 の CAPTCHA（外部サービス）を除き完了。�
           になるまで Phase 2/3 へは進まない（親計画の判定規則）。
 ```
 
+### V2 CAPTCHA（Cloudflare Turnstile）導入 → Phase 1 = Completed
+```
+Status  : Completed — 2026-07-26（これにより Phase 1 全体が Completed）
+Evidence:
+  - 実装      : supabase/functions/_shared/turnstile.ts（Siteverify・success/action/hostname 検証・
+                remoteip 送信・timeout(5s)/5xx/secret未設定は fail-closed）
+                send-email（action=send_verification）/ create-entry（action=create_entry, 最初のゲート）
+                js/turnstile.js（explicit render・one-time token の取得/reset）・entry.html（widget×2・CSP 許可）
+  - Commits   : ca90ca3（実装・テスト・文書）/ 8f776b9（site key + config cache-bust）/ 250d13a（本番で発見した2欠陥の修正）
+  - Migrations: なし
+  - Deploys   : send-email v33 / create-entry v19（いずれも ACTIVE）
+  - Secrets   : TURNSTILE_SECRET_KEY・CIQ_TURNSTILE_HOSTNAMES 設定済（2026-07-26）。CIQ_TURNSTILE_DISABLED 未設定＝fail-closed
+  - Tests     : tests/turnstile.test.mjs（29 assertions・公式テストキーを参照）。`npx vitest run` = 116 passed
+  - production verification:
+    * send_verification: token 無し → 403 / 無効 token → 403（メール送信なし）
+    * create-entry     : token 無し → 403 / 無効 token → 403（登録なし・entries 136 で不変）
+    * 通知系(entry_cancelled) は CAPTCHA 非要求のまま（既知の not-found 経路で 500 を返す現行仕様を確認。本変更による新規回帰ではない）
+    * 多層防御の併存: CAPTCHA が最初のゲートのため 403 時はレート枠を消費しない（設計どおり）。
+      IP レート制限（rate_limit_events）・日次上限は健在
+    * ブラウザ: 375px ダークモードで widget 描画・横スクロールなし・実 site key で操作可能
+  - 本番で発見・修正した欠陥（250d13a）:
+    1) send-email が未定義の `body.turnstileToken` を参照 → token 無しが 500（403 であるべき）
+    2) create-entry で CAPTCHA がメール認証チェックより後段 → 誤ったゲートで拒否
+Rollback: Possible（Edge は旧版へ再デプロイ、緊急時は CIQ_TURNSTILE_DISABLED=1 で一時バイパス＝付録C）
+Notes   : 完了条件を全て充足（両経路で必須・サーバ側検証・IP レート並列安全・日次上限並列安全・旧経路から迂回不能・
+          回帰テスト・本番疎通・運用/障害手順の文書化）。恒常的 fail-open は不可。
+          → **Phase 1（V1/V2/V4/V6）= Completed**。次は Phase 2（V3 は P2-e5 で実質完了済のため再監査）。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

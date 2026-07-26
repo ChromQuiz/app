@@ -86,12 +86,14 @@
 - **Phase 2 — 「多層防御・データ保護」**: V3 pepper、V5 CORS allowlist、V8 SRI/セルフホスト、V12 登録メール認証必須、V10 監査ログ。
 - **Phase 3 — 「堅牢化・運用」**: V7 QR 署名、V9 鍵 session 化、V11/V13 除名判定統一・依存固定、統合回帰テスト・可観測性。
 
-## 5.1 実装状況（2026-07-19 監査時点・詳細は docs/security-migration-status.md）
+## 5.1 実装状況（2026-07-26 更新・詳細は docs/security-migration-status.md）
 - **V1 = Completed**（フォールバック撤去・未設定で例外・本番 env 設定済・鍵ローテ手順を付録A に文書化）
-- **V2 = Partially Completed**（IP レート＋create-entry 制限＋**日次上限**は実装済。残: **CAPTCHA（Turnstile）＝外部サービス導入・要ユーザー判断**）
+- **V2 = Completed**（IP レート＋日次上限＋**Cloudflare Turnstile をサーバ側検証で必須化**。付録C に運用・障害時手順）
 - **V4 = Completed**（IP レート制限をアトミック化。本番で 25 並列→20 通過/5×429 を実証）
 - **V6 = Completed**（共通 `serverErrorResponse`＝汎用文言＋ref、全 JSON Edge が使用）
-- **Phase 1 判定 = Partially Completed**（V2 の CAPTCHA が未・外部サービス判断待ちのため。他 V3/V5/V7〜V13 は Phase 2/3）
+- **Phase 1 判定 = ✅ Completed**（2026-07-26。V1・V2・V4・V6 すべて Completed）
+- 次段: **Phase 2**（V3 pepper / V5 CORS allowlist / V8 SRI / V12 登録ボット対策 / V10 監査ログ）。
+  ※ V3 は参加者ハッシュ v2 移行（P2-e1〜e5）で完了済みのため、Phase 2 着手時に再監査して判定すること。
 
 ## 6. 実装優先順位
 - **P0（公開前必須）**: V1 → V2
