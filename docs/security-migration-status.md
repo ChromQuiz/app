@@ -426,6 +426,41 @@ Notes   : これにより V5 は V1 と同じ fail-closed 方針に整合。設�
           設定済みの本番では挙動不変であることを実測で確認済み。
 ```
 
+### V8 第三者 CDN の供給網対策（SRI / 版固定 / CSP 最小化）
+```
+Status  : Completed — 2026-07-26
+先行実装 : **監査の結果、大半は Phase 1〜2 の過程で既に実装済みだった**（ゼロベースで未実装と決めつけない）:
+  - supabase-js を @2(浮動メジャー)から **2.110.1 に厳密ピン留め + SRI(sha384) + crossorigin**（全 10 ページ）
+  - jsQR 1.4.0 / marked 12.0.2 も版固定 + SRI + crossorigin
+  - 動的ロード（admin のみ）: jspdf 2.5.2（unpkg）/ pdf.js 3.11.174（cdnjs）も
+    loadAdminScriptOnce(url, sha384) で **SRI + 版固定**済み
+  - CSP から 'unsafe-inline'（script/style）は既に除去済み
+不足分（今回実装）: **CSP の不要 CDN 削除**
+  - 全ページの style-src / font-src が Google Fonts と cdnjs を許可していたが、**実参照は 0**（production ページ）
+    → `style-src 'self'` / `font-src 'self'` へ
+  - 非 admin ページの script-src が cdnjs を許可していたが未使用 → 削除
+  - help.html は外部スクリプトを一切読まないのに 3 CDN を許可 → `script-src 'self'` へ
+  - 実利用のみ残置: cdn.jsdelivr.net（全ページ）/ challenges.cloudflare.com（entry のみ）/
+    unpkg.com + cdnjs.cloudflare.com（admin のみ・pdf 関連の動的ロード）
+Evidence:
+  - Commits : 893259b（CSP 精密化 + 回帰テスト）。SRI/版固定は既存実装（各 HTML と js/admin.js）
+  - Tests   : tests/supply_chain.test.mjs（36 件）— 第三者 script の SRI・crossorigin・厳密版ピン留め、
+              動的ロードの SRI/版、各ページ script-src が「実際に読み込むホストのみ」であること、
+              未使用フォント CDN が残っていないこと。`npx vitest run` = 166 passed
+  - browser verification（ローカル実機）:
+    * entry.html: CSP 違反 0・supabase-js 読込 OK・Turnstile 読込 OK・widget 描画 OK・アイコン/CSS 適用 OK
+    * 全 11 ページを iframe で読込 → 全て正常（supabase-js は必要ページで読込成功、help/404 は外部不要）
+    * コンソールに Content Security Policy 違反 / Refused to load は **0 件**
+  - production verification: GitHub Pages 反映後、entry/my/help の script-src が期待どおり、
+    fonts.googleapis の残存 0 件
+Rollback: Possible（HTML の CSP を 1 コミット revert すれば旧許可へ戻る）
+Notes   : **SRI 非適用の例外 1 件** = Cloudflare Turnstile の api.js。Cloudflare 側で随時更新されるため
+          公式にハッシュ固定は非対応（セルフホストも不可＝チャレンジの性質上）。
+          担保は (a) CSP script-src を challenges.cloudflare.com に限定、(b) TLS、(c) 提供元が
+          セキュリティベンダ自身であること。テストでも明示的に SRI 例外として記録している。
+          pdf.js の worker（workerSrc）も API の性質上 SRI を付与できないが、同一の cdnjs 版固定 URL を使用。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
