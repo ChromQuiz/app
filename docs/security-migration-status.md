@@ -333,6 +333,39 @@ Notes   : ローカル開発は公式テストキー運用。テストキー由�
           ローカルから本番への送信は成立しない（意図どおりの分離）。Phase 1 は Completed を維持。
 ```
 
+### V3 ログ系テーブルの無塩ハッシュを HMAC 化（既存列を in-place 更新）
+```
+Status  : Completed（V3 の残件2件）— 2026-07-26
+Evidence:
+  - 実装      : send-email/index.ts（recipientLogHash = pepperHash(sha256(email)) をログ/レート制限に使用。
+                宛先所有確認 assertEntryRecipient には生 sha256 を渡し二重 pepper を回避）
+                _shared/participant_auth.ts（enforceAuthRateLimit / recordAuthAttempt を emailHashV2 に切替）
+  - Migration : 202607260001_grant_service_role_update_auth_events.sql
+                （participant_auth_events に service_role の UPDATE が無く backfill が全件 skip したため付与。
+                  DELETE は付与しない＝履歴の破壊的操作は不許可）
+  - Commits   : bd4c815
+  - Deploys   : send-email / my-entry / edit-entry / cancel-entry / mark-late / disclose-result
+  - Backfill  : 一回限りの service_role Edge Function（admin-backfill-log-hash）で
+                cutoff=2026-07-26T12:35:34Z より前の行のみ再ハッシュ → **95 行更新（59 + 36）/ skip 0**。
+                **実行後に Function を削除済み**（invoke が 404・一覧に非存在・ローカルソースも削除）
+  - Verification:
+    - 観測（正当性の独立検証）: entries と紐づく email_events 15 行すべてで
+      `recipient_hash == entries.email_hash_v2`（不一致 0）。旧無塩値なら一致しないため、
+      HMAC 化が正しく行われた確定的証拠
+    - 観測（形式）: email_events 36/36・participant_auth_events 59/59 が 64hex を維持
+    - 観測（回帰）: 誤 credential → 404 かつ台帳に +1 記録（pepper 済み・64hex）、
+      通知系 send-email は既知の not-found 挙動を維持（本変更による新規回帰ではない）
+    - 静的: `npx vitest run` = 121 passed（ログ列 pepper 化・二重 pepper 回避・v2 列を作っていないことを回帰化）
+Rollback: 旧コードへ再デプロイは可能だが、旧無塩値は復元不可（一方向）。影響はレート制限の
+          突合が最大10分ズレる程度で、認証主体ではないため実害は限定的
+Notes   : 設計判断＝**recipient_hash_v2 / email_hash_v2 は作らず既存列を in-place 更新**、pepper は既存
+          CIQ_PARTICIPANT_HASH_PEPPER を流用、一時 RPC/一時テーブルは作らない。
+          理由: 読み手が限定（enforceRateLimit / enforceAuthRateLimit のみ）・認証主体ではない・
+          既存値から新値を再計算できる・長期互換が不要。P2-e5 のような長期 dual-write は行っていない。
+          二重ハッシュ防止は「cutoff 必須 + 実行後に Function 削除」で担保。
+          → V3 の残件は解消。V3 全体の再判定は次ターンで実施する（scorer コードは V14 として分離済み）。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
