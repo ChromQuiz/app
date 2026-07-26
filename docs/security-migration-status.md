@@ -572,6 +572,47 @@ Notes   : 残留リスク=QR は依然として bearer（盗撮・スクショ�
           なることで運用的に緩和する。V7 の完了条件が求める「署名化」「UUID 非公開化」は充足。
 ```
 
+### V9 / V11 / V13（Phase 3・ゼロベース監査）→ Phase 3 完了
+```
+Status  : いずれも Completed — 2026-07-26
+
+V9 RSA 秘密鍵の保持場所 : 監査時 Partially Completed → 実装して Completed
+  初期計画 : localStorage 保持のため XSS で privateKeyJwk を窃取され全 PII を復号される
+             修正方針 = session 限定保持、CSP 強化、project-key fetch の頻度最小化
+  既存で満たしていた点 : CSP 強化（V8・unsafe-inline 除去済み）、鍵が無いときだけ取得する fetch 最小化
+  不足していた点 : 鍵が **localStorage** にあった（js/index.js・js/admin.js が session.set で保存、
+                   admin.js / admin_stats.js / admin_settings.js が読み出し）
+  実装 : js/config.js に `projectKeyStore`（sessionStorage 限定）。旧 localStorage 値は初回 get で
+         sessionStorage へ移行して localStorage から削除。set は localStorage を汚さない。
+         session.clear() は両方を削除。読み書き 8 箇所すべてを新ストア経由に変更。
+         あわせて **js/config.js の cache-buster を追加**（従来 ?v= が無く、古い config が配信され得た）
+  Evidence : browser 実機で移行を実証 — 旧状態 {local:true, session:false} → get で
+             {local:false, session:true} かつ値は返る → set 後も localStorage は空 → session.clear() で両方空。
+             tests/private_key_storage.test.mjs（7 件）。commit 8c20699
+
+V11 除名メンバーの判定統一 : 監査時 Partially Completed → 実装して Completed
+  初期計画 : check-in が `status <> 'removed'` のみで、admin-* の「active 明示」と不統一
+  実装 : check-in を `member.status !== 'active'` で拒否＋ロールを owner/admin/scorer に明示。
+         否定形をやめたことで、将来 'suspended' 等の状態が増えても素通りしない
+  Evidence : tests/edge_dependencies.test.mjs（staff 系 4 関数すべてが active を明示することを回帰化）。
+             本番 check-in(未認証) → 401。commit d0620a1
+
+V13 Edge 依存のバージョン固定 : 監査時 Partially Completed → 実装して Completed
+  初期計画 : esm.sh の浮動指定。上流侵害/破壊的更新の受動リスク。修正方針 = パッチ版まで固定、deno.lock 導入
+  既存で満たしていた点 : `npm:qrcode@1.5.4` は既にパッチ版固定
+  不足していた点 : `https://esm.sh/@supabase/supabase-js@2`（**浮動メジャー**）
+  実装 : 2.110.1 に固定（フロントの SRI 付き script と同一版）。Edge 全ソースで浮動指定は 0 件
+  Evidence : tests/edge_dependencies.test.mjs が全 .ts の import を走査し浮動指定 0 を強制、
+             Edge とブラウザの supabase-js 版一致も検証。全 12 関数を新バンドルで再デプロイし、
+             本番応答は my-entry 404 / create-entry 400 / check-in 401 / checkin-qr 404 / send-email 403 と期待どおり
+  未実施 : **deno.lock の導入は見送り**（Supabase の関数バンドル方式に影響し、大会直前の変更リスクが
+           固定の便益を上回るため）。浮動指定 0 と回帰テストで同等の効果を担保している
+
+Rollback: V9/V11 はコード revert のみ、V13 は import 版を戻して再デプロイ
+Notes   : **Phase 3 = 全 V 完了（V7 ✅ / V9 ✅ / V11 ✅ / V13 ✅）。親計画 V1〜V13 をすべて Completed。**
+          以降は V14（採点者参加コードの無塩 SHA-256）を Additional Security Backlog として扱う。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

@@ -104,8 +104,12 @@
 - **Phase 2 判定 = ✅ Completed**（V3 ✅ / V5 ✅ / V8 ✅ / V10 ✅ / V12 ✅）。
 - **V7 = Completed**（2026-07-26）。QR を署名付きトークン化（entryId.exp.sig）し check-in で検証、
   素の UUID は拒否。公開リストから entry UUID を列権限で除外し、受付 UI に受付番号フォールバックを追加。
-- **Phase 3 進捗**: V7 ✅ / **V9 = 次に監査** / V11 / V13。
-- Phase 3 完了後に V14（採点者参加コードの無塩 SHA-256）を Additional Security Backlog として扱う。
+- **V9 = Completed**（2026-07-26）。RSA 秘密鍵を localStorage から sessionStorage 限定保持へ（旧値は初回読出で移行・削除）。
+- **V11 = Completed**（2026-07-26）。check-in を admin-* と同じ「active かつ owner/admin/scorer」に統一。
+- **V13 = Completed**（2026-07-26）。Edge の supabase-js を @2 → 2.110.1 に固定（浮動指定は 0 件）。
+- **Phase 3 判定 = ✅ Completed**（V7 ✅ / V9 ✅ / V11 ✅ / V13 ✅）。
+- **親計画 V1〜V13 = 全て Completed。** 以降は V14（採点者参加コードの無塩 SHA-256）を
+  **Additional Security Backlog** として扱う。
 
 ## 6. 実装優先順位
 - **P0（公開前必須）**: V1 → V2
