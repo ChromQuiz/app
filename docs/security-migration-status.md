@@ -371,6 +371,31 @@ Notes   : 設計判断＝**recipient_hash_v2 / email_hash_v2 は作らず既存�
           （scorer 参加コードの無塩ハッシュは V3 の対象外＝V14 として分離済み）
 ```
 
+### V5 CORS allowlist / API 直叩き耐性（Phase 2・ゼロベース監査）
+```
+Status  : Completed — 2026-07-26
+Evidence:
+  - 実装      : _shared/http.ts — allowedOrigin() が CIQ_ALLOWED_ORIGINS を完全一致判定し、
+                一致時のみ Origin をエコー、不一致/未指定なら ACAO ヘッダを削除。withCors() が
+                preflight・本応答・エラー・画像応答すべてに一貫適用。全 12 Edge が withCors を使用
+  - 設定      : 本番 CIQ_ALLOWED_ORIGINS 設定済（2026-07-11）
+  - Tests     : tests/security_contract.test.mjs（完全一致判定・ACAO 削除・Vary・全 Edge の withCors 適用を回帰化）
+                `npx vitest run` = 123 passed
+  - production verification:
+    * 正規 Origin(https://chromquiz.github.io) → ACAO エコー（POST・preflight OPTIONS とも）
+    * 悪意 Origin(https://evil.example) → **ACAO なし**（ブラウザがブロック）
+    * Origin なし（curl 直叩き）→ ACAO なし
+    * checkin-qr(GET/画像応答)も同様に ACAO なし
+    * Origin 詐称耐性（完全一致）: `https://chromquiz.github.io.evil.com` / `http://chromquiz.github.io`(scheme 違い) /
+      `https://chromquiz.github.io/`(末尾スラッシュ) / `http://localhost:8080` の4種すべてで ACAO なし
+    * 直叩き時の入力検証: my-entry 空body=400・不正hash形式=404、create-entry 空body=400、
+      send-email 不正メール=400、edit-entry トークン無=404（いずれも情報漏洩なし）
+    * レート制限による実質担保: V2（Turnstile＋IP＋日次上限）・V4（並列安全な IP 制限）が稼働中
+Rollback: Possible（CIQ_ALLOWED_ORIGINS を空にすれば従来の全許可へ戻る＝後方互換の設計）
+Notes   : 完了条件（本番オリジンの allowlist 化／直叩き前提の入力検証／レート制限での担保）を全て充足。
+          未設定時に '*' へフォールバックする後方互換は残るが、本番は設定済みで実効。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

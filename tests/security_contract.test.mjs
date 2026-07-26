@@ -134,6 +134,26 @@ describe('Edge Function authorization gates stay in place', () => {
   });
 });
 
+describe('CORS is allowlist-based on every Edge Function (V5)', () => {
+  it('allowedOrigin does exact-match against CIQ_ALLOWED_ORIGINS and omits ACAO otherwise', () => {
+    const src = read('supabase/functions/_shared/http.ts');
+    expect(src).toMatch(/Deno\.env\.get\('CIQ_ALLOWED_ORIGINS'\)/);
+    expect(src).toMatch(/list\.includes\(origin\)/);   // exact match, no wildcard/suffix matching
+    expect(src).toMatch(/resp\.headers\.delete\('access-control-allow-origin'\)/);
+    expect(src).toMatch(/append\('Vary', 'Origin'\)/);
+  });
+
+  it('every Edge Function wraps its handler in withCors', () => {
+    const dir = resolve(ROOT, 'supabase/functions');
+    const fns = readdirSync(dir).filter((n) => !n.startsWith('_') && !n.startsWith('.'));
+    expect(fns.length).toBeGreaterThan(0);
+    for (const fn of fns) {
+      const src = read(`supabase/functions/${fn}/index.ts`);
+      expect(src, `${fn} must use withCors`).toMatch(/Deno\.serve\(withCors\(/);
+    }
+  });
+});
+
 describe('log-table email hashes are peppered (V3)', () => {
   it('participant_auth_events stores/queries only the peppered hash', () => {
     const src = read('supabase/functions/_shared/participant_auth.ts');
