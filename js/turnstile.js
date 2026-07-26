@@ -10,7 +10,19 @@
 const CIQTurnstile = (() => {
     const widgets = new Map(); // containerId -> widgetId
 
+    // Cloudflare 公式のテスト用 sitekey(always passes)。ローカル開発専用。
+    // 本番 sitekey は本番ホスト以外では使わない(本番 widget の許可 hostname は本番ドメインのみ)。
+    const TEST_SITE_KEY = '1x00000000000000000000AA';
+    const LOCAL_HOSTS = ['localhost', '127.0.0.1', '[::1]', ''];
+
+    function isLocalHost() {
+        return LOCAL_HOSTS.includes(location.hostname) || location.protocol === 'file:';
+    }
+
     function siteKey() {
+        // ローカルでは公式テストキーに切り替える。本番 sitekey/secret をローカルで使用しない。
+        // (テストキー由来の token は本番 secret では検証できないため、ローカルからの本番送信は成立しない=意図どおり)
+        if (isLocalHost()) return TEST_SITE_KEY;
         return String(window.CIQ_TURNSTILE_SITE_KEY || '').trim();
     }
 

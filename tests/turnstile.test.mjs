@@ -211,6 +211,13 @@ describe('Turnstile client wiring (UX / no client-side trust)', () => {
     expect(entryJs).toMatch(/resendBtn\.disabled = true/);
   });
 
+  it('uses Cloudflare official test keys on localhost, never the production site key', () => {
+    // Production widget allows only chromquiz.github.io, so local dev must use the test sitekey.
+    expect(client).toMatch(/const TEST_SITE_KEY = '1x00000000000000000000AA'/);
+    expect(client).toMatch(/if \(isLocalHost\(\)\) return TEST_SITE_KEY/);
+    expect(client).toMatch(/LOCAL_HOSTS = \['localhost', '127\.0\.0\.1'/);
+  });
+
   it('keeps the site key public-only and the widget containers accessible', () => {
     expect(read('js/supabase_config.js')).toMatch(/CIQ_TURNSTILE_SITE_KEY/);
     expect(entryHtml).toMatch(/id="turnstile-verify"[^>]*aria-live="polite"/);
