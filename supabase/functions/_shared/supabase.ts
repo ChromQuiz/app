@@ -1,4 +1,6 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// V13: 浮動メジャー(@2)ではなくパッチ版まで固定する。上流の破壊的更新・供給網侵害の受動リスクを避ける。
+// フロント(各 HTML の SRI 付き script)と同じ 2.110.1 に揃える。
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.110.1';
 
 function getSupabaseSecretKey() {
   const secretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');

@@ -18,7 +18,12 @@ async function requireProjectMember(supabase: ReturnType<typeof createServiceCli
     .eq('project_id', projectId)
     .eq('user_id', userData.user.id)
     .single();
-  if (memberError || !member || member.status === 'removed') throw new Error('Forbidden');
+  // V11: 除名直後に JWT が残っていても通さないよう、admin-* と同じ「active かつ想定ロール」を明示する。
+  // (status <> 'removed' の否定形だと、将来 'suspended' 等が増えたときに素通りしてしまう)
+  if (memberError || !member || member.status !== 'active') throw new Error('Forbidden');
+  if (member.role !== 'owner' && member.role !== 'admin' && member.role !== 'scorer') {
+    throw new Error('Forbidden');
+  }
   return member;
 }
 

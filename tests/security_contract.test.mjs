@@ -126,11 +126,12 @@ describe('Edge Function authorization gates stay in place', () => {
     expect(src).toMatch(/safeEqual\(expected, signature\)/);
   });
 
-  it('check-in requires an authenticated, non-removed project member', () => {
+  it('check-in requires an authenticated, active project member', () => {
     const src = read('supabase/functions/check-in/index.ts');
     expect(src).toMatch(/auth\.getUser\(/);
     expect(src).toMatch(/from\('project_members'\)/);
-    expect(src).toMatch(/status === 'removed'/);
+    // V11: 「removed でない」ではなく「active である」ことを明示的に要求する
+    expect(src).toMatch(/member\.status !== 'active'/);
   });
 });
 
