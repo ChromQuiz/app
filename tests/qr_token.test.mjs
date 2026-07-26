@@ -54,6 +54,33 @@ describe('signed check-in QR tokens (V7)', () => {
     await expect(verifyQrToken(expired)).resolves.toBeNull();
   });
 
+  it('defaults to a bounded TTL (30 days), not an effectively unlimited one', async () => {
+    const token = await issueQrToken(ENTRY_ID);
+    const exp = Number(token.split('.')[1]);
+    const days = (exp - Date.now()) / 86400000;
+    expect(days).toBeGreaterThan(29);
+    expect(days).toBeLessThanOrEqual(30);
+  });
+
+  it('honours CIQ_QR_TTL_DAYS and clamps it to a sane range', async () => {
+    const withEnv = async (days) => {
+      globalThis.Deno = { env: { get: (k) => (k === 'CIQ_QR_TTL_DAYS' ? days : (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined)) } };
+      const token = await issueQrToken(ENTRY_ID);
+      return (Number(token.split('.')[1]) - Date.now()) / 86400000;
+    };
+    expect(await withEnv('2')).toBeLessThanOrEqual(2);
+    expect(await withEnv('99999')).toBeLessThanOrEqual(400);   // 上限クランプ
+    expect(await withEnv('0')).toBeGreaterThan(29);            // 不正値は既定へ
+    // 後続テストのため既定 env に戻す
+    globalThis.Deno = { env: { get: (k) => (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined) } };
+  });
+
+  it('binds a purpose+version tag so signatures cannot cross protocols', async () => {
+    const src = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr_token.ts'), 'utf8');
+    expect(src).toMatch(/const TOKEN_VERSION = 'qr1'/);
+    expect(src).toMatch(/\$\{TOKEN_VERSION\}:\$\{entryId\}:\$\{expMs\}/);
+  });
+
   it('rejects malformed input', async () => {
     for (const bad of ['', 'a.b', 'a.b.c.d', null, undefined, 42, `${ENTRY_ID}.notanumber.abc`]) {
       await expect(verifyQrToken(bad)).resolves.toBeNull();

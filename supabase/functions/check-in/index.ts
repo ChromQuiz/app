@@ -1,6 +1,6 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { clientIpHash } from '../_shared/rate_limit.ts';
+import { clientIp, clientIpHash, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
 import { verifyQrToken } from '../_shared/qr_token.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
 
@@ -87,7 +87,12 @@ Deno.serve(withCors(async (req) => {
     }
 
     const { data: entry, error: entryError } = await query.single();
-    if (entryError || !entry) return jsonResponse({ error: '該当者が見つかりません。' }, 404);
+    if (entryError || !entry) {
+      // 見つからない照会だけを IP 単位で制限する(受付番号の総当たり・列挙対策)。
+      // 正常な受付はカウントしないので、当日の連続受付は制限にかからない。
+      await enforceIpRateLimit(supabase, { bucket: 'checkin_miss', ip: clientIp(req), projectId });
+      return jsonResponse({ error: '該当者が見つかりません。' }, 404);
+    }
 
     const entryPayload = {
       id: entry.id,
@@ -145,6 +150,7 @@ Deno.serve(withCors(async (req) => {
       },
     });
   } catch (error) {
+    if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
     const message = error instanceof Error ? error.message : String(error);
     if (message === 'Forbidden') {
       return jsonResponse({ error: 'このプロジェクトの当日受付を操作する権限がありません。Googleアカウントとプロジェクトを確認してください。' }, 403);

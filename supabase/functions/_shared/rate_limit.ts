@@ -58,6 +58,9 @@ export const RATE_LIMITS = {
   send_verification: { limit: () => intEnv('CIQ_RL_SEND_VERIFICATION_IP', 5), windowMs: 10 * 60 * 1000 },
   create_entry: { limit: () => intEnv('CIQ_RL_CREATE_ENTRY_IP', 10), windowMs: 60 * 60 * 1000 },
   participant_auth: { limit: () => intEnv('CIQ_RL_PARTICIPANT_AUTH_IP', 20), windowMs: 10 * 60 * 1000 },
+  // 受付での「見つからない」照会のみを数える(V7)。正常な受付は数えないため、
+  // 大量受付が続く当日運用のスループットは落とさず、受付番号の総当たり/列挙だけを抑える。
+  checkin_miss: { limit: () => intEnv('CIQ_RL_CHECKIN_MISS_IP', 30), windowMs: 10 * 60 * 1000 },
 } as const;
 
 type Bucket = keyof typeof RATE_LIMITS;
