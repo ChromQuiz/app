@@ -134,6 +134,37 @@ describe('Edge Function authorization gates stay in place', () => {
   });
 });
 
+describe('registration is protected against bulk bot signups (V12)', () => {
+  const src = read('supabase/functions/create-entry/index.ts');
+
+  it('requires a CAPTCHA as the first gate', () => {
+    expect(src).toMatch(/verifyTurnstile\(\{ token: turnstileToken, action: 'create_entry'/);
+    expect(src.indexOf('verifyTurnstile')).toBeLessThan(src.indexOf('emailVerificationRequired()'));
+  });
+
+  it('requires a completed email verification token', () => {
+    expect(src).toMatch(/if \(emailVerificationRequired\(\)\)/);
+    expect(src).toMatch(/verifyEmailVerifiedToken\(/);
+  });
+
+  it('email verification defaults to required when the env var is unset', () => {
+    const verify = read('supabase/functions/_shared/email_verify.ts');
+    // 既定 true: 未設定・空文字は 'false' ではないので必須のまま(fail-secure)
+    expect(verify).toMatch(/return raw !== 'false'/);
+  });
+
+  it('applies a per-IP rate limit to registration', () => {
+    expect(src).toMatch(/enforceIpRateLimit\(supabase, \{ bucket: 'create_entry'/);
+  });
+
+  it('enforces one active entry per email at the database level', () => {
+    const mig = read('supabase/migrations/202607140004_create_entry_atomic_v2_only_writes.sql');
+    expect(mig).toMatch(/create unique index[\s\S]*entries_active_email_unique_v2_idx[\s\S]*email_hash_v2[\s\S]*where status <> 'canceled'/);
+    // 一意違反は 409 として利用者に返す
+    expect(src).toMatch(/23505|entries_active_email_unique/);
+  });
+});
+
 describe('CORS is allowlist-based on every Edge Function (V5)', () => {
   it('allowedOrigin does exact-match against CIQ_ALLOWED_ORIGINS and omits ACAO otherwise', () => {
     const src = read('supabase/functions/_shared/http.ts');

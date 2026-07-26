@@ -496,6 +496,37 @@ Notes   : 監査対象外は読み取り専用/非状態変更の経路（my-ent
           すべて記録されている。**Phase 2 進捗: V3 ✅ / V5 ✅ / V8 ✅ / V10 ✅ / V12 = 次**
 ```
 
+### V12 大量登録へのボット対策（ゼロベース監査）
+```
+Status  : Completed — 2026-07-26（**追加実装なし**。Phase 1 と P2-e5 の成果で完了条件を充足していた）
+初期計画 : 脅威=自動で偽エントリを大量投入 / 影響=枠占有 DoS・運営混乱
+           修正方針=CAPTCHA、メール認証コード完了を登録の前提に、1メール1エントリ制約＋IP レート
+既存実装（調査で確認・今回は書き換えていない）:
+  (1) CAPTCHA          : create-entry の**最初のゲート**で verifyTurnstile(action='create_entry')。
+                         Phase 1 の V2 で導入（サーバ側 Siteverify・hostname/action 検証・fail-closed）
+  (2) メール認証必須   : emailVerificationRequired() → verifyEmailVerifiedToken()。
+                         既定は **必須**（`raw !== 'false'` のため未設定・空でも有効＝fail-secure）
+  (3) 1メール1エントリ : entries_active_email_unique_v2_idx
+                         = UNIQUE(project_id, email_hash_v2) WHERE status <> 'canceled'（UNIQUE/VALID）。
+                         P2-e5 ② で v2 側へ移行済み。違反は 23505 → 409「既にエントリー済み」
+  (4) IP レート        : enforceIpRateLimit(bucket='create_entry', 既定 10/60分)。V4 でアトミック化済み
+  ゲート順序           : CAPTCHA(34) → メール認証(38) → IP レート(50) → create_entry_atomic(57)
+                         ＝ボットは後段の検証・DB 処理へ到達しない
+Evidence:
+  - production verification（entries 136 → 136・**副作用なし**）:
+    * CAPTCHA なしの登録 → **403** / CAPTCHA 不正 → **403**（登録されない）
+    * 既存 active メールでの重複登録 → **23505 で拒否**
+    * 本番 env: CIQ_REQUIRE_EMAIL_VERIFICATION **未設定＝既定 true(必須)**、
+      CIQ_TURNSTILE_DISABLED **未設定＝CAPTCHA 有効**（バイパス無し）
+  - Tests   : tests/security_contract.test.mjs に V12 の 5 件を追加 —
+              CAPTCHA が最初のゲート・メール認証必須・既定 true の fail-secure・IP レート・
+              DB レベルの 1メール1エントリ制約。`npx vitest run` = 179 passed
+  - Commits : 本エントリと同一 commit（回帰テストとドキュメントのみ）
+Rollback: N/A（実装変更なし）
+Notes   : V12 は Phase 1 の V2（Turnstile / IP レート / 日次上限）と P2-e5 ②（v2 一意索引）の副産物として
+          既に満たされていた。**Phase 2 = 全 V 完了（V3 ✅ / V5 ✅ / V8 ✅ / V10 ✅ / V12 ✅）**。次は V14。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
