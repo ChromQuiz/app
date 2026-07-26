@@ -69,7 +69,7 @@
 | V10 | 参加者/service_role 操作が監査ログ外 | Medium | 参加者系は service_role 実行で `auth.uid()` null → 証跡が残らない | インシデント追跡不能 | service_role 用の監査挿入経路（種別=participant、IP/ID のみ、PII なし） | P2 |
 | V11 | removed メンバーの JWT 失効はポリシー依存 | Low | 除名直後も JWT 有効期間中は認証が通る。check-in は `status <> 'removed'` のみ | 除名直後の短時間、権限残存 | check-in を owner/admin/scorer の active 明示に統一 | P3 |
 | V12 | 大量登録（create-entry）へのボット対策なし | Low〜Medium | 自動で偽エントリ大量投入 | 枠占有 DoS・運営混乱 | CAPTCHA、メール認証コード完了を登録の前提に、1メール1エントリ制約＋IP レート | P2 |
-| V13 | 依存の浮動バージョン（Edge 側） | Low | esm.sh の浮動指定。上流侵害/破壊的更新 | 予期せぬ挙動変化・供給網 | import をパッチ版まで固定、deno.lock 導入、定期確認 | P3 |
+| V13 | 依存の浮動バージョン（Edge 側） | Low | esm.sh の浮動指定。上流侵害/破壊的更新 | 予期せぬ挙動変化・供給網 | **（2026-07-26 改訂）** ①外部の直接依存を厳密なバージョンへ固定 ②浮動バージョン・latest・branch 指定を禁止 ③import 走査テストで固定状態を継続検証 ④依存関係を定期確認（付録D） ⑤deno.lock は **Superseded / Platform Constraint**（生成は可能だが、Supabase Edge Functions のデプロイ経路が lockfile をアップロード・参照しないことを実験で確認）| P3 |
 | （親計画外）<br>Additional Backlog:<br>Scorer access code hardening | 採点者参加コードが無塩 SHA-256 | Medium | `projects.scorer_access_code_hash` = `AppCrypto.hashPassword(scorerCode)`（`js/index.js:356`）で無塩。参加コードは短く低エントロピーのため、DB 流出時に総当たりで復元可能 | 攻撃者が採点者としてプロジェクトへ参加（答案画像・採点データへのアクセス） | サーバ側（Edge/RPC）で保存前に HMAC(pepper) 化。既存行は再設定またはコード再発行。照合経路（`join_project_with_scorer_code` 相当）も同時に切替 | P2 |
 
 ## 4. 重大度ランキング
@@ -106,15 +106,15 @@
   素の UUID は拒否。公開リストから entry UUID を列権限で除外し、受付 UI に受付番号フォールバックを追加。
 - **V9 = Completed**（2026-07-26）。RSA 秘密鍵を localStorage から sessionStorage 限定保持へ（旧値は初回読出で移行・削除）。
 - **V11 = Completed**（2026-07-26）。check-in を admin-* と同じ「active かつ owner/admin/scorer」に統一。
-- **V13 = Partially Completed**（2026-07-26 再確認・追加検証済み）。**deno.lock の生成自体は可能**だが、
-  **Supabase Functions のデプロイ経路が lock を利用しない**ことを実験で確定（lock はアップロードされず、
-  integrity を破損させてもデプロイが成功する）。すなわち未実施の理由は工数や時期ではなく**プラットフォーム制約**。
-  直接依存はパッチ版固定（浮動指定 0 件）だが、
-  完了条件に明記された **deno.lock 導入が未実施**。`npm:qrcode@1.5.4` の推移的依存が semver 範囲
-  （pngjs ^5.0.0 / yargs ^15.3.1 / dijkstrajs ^1.0.1）のため、lock なしではデプロイごとに変動しうる
-  ＝版固定だけでは deno.lock と同等の保証にならない（同等性は反証済み。Superseded にはしない）。
-- **Phase 3 判定 = Partially Completed**（V7 ✅ / V9 ✅ / V11 ✅ / **V13 未完**）。
-- **親計画 V1〜V13 は未完了**（V13 のみ残）。Phase 1・Phase 2 は Completed。
+- **V13 = Completed**（2026-07-26・要件改訂の上で充足）。直接依存は厳密固定（浮動・latest・branch 指定 0 件）、
+  import 走査の回帰テストで継続検証、定期確認手順を付録D に文書化。**deno.lock は Superseded / Platform Constraint**
+  — 生成自体は可能（Deno 2.9.4 で npm 29 件・remote 11 件を integrity 付きで固定）だが、
+  Supabase のデプロイ経路が lockfile をアップロード・参照しないことを実験で実証したため、
+  具体的実装手段として置き換えた。残余リスクは付録D に明記。
+- **Phase 3 判定 = ✅ Completed**（V7 ✅ / V9 ✅ / V11 ✅ / V13 ✅）。
+- **親計画 V1〜V13 = ✅ 全て Completed**（Phase 1 ✅ / Phase 2 ✅ / Phase 3 ✅）。
+- `projects.scorer_access_code_hash` の件は親計画の V 番号に追加せず、
+  **Additional Security Backlog: Scorer access code hardening** として別管理（未着手）。
 - `projects.scorer_access_code_hash` の件は親計画の V 番号に追加せず、
   **Additional Security Backlog: Scorer access code hardening** として別管理する。
 
@@ -216,7 +216,76 @@ Turnstile の site key / secret key を再発行した場合: Cloudflare で新 
 `TURNSTILE_SECRET_KEY`（Supabase secret）を**同時に**更新 → `send-email` / `create-entry` を再デプロイ。
 不一致の間は全リクエストが 403 になるため、低トラフィック時間帯に実施する。
 
+## 付録D: Edge 依存の管理（V13 完了条件）
+
+### D-1. 固定方針
+- 外部の**直接依存は厳密なバージョン**（パッチ版まで）で指定する。
+- **浮動バージョン（`@2` 等）・`latest`・branch 指定・バージョン未指定は禁止**。
+- 現在の直接依存（全 Edge Function・2026-07-26 時点）:
+  | 指定 | 用途 | 状態 |
+  |---|---|---|
+  | `https://esm.sh/@supabase/supabase-js@2.110.1` | Supabase クライアント（`_shared/supabase.ts`） | 厳密固定 ✅ |
+  | `npm:qrcode@1.5.4` | 受付QR画像生成（`_shared/qr.ts`） | 厳密固定 ✅ |
+- ブラウザ側の supabase-js（各 HTML の SRI 付き script）と**同一バージョンに揃える**。
+
+### D-2. 継続検証（自動）
+`tests/edge_dependencies.test.mjs` が全 `supabase/functions/**/*.ts` の import を走査し、
+- 浮動指定が 1 件でもあれば **CI 失敗**
+- Edge とブラウザの supabase-js バージョン不一致でも **CI 失敗**
+
+### D-3. 定期確認（手動・四半期ごと、および大会準備の開始時）
+1. 現在の指定を一覧する:
+   ```bash
+   grep -rhoE "from '(npm:|jsr:|https://)[^']+'" supabase/functions/ --include='*.ts' | sort -u
+   ```
+2. 各依存の最新版・既知脆弱性を確認する（npm advisory / GitHub Security Advisories）。
+3. 更新する場合は**バージョンを書き換えて** `npx vitest run` → 該当 Edge を再デプロイ → 主要経路を疎通確認。
+4. 更新内容を `docs/security-migration-status.md` に記録する。
+- **大会直前は更新しない**（当日運用のリスクを避け、直後の定期確認へ回す）。
+
+### D-4. deno.lock — Superseded / Platform Constraint（2026-07-26 実証）
+元の完了条件にあった「deno.lock 導入」は、**生成は可能だが現行プラットフォームでは適用不能**であることを
+実験で確認したため、上記 D-1〜D-3 に置き換える。「実施しなかった」のではない。
+
+**Evidence（実験結果）**
+- **Deno 2.9.4** で本番と同じ依存の deno.lock 生成に**成功**。
+  **npm 依存 29 件・remote 依存 11 件が integrity 付きで記録**された
+  （記録されたのは公開パッケージの版とハッシュのみ。秘密値は含まれない）。
+- 使い捨て Function に `deno.json` と `deno.lock` を同梱してデプロイしたところ、
+  アップロードされた資産は **`deno.json` と `index.ts` のみで、`deno.lock` はアップロードされなかった**。
+- lock 内の integrity を**意図的に破損させても、デプロイは成功**した（＝lock は検証に使われない）。
+- **Supabase CLI に lock 適用オプションは存在しない**（`--import-map` / `--use-api` / `--no-verify-jwt` /
+  `--prune` / `-j` のみ）。
+- 検証用 Function は**削除し、元の 12 Function 構成へ戻した**（invoke 404・一覧に非存在を確認）。
+
+### D-5. 残余リスク（親計画完了の必須残件ではない）
+- `npm:qrcode@1.5.4` の**推移的依存には semver 範囲が含まれる**（`pngjs ^5.0.0` / `yargs ^15.3.1` /
+  `dijkstrajs ^1.0.1`）。
+- そのため**再デプロイ時に推移的依存の解決結果が変わる可能性を完全には排除できない**。
+- **影響範囲は現在 QR 画像生成に限定**される（`checkin-qr` / `my-entry` / `admin-entry-qr`）。
+  参加者認証・DB アクセス・メール送信の経路には及ばない。
+- **完全な決定性**を得るには、qrcode 依存の **vendoring** または**別実装への置換**が必要
+  （vendoring 実測: remote 依存は `vendor/` に取り込めるが、`npm:` 依存は `node_modules/` に展開され
+  関数資産に含まれないため、`npm:qrcode` の置換が前提となる）。
+- 本項は**親計画完了の必須残件とはせず**、依存基盤（Supabase のデプロイ方式や Deno 対応）が変わった際に
+  **再評価する技術的残余リスク**として扱う。
+
 ## 注記・変更履歴（親計画の改定ログ）
+
+### 2026-07-26 — V13 の完了条件を正式改訂（deno.lock を Superseded / Platform Constraint へ）
+**元の要件**: ①外部 import をパッチ版まで固定 ②**deno.lock を導入** ③依存関係を定期確認
+
+**改訂後の要件**:
+1. 外部の**直接依存を厳密なバージョンへ固定**する
+2. **浮動バージョン・latest・branch 指定を禁止**する
+3. **import 走査テスト**で固定状態を継続的に検証する
+4. 依存関係を**定期確認**する（手順は付録D）
+5. **deno.lock は Superseded / Platform Constraint** —
+   Supabase Edge Functions のデプロイ経路が lockfile を**アップロード・参照しない**ことを実験で確認したため、
+   具体的実装手段として①〜④へ置き換える
+
+**位置づけ**: 「deno.lock を実施しなかった」のではなく、**「生成可能だが、現行プラットフォームでは
+デプロイ時に適用不能であると実証した」**。Evidence と残余リスクは付録D に記載。
 
 ### 2026-07-26 — V7 の QR TTL を再評価（400日 → 既定30日・env 連動）
 初回実装の TTL 400 日は「配布済み QR を壊さない」ための便宜的な値で、セキュリティ要件から導いたものではなかった。

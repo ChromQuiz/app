@@ -732,6 +732,61 @@ Status  : 検証完了（V13 の判定は Partially Completed のまま。改訂
 Evidence: 上記はすべて実行結果に基づく（lock 生成ログ・アップロード資産一覧・破損 lock でのデプロイ成功・削除確認）
 ```
 
+### V13 最終判定 — 要件を正式改訂して Completed（親計画 V1〜V13 完了）
+```
+Status  : **Completed** — 2026-07-26（親計画の完了条件を正式改訂した上で充足）
+
+要件改訂（親計画 §3 の V13 行・付録D・改訂履歴に反映済み）:
+  元: ①外部 import をパッチ版まで固定 ②deno.lock を導入 ③依存関係を定期確認
+  新: ①外部の直接依存を厳密なバージョンへ固定 ②浮動・latest・branch 指定を禁止
+      ③import 走査テストで固定状態を継続検証 ④依存関係を定期確認（付録D）
+      ⑤deno.lock は **Superseded / Platform Constraint**
+  位置づけ: 「実施しなかった」のではなく **「生成可能だが現行プラットフォームでは適用不能と実証した」**
+
+最終判定 6 条件の確認（実測）:
+  1. 全 Edge Function の直接外部 import が厳密固定  ✅
+     - `https://esm.sh/@supabase/supabase-js@2.110.1`（_shared/supabase.ts）
+     - `npm:qrcode@1.5.4`（_shared/qr.ts）
+  2. 浮動メジャー・latest・branch・未指定バージョン  ✅ **0 件**（実測）
+  3. import 走査の回帰テストが存在              ✅ tests/edge_dependencies.test.mjs
+     （全 .ts を走査して浮動指定 0 を強制／Edge とブラウザの supabase-js 版一致も検証）
+  4. 定期確認手順が文書化                       ✅ 親計画 付録D-3（四半期ごと＋大会準備開始時／
+     一覧コマンド・脆弱性確認・更新手順・記録先・「大会直前は更新しない」まで明記）
+  5. deno.lock が適用不能であることの実証        ✅ 付録D-4（下記 Evidence）
+  6. 残余リスクの文書化                          ✅ 付録D-5
+
+Evidence（実験結果・秘密値は含まない）:
+  - **Deno 2.9.4** で本番と同じ依存の deno.lock 生成に**成功**
+  - 生成された lock に **npm 依存 29 件・remote 依存 11 件が integrity 付きで記録**された
+    （公開パッケージの版とハッシュのみ）
+  - 使い捨て Function に deno.json と deno.lock を同梱してデプロイ →
+    アップロードされた資産は **deno.json と index.ts のみ／deno.lock はアップロードされなかった**
+  - lock の integrity を**意図的に破損させてもデプロイは成功**（＝lock は検証に使われない）
+  - **Supabase CLI に lock 適用オプションは存在しない**
+  - 検証用 Function を**削除し、元の 12 Function 構成へ復帰**（invoke 404・一覧に非存在を確認）
+
+残余リスク（親計画完了の必須残件ではない・付録D-5 と同内容）:
+  - `npm:qrcode@1.5.4` の推移的依存に **semver 範囲**が含まれる（pngjs ^5.0.0 / yargs ^15.3.1 / dijkstrajs ^1.0.1）
+  - 再デプロイ時に推移的依存の解決結果が変わる可能性を**完全には排除できない**
+  - **影響範囲は現在 QR 画像生成に限定**（checkin-qr / my-entry / admin-entry-qr）
+  - 完全な決定性には qrcode の **vendoring もしくは別実装への置換**が必要
+  - **依存基盤の変更時に再評価する技術的残余リスク**として扱う（新しい V 番号や Backlog 項目は作らない）
+
+Rollback: 要件改訂は文書のみ。依存の版を戻す場合は指定を書き換えて再デプロイ
+```
+
+### 親計画 全体判定（2026-07-26）
+```
+Phase 1 (V1・V2・V4・V6)        : ✅ Completed
+Phase 2 (V3・V5・V8・V10・V12)  : ✅ Completed
+Phase 3 (V7・V9・V11・V13)      : ✅ Completed
+親計画 V1〜V13                  : ✅ **Completed**
+
+別管理（親計画外・未着手）:
+  Additional Security Backlog — Scorer access code hardening
+  （projects.scorer_access_code_hash が無塩 SHA-256。親計画の V 番号・Phase 構造には追加しない）
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
