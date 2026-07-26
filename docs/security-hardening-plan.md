@@ -70,6 +70,7 @@
 | V11 | removed メンバーの JWT 失効はポリシー依存 | Low | 除名直後も JWT 有効期間中は認証が通る。check-in は `status <> 'removed'` のみ | 除名直後の短時間、権限残存 | check-in を owner/admin/scorer の active 明示に統一 | P3 |
 | V12 | 大量登録（create-entry）へのボット対策なし | Low〜Medium | 自動で偽エントリ大量投入 | 枠占有 DoS・運営混乱 | CAPTCHA、メール認証コード完了を登録の前提に、1メール1エントリ制約＋IP レート | P2 |
 | V13 | 依存の浮動バージョン（Edge 側） | Low | esm.sh の浮動指定。上流侵害/破壊的更新 | 予期せぬ挙動変化・供給網 | import をパッチ版まで固定、deno.lock 導入、定期確認 | P3 |
+| V14 | 採点者参加コードが無塩 SHA-256 | Medium | `projects.scorer_access_code_hash` = `AppCrypto.hashPassword(scorerCode)`（`js/index.js:356`）で無塩。参加コードは短く低エントロピーのため、DB 流出時に総当たりで復元可能 | 攻撃者が採点者としてプロジェクトへ参加（答案画像・採点データへのアクセス） | サーバ側（Edge/RPC）で保存前に HMAC(pepper) 化。既存行は再設定またはコード再発行。照合経路（`join_project_with_scorer_code` 相当）も同時に切替 | P2 |
 
 ## 4. 重大度ランキング
 1. V1 Critical / 2. V2 High / 3. V3 High / 4. V4 High / 5. V5 Medium / 6. V6 Medium / 7. V7 Medium / 8. V8 Medium / 9. V9 Medium / 10. V10 Medium / 11. V12 Low〜Med / 12. V11・V13 Low
@@ -194,6 +195,16 @@ Turnstile の site key / secret key を再発行した場合: Cloudflare で新 
 不一致の間は全リクエストが 403 になるため、低トラフィック時間帯に実施する。
 
 ## 注記・変更履歴（親計画の改定ログ）
+
+### 2026-07-26 — V3 の対象範囲を明確化、V14 を新規追加
+Phase 2 の V3 ゼロベース再監査（`docs/security-migration-status.md` 参照）で、`entries` 以外にも無塩 SHA-256 が
+残存していることが判明した。V3 の完了条件「**email_hash も HMAC 化**」は entries だけでは満たされないため、
+**V3 の対象に以下2つを含める**（判定は Partially Completed のまま）:
+- `participant_auth_events.email_hash`（クライアント無塩 SHA-256(email)・レート制限台帳）
+- `email_events.recipient_hash`（サーバ算出の無塩 SHA-256(email)・送信履歴）
+
+`projects.scorer_access_code_hash`（無塩 SHA-256 の採点者参加コード）は V3 の原記述（開示パスワード/メール）に
+含まれないため、**V3 には含めず新規項目 V14 として追加**した（上表）。
 
 ### 2026-07-19 — V4 の完了条件を IP 単位へ改定（運用モデルに整合）
 初期計画は「IP + project 単位のレート制限」を想定していたが、これは一般的なマルチテナント SaaS 前提の設計だった。
