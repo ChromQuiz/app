@@ -93,8 +93,9 @@
 - **V4 = Completed**（IP レート制限をアトミック化。本番で 25 並列→20 通過/5×429 を実証）
 - **V6 = Completed**（共通 `serverErrorResponse`＝汎用文言＋ref、全 JSON Edge が使用）
 - **Phase 1 判定 = ✅ Completed**（2026-07-26。V1・V2・V4・V6 すべて Completed）
-- 次段: **Phase 2**（V3 pepper / V5 CORS allowlist / V8 SRI / V12 登録ボット対策 / V10 監査ログ）。
-  ※ V3 は参加者ハッシュ v2 移行（P2-e1〜e5）で完了済みのため、Phase 2 着手時に再監査して判定すること。
+- **V3 = Completed**（2026-07-26）。entries（P2-e1〜e5）に加え、`email_events.recipient_hash` と
+  `participant_auth_events.email_hash` も HMAC(pepper) 化し、既存 95 行を in-place 再計算済み。
+- 次段: **Phase 2 の残り**（**V5 → V8 → V10 → V12 → V14** の順）。親計画の順序を維持し、派生タスクを先行させない。
 
 ## 6. 実装優先順位
 - **P0（公開前必須）**: V1 → V2

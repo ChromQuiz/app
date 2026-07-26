@@ -363,7 +363,12 @@ Notes   : 設計判断＝**recipient_hash_v2 / email_hash_v2 は作らず既存�
           理由: 読み手が限定（enforceRateLimit / enforceAuthRateLimit のみ）・認証主体ではない・
           既存値から新値を再計算できる・長期互換が不要。P2-e5 のような長期 dual-write は行っていない。
           二重ハッシュ防止は「cutoff 必須 + 実行後に Function 削除」で担保。
-          → V3 の残件は解消。V3 全体の再判定は次ターンで実施する（scorer コードは V14 として分離済み）。
+          → **V3 = Completed**（2026-07-26 再判定）。完了条件を全て充足:
+          (a) サーバ側 HMAC(pepper) 化 = entries / email_events / participant_auth_events の全経路
+          (b) email_hash も HMAC 化 = 3テーブルすべて
+          (c) pepper は env 秘密 = CIQ_PARTICIPANT_HASH_PEPPER（フォールバックなし・32文字下限）
+          (d) 既存行の再計算 = entries は P2-e2/e3 backfill、ログ2表は今回 95 行を in-place 再計算
+          （scorer 参加コードの無塩ハッシュは V3 の対象外＝V14 として分離済み）
 ```
 
 ## 5. 記載フォーマット（今後のエントリ標準）
