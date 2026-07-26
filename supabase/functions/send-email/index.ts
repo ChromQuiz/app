@@ -476,8 +476,6 @@ async function recordAndSend(args: {
   const supabase = createServiceClient();
   if (!args.projectId) throw new Error('Project is required');
   await enforceRateLimit(supabase, args.recipientHash, args.template);
-  // プロジェクト日次の送信上限(V2 backstop・IP 横断のメール爆撃/枠枯渇を抑止)。
-  await enforceProjectDailyEmailCap(supabase, args.projectId);
 
   const { data: queued, error: queueError } = await supabase
     .from('email_events')
@@ -555,6 +553,10 @@ Deno.serve(withCors(async (req) => {
       if (!effectiveProjectId) return jsonResponse({ error: 'Project is required' }, 400);
       const supabase = createServiceClient();
       await enforceIpRateLimit(supabase, { bucket: 'send_verification', ip: clientIp(req), projectId: effectiveProjectId });
+      // 日次上限(V2 backstop)は無認証の send_verification のみに適用する。
+      // 通知系(確認/キャンセル/管理者トリガ)は宛先所有確認・管理者認証で保護済のため cap を共有させず、
+      // send_verification 撃ちで正規メールが枯渇(DoS-starvation)しないようにする。
+      await enforceProjectDailyEmailCap(supabase, effectiveProjectId);
       const project = await getProjectForMail(supabase, effectiveProjectId);
       assertEntryOpen(project);
 

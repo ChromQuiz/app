@@ -108,16 +108,19 @@ export async function enforceIpRateLimit(
 }
 
 /**
- * プロジェクト単位の日次メール送信上限(V2 の backstop)。
- * IP を横断した分散的なメール爆撃・無料枠枯渇を抑える。scope_key は project_id(機密でない)。
- * 既定 500通/日(CIQ_EMAIL_DAILY_CAP で上書き可)。RPC は並列安全(advisory lock)。障害時は fail-open。
+ * 無認証 send_verification 用の日次送信 backstop(V2)。IP を横断した分散的なメール爆撃・無料枠枯渇の
+ * 恒常的な上限を敷く。**通知系(確認/キャンセル等)には掛けない**(呼び出し側で send_verification に限定して呼ぶ)。
+ * これにより send_verification 撃ちで正規通知が枯渇しない。scope_key は project_id(機密でない)。
+ * 窓は「rolling 24h」(暦日・TZ 非依存で深夜リセットの抜けを避ける)。
+ * 既定 1000通/日(CIQ_EMAIL_DAILY_CAP で上書き可・緊急時は大きな値で実質解除)。
+ * RPC は並列安全(advisory lock)。障害時は fail-open。
  */
 export async function enforceProjectDailyEmailCap(
   supabase: ReturnType<typeof createServiceClient>,
   projectId: string | null,
 ): Promise<void> {
   if (!projectId) return;
-  const cap = intEnv('CIQ_EMAIL_DAILY_CAP', 500);
+  const cap = intEnv('CIQ_EMAIL_DAILY_CAP', 1000);
   let priorCount: number;
   try {
     const { data, error } = await supabase.rpc('rate_limit_hit', {

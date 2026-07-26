@@ -132,6 +132,25 @@
 ロールバック: 旧鍵を `supabase secrets set` で再投入し、上記 Edge を再デプロイすれば旧トークン/QR が再び有効化する
 （旧鍵を安全に保管している場合のみ）。
 
+## 付録B: メール日次上限（V2 backstop）の運用
+
+- **対象**: 無認証の `send_verification` のみ（通知系＝確認/キャンセル/編集/遅刻/繰上げ・管理者トリガは **cap 対象外**。
+  これらは宛先所有確認（`assertEntryRecipient`）・管理者認証・recipient_hash 制限で保護済み）。→ 上限到達後も正規通知は送れる。
+- **窓/既定値**: rolling 24h・既定 **1000通/日**（`CIQ_EMAIL_DAILY_CAP` で上書き）。単一大会の1日あたり認証コード送信量を十分上回る値。
+  大規模大会で不足する場合は事前に引き上げる。値の根拠は「暫定・運用で調整」。
+- **超過時**: `send_verification` が **HTTP 429** ＋「本日のメール送信上限に達しました。しばらくしてから再度お試しください。」。
+- **原子性**: `rate_limit_hit`（advisory lock）で並列でも上限突破不可。
+- **当日使用数の確認（運営・service-role）**:
+  ```sql
+  select count(*) as used_24h
+  from public.rate_limit_events
+  where bucket = 'email_daily'
+    and scope_key = 'project:ciq1'
+    and created_at > now() - interval '24 hours';
+  ```
+- **緊急変更/実質解除**: `supabase secrets set CIQ_EMAIL_DAILY_CAP=<大きな値> --project-ref pyzdlkwumhreepgkrcyb` →
+  `supabase functions deploy send-email`。障害時は本 cap 自体が fail-open（RPC 障害なら通過）なので、cap が受付を止めることはない。
+
 ## 注記・変更履歴（親計画の改定ログ）
 
 ### 2026-07-19 — V4 の完了条件を IP 単位へ改定（運用モデルに整合）

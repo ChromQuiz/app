@@ -150,12 +150,15 @@ describe('IP rate limiting is concurrency-safe (V4)', () => {
     expect(mig).toMatch(/revoke all on function public\.rate_limit_hit[^;]*from public, anon, authenticated/);
   });
 
-  it('send-email enforces a per-project daily email cap (V2 backstop)', () => {
+  it('daily email cap targets send_verification only (no DoS-starvation of notifications)', () => {
     const rl = read('supabase/functions/_shared/rate_limit.ts');
     expect(rl).toMatch(/export async function enforceProjectDailyEmailCap/);
     expect(rl).toMatch(/p_bucket: 'email_daily'/);
     const se = read('supabase/functions/send-email/index.ts');
-    expect(se).toMatch(/enforceProjectDailyEmailCap\(supabase, args\.projectId\)/);
+    // applied in the send_verification branch, NOT in the shared recordAndSend path
+    expect(se).toMatch(/enforceProjectDailyEmailCap\(supabase, effectiveProjectId\)/);
+    const recordAndSend = se.slice(se.indexOf('async function recordAndSend'), se.indexOf('async function recordAndSend') + 900);
+    expect(recordAndSend).not.toMatch(/enforceProjectDailyEmailCap/);
   });
 });
 
