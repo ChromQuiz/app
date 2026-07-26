@@ -223,10 +223,14 @@ async function resendVerification() {
     showVerifyMsg('認証コードを再送信しています...', '');
 
     const pName = document.getElementById('project-title')?.textContent || projectId;
-    const result = await CIQEmail.sendVerificationCode(email, pName, pName + ' 実行委員会');
+    // Turnstile トークンはワンタイム。送信のたびに取得し、結果に関わらず reset して次回分を発行させる。
+    const result = await CIQEmail.sendVerificationCode(
+        email, pName, pName + ' 実行委員会', CIQTurnstile.token('turnstile-verify'),
+    );
+    CIQTurnstile.reset('turnstile-verify');
 
     if (!result || !result.success) {
-        showVerifyMsg('再送信に失敗しました。', 'error');
+        showVerifyMsg('再送信に失敗しました。もう一度お試しください。', 'error');
         resendBtn.disabled = false;
         setEntryButton(resendBtn, '再送信', 'rotate-right');
         return;
@@ -260,10 +264,13 @@ async function sendVerification() {
     showVerifyMsg('認証コードを送信しています...', '');
 
     const pName = document.getElementById('project-title')?.textContent || projectId;
-    const result = await CIQEmail.sendVerificationCode(email, pName, pName + ' 実行委員会');
+    const result = await CIQEmail.sendVerificationCode(
+        email, pName, pName + ' 実行委員会', CIQTurnstile.token('turnstile-verify'),
+    );
+    CIQTurnstile.reset('turnstile-verify');
 
     if (!result || !result.success) {
-        showVerifyMsg('認証コードの送信に失敗しました。メールアドレスを確認してください。', 'error');
+        showVerifyMsg('認証コードの送信に失敗しました。メールアドレスを確認して、もう一度お試しください。', 'error');
         btn.disabled = false;
         setEntryButton(btn, '認証コードを送信', 'paper-plane');
         return;
@@ -426,6 +433,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             emailHash,
             disclosurePasswordHash: pwHash,
             emailVerifiedToken: verifiedToken,
+            turnstileToken: CIQTurnstile.token('turnstile-entry'),
             publicProfile: { entryName, affiliation, grade, message, inquiry, isChubu },
         });
 
@@ -464,6 +472,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         }
     } catch (err) {
         console.error('Entry error:', err);
+        // 送信済みトークンはワンタイム。失敗時は必ず reset して再試行できるようにする。
+        CIQTurnstile.reset('turnstile-entry');
         btn.disabled = false;
         btn.textContent = 'エントリーを確定する';
         showStatus('エラーが発生しました: ' + err.message, 'error');
@@ -490,6 +500,9 @@ setupVerifyCodeBoxes();
 
 async function init() {
     setEntryStepState('verify');
+    // Turnstile widget を描画(site key 未設定 / API 読込失敗時は描画されず、サーバ側 fail-closed が守る)。
+    CIQTurnstile.render('turnstile-verify', 'send_verification');
+    CIQTurnstile.render('turnstile-entry', 'create_entry');
     if (isReentry) {
         const note = document.getElementById('reentry-note');
         showEl(note);

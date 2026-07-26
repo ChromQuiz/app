@@ -5,6 +5,7 @@ import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_share
 import { clientIp, enforceIpRateLimit, enforceProjectDailyEmailCap, RateLimitError } from '../_shared/rate_limit.ts';
 import { issueEmailVerifiedToken } from '../_shared/email_verify.ts';
 import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
+import { TurnstileConfigError, TurnstileError, verifyTurnstile } from '../_shared/turnstile.ts';
 
 type EmailTemplate = {
   subject: string;
@@ -551,6 +552,13 @@ Deno.serve(withCors(async (req) => {
     if (type === 'send_verification') {
       const effectiveProjectId = projectId || String(data.projectId || '');
       if (!effectiveProjectId) return jsonResponse({ error: 'Project is required' }, 400);
+      // CAPTCHA(Turnstile)をコード発行の前提にする。クライアントの成功状態は信用せずサーバ検証する。
+      // 検証失敗=403 / secret未設定・CF障害=fail-closed。レート制限より前に実行し、無認証の乱用を入口で止める。
+      await verifyTurnstile({
+        token: data.turnstileToken ?? body.turnstileToken,
+        action: 'send_verification',
+        remoteip: clientIp(req),
+      });
       const supabase = createServiceClient();
       await enforceIpRateLimit(supabase, { bucket: 'send_verification', ip: clientIp(req), projectId: effectiveProjectId });
       // 日次上限(V2 backstop)は無認証の send_verification のみに適用する。
@@ -622,6 +630,15 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof RateLimitError) {
       return jsonResponse({ error: error.message }, error.status);
+    }
+    if (error instanceof TurnstileError) {
+      // 内部理由(code)はサーバログのみ。利用者には再試行可能な汎用文言を返す。
+      console.error(`[send-email] turnstile rejected: ${error.code}`);
+      return jsonResponse({ error: '認証に失敗しました。ページを再読み込みして、もう一度お試しください。' }, error.status);
+    }
+    if (error instanceof TurnstileConfigError) {
+      console.error('[send-email] turnstile secret is not configured');
+      return jsonResponse({ error: 'ただいまメールを送信できません。時間をおいて再度お試しください。' }, error.status);
     }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Too many email requests')) {

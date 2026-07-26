@@ -4541,3 +4541,12 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   box-shadow: inset 0 0 0 1px var(--line);
   font-size: var(--fs-12);
 }
+
+/* Turnstile widget (entry.html). 狭い画面でも溢れず、未描画時は場所を取らない。 */
+.turnstile-box {
+  margin: 0 0 var(--sp-4, 16px);
+  min-height: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.turnstile-box iframe { max-width: 100%; }

@@ -48,34 +48,40 @@ const CIQEmail = (() => {
         return result;
     }
 
+    function requireSendSuccess(result, type) {
+        if (result?.success) return true;
+        const detail = result?.error || result?.reason || `${type} failed`;
+        throw new Error(`メール送信に失敗しました: ${detail}`);
+    }
+
     async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, familyName, firstName, status, entryListUrl, qrData, senderName }) {
         // 宛先所有確認は send-email がサーバ側で行うため emailHash は送らない(P2-e5 案B)。
         const result = await request('entry_confirmation', to, {
             projectName, entryNumber, password, uuid, familyName, firstName, status, entryListUrl, qrData, senderName,
             entryId: uuid,
         });
-        return Boolean(result?.success);
+        return requireSendSuccess(result, 'entry_confirmation');
     }
 
     async function sendCancellation(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
         const result = await request('entry_cancelled', to, {
             projectName, entryNumber, entryId, familyName, firstName, senderName,
         });
-        return Boolean(result?.success);
+        return requireSendSuccess(result, 'entry_cancelled');
     }
 
     async function sendEntryEdited(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
         const result = await request('entry_edited', to, {
             projectName, entryNumber, entryId, familyName, firstName, senderName,
         });
-        return Boolean(result?.success);
+        return requireSendSuccess(result, 'entry_edited');
     }
 
     async function sendLateNotice(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
         const result = await request('late_notice', to, {
             projectName, entryNumber, entryId, familyName, firstName, senderName,
         });
-        return Boolean(result?.success);
+        return requireSendSuccess(result, 'late_notice');
     }
 
     async function sendWaitlistPromotion(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
@@ -85,8 +91,9 @@ const CIQEmail = (() => {
         return Boolean(result?.success);
     }
 
-    async function sendVerificationCode(to, projectName, senderName) {
-        const result = await request('send_verification', to, { projectName, senderName });
+    // turnstileToken はサーバ(send-email)が Siteverify で検証する。クライアントは中継のみ。
+    async function sendVerificationCode(to, projectName, senderName, turnstileToken) {
+        const result = await request('send_verification', to, { projectName, senderName, turnstileToken });
         if (!result?.success) return null;
         return result;
     }

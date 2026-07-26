@@ -4,6 +4,7 @@ import { clientIp, clientIpHash, enforceIpRateLimit, RateLimitError } from '../_
 import { logServiceEvent } from '../_shared/audit.ts';
 import { emailVerificationRequired, verifyEmailVerifiedToken } from '../_shared/email_verify.ts';
 import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
+import { TurnstileConfigError, TurnstileError, verifyTurnstile } from '../_shared/turnstile.ts';
 
 // クライアントの SHA-256(hex) 形式検証: 64文字の小文字16進のみ許可(前後空白・大文字・非hexは不可)。
 const SHA256_HEX = /^[0-9a-f]{64}$/;
@@ -18,7 +19,7 @@ Deno.serve(withCors(async (req) => {
 
   try {
     const body = await req.json();
-    const { projectId, encryptedPii, emailHash, disclosurePasswordHash, publicProfile, emailVerifiedToken } = body;
+    const { projectId, encryptedPii, emailHash, disclosurePasswordHash, publicProfile, emailVerifiedToken, turnstileToken } = body;
     if (!projectId) return jsonResponse({ error: 'プロジェクト情報が見つかりません。URLを確認してください。' }, 400);
     if (!encryptedPii || !emailHash || !disclosurePasswordHash) {
       return jsonResponse({ error: 'エントリー情報が不足しています。入力内容を確認してもう一度送信してください。' }, 400);
@@ -40,6 +41,9 @@ Deno.serve(withCors(async (req) => {
         return jsonResponse({ error: 'メール認証を確認できませんでした。もう一度メール認証を行ってください。' }, 401);
       }
     }
+
+    // CAPTCHA(Turnstile)を登録の前提にする(V2/V12)。クライアント成功状態は信用せずサーバ検証。
+    await verifyTurnstile({ token: turnstileToken, action: 'create_entry', remoteip: clientIp(req) });
 
     const supabase = createServiceClient();
     await enforceIpRateLimit(supabase, { bucket: 'create_entry', ip: clientIp(req), projectId });
@@ -92,6 +96,14 @@ Deno.serve(withCors(async (req) => {
     return jsonResponse({ ok: true, entry });
   } catch (error) {
     if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
+    if (error instanceof TurnstileError) {
+      console.error(`[create-entry] turnstile rejected: ${error.code}`);
+      return jsonResponse({ error: '認証に失敗しました。ページを再読み込みして、もう一度お試しください。' }, error.status);
+    }
+    if (error instanceof TurnstileConfigError) {
+      console.error('[create-entry] turnstile secret is not configured');
+      return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいて再度お試しください。' }, error.status);
+    }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[create-entry] participant hash configuration unavailable');
       return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいて再度お試しください。' }, 503);

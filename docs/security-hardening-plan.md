@@ -151,6 +151,46 @@
 - **緊急変更/実質解除**: `supabase secrets set CIQ_EMAIL_DAILY_CAP=<大きな値> --project-ref pyzdlkwumhreepgkrcyb` →
   `supabase functions deploy send-email`。障害時は本 cap 自体が fail-open（RPC 障害なら通過）なので、cap が受付を止めることはない。
 
+## 付録C: Turnstile（CAPTCHA）の運用・障害時手順（V2）
+
+### 構成
+- 対象フロー: **`send_verification`**（認証コード送信・action=`send_verification`）と **`create-entry`**（登録確定・action=`create_entry`）。
+- 検証: Edge が Cloudflare Siteverify へ POST（`_shared/turnstile.ts`）。**クライアントの成功状態は認可に使わない**。
+  `success`・`action`・`hostname` を検証し、未指定/失敗/期限切れ/重複（`timeout-or-duplicate`）を拒否。可能なら `remoteip` を送る。
+- 秘密情報: **`TURNSTILE_SECRET_KEY`（Supabase secret のみ）**。コード・クライアント・コミットには置かない。
+  site key は公開値で `js/supabase_config.js` の `CIQ_TURNSTILE_SITE_KEY`。
+- 許可ホスト名: `CIQ_TURNSTILE_HOSTNAMES`（カンマ区切り）。**未設定だと hostname 検証がスキップされるため、本番では必ず設定する。**
+- CSP: `entry.html` に `script-src`/`frame-src` で `https://challenges.cloudflare.com` を許可（`unsafe-inline` は追加しない）。
+
+### 失敗時の挙動（原則 fail-closed）
+| 事象 | 挙動 | 利用者表示 |
+|---|---|---|
+| token 未指定 / 無効 / 期限切れ / 再利用 / action 不一致 / hostname 不一致 | **403 で拒否** | 「認証に失敗しました。ページを再読み込みして、もう一度お試しください。」 |
+| Siteverify タイムアウト（5秒）・ネットワーク障害・Cloudflare 5xx | **403 で拒否（fail-closed）** | 同上（再試行可能） |
+| `TURNSTILE_SECRET_KEY` 未設定 | **503 で拒否（fail-closed）** | 「ただいま…受け付けられません／送信できません」 |
+
+内部の失敗理由（`error.code`）は**サーバログのみ**。利用者には内部情報を出さない。
+
+### 可用性リスクと緊急回避手順
+**リスク**: Cloudflare Turnstile / Siteverify の障害時、fail-closed のため**エントリー受付と認証コード送信が停止**する（大会当日なら受付不能）。
+既存の多層防御（IP レート制限・日次上限・メール認証必須・1メール1エントリの一意制約）が残るため、CAPTCHA を一時停止しても防御はゼロにならない。
+
+**緊急回避（恒常運用は不可・最短時間で戻す）**:
+1. 障害を確認（Cloudflare Status / Edge ログの `turnstile rejected: unavailable` 多発）。
+2. 一時バイパスを有効化:
+   `supabase secrets set CIQ_TURNSTILE_DISABLED=1 --project-ref pyzdlkwumhreepgkrcyb`
+   → `supabase functions deploy send-email` と `supabase functions deploy create-entry`
+3. バイパス中は**必ず監視**（`rate_limit_events` の急増、`email_events` の異常な伸び）。必要なら
+   `CIQ_RL_SEND_VERIFICATION_IP` / `CIQ_RL_CREATE_ENTRY_IP` / `CIQ_EMAIL_DAILY_CAP` を一時的に絞る。
+4. 復旧後は**即座に解除**:
+   `supabase secrets unset CIQ_TURNSTILE_DISABLED --project-ref pyzdlkwumhreepgkrcyb` → 上記2関数を再デプロイ。
+5. バイパスの開始・終了時刻を記録し、`docs/security-migration-status.md` に追記する。
+
+### 鍵ローテーション
+Turnstile の site key / secret key を再発行した場合: Cloudflare で新 widget を作成 → `CIQ_TURNSTILE_SITE_KEY`（`js/supabase_config.js`、要 commit）と
+`TURNSTILE_SECRET_KEY`（Supabase secret）を**同時に**更新 → `send-email` / `create-entry` を再デプロイ。
+不一致の間は全リクエストが 403 になるため、低トラフィック時間帯に実施する。
+
 ## 注記・変更履歴（親計画の改定ログ）
 
 ### 2026-07-19 — V4 の完了条件を IP 単位へ改定（運用モデルに整合）

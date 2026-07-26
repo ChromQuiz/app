@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://challenges.cloudflare.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self' https://challenges.cloudflare.com; img-src 'self' data: blob:;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="favicon.png?v=4">
     <meta name="description" content="CIQ - クイズ大会の解答採点を支援するウェブプラットフォーム">
@@ -21,7 +21,7 @@
     <script defer src="js/ui.js?v=20"></script>
     <script defer src="js/shared.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=73">
-    <link rel="stylesheet" href="css/pages.css?v=113">
+    <link rel="stylesheet" href="css/pages.css?v=114">
 </head>
 
 <body class="page-wrapper">
@@ -56,6 +56,8 @@
                         <input type="email" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください" aria-describedby="email-hint">
                         <div class="hint" id="email-hint"><span data-icon="circle-info" aria-hidden="true"></span> 認証コードを送信して本人確認を行います。</div>
                     </div>
+                    <!-- Turnstile: 認証コード送信の前提。site key 未設定/JS読込失敗時は非表示のまま(サーバ側が拒否)。 -->
+                    <div id="turnstile-verify" class="turnstile-box u-hidden" aria-live="polite"></div>
                     <button type="button" class="page-btn mb-lg" id="send-code-btn">
                         <span data-icon="paper-plane" aria-hidden="true"></span> 認証コードを送信
                     </button>
@@ -205,6 +207,8 @@
                     <dl class="entry-confirm-list" id="entry-confirm-list"></dl>
                 </details>
 
+                <!-- Turnstile: エントリー確定の前提。 -->
+                <div id="turnstile-entry" class="turnstile-box u-hidden" aria-live="polite"></div>
                 <button type="submit" class="page-btn" id="submit-btn">エントリーを確定する</button>
                 </div><!-- /form-body -->
             </form>
@@ -234,8 +238,11 @@
         <div class="page-footer">Powered by CIQ</div>
     </div>
 
-    <script defer src="js/email.js?v=5"></script>
-    <script defer src="js/entry.js?v=16"></script>
+    <!-- Turnstile API。読込失敗時は widget が出ないだけで、サーバ側検証が fail-closed で守る。 -->
+    <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+    <script defer src="js/turnstile.js?v=1"></script>
+    <script defer src="js/email.js?v=7"></script>
+    <script defer src="js/entry.js?v=17"></script>
 </body>
 
 </html>
