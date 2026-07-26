@@ -1,5 +1,25 @@
 # CIQ セキュリティ強化計画（設計レビュー / 改善計画）
 
+> ## 📌 Baseline（凍結）
+> | 項目 | 値 |
+> |---|---|
+> | **Status** | **Completed** |
+> | **Version** | **1.0（Baseline / 凍結）** |
+> | **Last validated** | **2026-07-27** |
+> | **Scope** | V1〜V13（Phase 1 / 2 / 3）— 対象コミット `9423c47`・レビュー日 2026-07-08 |
+> | **判定** | Phase 1 ✅ / Phase 2 ✅ / Phase 3 ✅ → **親計画 V1〜V13 = Completed** |
+>
+> ### 凍結後の運用ルール（重要）
+> 1. **本計画に V 番号を追加しない**（V14 以降を作らない）。**Phase 4 以降も作らない**。
+> 2. 完了条件は**この時点で固定**する。以後の改訂は「実装手段の Superseded」など
+>    **理由と Evidence を改訂履歴に残す場合のみ**行う（V13 の deno.lock がその例）。
+> 3. 凍結後に発見した新規事項は、すべて末尾の
+>    **「Additional Security Backlog（親計画外）」** へ積む。
+> 4. 体系的な見直しが必要になったら、本書を増殖させず **「Security Plan v2」を新規作成**する。
+>
+> **狙い**: 新しい脆弱性を見つけるたびに親計画が膨らみ、「いつまでも完了しない」状態になるのを防ぐ。
+> 親計画は「ある時点で立てた計画」であり、その完了は固定的に判定できるようにしておく。
+
 > **本文書は唯一の親計画（single source of truth）。** P2-e1〜e5、backlog、RLS レビュー、contract/live test 等はすべて
 > 子タスクであり、本計画を置き換えない。実装の現状は `docs/security-migration-status.md`（子タスクの実施記録）に記す。
 >
@@ -70,7 +90,6 @@
 | V11 | removed メンバーの JWT 失効はポリシー依存 | Low | 除名直後も JWT 有効期間中は認証が通る。check-in は `status <> 'removed'` のみ | 除名直後の短時間、権限残存 | check-in を owner/admin/scorer の active 明示に統一 | P3 |
 | V12 | 大量登録（create-entry）へのボット対策なし | Low〜Medium | 自動で偽エントリ大量投入 | 枠占有 DoS・運営混乱 | CAPTCHA、メール認証コード完了を登録の前提に、1メール1エントリ制約＋IP レート | P2 |
 | V13 | 依存の浮動バージョン（Edge 側） | Low | esm.sh の浮動指定。上流侵害/破壊的更新 | 予期せぬ挙動変化・供給網 | **（2026-07-26 改訂）** ①外部の直接依存を厳密なバージョンへ固定 ②浮動バージョン・latest・branch 指定を禁止 ③import 走査テストで固定状態を継続検証 ④依存関係を定期確認（付録D） ⑤deno.lock は **Superseded / Platform Constraint**（生成は可能だが、Supabase Edge Functions のデプロイ経路が lockfile をアップロード・参照しないことを実験で確認）| P3 |
-| （親計画外）<br>Additional Backlog:<br>Scorer access code hardening | 採点者参加コードが無塩 SHA-256 | Medium | `projects.scorer_access_code_hash` = `AppCrypto.hashPassword(scorerCode)`（`js/index.js:356`）で無塩。参加コードは短く低エントロピーのため、DB 流出時に総当たりで復元可能 | 攻撃者が採点者としてプロジェクトへ参加（答案画像・採点データへのアクセス） | サーバ側（Edge/RPC）で保存前に HMAC(pepper) 化。既存行は再設定またはコード再発行。照合経路（`join_project_with_scorer_code` 相当）も同時に切替 | P2 |
 
 ## 4. 重大度ランキング
 1. V1 Critical / 2. V2 High / 3. V3 High / 4. V4 High / 5. V5 Medium / 6. V6 Medium / 7. V7 Medium / 8. V8 Medium / 9. V9 Medium / 10. V10 Medium / 11. V12 Low〜Med / 12. V11・V13 Low
@@ -300,7 +319,7 @@ QR 画像は表示のたびに再生成されるため長期有効である必�
 **親計画の V 番号・Phase 構造には追加しない**。以後は「Additional Security Backlog: Scorer access code hardening」
 として、親計画完了後に別枠で扱う。
 
-### 2026-07-26 — V3 の対象範囲を明確化、V14 を新規追加
+### 2026-07-26 — V3 の対象範囲を明確化、採点者参加コードを別項目として分離
 Phase 2 の V3 ゼロベース再監査（`docs/security-migration-status.md` 参照）で、`entries` 以外にも無塩 SHA-256 が
 残存していることが判明した。V3 の完了条件「**email_hash も HMAC 化**」は entries だけでは満たされないため、
 **V3 の対象に以下2つを含める**（判定は Partially Completed のまま）:
@@ -308,7 +327,10 @@ Phase 2 の V3 ゼロベース再監査（`docs/security-migration-status.md` �
 - `email_events.recipient_hash`（サーバ算出の無塩 SHA-256(email)・送信履歴）
 
 `projects.scorer_access_code_hash`（無塩 SHA-256 の採点者参加コード）は V3 の原記述（開示パスワード/メール）に
-含まれないため、**V3 には含めず新規項目 V14 として追加**した（上表）。
+含まれないため、**V3 には含めない**とした。
+※ 当初は親計画の表に新しい V 番号として追記したが、Baseline 凍結（v1.0）に伴い
+**親計画の V 番号からは削除**し、末尾の **Additional Security Backlog（AB-1）** へ移した。
+凍結後の新規事項は親計画に V 番号を増やさず、そちらへ積む。
 
 ### 2026-07-19 — V4 の完了条件を IP 単位へ改定（運用モデルに整合）
 初期計画は「IP + project 単位のレート制限」を想定していたが、これは一般的なマルチテナント SaaS 前提の設計だった。
@@ -323,3 +345,23 @@ Phase 2 の V3 ゼロベース再監査（`docs/security-migration-status.md` �
 
 この改定に伴い、`participant_auth_events` への `ip_hash` 列追加は行わない（IP 追跡は `rate_limit_events` の HMAC scope_key で満たすため）。
 現行実装（`rate_limit_events` + HMAC 化 IP scope_key + 共通 IP レート制限層）が上記を満たす部分は「初期案をより実運用に適した設計へ更新した（Superseded）」として扱う。
+
+---
+
+# Additional Security Backlog（親計画外）
+
+> 親計画（V1〜V13 / Baseline v1.0）の**凍結後**に発見した事項を積む場所。
+> **親計画の V 番号・Phase 構造には追加しない。** 着手の可否・順序は個別に判断する。
+
+## AB-1. Scorer access code hardening
+| 項目 | 内容 |
+|---|---|
+| **Status** | Not started（未着手） |
+| **発見** | 2026-07-26（V3 のゼロベース再監査中） |
+| **重大度** | Medium |
+| **問題** | `projects.scorer_access_code_hash` = `AppCrypto.hashPassword(scorerCode)`（`js/index.js:356`）で**無塩 SHA-256**。参加コードは短く低エントロピーのため、DB 流出時に総当たりで復元されうる |
+| **影響** | 攻撃者が採点者としてプロジェクトへ参加（答案画像・採点データへのアクセス） |
+| **修正方針** | サーバ側（Edge/RPC）で保存前に HMAC(pepper) 化。既存行は再設定またはコード再発行。照合経路（`join_project_with_scorer_code` 相当）も同時に切替 |
+| **運用上の注意** | 既存の参加コードが**無効化**されるため、運営から採点者への**再共有が必要**。大会日程を避けて実施する |
+| **親計画との関係** | V3（開示パスワード/メールの無塩ハッシュ）とは**別の資格情報**であり、V3 の完了条件には含まれない |
+

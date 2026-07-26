@@ -775,16 +775,38 @@ Evidence（実験結果・秘密値は含まない）:
 Rollback: 要件改訂は文書のみ。依存の版を戻す場合は指定を書き換えて再デプロイ
 ```
 
-### 親計画 全体判定（2026-07-26）
+### 親計画 全体判定 → **Baseline v1.0 として凍結**（2026-07-27）
 ```
 Phase 1 (V1・V2・V4・V6)        : ✅ Completed
 Phase 2 (V3・V5・V8・V10・V12)  : ✅ Completed
 Phase 3 (V7・V9・V11・V13)      : ✅ Completed
 親計画 V1〜V13                  : ✅ **Completed**
 
-別管理（親計画外・未着手）:
-  Additional Security Backlog — Scorer access code hardening
-  （projects.scorer_access_code_hash が無塩 SHA-256。親計画の V 番号・Phase 構造には追加しない）
+Baseline:
+  Status         : Completed
+  Version        : 1.0（Baseline / 凍結）
+  Last validated : 2026-07-27
+  Scope          : V1〜V13（対象コミット 9423c47 / レビュー日 2026-07-08）
+
+凍結後の運用ルール（親計画の冒頭に明記）:
+  1. 親計画に V 番号を追加しない（V14 以降を作らない）。Phase 4 以降も作らない
+  2. 完了条件はこの時点で固定。以後の改訂は「実装手段の Superseded」等、
+     理由と Evidence を改訂履歴に残す場合のみ（V13 の deno.lock がその例）
+  3. 凍結後に発見した新規事項は「Additional Security Backlog（親計画外）」へ積む
+  4. 体系的な見直しが必要になったら、本書を増殖させず「Security Plan v2」を新規作成する
+
+凍結に伴う整理:
+  - 親計画 §3 の脆弱性表を **V1〜V13 ちょうど**に戻した
+    （一時的に追記していた採点者参加コードの行を表から削除）
+  - 採点者参加コードの件は末尾の **Additional Security Backlog / AB-1** へ移設（未着手）
+  - 改訂履歴に残っていた「V14」表記も、AB-1 へ移した旨を明記して是正
+
+機械的な担保:
+  tests/security_plan_baseline.test.mjs（7 件）が CI で以下を強制する —
+  Baseline ヘッダ（Status/Version/Last validated）の存在、脆弱性表が V1〜V13 ちょうどであること、
+  計画本体に V14 以降・Phase 4 以降が現れないこと（ルール文自体は除外して判定）、
+  Additional Security Backlog セクションと AB-1 の存在、Security Plan v2 への導線、全 Phase の Completed 記載。
+  → 「親計画が知らぬ間に膨らむ」ことを人の注意力ではなくテストで防ぐ。
 ```
 
 ## 5. 記載フォーマット（今後のエントリ標準）
