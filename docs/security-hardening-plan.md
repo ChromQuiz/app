@@ -95,7 +95,12 @@
 - **Phase 1 判定 = ✅ Completed**（2026-07-26。V1・V2・V4・V6 すべて Completed）
 - **V3 = Completed**（2026-07-26）。entries（P2-e1〜e5）に加え、`email_events.recipient_hash` と
   `participant_auth_events.email_hash` も HMAC(pepper) 化し、既存 95 行を in-place 再計算済み。
-- 次段: **Phase 2 の残り**（**V5 → V8 → V10 → V12 → V14** の順）。親計画の順序を維持し、派生タスクを先行させない。
+- **V5 = Completed**（2026-07-26）。CORS allowlist を fail-closed 化（'*' フォールバックを撤去し V1 と整合）。
+- **V8 = Completed**（2026-07-26）。SRI + 厳密版ピン留めは既存、CSP から未使用 CDN を削除。
+- **V10 = Completed**（2026-07-26）。service_role 経路の監査挿入経路は実装済みで、状態変更 6 操作すべてが
+  actor_kind / HMAC 化 IP / 状態のみの after_data を記録（本番ログで実証）。追加実装は不要だった。
+- **Phase 2 進捗**: V3 ✅ / V5 ✅ / V8 ✅ / V10 ✅ / **V12 = 次に監査**。
+- 次段: **V12 → V14**。親計画の順序を維持し、派生タスクを先行させない。
 
 ## 6. 実装優先順位
 - **P0（公開前必須）**: V1 → V2

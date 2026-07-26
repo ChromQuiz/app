@@ -461,6 +461,41 @@ Notes   : **SRI 非適用の例外 1 件** = Cloudflare Turnstile の api.js。C
           pdf.js の worker（workerSrc）も API の性質上 SRI を付与できないが、同一の cdnjs 版固定 URL を使用。
 ```
 
+### V10 参加者/service_role 操作の監査ログ（ゼロベース監査）
+```
+Status  : Completed — 2026-07-26（**追加実装なし**。既存実装が完了条件を満たしていた）
+初期計画 : 脅威=参加者系は service_role 実行で auth.uid() が null となり、受付・編集・キャンセルの証跡が残らない
+           影響=インシデント追跡不能 / 修正方針=service_role 用の監査挿入経路（種別=participant、IP/ID のみ、PII なし）
+既存実装（調査で確認・今回は書き換えていない）:
+  - 挿入経路 : _shared/audit.ts の logServiceEvent() → RPC log_service_event（SECURITY DEFINER・
+               EXECUTE は service_role のみ）。migration 202607080002_service_audit_log.sql で
+               audit_logs に actor_kind / actor_ip_hash を追加（既存行・既存ポリシーは不変）
+  - 種別      : ActorKind = 'participant' | 'staff' | 'system'
+  - IP        : clientIpHash() の HMAC 値のみ（生 IP は保存しない）
+  - PII 非保存: target_id は entry.id(UUID)のみ、after_data は状態遷移のみ
+  - fail-open : 記録失敗は本処理を止めない（監査障害が参加者操作を壊さない）
+  - 適用範囲  : 状態変更 6 操作すべて — create-entry(entry.create) / edit-entry(entry.edit) /
+               cancel-entry(entry.cancel) / mark-late(entry.mark_late) / check-in(entry.checkin) /
+               admin-create-entry(entry.create_by_staff)
+Evidence:
+  - production verification（本番 audit_logs の実データ）:
+    * entry.create = 6 件（actor_kind=participant・全件 IP ハッシュあり）
+    * entry.cancel = 1 件（participant）/ entry.mark_late = 1 件（participant）/ entry.checkin = 2 件（staff）
+    * after_data のキーは `status` と `checked_in` のみ = **PII 混入なし**
+    * actor_ip_hash: 10/10 が 64hex、生 IP 形式は 0 件
+    * log_service_event: SECURITY DEFINER・grantee=service_role
+    * RLS: audit_logs_select_admin（owner/admin のみ閲覧可）
+    ※ entry.edit のみ本番実データ未発生（コード経路は edit-entry/index.ts:135-141 に存在）
+  - Tests   : tests/audit_trail.test.mjs（8 件）— 状態変更 6 操作が正しい action/actor_kind/HMAC 化 IP で
+              記録すること、afterData に PII 系フィールドを渡していないこと、fail-open であること
+              `npx vitest run` = 174 passed
+  - Commits : 本エントリと同一 commit（回帰テスト追加とドキュメント更新のみ）
+Rollback: N/A（実装変更なし。追加したのはテストとドキュメントのみ）
+Notes   : 監査対象外は読み取り専用/非状態変更の経路（my-entry・disclose-result・admin-entry-qr・checkin-qr）と
+          send-email（送信履歴は email_events 台帳が担う）。V10 の脅威記述が名指しする「受付・編集・キャンセル」は
+          すべて記録されている。**Phase 2 進捗: V3 ✅ / V5 ✅ / V8 ✅ / V10 ✅ / V12 = 次**
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
