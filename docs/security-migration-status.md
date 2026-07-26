@@ -527,6 +527,51 @@ Notes   : V12 は Phase 1 の V2（Turnstile / IP レート / 日次上限）と
           既に満たされていた。**Phase 2 = 全 V 完了（V3 ✅ / V5 ✅ / V8 ✅ / V10 ✅ / V12 ✅）**。次は V14。
 ```
 
+### V7 当日受付QRの署名化と entry UUID の非公開化（Phase 3・ゼロベース監査）
+```
+Status  : Completed — 2026-07-26（監査時 Partially Completed → 不足分を実装して Completed）
+初期計画 : 脅威=QR 本体が素の entry UUID（署名なし・使い回し無期限）。A4 が他人の QR を提示すると受付が通る
+           修正方針=QR を HMAC(entryId+nonce+exp) 署名付きにし check-in で検証、**または**受付時に受付番号照合を
+           必須化。**少なくとも** entry UUID を公開リストから除外
+監査時点の実装（既存・書き換えていない）:
+  - checkin-qr の **URL** は HMAC 署名済み（任意データの QR 画像生成は不可）
+  - check-in は認証済み active メンバー必須、canceled/waitlist 拒否、二重受付は 'already'、監査ログ記録（V10）
+不足していた点（今回実装）:
+  1. QR の中身が素の entry UUID（署名・期限・nonce なし）
+  2. check-in が未検証の UUID で `.eq('id', entryId)` 照合
+  3. **entry UUID が anon から公開取得可能**（実際に公開 API で実 UUID を取得できることを確認）
+実装:
+  - _shared/qr_token.ts: `entryId.exp.sig`（sig=HMAC(signingSecret, `qr:id:exp`)、既定 TTL 400日）
+    issueQrToken / verifyQrToken。旧形式（素の UUID）は verify が null＝**fail-closed**
+  - QR 生成 3 経路すべてを署名トークンに: my-entry(qrSvg) / admin-entry-qr / checkin-qr
+    ※画像は都度サーバ生成のため、既存メールの URL からも次回表示時に新形式が描画される
+  - check-in: verifyQrToken で検証してから id 照合。素の UUID は 400 で拒否
+  - migration 202607260002: public_entry_list の blanket SELECT を revoke し、**entry_id を除く列のみ**を
+    anon/authenticated に grant（RLS の行可視性は不変。列単位は entries 機密列と同じ手法）
+  - js/supabase_api.js: 公開リストの select から entry_id を除去（キーは entry_number に変更。
+    entry_list.js は Object.values 利用のためキー非依存）
+  - 運用フォールバック（親計画の代替策「受付番号照合」）: 受付 UI に受付番号入力を追加
+    （checkin.html / checkin.js / css）。キャッシュ済みの旧 QR でも受付を継続できる
+Evidence:
+  - Tests   : tests/qr_token.test.mjs（14 件・**実装を直接 import**）— 発行/検証ラウンドトリップ、
+              素の UUID 拒否、entryId すり替え拒否、署名改ざん拒否、exp 改ざん拒否、期限切れ拒否、
+              不正入力拒否、生成3経路が署名トークンを埋め込むこと、check-in が未検証 id で引かないこと、
+              受付番号フォールバックの存在、migration とクライアントから entry_id が消えていること
+              `npx vitest run` = 193 passed
+  - Deploys : checkin-qr / my-entry / admin-entry-qr / check-in
+  - production verification:
+    * `public_entry_list?select=entry_id` → **42501 permission denied**（UUID 取得不可）
+    * 許可列（entry_number/entry_name/status 等）は従来どおり取得可＝公開リストの機能は不変
+  - browser verification: 受付番号フォームが 375px で正しく描画（label↔input 関連付け、
+    数値キーパッド、縦積み、ボタン全幅、横スクロールなし、--ink-2 が解決）
+  - Commits : 601383b
+Rollback: Possible（Edge は旧版へ再デプロイ、migration は grant を戻せば復旧。QR は都度生成のため
+          旧版デプロイで即座に旧形式へ戻る）
+Notes   : 残留リスク=QR は依然として bearer（盗撮・スクショされた QR は有効期限内なら使える）。
+          これは受付番号・氏名の目視照合（結果パネルに表示）と、受付済み QR の再使用が 'already' に
+          なることで運用的に緩和する。V7 の完了条件が求める「署名化」「UUID 非公開化」は充足。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

@@ -102,7 +102,10 @@
 - **V12 = Completed**（2026-07-26）。CAPTCHA・メール認証必須・1メール1エントリ・IP レートの 4 条件は
   Phase 1（V2）と P2-e5 の成果で既に充足しており、追加実装は不要だった。
 - **Phase 2 判定 = ✅ Completed**（V3 ✅ / V5 ✅ / V8 ✅ / V10 ✅ / V12 ✅）。
-- 次段: **V14**（採点者参加コードの無塩 SHA-256）。以降 Phase 3（V7 / V9 / V11 / V13）。
+- **V7 = Completed**（2026-07-26）。QR を署名付きトークン化（entryId.exp.sig）し check-in で検証、
+  素の UUID は拒否。公開リストから entry UUID を列権限で除外し、受付 UI に受付番号フォールバックを追加。
+- **Phase 3 進捗**: V7 ✅ / **V9 = 次に監査** / V11 / V13。
+- Phase 3 完了後に V14（採点者参加コードの無塩 SHA-256）を Additional Security Backlog として扱う。
 
 ## 6. 実装優先順位
 - **P0（公開前必須）**: V1 → V2
