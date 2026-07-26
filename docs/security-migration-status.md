@@ -391,9 +391,39 @@ Evidence:
     * 直叩き時の入力検証: my-entry 空body=400・不正hash形式=404、create-entry 空body=400、
       send-email 不正メール=400、edit-entry トークン無=404（いずれも情報漏洩なし）
     * レート制限による実質担保: V2（Turnstile＋IP＋日次上限）・V4（並列安全な IP 制限）が稼働中
-Rollback: Possible（CIQ_ALLOWED_ORIGINS を空にすれば従来の全許可へ戻る＝後方互換の設計）
-Notes   : 完了条件（本番オリジンの allowlist 化／直叩き前提の入力検証／レート制限での担保）を全て充足。
-          未設定時に '*' へフォールバックする後方互換は残るが、本番は設定済みで実効。
+Rollback: CIQ_ALLOWED_ORIGINS に許可 Origin を設定し直す（空にしても全許可には戻らない＝fail-closed）
+Notes   : **再監査（2026-07-26・同日）で判定を一度取り消した**。初回監査では '*' フォールバックの残存を
+          「後方互換」として許容し Completed としたが、V1（署名鍵は未設定なら例外・弱い既定値へ倒さない）の
+          fail-closed 方針と矛盾するため **Partially Completed へ差し戻し、修正後に再度 Completed**とした。
+          修正内容は下記エントリを参照。
+```
+
+### V5 追補 — '*' フォールバックの撤去（fail-closed 化／初回判定の是正）
+```
+Status  : Completed — 2026-07-26（V5 の最終状態）
+問題    : allowedOrigin() に '*' フォールバックが **3 箇所** 実在した:
+          (1) jsonResponse が 'access-control-allow-origin': '*' を直書き
+          (2) CIQ_ALLOWED_ORIGINS 未設定 → return '*'
+          (3) 設定はあるが空/空白のみ → return '*'
+          → 設定漏れ・設定ミス時に「全オリジン許可」へ倒れる fail-open。V1 の方針と不整合。
+Evidence:
+  - 実装   : _shared/http.ts — 純関数 resolveAllowedOrigin(raw, origin) へ切り出し、
+             未設定/空/空白のみ → null（'*' へ倒さない）。jsonResponse から ACAO 直書きを削除し、
+             withCors() のみが許可 Origin を後付けする。未設定時はサーバログに警告を残す
+  - Tests  : tests/cors_allowlist.test.mjs（**実装を直接 import した決定表テスト 7 件**）
+             未設定/null/空/空白/カンマのみ → null、完全一致 → エコー、
+             サフィックス偽装・scheme 違い・末尾スラッシュ・大文字違い・'null' Origin → null、
+             Origin なし → null、コード内に '*' が残っていないこと
+             `npx vitest run` = 130 passed
+  - Deploys: 全 12 Edge Function を再デプロイ（_shared/http.ts は各関数にバンドルされるため）
+  - production verification（デプロイ前に allowlist 設定済みをゲート確認 → 挙動不変を担保）:
+    * 正規 Origin → send-email / create-entry / my-entry / checkin-qr の全てで ACAO エコー（回帰なし）
+    * 悪意 Origin・preflight 悪意 → ACAO なし
+    * 直叩き: my-entry 誤cred=404 / send-email token無=403（機能回帰なし）
+    * ブラウザ実機（本番フロント）から Edge への fetch が成功＝CORS 破壊なし
+Rollback: Possible（CIQ_ALLOWED_ORIGINS の再設定で調整。ただし '*' への復帰路は意図的に廃止）
+Notes   : これにより V5 は V1 と同じ fail-closed 方針に整合。設定漏れ時はブラウザ経由が止まる（可用性より安全側）が、
+          設定済みの本番では挙動不変であることを実測で確認済み。
 ```
 
 ## 5. 記載フォーマット（今後のエントリ標準）
