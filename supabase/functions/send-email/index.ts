@@ -555,7 +555,7 @@ Deno.serve(withCors(async (req) => {
       // CAPTCHA(Turnstile)をコード発行の前提にする。クライアントの成功状態は信用せずサーバ検証する。
       // 検証失敗=403 / secret未設定・CF障害=fail-closed。レート制限より前に実行し、無認証の乱用を入口で止める。
       await verifyTurnstile({
-        token: data.turnstileToken ?? body.turnstileToken,
+        token: data.turnstileToken,
         action: 'send_verification',
         remoteip: clientIp(req),
       });

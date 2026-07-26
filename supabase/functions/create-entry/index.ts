@@ -29,6 +29,10 @@ Deno.serve(withCors(async (req) => {
       return jsonResponse({ error: '登録情報の形式が正しくありません。入力内容を確認して再度お試しください。' }, 400);
     }
 
+    // CAPTCHA(Turnstile)を登録の最初のゲートにする(V2/V12)。クライアント成功状態は信用せずサーバ検証。
+    // メール認証チェックより前に置き、ボットが後続の検証・DB 処理へ到達しないようにする。
+    await verifyTurnstile({ token: turnstileToken, action: 'create_entry', remoteip: clientIp(req) });
+
     // 公開登録はメール認証済みトークンを必須にする(フロント検証には依存しない)。
     // 欠落=400 / 無効・改ざん・期限切れ・メール不一致・projectId不一致=401。理由はサーバログのみ。
     if (emailVerificationRequired()) {
@@ -41,9 +45,6 @@ Deno.serve(withCors(async (req) => {
         return jsonResponse({ error: 'メール認証を確認できませんでした。もう一度メール認証を行ってください。' }, 401);
       }
     }
-
-    // CAPTCHA(Turnstile)を登録の前提にする(V2/V12)。クライアント成功状態は信用せずサーバ検証。
-    await verifyTurnstile({ token: turnstileToken, action: 'create_entry', remoteip: clientIp(req) });
 
     const supabase = createServiceClient();
     await enforceIpRateLimit(supabase, { bucket: 'create_entry', ip: clientIp(req), projectId });

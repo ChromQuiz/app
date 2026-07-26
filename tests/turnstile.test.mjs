@@ -162,6 +162,21 @@ describe('Turnstile is enforced on both public endpoints with no bypass', () => 
     expect(createEntry.indexOf('verifyTurnstile')).toBeLessThan(createEntry.indexOf('createServiceClient()'));
   });
 
+  it('reads the token from in-scope variables only (no undefined reference -> 500)', () => {
+    // Regression: `data.turnstileToken ?? body.turnstileToken` threw a ReferenceError because the
+    // handler destructures the payload and never binds `body`, turning a missing token into a 500.
+    const handler = sendEmail.slice(sendEmail.indexOf('Deno.serve('));
+    expect(handler).not.toMatch(/body\.turnstileToken/);
+    expect(handler).toMatch(/token: data\.turnstileToken/);
+  });
+
+  it('runs the CAPTCHA gate before the email-verification gate in create-entry', () => {
+    // Regression: CAPTCHA sat after the email-verified-token check, so token-less bots were
+    // rejected by the wrong gate and reached that logic first.
+    expect(createEntry.indexOf('verifyTurnstile'))
+      .toBeLessThan(createEntry.indexOf('emailVerificationRequired()'));
+  });
+
   it('does not leak the internal rejection reason to clients', () => {
     for (const src of [sendEmail, createEntry]) {
       expect(src).toMatch(/TurnstileError[\s\S]*console\.error/);
