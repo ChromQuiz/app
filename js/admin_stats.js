@@ -144,7 +144,7 @@
             const entriesData = window._entriesRaw || {};
             let masterData = {};
             if (entriesData) {
-                const privJwkStr = session.get('privateKeyJwk');
+                const privJwkStr = projectKeyStore.get();
                 let privJwk = null;
                 if (privJwkStr) { try { privJwk = JSON.parse(privJwkStr); } catch(e){} }
 

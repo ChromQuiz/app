@@ -562,7 +562,7 @@
         async function ensureProjectPrivateKeyAvailable() {
             if (!isSupabaseMode) return;
             if (session.get('projectKeyFunctionUnavailable') === 'true') return;
-            const existing = session.get('privateKeyJwk');
+            const existing = projectKeyStore.get();
             if (existing) {
                 try {
                     await CIQSupabaseAPI.storeProjectPrivateKey(projectId, JSON.parse(existing));
@@ -578,7 +578,7 @@
 
             try {
                 const privateKeyJwk = await CIQSupabaseAPI.fetchProjectPrivateKey(projectId);
-                session.set('privateKeyJwk', JSON.stringify(privateKeyJwk));
+                projectKeyStore.set(JSON.stringify(privateKeyJwk));
             } catch (e) {
                 if (e.status === 404) {
                     session.set('projectKeyFunctionUnavailable', 'true');

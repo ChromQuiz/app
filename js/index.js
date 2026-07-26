@@ -373,7 +373,7 @@ async function createProject() {
         session.set('scorer_name', ownerDisplayName);
         session.set('scorer_role', 'admin');
         session.set('supabaseMode', 'true');
-        session.set('privateKeyJwk', JSON.stringify(privateKeyJwk));
+        projectKeyStore.set(JSON.stringify(privateKeyJwk));
 
         const tabsContainer = document.getElementById('tabs-container');
         if (tabsContainer) tabsContainer.hidden = true;

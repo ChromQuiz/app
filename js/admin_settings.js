@@ -1209,7 +1209,7 @@
                 }
                 tbody.textContent = '';
                 window.setAdminEntriesCount?.(entries.length);
-                const privateKeyText = session.get('privateKeyJwk');
+                const privateKeyText = projectKeyStore.get();
                 let privJwk = null;
                 if (privateKeyText) {
                     try {
@@ -1237,7 +1237,7 @@
                     hydrateAdminEntryPII(rowsToHydrate, privJwk);
                 } else if (window._adminPrivateKeyReadyPromise) {
                     window._adminPrivateKeyReadyPromise.then(() => {
-                        const readyKeyText = session.get('privateKeyJwk');
+                        const readyKeyText = projectKeyStore.get();
                         if (!readyKeyText) return null;
                         return JSON.parse(readyKeyText);
                     }).then((readyKey) => {
@@ -1287,7 +1287,7 @@
             const fullName = [pii?.familyName, pii?.firstName].filter(Boolean).join(' ');
             const fullKana = [pii?.familyNameKana, pii?.firstNameKana].filter(Boolean).join(' ');
             const encryptedStatus = entry.encrypted_pii
-                ? (session.get('privateKeyJwk') ? '復号不可' : '復号鍵なし')
+                ? (projectKeyStore.get() ? '復号不可' : '復号鍵なし')
                 : '';
             appendStackedText(nameInfo, fullName, fullKana || encryptedStatus);
             appendAdminEntryCell(row, nameInfo);
@@ -1393,7 +1393,7 @@
                 let pii = v;
                 if (v.encryptedPII) {
                     try {
-                        const privJwk = JSON.parse(session.get('privateKeyJwk'));
+                        const privJwk = JSON.parse(projectKeyStore.get());
                         const jsonStr = await AppCrypto.decryptRSA(v.encryptedPII, privJwk);
                         pii = JSON.parse(jsonStr);
                     } catch(e) { console.error("Decryption failed", e); }
