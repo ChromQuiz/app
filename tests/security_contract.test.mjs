@@ -8,7 +8,7 @@
 // tests/security_live.test.mjs (opt-in, CIQ_LIVE=1).
 
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -131,6 +131,42 @@ describe('Edge Function authorization gates stay in place', () => {
     expect(src).toMatch(/auth\.getUser\(/);
     expect(src).toMatch(/from\('project_members'\)/);
     expect(src).toMatch(/status === 'removed'/);
+  });
+});
+
+describe('log-table email hashes are peppered (V3)', () => {
+  it('participant_auth_events stores/queries only the peppered hash', () => {
+    const src = read('supabase/functions/_shared/participant_auth.ts');
+    expect(src).toMatch(/enforceAuthRateLimit\(supabase, projectId, emailHashV2\)/);
+    expect(src).toMatch(/recordAuthAttempt\(supabase, projectId, emailHashV2, true\)/);
+    expect(src).toMatch(/recordAuthAttempt\(supabase, projectId, emailHashV2, false\)/);
+    // the raw client hash must no longer be written to the ledger
+    expect(src).not.toMatch(/recordAuthAttempt\(supabase, projectId, emailHash,/);
+    expect(src).not.toMatch(/enforceAuthRateLimit\(supabase, projectId, emailHash\)/);
+  });
+
+  it('email_events stores/queries only the peppered recipient hash', () => {
+    const src = read('supabase/functions/send-email/index.ts');
+    expect(src).toMatch(/const recipientLogHash = await pepperHash\(recipientHash\)/);
+    // every recordAndSend call passes the peppered value
+    expect(src).not.toMatch(/^\s+recipientHash,$/m);
+    expect((src.match(/recipientHash: recipientLogHash/g) || []).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('recipient ownership check still uses the raw sha256 (no double pepper)', () => {
+    const src = read('supabase/functions/send-email/index.ts');
+    // assertEntryRecipient peppers internally, so it must receive the raw hash
+    expect(src).toMatch(/assertEntryRecipient\(supabase, effectiveProjectId, effectiveEntryId, recipientHash\)/);
+  });
+
+  it('no v2 columns were introduced for the log tables', () => {
+    const migrations = readdirSync(resolve(ROOT, 'supabase/migrations')).join('\n');
+    expect(migrations).not.toMatch(/recipient_hash_v2/);
+    for (const f of ['supabase/functions/send-email/index.ts', 'supabase/functions/_shared/participant_auth.ts']) {
+      const src = read(f);
+      expect(src).not.toMatch(/recipient_hash_v2/);
+      expect(src).not.toMatch(/participant_auth_events[\s\S]{0,200}email_hash_v2/);
+    }
   });
 });
 

@@ -208,7 +208,9 @@ export async function resolveParticipantAuth(
   const emailHashV2 = await pepperHash(emailHash);
   const passwordHashV2 = await pepperHash(passwordHash);
 
-  await enforceAuthRateLimit(supabase, projectId, emailHash);
+  // レート制限台帳(participant_auth_events)には pepper 済みの値のみを保存・照合する
+  // (V3: DB 流出時のメール列挙を防ぐ。既存列をそのまま HMAC 値に切り替え、v2 列は作らない)。
+  await enforceAuthRateLimit(supabase, projectId, emailHashV2);
 
   // v2 認証(P2-e5: 旧列 fallback は撤去。全行 v2 済みのため v2 単独で照合する)。
   // 0件(正常な不一致)と DBエラーを区別する: object強制(.single()/.maybeSingle())は 0件時に
@@ -225,11 +227,11 @@ export async function resolveParticipantAuth(
   if (v2Error) throw v2Error;
   const v2Entry = v2Rows && v2Rows.length > 0 ? v2Rows[0] : null;
   if (v2Entry) {
-    await recordAuthAttempt(supabase, projectId, emailHash, true);
+    await recordAuthAttempt(supabase, projectId, emailHashV2, true);
     return { entry: v2Entry, emailHash, viaToken: false };
   }
 
   // v2 不一致のときだけ、失敗を1回記録する。
-  await recordAuthAttempt(supabase, projectId, emailHash, false);
+  await recordAuthAttempt(supabase, projectId, emailHashV2, false);
   throw new ParticipantAuthError('メールアドレスまたはパスワードが正しくありません。', 404);
 }

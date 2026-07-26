@@ -532,7 +532,11 @@ Deno.serve(withCors(async (req) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       return jsonResponse({ error: 'Invalid email address' }, 400);
     }
+    // 宛先所有確認(assertEntryRecipient)は生の sha256 を入力にする(内部で pepper 化して v2 と照合)。
     const recipientHash = await sha256Hex(normalizedEmail);
+    // ログ・レート制限に保存/照合する値は pepper 化する(V3: DB 流出時のメール列挙を防ぐ)。
+    // email_events.recipient_hash は既存列のまま HMAC 値を保持する(v2 列は作らない)。
+    const recipientLogHash = await pepperHash(recipientHash);
 
     if (type === 'verify_code') {
       const effectiveProjectId = String(projectId ?? data.projectId ?? '').trim();
@@ -574,7 +578,7 @@ Deno.serve(withCors(async (req) => {
       const name = projectName({ ...data, projectName: data.projectName || project.name });
       const result = await recordAndSend({
         projectId: effectiveProjectId,
-        recipientHash,
+        recipientHash: recipientLogHash,
         template: type,
         to: normalizedEmail,
         message: verificationEmail(name, code),
@@ -605,7 +609,7 @@ Deno.serve(withCors(async (req) => {
       const result = await recordAndSend({
         projectId: effectiveProjectId,
         entryId: effectiveEntryId,
-        recipientHash,
+        recipientHash: recipientLogHash,
         template: type,
         to: normalizedEmail,
         message,
@@ -617,7 +621,7 @@ Deno.serve(withCors(async (req) => {
     const result = await recordAndSend({
       projectId: effectiveProjectId,
       entryId: effectiveEntryId,
-      recipientHash,
+      recipientHash: recipientLogHash,
       template: type,
       to: normalizedEmail,
       message,
