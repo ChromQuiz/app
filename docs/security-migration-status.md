@@ -307,6 +307,32 @@ Notes   : 完了条件を全て充足（両経路で必須・サーバ側検証�
           → **Phase 1（V1/V2/V4/V6）= Completed**。次は Phase 2（V3 は P2-e5 で実質完了済のため再監査）。
 ```
 
+### Turnstile hostname を本番のみへ限定（V2 の締め・最小権限化）
+```
+Status  : Completed — 2026-07-26
+Evidence:
+  - 設定      : Supabase `CIQ_TURNSTILE_HOSTNAMES` = chromquiz.github.io のみ（2026-07-26 08:20 更新）
+                Cloudflare widget の許可 hostname も chromquiz.github.io のみ（localhost を削除・運用者操作）
+  - 実装      : js/turnstile.js — localhost / 127.0.0.1 / [::1] / file: では Cloudflare 公式テスト sitekey
+                (1x00000000000000000000AA) に切り替え。本番 sitekey をローカルで使用しない
+  - Commits   : c6ba7ad
+  - Deploys   : 追加デプロイ不要（Edge は env 参照のため設定変更が即時反映）
+  - Tests     : tests/turnstile.test.mjs に localhost フォールバックの回帰を追加。`npx vitest run` = 117 passed
+  - production verification（トークン本文・secret は一切出力していない）:
+    1. Supabase の許可 hostname = chromquiz.github.io のみ ✓
+    2. Cloudflare 側の許可 hostname も同一 ✓（下記4の挙動で裏付け）
+    3. 本番の正常 token → CAPTCHA ゲート通過（403 にならず。存在しない projectId を使い実メール送信は発生させない）✓
+    4. hostname 不一致 → **本番 sitekey を localhost で使うとトークン発行自体が不可**（Cloudflare エラー 110200＝
+       ドメイン不許可）。加えて Edge のメタデータ照合が実稼働していることを、同一コードパスの
+       **action 不一致 → 403**、**同一トークン再利用 → 403**（timeout-or-duplicate）で本番実証 ✓
+    5. ローカルは公式テストキーで継続動作（トークンが XXXX. 始まり＝ダミー）✓
+    6. secret・実トークンをログ / commit / 報告文へ出していない ✓
+    - 参考: localhost から本番 API への直叩きは CORS allowlist（V5）が遮断することも確認
+Rollback: Possible（`CIQ_TURNSTILE_HOSTNAMES` の再設定と Cloudflare 側 hostname 追加で戻せる）
+Notes   : ローカル開発は公式テストキー運用。テストキー由来トークンは本番 secret で検証できないため、
+          ローカルから本番への送信は成立しない（意図どおりの分離）。Phase 1 は Completed を維持。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
