@@ -70,7 +70,7 @@
 | V11 | removed メンバーの JWT 失効はポリシー依存 | Low | 除名直後も JWT 有効期間中は認証が通る。check-in は `status <> 'removed'` のみ | 除名直後の短時間、権限残存 | check-in を owner/admin/scorer の active 明示に統一 | P3 |
 | V12 | 大量登録（create-entry）へのボット対策なし | Low〜Medium | 自動で偽エントリ大量投入 | 枠占有 DoS・運営混乱 | CAPTCHA、メール認証コード完了を登録の前提に、1メール1エントリ制約＋IP レート | P2 |
 | V13 | 依存の浮動バージョン（Edge 側） | Low | esm.sh の浮動指定。上流侵害/破壊的更新 | 予期せぬ挙動変化・供給網 | import をパッチ版まで固定、deno.lock 導入、定期確認 | P3 |
-| V14 | 採点者参加コードが無塩 SHA-256 | Medium | `projects.scorer_access_code_hash` = `AppCrypto.hashPassword(scorerCode)`（`js/index.js:356`）で無塩。参加コードは短く低エントロピーのため、DB 流出時に総当たりで復元可能 | 攻撃者が採点者としてプロジェクトへ参加（答案画像・採点データへのアクセス） | サーバ側（Edge/RPC）で保存前に HMAC(pepper) 化。既存行は再設定またはコード再発行。照合経路（`join_project_with_scorer_code` 相当）も同時に切替 | P2 |
+| （親計画外）<br>Additional Backlog:<br>Scorer access code hardening | 採点者参加コードが無塩 SHA-256 | Medium | `projects.scorer_access_code_hash` = `AppCrypto.hashPassword(scorerCode)`（`js/index.js:356`）で無塩。参加コードは短く低エントロピーのため、DB 流出時に総当たりで復元可能 | 攻撃者が採点者としてプロジェクトへ参加（答案画像・採点データへのアクセス） | サーバ側（Edge/RPC）で保存前に HMAC(pepper) 化。既存行は再設定またはコード再発行。照合経路（`join_project_with_scorer_code` 相当）も同時に切替 | P2 |
 
 ## 4. 重大度ランキング
 1. V1 Critical / 2. V2 High / 3. V3 High / 4. V4 High / 5. V5 Medium / 6. V6 Medium / 7. V7 Medium / 8. V8 Medium / 9. V9 Medium / 10. V10 Medium / 11. V12 Low〜Med / 12. V11・V13 Low
@@ -106,10 +106,14 @@
   素の UUID は拒否。公開リストから entry UUID を列権限で除外し、受付 UI に受付番号フォールバックを追加。
 - **V9 = Completed**（2026-07-26）。RSA 秘密鍵を localStorage から sessionStorage 限定保持へ（旧値は初回読出で移行・削除）。
 - **V11 = Completed**（2026-07-26）。check-in を admin-* と同じ「active かつ owner/admin/scorer」に統一。
-- **V13 = Completed**（2026-07-26）。Edge の supabase-js を @2 → 2.110.1 に固定（浮動指定は 0 件）。
-- **Phase 3 判定 = ✅ Completed**（V7 ✅ / V9 ✅ / V11 ✅ / V13 ✅）。
-- **親計画 V1〜V13 = 全て Completed。** 以降は V14（採点者参加コードの無塩 SHA-256）を
-  **Additional Security Backlog** として扱う。
+- **V13 = Partially Completed**（2026-07-26 再確認）。直接依存はパッチ版固定（浮動指定 0 件）だが、
+  完了条件に明記された **deno.lock 導入が未実施**。`npm:qrcode@1.5.4` の推移的依存が semver 範囲
+  （pngjs ^5.0.0 / yargs ^15.3.1 / dijkstrajs ^1.0.1）のため、lock なしではデプロイごとに変動しうる
+  ＝版固定だけでは deno.lock と同等の保証にならない（同等性は反証済み。Superseded にはしない）。
+- **Phase 3 判定 = Partially Completed**（V7 ✅ / V9 ✅ / V11 ✅ / **V13 未完**）。
+- **親計画 V1〜V13 は未完了**（V13 のみ残）。Phase 1・Phase 2 は Completed。
+- `projects.scorer_access_code_hash` の件は親計画の V 番号に追加せず、
+  **Additional Security Backlog: Scorer access code hardening** として別管理する。
 
 ## 6. 実装優先順位
 - **P0（公開前必須）**: V1 → V2
@@ -210,6 +214,19 @@ Turnstile の site key / secret key を再発行した場合: Cloudflare で新 
 不一致の間は全リクエストが 403 になるため、低トラフィック時間帯に実施する。
 
 ## 注記・変更履歴（親計画の改定ログ）
+
+### 2026-07-26 — V7 の QR TTL を再評価（400日 → 既定30日・env 連動）
+初回実装の TTL 400 日は「配布済み QR を壊さない」ための便宜的な値で、セキュリティ要件から導いたものではなかった。
+QR 画像は表示のたびに再生成されるため長期有効である必要は無く、長期を要するのは
+メールクライアントのキャッシュ／保存画像が「登録 → 大会当日」を跨ぐ場合に限られる。
+既定を **30 日**とし、`CIQ_QR_TTL_DAYS`（1〜400 にクランプ）で運用に合わせて短縮できるようにした。
+期限切れ時の回復手段は (a) マイエントリーでの再表示（常に新しい QR）(b) 受付番号での受付。
+`projects.period_end` が未設定のため大会終了日時への自動連動は採用せず、env による明示設定とした。
+
+### 2026-07-26 — Additional Security Backlog を親計画から分離
+`projects.scorer_access_code_hash`（無塩 SHA-256）の件は、親計画（V1〜V13）策定後に発見した追加課題であり、
+**親計画の V 番号・Phase 構造には追加しない**。以後は「Additional Security Backlog: Scorer access code hardening」
+として、親計画完了後に別枠で扱う。
 
 ### 2026-07-26 — V3 の対象範囲を明確化、V14 を新規追加
 Phase 2 の V3 ゼロベース再監査（`docs/security-migration-status.md` 参照）で、`entries` 以外にも無塩 SHA-256 が

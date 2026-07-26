@@ -613,6 +613,93 @@ Notes   : **Phase 3 = 全 V 完了（V7 ✅ / V9 ✅ / V11 ✅ / V13 ✅）。�
           以降は V14（採点者参加コードの無塩 SHA-256）を Additional Security Backlog として扱う。
 ```
 
+### V7 再確認 — QR TTL の再評価と受付番号フォールバックの監査
+```
+Status  : Completed（V7 の最終状態）— 2026-07-26
+
+【1】TTL 400日の再評価 → **根拠不十分と判断し既定 30 日へ短縮（env 連動）**
+  - なぜ 400 日だったか : 「配布済み QR を壊さない」ための便宜値。セキュリティ要件から導いたものではない
+  - 大会期間と QR 必要期間 : projects.period_end は **NULL**（大会終了日時が未設定）。period_start=2026-07-03。
+    → 大会終了日時への自動連動は現データでは成立しないため採用せず、env による明示設定とした
+  - QR 画像は **表示のたびにサーバ再生成** されるため、本来必要な有効期間は「描画 → 受付」だけ。
+    長期が要るのはメールクライアントのキャッシュ／保存画像が「登録 → 当日」を跨ぐ場合に限られる
+  - リプレイ可能期間 : 変更前 **最大 400 日** → 変更後 **最大 30 日**（`CIQ_QR_TTL_DAYS` で 1 日まで短縮可）
+  - 受付済み QR の再利用 : `checked_in` の行は 'already' を返し、更新は
+    `.eq('checked_in', false).in('status', [...])` の条件付き UPDATE で**原子的に拒否**（状態は変わらない）
+  - 過去大会・別大会での利用 : entryId は UUID で全体一意、check-in は
+    `.eq('project_id', projectId).eq('id', verifiedId)` と **project スコープで照合**するため、
+    他プロジェクトの受付には使えない
+  - 署名対象 : `qr1:<entryId>:<expMs>`。**用途タグ + バージョン**を含む（今回追加）。
+    project ID は含めないが、上記の project スコープ照合と UUID 全体一意性で代替（多重防御としては照合側で担保）
+  - 他用途との衝突 : 参加者トークン=base64url JSON、QR 画像 URL 署名=素の UUID、認証コード=`code:email:exp`。
+    いずれも `qr1:` 接頭辞と形式が異なり**交差利用不可**
+  - 鍵ローテーション : `CIQ_EMAIL_SIGNING_SECRET` を更新すると全 QR が即時失効（付録A に手順と影響を記載済み）
+  - 時計ずれ : **発行も検証も Edge（サーバ）側**で、クライアント時計に依存しない。
+    ずれの考慮が要るのは Supabase 内部の時刻のみで、30 日の窓に対して無視できる
+  - 実装 : `CIQ_QR_TTL_DAYS`（既定 30 / 1〜400 にクランプ / 不正値は既定）
+  - 期限切れ時の回復 : (a) マイエントリーで再表示（常に新しい QR）(b) 受付番号での受付
+
+【2】受付番号フォールバックの監査（弱い迂回経路になっていないか）
+  - staff 認証必須            : ✅ requireProjectMember（Google JWT 検証）
+  - active な owner/admin/scorer のみ : ✅ V11 で `status !== 'active'` ＋ロール明示に統一
+  - anon から直接受付不可      : ✅ 本番実測 — 受付番号経路 **401** / QR 経路 **401** / stats **401**
+  - 総当たりのレート制限       : ✅ **今回追加**。`checkin_miss`（既定 30回/10分・IP 単位・
+    `CIQ_RL_CHECKIN_MISS_IP`）。**失敗照会のみ**を数え、成功した受付は数えないため、
+    当日の連続受付（正規のバースト）はスループットを落とさない
+  - 外部への存在列挙不可       : ✅ 認証必須のため anon は到達不能。認証後も応答は同一形式の 404
+  - 二重受付の原子的拒否       : ✅ 条件付き UPDATE（`checked_in=false` かつ status ∈ registered/late）。
+    競合時は 409、既受付は 'already'
+  - キャンセル済み/削除済み    : ✅ canceled → 'canceled' を返し受付しない、waitlist → 'waitlist'、
+    存在しない → 404（レート制限対象）
+  - 監査ログ                   : ✅ `entry.checkin`（actor_kind=staff・actor_member_id・HMAC 化 IP）
+  - project 跨ぎの衝突         : ✅ クエリは `.eq('project_id', projectId)` を先に適用。
+    `entries_project_id_entry_number_key` により受付番号は project 内で一意
+Evidence:
+  - Tests   : tests/qr_token.test.mjs（17 件）— 既定 TTL が 30 日、env クランプ（2日 / 99999→400 / 不正値→既定）、
+              バージョンタグ、素 UUID 拒否、すり替え・改ざん・期限切れ拒否ほか。`npx vitest run` = 209 passed
+  - Deploys : checkin-qr / my-entry / admin-entry-qr / check-in
+  - production verification : check-in の 3 経路すべて anon から 401、
+              entries 136 件・checked_in 2 件が**プローブ後も不変**
+  - Commits : 4dc83fa
+Rollback: Possible（TTL は env で即時調整、コードは revert 可）
+Notes   : 残留リスク=QR は依然 bearer。窓は最大 30 日（env で短縮可）で、受付済みは再利用不可。
+          運用では結果パネルの氏名・受付番号を目視照合する。
+```
+
+### V13 再確認 — deno.lock は完了条件であり未実施 → Partially Completed へ差し戻し
+```
+Status  : **Partially Completed** — 2026-07-26（前回の Completed 判定を取り消し）
+初期計画の完了条件（原文）: 「import をパッチ版まで固定、**deno.lock 導入**、定期確認」
+  → deno.lock は**明示的な完了条件**。「大会直前だから見送った」という理由だけで Completed にはできない。
+判定 : **A（deno.lock が必須であり未実施）**。B（同等性による Superseded）は**採用しない**——
+       同等性を証明できないどころか、**反証**されたため。
+Evidence（同等性が成立しない根拠）:
+  - 全 Edge Function の外部 import（全 .ts を走査）:
+    * `https://esm.sh/@supabase/supabase-js@2.110.1` … 1 箇所
+    * `npm:qrcode@1.5.4` … 1 箇所
+  - 浮動バージョン・branch・latest 指定 : **0 件**（回帰テストで強制）
+  - 直接依存 : いずれも**パッチ版まで厳密固定** ✅
+  - 間接依存 :
+    * esm.sh 側は同一版のサブパッケージを固定して返す
+      （auth-js/functions-js/postgrest-js/realtime-js/storage-js いずれも @2.110.1）。
+      ただし `/node/process.mjs` は**版指定なし**で、esm.sh のビルド出力は同 URL でも変わりうる
+    * **`npm:qrcode@1.5.4` の推移的依存は semver 範囲**：
+      `pngjs ^5.0.0` / `yargs ^15.3.1` / `dijkstrajs ^1.0.1`
+      → lock が無ければ**デプロイごとに解決結果が変わりうる**（＝ビルド時固定になっていない）
+  - Supabase の bundle/deploy 方式 : `supabase functions deploy` に **lock 用オプションは無い**
+    （利用可能なのは `--import-map` / `--use-api` / `--no-verify-jwt`）。deno.lock を効かせるには
+    `supabase/functions/deno.json` 等でのビルド設定変更と、その反映可否の検証が必要
+  - 回帰テストが保証すること : 直接 import に浮動指定が無いこと、Edge とブラウザの supabase-js 版一致
+  - 回帰テストが保証できないこと : **間接依存の同一性**（バイト単位の再現性）、esm.sh 配信物の不変性
+  - deno.lock を使わない残余リスク : 再デプロイ時に qrcode の推移的依存が別版へ解決され、
+    上流侵害や破壊的更新を受動的に取り込む可能性。影響範囲は QR 画像生成（checkin-qr / my-entry /
+    admin-entry-qr）に限られ、参加者認証・DB アクセス経路には及ばない
+未実施の理由と次の一手 : ローカルに Deno 未導入のため lock を生成できず、かつ Supabase の
+  デプロイ経路が lock を honor するかの検証が必要。実施時は
+  (1) Deno 導入 → (2) `supabase/functions/deno.json` に lock 設定 → (3) lock 生成 →
+  (4) 1 関数で試験デプロイ → (5) 全関数へ展開、の順で、大会日程を避けて行う。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
