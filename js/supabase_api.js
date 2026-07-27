@@ -460,6 +460,41 @@ const CIQSupabaseAPI = {
         return data;
     },
 
+    // ---- 採点者招待リンク(AB-1) ----
+
+    // 招待リンクを発行する。平文トークンはこの応答でのみ返る(DBには保存されない)。
+    async createScorerInvite(projectId, maxUses) {
+        const data = await this.invokeAuthedFunction('create-scorer-invite', { projectId, maxUses });
+        if (!data?.ok || !data.invite?.token) throw new Error(data?.error || '招待リンクを発行できませんでした。');
+        return data.invite;
+    },
+
+    // 招待リンクを引き換えて採点者として参加する。
+    async redeemScorerInvite(token) {
+        const data = await this.invokeAuthedFunction('redeem-scorer-invite', { token });
+        if (!data?.ok) throw new Error(data?.error || '参加できませんでした。');
+        return data;
+    },
+
+    // 招待一覧(token_hash は列権限で除外されているため取得できない)。
+    async listScorerInvites(projectId) {
+        const { data, error } = await this.client()
+            .from('project_invites')
+            .select('id, max_uses, use_count, expires_at, revoked_at, created_at')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        return data || [];
+    },
+
+    async revokeScorerInvite(inviteId) {
+        const { data, error } = await this.client()
+            .rpc('revoke_scorer_invite', { p_invite_id: inviteId })
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
     async storeProjectPrivateKey(projectId, privateKeyJwk) {
         const data = await this.invokeAuthedFunction('project-key', {
             action: 'store',
@@ -487,7 +522,6 @@ const CIQSupabaseAPI = {
                 p_rsa_public_key: payload.publicKey,
                 p_rsa_private_key_encrypted: payload.encryptedPrivateKey,
                 p_owner_display_name: payload.ownerDisplayName,
-                p_scorer_access_code_hash: payload.scorerAccessCodeHash,
             })
             .single();
         if (error) {
@@ -497,20 +531,6 @@ const CIQSupabaseAPI = {
         return data;
     },
 
-    async joinProjectWithScorerCode(projectId, accessCodeHash) {
-        const { data, error } = await this.client()
-            .rpc('join_project_with_scorer_code', {
-                p_project_id: projectId,
-                p_access_code_hash: accessCodeHash,
-            })
-            .single();
-        if (error) {
-            if (error.message?.includes('Invalid scorer code')) throw new Error('プロジェクトIDまたはパスワードが正しくありません。');
-            if (error.message?.includes('Project not found')) throw new Error('プロジェクトが見つかりません。');
-            throw error;
-        }
-        return data;
-    },
 
     async listMyProjects() {
         const { data, error } = await this.client()

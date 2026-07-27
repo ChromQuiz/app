@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png?v=4">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="CIQ - 採点者として参加">
+    <title>CIQ - 採点者として参加</title>
+    <script defer src="js/config.js?v=2"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
+    <script defer src="js/supabase_config.js?v=2"></script>
+    <script defer src="js/supabase_client.js"></script>
+    <script defer src="js/supabase_api.js?v=35"></script>
+    <script defer src="js/icons.js?v=8"></script>
+    <script defer src="js/ui.js?v=20"></script>
+    <script defer src="js/shared.js?v=2"></script>
+    <script defer src="js/join.js?v=1"></script>
+    <link rel="stylesheet" href="css/design_system.css?v=73">
+    <link rel="stylesheet" href="css/pages.css?v=116">
+</head>
+<body class="page-wrapper page-join">
+    <div class="page-container">
+        <header class="page-logo">
+            <h1>CIQ</h1>
+            <div class="logo-sub">採点者として参加</div>
+        </header>
+
+        <div class="page-card">
+            <div id="join-status" class="page-msg is-visible" role="status" aria-live="polite">招待リンクを確認しています...</div>
+
+            <!-- 未ログイン時のみ表示 -->
+            <button type="button" class="btn u-full-width u-hidden" id="join-signin-btn">
+                <span data-icon="google" aria-hidden="true"></span> Googleで続行して参加
+            </button>
+
+            <!-- 参加完了時のみ表示 -->
+            <button type="button" class="btn u-full-width u-hidden" id="join-continue-btn">
+                採点画面へ進む
+            </button>
+        </div>
+
+        <footer class="page-footer">Powered by CIQ</footer>
+    </div>
+</body>
+</html>

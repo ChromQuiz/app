@@ -11,13 +11,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=2"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=34"></script>
+    <script defer src="js/supabase_api.js?v=35"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=20"></script>
     <script defer src="js/shared.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=73">
-    <link rel="stylesheet" href="css/pages.css?v=115">
+    <link rel="stylesheet" href="css/pages.css?v=116">
 </head>
 
 <body class="page-admin">
@@ -459,6 +459,58 @@
                                 </thead>
                                 <tbody id="project-members-tbody">
                                     <tr><td colspan="4" class="td-loading">読み込み中...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="phase-block is-wide">
+                        <h2>採点者招待</h2>
+                        <p class="desc-text">招待リンクを発行して共有すると、Googleログインだけで採点者として参加できます。</p>
+                        <div class="invite-form">
+                            <div class="invite-field">
+                                <label for="invite-max-uses">上限人数</label>
+                                <input type="number" id="invite-max-uses" value="20" min="1" max="500" step="1" inputmode="numeric">
+                            </div>
+                            <div class="invite-field">
+                                <span class="invite-fixed-label">有効期限</span>
+                                <span class="invite-fixed-value">7日（固定）</span>
+                            </div>
+                            <div class="invite-field">
+                                <span class="invite-fixed-label">ロール</span>
+                                <span class="invite-fixed-value">採点者（固定）</span>
+                            </div>
+                            <button type="button" class="btn" id="invite-create-btn">
+                                <span data-icon="arrow-up-right-from-square" aria-hidden="true"></span> 招待リンク生成
+                            </button>
+                        </div>
+                        <div class="page-msg" id="invite-status" role="status" aria-live="polite"></div>
+
+                        <!-- 発行直後のみ表示: 平文トークンは保存されないため再表示できない -->
+                        <div class="invite-new u-hidden" id="invite-new">
+                            <label for="invite-new-url">招待リンク（この場でコピーしてください）</label>
+                            <div class="credential-row">
+                                <input type="text" id="invite-new-url" readonly>
+                                <button type="button" class="btn standard credential-copy-btn" id="invite-copy-btn" aria-label="招待リンクをコピー">
+                                    <span data-icon="copy" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                            <p class="invite-note">このリンクは再表示できません。閉じた場合は新しく発行してください。</p>
+                        </div>
+
+                        <div class="table-container u-table-scroll-md">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>発行日</th>
+                                        <th>使用人数</th>
+                                        <th>有効期限</th>
+                                        <th>状態</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invite-tbody">
+                                    <tr><td colspan="5" class="td-loading">読み込み中...</td></tr>
                                 </tbody>
                             </table>
                         </div>

@@ -567,9 +567,129 @@
             }
         }
 
+        // ---- 採点者招待リンク(AB-1) ----
+        // 平文トークンは発行直後の応答にしか存在しない(DBには HMAC のみ保存)。
+        // そのため一覧では URL を再表示できず、必要なら新しく発行する運用にしている。
+
+        function setInviteStatus(message, type = '') {
+            const box = document.getElementById('invite-status');
+            if (!box) return;
+            if (message) setPageMessage(box, message, type || 'info');
+            else clearPageMessage(box);
+        }
+
+        function inviteUrlFor(token) {
+            return new URL(`join.html?t=${encodeURIComponent(token)}`, location.href).href;
+        }
+
+        function inviteState(invite) {
+            if (invite.revoked_at) return { label: '無効化済み', className: 'is-revoked' };
+            if (new Date(invite.expires_at).getTime() <= Date.now()) return { label: '期限切れ', className: 'is-expired' };
+            if (Number(invite.use_count) >= Number(invite.max_uses)) return { label: '上限到達', className: 'is-expired' };
+            return { label: '有効', className: 'is-active' };
+        }
+
+        function appendInviteRow(tbody, invite) {
+            const tr = document.createElement('tr');
+            const state = inviteState(invite);
+            const cells = [
+                new Date(invite.created_at).toLocaleString('ja-JP'),
+                `${invite.use_count} / ${invite.max_uses}`,
+                new Date(invite.expires_at).toLocaleString('ja-JP'),
+                state.label,
+            ];
+            cells.forEach((text) => {
+                const td = document.createElement('td');
+                td.textContent = text;
+                tr.appendChild(td);
+            });
+            const actionTd = document.createElement('td');
+            if (!invite.revoked_at) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn danger';
+                button.append(createIcon('ban'), document.createTextNode(' 無効化'));
+                button.addEventListener('click', () => revokeInvite(invite.id, button));
+                actionTd.appendChild(button);
+            }
+            tr.appendChild(actionTd);
+            tbody.appendChild(tr);
+        }
+
+        async function loadScorerInvites() {
+            const tbody = document.getElementById('invite-tbody');
+            if (!tbody) return;
+            try {
+                const invites = await CIQSupabaseAPI.listScorerInvites(projectId);
+                tbody.textContent = '';
+                if (!invites.length) {
+                    setTableMessage(tbody, 5, 'まだ招待リンクはありません。', 'td-empty');
+                    return;
+                }
+                invites.forEach((invite) => appendInviteRow(tbody, invite));
+            } catch (e) {
+                setTableMessage(tbody, 5, '招待リンクを取得できませんでした。', 'td-error');
+                console.warn('招待一覧の取得に失敗:', e);
+            }
+        }
+
+        async function revokeInvite(inviteId, button) {
+            const ok = await showConfirm('この招待リンクを無効化します。以後このリンクからは参加できません。', '無効化する');
+            if (!ok) return;
+            if (button) button.disabled = true;
+            try {
+                await CIQSupabaseAPI.revokeScorerInvite(inviteId);
+                setInviteStatus('招待リンクを無効化しました。', 'success');
+                await loadScorerInvites();
+            } catch (e) {
+                setInviteStatus('無効化に失敗しました: ' + (e.message || ''), 'error');
+                if (button) button.disabled = false;
+            }
+        }
+
+        async function createScorerInvite() {
+            const button = document.getElementById('invite-create-btn');
+            const maxInput = document.getElementById('invite-max-uses');
+            const maxUses = Number(maxInput?.value);
+            if (!Number.isFinite(maxUses) || maxUses < 1) {
+                setInviteStatus('上限人数を1以上で入力してください。', 'error');
+                return;
+            }
+            if (button) button.disabled = true;
+            setInviteStatus('招待リンクを発行しています...');
+            try {
+                const invite = await CIQSupabaseAPI.createScorerInvite(projectId, maxUses);
+                const url = inviteUrlFor(invite.token);
+                const box = document.getElementById('invite-new');
+                const field = document.getElementById('invite-new-url');
+                if (field) field.value = url;
+                box?.classList.remove('u-hidden');
+                setInviteStatus('招待リンクを発行しました。この場でコピーしてください（再表示できません）。', 'success');
+                await loadScorerInvites();
+            } catch (e) {
+                setInviteStatus('発行に失敗しました: ' + (e.message || ''), 'error');
+            } finally {
+                if (button) button.disabled = false;
+            }
+        }
+
+        function setupScorerInvites() {
+            document.getElementById('invite-create-btn')?.addEventListener('click', createScorerInvite);
+            document.getElementById('invite-copy-btn')?.addEventListener('click', () => {
+                const field = document.getElementById('invite-new-url');
+                if (!field?.value) return;
+                navigator.clipboard.writeText(field.value).then(
+                    () => setInviteStatus('招待リンクをコピーしました。', 'success'),
+                    () => setInviteStatus('コピーできませんでした。手動で選択してください。', 'error'),
+                );
+            });
+            loadScorerInvites();
+        }
+
         function startProjectMembersAutoRefresh() {
             if (projectMembersRefreshTimer) return;
             loadProjectMembers();
+            setupScorerInvites();
             projectMembersRefreshTimer = window.setInterval(() => {
                 if (document.visibilityState === 'hidden') return;
                 const settingsTab = document.getElementById('tab-settings');

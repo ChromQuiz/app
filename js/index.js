@@ -257,40 +257,6 @@ function openSupabaseProject(projectId, projectName, role, displayName) {
     location.href = 'judge.html';
 }
 
-async function joinProjectAsScorer() {
-    const btn = document.getElementById('join-scorer-btn');
-    const projectId = document.getElementById('join-project-id').value.trim().toLowerCase();
-    const accessCode = document.getElementById('join-scorer-code').value.trim();
-
-    if (!supabaseSession?.user) {
-        showError('先にGoogleアカウントでサインインしてください。');
-        return;
-    }
-    if (!projectId || !accessCode) {
-        showError('プロジェクトIDとパスワードを入力してください。');
-        return;
-    }
-
-    btn.disabled = true;
-    setButtonContent(btn, '確認中...', 'circle-notch', false);
-    try {
-        const codeHash = await AppCrypto.hashPassword(accessCode);
-        const joined = await CIQSupabaseAPI.joinProjectWithScorerCode(projectId, codeHash);
-        const projects = await CIQSupabaseAPI.listMyProjects();
-        const project = projects.find(p => p.id === projectId);
-        openSupabaseProject(
-            projectId,
-            project?.name || projectId,
-            joined.role,
-            joined.display_name || getGoogleDisplayName()
-        );
-    } catch (e) {
-        showError(e.message);
-        btn.disabled = false;
-        setButtonContent(btn, 'プロジェクトに参加', 'arrow-right-to-bracket');
-    }
-}
-
 async function signInWithSupabaseGoogle() {
     if (location.protocol === 'file:') {
         location.href = getPublicIndexUrl();
@@ -332,7 +298,6 @@ async function copyToClipboard(id, btn) {
 async function createProject() {
     const edition = parseInt(document.getElementById('create-edition').value, 10);
     const keyWrappingPassword = generateStrongPassword();
-    const scorerCode = generateStrongPassword();
     const btn = document.getElementById('create-btn');
 
     if (!canCreateProject()) {
@@ -353,7 +318,6 @@ async function createProject() {
     try {
         const { publicKeyJwk, privateKeyJwk } = await AppCrypto.generateRSAKeyPair();
         const encryptedPriv = await AppCrypto.encryptAES(JSON.stringify(privateKeyJwk), keyWrappingPassword);
-        const scorerAccessCodeHash = await AppCrypto.hashPassword(scorerCode);
         const ownerDisplayName = getGoogleDisplayName();
 
         await CIQSupabaseAPI.createProjectWithOwner({
@@ -362,7 +326,6 @@ async function createProject() {
             publicKey: publicKeyJwk,
             encryptedPrivateKey: encryptedPriv,
             ownerDisplayName,
-            scorerAccessCodeHash,
         });
 
         CIQSupabaseAPI.storeProjectPrivateKey(pid, privateKeyJwk)
@@ -384,9 +347,7 @@ async function createProject() {
         if (joinSection) joinSection.hidden = true;
         if (successSection) successSection.hidden = false;
         const successId = document.getElementById('success-id');
-        const successPwd = document.getElementById('success-pwd');
         if (successId) successId.value = pid;
-        if (successPwd) successPwd.value = scorerCode;
 
         await renderProjectList();
     } catch (e) {
@@ -410,7 +371,6 @@ function setupIndexEvents() {
         history.replaceState(null, '', location.pathname + location.search);
         setTab('join');
     });
-    document.getElementById('join-scorer-btn')?.addEventListener('click', joinProjectAsScorer);
     document.getElementById('create-btn')?.addEventListener('click', createProject);
     document.querySelectorAll('[data-copy-target]').forEach((button) => {
         button.addEventListener('click', () => copyToClipboard(button.dataset.copyTarget, button));

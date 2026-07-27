@@ -15,13 +15,13 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
   <script defer src="js/supabase_config.js?v=2"></script>
   <script defer src="js/supabase_client.js"></script>
-  <script defer src="js/supabase_api.js?v=34"></script>
+  <script defer src="js/supabase_api.js?v=35"></script>
   <script defer src="js/crypto.js"></script>
   <script defer src="js/icons.js?v=8"></script>
   <script defer src="js/ui.js?v=20"></script>
   <script defer src="js/shared.js?v=2"></script>
   <link rel="stylesheet" href="css/design_system.css?v=73">
-  <link rel="stylesheet" href="css/pages.css?v=115">
+  <link rel="stylesheet" href="css/pages.css?v=116">
 </head>
 
 <body class="page-index">
@@ -53,19 +53,14 @@
     <div id="section-join" hidden>
       <div id="project-list" class="project-list">
       </div>
-      <div class="scorer-join-panel">
-        <div class="scorer-join-title">採点者として参加</div>
-        <label for="join-project-id">プロジェクトID</label>
-        <input type="text" id="join-project-id" autocomplete="off" placeholder="例: ciq13" />
-        <label for="join-scorer-code">パスワード</label>
-        <input type="password" id="join-scorer-code" autocomplete="off" placeholder="管理者から共有されたパスワード" />
-        <button type="button" class="btn u-full-width" id="join-scorer-btn">参加する</button>
-      </div>
+      <p class="desc-text scorer-join-note">
+        採点者として参加するには、管理者から共有された招待リンクを開いてください。
+      </p>
     </div>
 
     <!-- 作成(#create でのみ表示・主催者向け) -->
     <div id="section-create" hidden>
-      <p class="desc-text mb-md">大会の回数を入力すると、プロジェクトID・採点者用パスワードが発行されます。</p>
+      <p class="desc-text mb-md">大会の回数を入力すると、プロジェクトIDが発行されます。採点者は管理画面から招待リンクを発行して招待します。</p>
       <label for="create-edition">回数（例：第13回 → 13）</label>
       <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
       <button class="btn u-full-width mt-md" id="create-btn">プロジェクトを作成</button>
@@ -73,7 +68,7 @@
 
     <div id="section-success" class="u-text-center" hidden>
       <h3 class="success-title">作成しました</h3>
-      <p class="success-desc">以下の情報は採点者の入室に使います。安全に保管してください。</p>
+      <p class="success-desc">プロジェクトIDです。採点者の招待は管理画面から招待リンクを発行してください。</p>
 
       <div class="credential-panel" data-stagger>
         <label for="success-id">プロジェクトID</label>
@@ -81,12 +76,7 @@
           <input type="text" id="success-id" readonly />
           <button class="btn standard credential-copy-btn" data-copy-target="success-id" aria-label="プロジェクトIDをコピー"><span data-icon="copy" aria-hidden="true"></span></button>
         </div>
-        <label for="success-pwd">採点者用パスワード</label>
-        <div class="credential-row">
-          <input type="text" id="success-pwd" readonly />
-          <button class="btn standard credential-copy-btn" data-copy-target="success-pwd" aria-label="パスワードをコピー"><span data-icon="copy" aria-hidden="true"></span></button>
         </div>
-      </div>
       <button class="btn u-full-width" id="admin-proceed-btn">運営をはじめる</button>
     </div>
   </div>
