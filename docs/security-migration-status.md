@@ -809,6 +809,59 @@ Baseline:
   → 「親計画が知らぬ間に膨らむ」ことを人の注意力ではなくテストで防ぐ。
 ```
 
+### AB-1 採点者参加を招待リンク方式へ置換（親計画外・Additional Security Backlog）
+```
+Status  : Completed — 2026-07-27（破壊的変更。本番運用前のため既存互換は不要と合意）
+
+① 監査で判明した脅威（当初記述の訂正を含む）
+  - 当初の想定「参加コードが短く低エントロピー → 総当たりで復元可能」は **誤り**。
+    実測: generateStrongPassword() = 14 文字 / 英数 62 種 / CSPRNG（剰余バイアス除去）＝ **約 83 bit**。
+    無塩 SHA-256 でも総当たり・レインボーテーブルは非現実的だった。
+  - **真の問題は pass-the-hash**: join_project_with_scorer_code は
+    `scorer_access_code_hash <> p_access_code_hash` と **クライアント計算のハッシュを直接比較**していた
+    ＝ 保存値そのものが資格情報。
+    さらに projects の RLS は is_project_member、列権限にも当該列が含まれ、
+    クライアントは `select('*')` していたため、**参加済み採点者が値を読み出して第三者へ配布可能**。
+    無効化・再発行の手段も無く、除名しても別アカウント＋ハッシュで再参加できた。
+
+② 採用した対応（方針変更）
+  現行方式の pepper 化ではなく、**認証方式そのものを招待リンクへ置換**。
+
+③ 実装
+  - migration 202607270001: `project_invites`（id / project_id / token_hash / max_uses / use_count /
+    expires_at / revoked_at / created_by / created_at）。RLS は owner/admin の SELECT のみ、
+    **列権限から token_hash を除外**。RPC は create/redeem=service_role 限定、revoke=authenticated（内部で admin 判定）
+  - `_shared/invite_token.ts`: CSPRNG 32byte → base64url 43 文字。保存は `HMAC(signingSecret, 'invite:'+token)` のみ
+  - Edge `create-scorer-invite`（active owner/admin 必須）/ `redeem-scorer-invite`（Google ログイン必須）
+  - 有効期限 7 日・role=scorer は **RPC 内で固定**（クライアントは上限人数のみ指定可・1〜500 にクランプ）
+  - `join.html` / `js/join.js`: 招待URL → 未ログインならログイン → 参加。判定は全てサーバ側
+  - 管理 UI: 上限人数入力・7日/採点者の固定表示・発行・URL コピー・使用人数・有効期限・状態・無効化
+  - **削除**: scorer_access_code_hash 列 / join_project_with_scorer_code / 参加コード付き
+    create_project_with_owner オーバーロード / 参加コード入力 UI / 参加コード生成処理
+
+④ 監査項目 10 点の検証結果（本番実測）
+  1 招待リンクなしでは参加不可     : redeem 未認証 → **401**、形式不正 → **400**、create 未認証 → **401**
+  2 期限切れ                      : `Invite expired` で拒否
+  3 revoked                       : `Invite revoked` で拒否
+  4 使用回数上限                  : `Invite exhausted` で拒否
+  5 **並列でも上限を超えない**     : max_uses=2 に 10 並列 → **2 件のみ UPDATED / 8 件 BLOCKED / use_count=2**
+  6 平文をDB保存しない            : 列は token_hash のみ。平文は発行応答に一度だけ（再表示不可）
+  7 token_hash がクライアントへ出ない: 列権限から除外。anon の select は **42501 permission denied**
+  8 招待URL再利用                 : 既存メンバーの再訪は `already_member=true` で **使用回数を消費しない**
+  9 監査ログ                      : `scorer_invite.create` / `scorer_invite.redeem`（actor_kind=staff・HMAC 化 IP）
+  10 回帰テスト                   : tests/scorer_invite.test.mjs（19 件）。`npx vitest run` = 238 passed
+  - 旧 RPC の消滅                 : `rpc/join_project_with_scorer_code` → **404**
+  - FK 制約により偽ユーザーでの引き換えは失敗し、その際 use_count が 0 のままだったことから
+    **加算とメンバー追加が同一トランザクションで巻き戻る**ことも確認
+  - 検証用データは全削除（project_invites 0 件・probe メンバー 0 件）
+  - ブラウザ実機: join ページ（未ログイン → サインイン誘導・トークン保持）、
+    管理 UI（上限20既定・7日固定・採点者固定・発行前はURL非表示・375px で縦積み・横溢れなし）
+
+Rollback: 旧方式へは戻さない（列・RPC を削除済み）。招待は revoke で即時無効化できる
+Notes   : 親計画（V1〜V13 / Baseline v1.0）は**未変更**。本件は Additional Security Backlog として独立管理。
+          運用上の注意: 招待リンクは発行時にしか表示できない（平文を保存しないため）。紛失時は再発行する。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

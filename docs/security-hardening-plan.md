@@ -353,15 +353,14 @@ Phase 2 の V3 ゼロベース再監査（`docs/security-migration-status.md` �
 > 親計画（V1〜V13 / Baseline v1.0）の**凍結後**に発見した事項を積む場所。
 > **親計画の V 番号・Phase 構造には追加しない。** 着手の可否・順序は個別に判断する。
 
-## AB-1. Scorer access code hardening
+## AB-1. Scorer access code hardening → **招待リンク方式へ置換（Completed）**
 | 項目 | 内容 |
 |---|---|
-| **Status** | Not started（未着手） |
+| **Status** | **Completed** — 2026-07-27 |
 | **発見** | 2026-07-26（V3 のゼロベース再監査中） |
-| **重大度** | Medium |
-| **問題** | `projects.scorer_access_code_hash` = `AppCrypto.hashPassword(scorerCode)`（`js/index.js:356`）で**無塩 SHA-256**。参加コードは短く低エントロピーのため、DB 流出時に総当たりで復元されうる |
-| **影響** | 攻撃者が採点者としてプロジェクトへ参加（答案画像・採点データへのアクセス） |
-| **修正方針** | サーバ側（Edge/RPC）で保存前に HMAC(pepper) 化。既存行は再設定またはコード再発行。照合経路（`join_project_with_scorer_code` 相当）も同時に切替 |
-| **運用上の注意** | 既存の参加コードが**無効化**されるため、運営から採点者への**再共有が必要**。大会日程を避けて実施する |
-| **親計画との関係** | V3（開示パスワード/メールの無塩ハッシュ）とは**別の資格情報**であり、V3 の完了条件には含まれない |
-
+| **監査で判明した真の問題** | 当初の記述「参加コードが短く低エントロピーで総当たり可能」は**誤り**（実測: 14文字・62種・CSPRNG＝約83bit）。実際の問題は **pass-the-hash**: `join_project_with_scorer_code` が**クライアント計算のハッシュを直接比較**していたため、保存値そのものが資格情報だった。`projects` の RLS は `is_project_member` で列権限にも当該列が含まれ、クライアントは `select('*')` していたため、**一度参加した採点者が値を読み出して第三者へ配布可能**。無効化・再発行の手段も無し |
+| **採用した対応** | 現行方式の安全化ではなく、**認証方式そのものを招待リンクへ置換**（本番運用前のため破壊的変更を許容） |
+| **新方式** | 管理者が上限人数のみ指定して招待リンクを発行 → Google ログインだけで採点者参加。トークンは Edge 内 CSPRNG(256bit)、DB には **HMAC のみ保存**（平文は発行応答に一度だけ）。**有効期限 7 日・role=scorer はサーバ側固定**。使用回数は条件付き UPDATE で原子的に加算。無効化(revoke)可 |
+| **削除したもの** | `projects.scorer_access_code_hash` 列 / `join_project_with_scorer_code` RPC / 参加コードを受ける `create_project_with_owner` オーバーロード / 参加コード入力 UI / 参加コード生成処理 |
+| **Evidence** | migration `202607270001_scorer_invite_links.sql`、Edge `create-scorer-invite` / `redeem-scorer-invite`、`_shared/invite_token.ts`、`join.html` / `js/join.js`、管理 UI（admin.html / admin_settings.js）、テスト `tests/scorer_invite.test.mjs`（19件）、commit `3ea2a9d` |
+| **親計画との関係** | 親計画（V1〜V13 / Baseline v1.0）は**変更していない**。本項目は Additional Security Backlog として独立管理 |
