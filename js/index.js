@@ -104,10 +104,12 @@ function setButtonContent(button, text, iconClass = '', iconAfter = true) {
     if (iconClass && iconAfter) button.append(' ', icon(iconClass));
 }
 
-function showError(msg) {
+// 一時的な失敗は自動で消す。設定不備など「消えると次の一手が分からなくなる」
+// エラーは persist=true で残す。
+function showError(msg, persist = false) {
     const el = document.getElementById('status-msg');
     setPageMessage(el, msg, 'error');
-    setTimeout(() => el.classList.remove('is-visible'), 5000);
+    if (!persist) setTimeout(() => clearPageMessage(el), 6000);
 }
 
 function useSupabaseAuth() {
@@ -139,8 +141,14 @@ function setTab(tab) {
 
     // モード表示とフッター導線(作成モードでは参加への戻り導線を出す)
     const title = document.getElementById('index-mode-title');
-    if (title) title.textContent = tab === 'create' ? 'プロジェクト作成' : 'ログイン';
-    document.title = tab === 'create' ? 'プロジェクト作成 - CIQ' : 'CIQ';
+    if (title) title.textContent = tab === 'create' ? '大会をつくる' : 'ログイン';
+    const lede = document.getElementById('index-mode-lede');
+    if (lede) {
+        lede.textContent = tab === 'create'
+            ? '回数を入力すると、この大会のプロジェクトIDが発行されます。'
+            : '運営と採点はGoogleアカウントで行います。';
+    }
+    document.title = tab === 'create' ? '大会をつくる - CIQ' : 'CIQ';
     document.getElementById('index-join-link')?.classList.toggle('u-hidden', tab !== 'create');
 
     renderCreateAuthState();
@@ -163,8 +171,12 @@ function renderSupabaseAuth(sessionData) {
     const email = sessionData?.user?.email || '';
     const displayName = sessionData?.user ? getGoogleDisplayName() : '';
 
-    if (userEl) userEl.textContent = email ? `${displayName} / ${email}` : '';
-    panel.classList.toggle('is-signed-in', Boolean(email));
+    // サインイン済みのアカウントは選べない固定情報なので、フォームではなく
+    // 見出しの下の identity 行として静かに示す。
+    if (userEl) userEl.textContent = email ? `${displayName}（${email}）` : '';
+    const identity = document.getElementById('auth-identity');
+    if (identity) identity.hidden = !email;
+    panel.hidden = Boolean(email);
     setAuthButtonVisibility(loginBtn, logoutBtn, Boolean(email));
     setTab(currentTab);
     renderCreateAuthState();
@@ -388,21 +400,14 @@ async function initSupabaseAuth() {
         const loginBtn = document.getElementById('supabase-login-btn');
         const logoutBtn = document.getElementById('supabase-logout-btn');
         if (panel) panel.hidden = false;
-        if (userEl) {
-            userEl.textContent = location.protocol === 'file:'
-                ? 'ローカルサーバーで開く必要があります'
-                : 'Supabase未接続';
-        }
+        if (userEl) userEl.textContent = '';
         setAuthButtonVisibility(loginBtn, logoutBtn, false);
-        if (loginBtn) {
-            setButtonContent(
-                loginBtn,
-                location.protocol === 'file:' ? 'localhostで開く' : '設定を確認'
-            );
-        }
+        // Google ボタンの中身は書き換えない(Google 以外の操作に見せない)。
+        // 何が起きたかと次の一手は下のメッセージで伝える。
+        if (loginBtn && location.protocol !== 'file:') loginBtn.disabled = true;
         showError(location.protocol === 'file:'
             ? 'Googleサインインは file:// では開始できません。ローカルサーバーで開いてください。'
-            : (window.CIQSupabaseAPI?.getConfigErrorMessage?.() || 'Supabase設定が見つかりません。'));
+            : (window.CIQSupabaseAPI?.getConfigErrorMessage?.() || 'Supabase設定が見つかりません。'), true);
         return;
     }
     try {

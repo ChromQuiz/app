@@ -8,25 +8,23 @@
     <meta name="description" content="CIQ - ページが見つかりません">
     <title>CIQ - 404</title>
 
-    <link rel="stylesheet" href="css/design_system.css?v=73">
-    <link rel="stylesheet" href="css/pages.css?v=116">
+    <link rel="stylesheet" href="css/design_system.css?v=77">
+    <link rel="stylesheet" href="css/pages.css?v=120">
 
     <script defer src="js/icons.js?v=8"></script>
+    <script defer src="js/not_found.js?v=2"></script>
 </head>
 <body class="page-404">
-    <div class="error-container">
-        <div class="decoration">
-            <span data-icon="ghost" aria-hidden="true"></span>
-        </div>
-
-        <div class="error-code">404</div>
-
+    <main class="error-container">
+        <p class="error-code">404</p>
         <h1 class="error-title">ページが見つかりません</h1>
-
         <p class="error-desc">
-            お探しのページは移動または削除された可能性があります。<br>
-            URLが正しいかご確認ください。
+            リンクが古いか、URLが間違っている可能性があります。参加者の方は、エントリー完了メールのリンクから開いてください。
         </p>
-    </div>
+        <div class="error-actions">
+            <button type="button" class="btn secondary" id="back-button">前のページに戻る</button>
+            <a class="btn ghost" href="help.html">ヘルプ</a>
+        </div>
+    </main>
 </body>
 </html>

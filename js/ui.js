@@ -445,14 +445,28 @@ function showToast(msg, type = 'info', duration = 3000) {
     }, Math.max(1000, Number(duration) || 3000));
 }
 
+// 状態を色だけで伝えないよう、種別ごとに固有のアイコンを添える。
+// (info は本文として読ませたいのでアイコンを付けない)
+const PAGE_MESSAGE_ICONS = {
+    success: 'circle-check',
+    warning: 'triangle-exclamation',
+    error: 'circle-exclamation',
+};
+
 function setPageMessage(el, message, type = 'info') {
     if (!el) return;
     const text = String(message || '');
-    el.textContent = text;
-    el.className = `page-msg ${type || 'info'}`.trim();
+    const kind = type || 'info';
+    el.textContent = '';
+    if (text) {
+        const iconName = PAGE_MESSAGE_ICONS[kind];
+        if (iconName) el.appendChild(createIcon(iconName));
+        el.appendChild(document.createTextNode(text));
+    }
+    el.className = `page-msg ${kind}`.trim();
     el.classList.toggle('is-visible', Boolean(text));
-    el.setAttribute('aria-live', type === 'error' || type === 'warning' ? 'assertive' : 'polite');
-    el.setAttribute('role', type === 'error' || type === 'warning' ? 'alert' : 'status');
+    el.setAttribute('aria-live', kind === 'error' || kind === 'warning' ? 'assertive' : 'polite');
+    el.setAttribute('role', kind === 'error' || kind === 'warning' ? 'alert' : 'status');
 }
 
 function clearPageMessage(el) {

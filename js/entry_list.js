@@ -41,7 +41,11 @@ const params = new URLSearchParams(location.search);
             document.getElementById('page-title').textContent = pName || projectId;
             document.title = (pName || projectId) + ' - エントリーリスト';
         } catch(e) {
-            document.getElementById('page-title').textContent = projectId;
+            document.getElementById('page-title').textContent = projectId || 'エントリーリスト';
+            if (!projectId) {
+                const sub = document.getElementById('page-subtitle');
+                if (sub) sub.textContent = '';
+            }
         }
 
         // 定員取得

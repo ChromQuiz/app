@@ -28,6 +28,18 @@ function setMsg(id, msg, type) {
     else clearPageMessage(box);
 }
 
+async function sendParticipantActionEmail(sendFn, payload, failureLabel) {
+    if (typeof sendFn !== 'function') return true;
+    try {
+        await sendFn(mySession.email, payload);
+        return true;
+    } catch (error) {
+        console.warn(`${failureLabel}メール送信失敗:`, error);
+        showToast(`${failureLabel}は完了しましたが、確認メールを送信できませんでした。`, 'warning');
+        return false;
+    }
+}
+
 function setBusy(button, busy, label) {
     if (!button) return;
     button.disabled = busy;
@@ -83,23 +95,33 @@ function storeSession(data) {
     } catch { /* storage 不可でもページ内では動作する */ }
 }
 
-function showFatal(message) {
+// 復帰不能な状態は「何が起きたか」を見出しで、「次に何をするか」を本文で示す。
+// 枠で囲わず、ページそのものの状態として表示する。
+function showFatal(title, detail = '') {
     const container = document.querySelector('.page-container');
     if (!container) return;
     container.textContent = '';
-    const card = document.createElement('div');
-    card.className = 'page-card page-disabled';
-    const p = document.createElement('p');
-    p.textContent = message;
-    card.appendChild(p);
-    container.appendChild(card);
+    const state = document.createElement('div');
+    state.className = 'error-state';
+    state.setAttribute('role', 'alert');
+    const heading = document.createElement('p');
+    heading.className = 'error-state-title';
+    heading.textContent = title;
+    state.appendChild(heading);
+    if (detail) {
+        const p = document.createElement('p');
+        p.className = 'error-state-detail';
+        p.textContent = detail;
+        state.appendChild(p);
+    }
+    container.appendChild(state);
 }
 
 // ---------- 初期化 ----------
 
 async function init() {
     if (!projectId) {
-        showFatal('プロジェクトが指定されていません。メール内のリンクからアクセスしてください。');
+        showFatal('大会が特定できません', 'エントリー完了メールに記載されたマイエントリーのリンクから開いてください。');
         return;
     }
 
@@ -415,19 +437,20 @@ async function saveEdit(event) {
             },
         });
 
+        let mailSent = true;
         if (projectSettings?.notifyEntryEdit !== false && window.CIQEmail?.sendEntryEdited) {
             // 宛先所有確認は send-email がサーバ側で行うため emailHash は送らない(P2-e5 案B)。
-            CIQEmail.sendEntryEdited(mySession.email, {
+            mailSent = await sendParticipantActionEmail(CIQEmail.sendEntryEdited, {
                 projectName: projectSettings?.projectName || projectId,
                 entryNumber: String(result.entry?.entryNumber || myEntryData?.entryNumber || '').padStart(3, '0'),
                 entryId: result.entry?.id || myEntryData?.id,
                 familyName,
                 firstName,
                 senderName: (projectSettings?.projectName || projectId) + ' 実行委員会',
-            }).catch(e => console.warn('編集完了メール送信スキップ:', e));
+            }, '登録内容の更新');
         }
 
-        showToast('登録内容を更新しました。', 'success');
+        if (mailSent) showToast('登録内容を更新しました。', 'success');
         await loadHub();
     } catch (err) {
         setMsg('edit-msg', '保存に失敗しました: ' + (err.message || ''), 'error');
@@ -447,18 +470,19 @@ async function markLate() {
     try {
         const result = await CIQSupabaseAPI.markLate(getParticipantActionPayload());
 
+        let mailSent = true;
         if (projectSettings?.notifyLateNotice !== false && window.CIQEmail?.sendLateNotice) {
-            CIQEmail.sendLateNotice(mySession.email, {
+            mailSent = await sendParticipantActionEmail(CIQEmail.sendLateNotice, {
                 projectName: projectSettings?.projectName || projectId,
                 entryNumber: String(result.entry?.entryNumber || '').padStart(3, '0'),
                 entryId: result.entry?.id,
                 familyName: '',
                 firstName: '',
                 senderName: (projectSettings?.projectName || projectId) + ' 実行委員会',
-            }).catch(e => console.warn('遅刻連絡メール送信スキップ:', e));
+            }, '遅刻連絡');
         }
 
-        showToast('遅刻の連絡を受け付けました。', 'success');
+        if (mailSent) showToast('遅刻の連絡を受け付けました。', 'success');
         await loadHub();
     } catch (err) {
         setMsg('late-msg', err.message || '遅刻連絡に失敗しました。', 'error');
@@ -481,18 +505,19 @@ async function cancelEntry() {
     try {
         const result = await CIQSupabaseAPI.cancelEntry(getParticipantActionPayload());
 
+        let mailSent = true;
         if (projectSettings?.notifyEntryCancel !== false && window.CIQEmail?.sendCancellation) {
-            CIQEmail.sendCancellation(mySession.email, {
+            mailSent = await sendParticipantActionEmail(CIQEmail.sendCancellation, {
                 projectName: projectSettings?.projectName || projectId,
                 entryNumber: String(result.canceledEntry?.entryNumber || '').padStart(3, '0'),
                 entryId: result.canceledEntry?.id,
                 familyName: '',
                 firstName: '',
                 senderName: (projectSettings?.projectName || projectId) + ' 実行委員会',
-            }).catch(e => console.warn('キャンセルメール送信スキップ:', e));
+            }, 'キャンセル');
         }
 
-        showToast('エントリーをキャンセルしました。', 'success');
+        if (mailSent) showToast('エントリーをキャンセルしました。', 'success');
         await loadHub();
     } catch (err) {
         setMsg('cancel-msg', err.message || 'キャンセルに失敗しました。', 'error');

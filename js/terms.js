@@ -803,12 +803,26 @@ function renderInlineTocs(container) {
     });
 }
 
-function setTermsMessage(container, message) {
+// 規約が出せないときは、何が起きたか(見出し)と次の行動(本文)を示す。
+// カードの中に一行だけ置かない。
+function setTermsMessage(container, title, detail = '') {
     document.getElementById('terms-toc')?.classList.add('u-hidden');
+    document.getElementById('terms-card')?.classList.add('is-bare');
     container.textContent = '';
-    const p = document.createElement('p');
-    p.textContent = message;
-    container.appendChild(p);
+    const state = document.createElement('div');
+    state.className = 'error-state';
+    state.setAttribute('role', 'status');
+    const heading = document.createElement('p');
+    heading.className = 'error-state-title';
+    heading.textContent = title;
+    state.appendChild(heading);
+    if (detail) {
+        const p = document.createElement('p');
+        p.className = 'error-state-detail';
+        p.textContent = detail;
+        state.appendChild(p);
+    }
+    container.appendChild(state);
 }
 
 async function loadTerms() {
@@ -817,7 +831,7 @@ async function loadTerms() {
     const container = document.getElementById('terms-content');
 
     if (!projectId) {
-        setTermsMessage(container, 'プロジェクトIDが指定されていません。');
+        setTermsMessage(container, '大会が特定できません', '大会から案内された参加規約のリンクを開いてください。');
         return;
     }
 
@@ -832,16 +846,19 @@ async function loadTerms() {
             document.getElementById('page-title').textContent = settings.projectName;
             document.title = `参加規約 - ${settings.projectName}`;
         } else {
+            // 大会名が取れないときは見出しが用途名になるので、同じ語のサブラベルを重ねない
             document.getElementById('page-title').textContent = '参加規約';
+            const sub = document.getElementById('page-subtitle');
+            if (sub) sub.textContent = '';
         }
 
         if (terms) {
             renderMarkdown(container, terms);
         } else {
-            setTermsMessage(container, '現在、参加規約は設定されていません。');
+            setTermsMessage(container, '参加規約はまだ公開されていません', '大会側で公開されるまでお待ちください。');
         }
     } catch (err) {
-        setTermsMessage(container, '参加規約の取得に失敗しました。通信環境をご確認の上、再度お試しください。');
+        setTermsMessage(container, '参加規約を読み込めませんでした', '通信環境を確認して、ページを再読み込みしてください。');
         console.error(err);
     }
 }
