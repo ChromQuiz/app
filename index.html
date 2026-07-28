@@ -18,74 +18,67 @@
   <script defer src="js/supabase_api.js?v=35"></script>
   <script defer src="js/crypto.js"></script>
   <script defer src="js/icons.js?v=8"></script>
-  <script defer src="js/ui.js?v=20"></script>
+  <script defer src="js/ui.js?v=22"></script>
   <script defer src="js/shared.js?v=2"></script>
-  <link rel="stylesheet" href="css/design_system.css?v=73">
-  <link rel="stylesheet" href="css/pages.css?v=116">
+  <link rel="stylesheet" href="css/design_system.css?v=77">
+  <link rel="stylesheet" href="css/pages.css?v=120">
 </head>
 
-<body class="page-index">
-  <div class="card" id="join">
-    <div class="auth-page-header">
-      <h1 class="index-app-title">CIQ</h1>
-      <h2 id="index-mode-title">ログイン</h2>
+<body class="page-auth">
+  <main class="auth">
+    <p class="auth-brand">CIQ</p>
+    <h1 class="auth-title" id="index-mode-title">ログイン</h1>
+    <p class="auth-lede" id="index-mode-lede">運営と採点はGoogleアカウントで行います。</p>
+
+    <div id="status-msg" class="status-msg-box" role="status" aria-live="polite"></div>
+
+    <div class="auth-action" id="supabase-auth-panel" hidden>
+      <button type="button" class="btn-google" id="supabase-login-btn">
+        <img class="btn-google-mark" src="assets/vendor/google/g_mark.svg" alt="" aria-hidden="true" width="18" height="18">
+        <span>Googleで続行</span>
+      </button>
     </div>
 
-    <div id="status-msg" class="status-msg-box" role="alert" aria-live="assertive"></div>
-
-    <div id="supabase-auth-panel" class="auth-provider-panel" hidden>
-      <div class="auth-provider-main">
-        <div class="auth-provider-user" id="supabase-auth-user"></div>
-      </div>
-      <div class="auth-provider-actions">
-        <button type="button" class="btn secondary google-auth-btn" id="supabase-login-btn">
-          <img class="google-g-mark" src="assets/vendor/google/g_mark.svg" alt="" aria-hidden="true">
-          <span>Googleで続行</span>
-        </button>
-        <button type="button" class="btn secondary google-auth-btn" id="supabase-logout-btn" hidden>
-          <img class="google-g-mark" src="assets/vendor/google/g_mark.svg" alt="" aria-hidden="true">
-          Googleからサインアウト
-        </button>
-      </div>
-    </div>
-
-    <!-- 参加(既定): 自分のプロジェクト / 採点者参加 -->
-    <div id="section-join" hidden>
-      <div id="project-list" class="project-list">
-      </div>
-      <p class="desc-text scorer-join-note">
+    <!-- 参加(既定): 自分のプロジェクト -->
+    <section class="auth-section" id="section-join" hidden>
+      <h2 class="auth-section-title">参加している大会</h2>
+      <div id="project-list" class="project-list"></div>
+      <p class="auth-note">
         採点者として参加するには、管理者から共有された招待リンクを開いてください。
       </p>
-    </div>
+    </section>
 
     <!-- 作成(#create でのみ表示・主催者向け) -->
-    <div id="section-create" hidden>
-      <p class="desc-text mb-md">大会の回数を入力すると、プロジェクトIDが発行されます。採点者は管理画面から招待リンクを発行して招待します。</p>
-      <label for="create-edition">回数（例：第13回 → 13）</label>
-      <input type="number" id="create-edition" placeholder="13" min="1" max="999" />
+    <section class="auth-section" id="section-create" hidden>
+      <h2 class="auth-section-title">新しい大会</h2>
+      <label for="create-edition">回数</label>
+      <input type="number" id="create-edition" placeholder="13" min="1" max="999" inputmode="numeric" aria-describedby="create-edition-note" />
+      <p class="field-note" id="create-edition-note">第13回なら 13。入力した回数からプロジェクトIDが発行されます。</p>
       <button class="btn u-full-width mt-md" id="create-btn">プロジェクトを作成</button>
+    </section>
+
+    <section class="auth-section" id="section-success" hidden>
+      <h2 class="auth-section-title">プロジェクトを作成しました</h2>
+      <label for="success-id">プロジェクトID</label>
+      <div class="credential-row">
+        <input type="text" id="success-id" readonly />
+        <button class="btn standard credential-copy-btn" data-copy-target="success-id" aria-label="プロジェクトIDをコピー"><span data-icon="copy" aria-hidden="true"></span></button>
+      </div>
+      <p class="field-note">採点者は運営ホームで招待リンクを発行して招待します。</p>
+      <button class="btn u-full-width mt-md" id="admin-proceed-btn">運営をはじめる</button>
+    </section>
+
+    <div class="auth-identity" id="auth-identity" hidden>
+      <span class="auth-identity-user" id="supabase-auth-user"></span>
+      <button type="button" class="btn ghost link-btn-sm" id="supabase-logout-btn" hidden>サインアウト</button>
     </div>
+  </main>
 
-    <div id="section-success" class="u-text-center" hidden>
-      <h3 class="success-title">作成しました</h3>
-      <p class="success-desc">プロジェクトIDです。採点者の招待は管理画面から招待リンクを発行してください。</p>
-
-      <div class="credential-panel" data-stagger>
-        <label for="success-id">プロジェクトID</label>
-        <div class="credential-row">
-          <input type="text" id="success-id" readonly />
-          <button class="btn standard credential-copy-btn" data-copy-target="success-id" aria-label="プロジェクトIDをコピー"><span data-icon="copy" aria-hidden="true"></span></button>
-        </div>
-        </div>
-      <button class="btn u-full-width" id="admin-proceed-btn">運営をはじめる</button>
-    </div>
-  </div>
-
-  <div class="nav-tiles">
-    <a href="#" class="nav-tile u-hidden" id="index-join-link">採点者の方はこちら <span data-icon="arrow-right" aria-hidden="true"></span></a>
-    <a href="#create" class="nav-tile u-hidden" id="index-create-link">大会を主催する方へ <span data-icon="arrow-right" aria-hidden="true"></span></a>
-    <a href="help.html" class="nav-tile">ヘルプ <span data-icon="arrow-right" aria-hidden="true"></span></a>
-  </div>
-  <script defer src="js/index.js?v=17"></script>
+  <nav class="auth-links" aria-label="補助リンク">
+    <a href="#" class="auth-link u-hidden" id="index-join-link">ログインに戻る</a>
+    <a href="help.html" class="auth-link">ヘルプ</a>
+  </nav>
+  <script defer src="js/index.js?v=18"></script>
 </body>
+
 </html>

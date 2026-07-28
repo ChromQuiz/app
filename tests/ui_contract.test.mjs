@@ -52,6 +52,50 @@ describe('production UI contracts', () => {
     expect(new Set(sharedVersions).size).toBe(1);
   });
 
+  it('keeps participant email client fresh and failure-visible', () => {
+    const entry = read('entry.html');
+    const my = read('my.html');
+    const entryEmailVersion = entry.match(/js\/email\.js\?v=([^"']+)/)?.[1];
+    const myEmailVersion = my.match(/js\/email\.js\?v=([^"']+)/)?.[1];
+    expect(entryEmailVersion).toBeTruthy();
+    expect(myEmailVersion).toBe(entryEmailVersion);
+
+    const email = read('js/email.js');
+    const myJs = read('js/my.js');
+    expect(email).toContain('function requireSendSuccess');
+    expect(email).toContain("return requireSendSuccess(result, 'entry_cancelled')");
+    expect(email).toContain("return requireSendSuccess(result, 'entry_edited')");
+    expect(email).toContain("return requireSendSuccess(result, 'late_notice')");
+    expect(myJs).toContain('async function sendParticipantActionEmail');
+    expect(myJs).toContain('確認メールを送信できませんでした。');
+  });
+
+  it('shares one Google auth control between the login and invite screens', () => {
+    const login = read('index.html');
+    const invite = read('join.html');
+    // 両画面が同じ認証シェルと同じボタン実装を使う。似たものを2つ作らない。
+    for (const [path, source] of [['index.html', login], ['join.html', invite]]) {
+      expect(source, `${path}: auth shell`).toContain('<body class="page-auth">');
+      expect(source, `${path}: google button`).toMatch(/class="btn-google(?: [\w-]+)*"/);
+      expect(source, `${path}: google mark`).toContain('assets/vendor/google/g_mark.svg');
+      expect(source, `${path}: consistent label`).toContain('<span>Googleで続行</span>');
+      expect(source, `${path}: no powered-by footer`).not.toContain('Powered by CIQ');
+    }
+    const markup = /<button[^>]*class="btn-google[^"]*"[\s\S]*?<\/button>/;
+    const normalize = (html) => html.match(markup)[0]
+      .replace(/\s+id="[^"]*"/, '')
+      .replace(/class="btn-google[^"]*"/, 'class="btn-google"')
+      .replace(/\s+/g, ' ');
+    expect(normalize(login)).toBe(normalize(invite));
+
+    // 見た目の一致は共有CSS 1箇所でのみ定義する。
+    const designCss = read('css/design_system.css');
+    expect(designCss).toContain('.btn-google {');
+    expect(designCss).toContain('.btn-google:focus-visible {');
+    expect(designCss).toContain('.btn-google[aria-busy="true"] {');
+    expect(read('css/pages.css')).not.toContain('.btn-google');
+  });
+
   it('preserves strict CSP-compatible markup', () => {
     for (const { path, source } of pageSources()) {
       const csp = source.match(/http-equiv="Content-Security-Policy"[^>]*content="([^"]+)"/i)?.[1];
@@ -66,7 +110,7 @@ describe('production UI contracts', () => {
   it('keeps the required route and interaction hooks', () => {
     const required = {
       'admin.html': ['id="project-id-display"', 'id="menu-panel"', 'id="dt-picker"', 'data-tab-target=', 'data-action='],
-      'index.html': ['class="index-app-title"', '<h1 class="index-app-title">CIQ</h1>'],
+      'index.html': ['class="page-auth"', 'id="index-mode-title"', 'class="btn-google"'],
       'entry.html': ['id="entry-form"', 'id="form-card"', 'id="send-code-btn"', 'id="reentry-note"'],
       'my.html': ['id="auth-card"', 'id="hub"', 'id="my-number"', 'id="reentry-section"', 'id="reentry-link"'],
       'entry_list.html': ['id="list-body"', 'id="page-title"'],
@@ -308,15 +352,38 @@ describe('design-system contracts', () => {
     expect(designCss).not.toMatch(/\.toast\s*{[^}]*grid-template-columns:\s*34px/s);
   });
 
-  it('keeps page messages neutral and avoids redundant form notices', () => {
-    expect(designCss).toMatch(/\.page-msg,[\s\S]*?\.status-msg-box\s*{[\s\S]*?background:\s*var\(--surface\);[\s\S]*?border-left:\s*3px solid var\(--page-msg-accent, var\(--line-strong\)\);/);
-    expect(designCss).toMatch(/\.page-msg\.error,[\s\S]*?\.status-msg-box\.error\s*{\s*--page-msg-accent:\s*var\(--bad-600\);\s*}/);
-    expect(designCss).not.toMatch(/\.page-msg\.(?:error|success|warning)[^{]*\{[^}]*background:\s*color-mix/);
+  it('never renders status as a one-sided accent bar', () => {
+    // 通知・警告・エラーを「片側だけ太い色付き罫線の箱」で表す表現を全面的に禁止する。
+    // 状態は 面の有無 / アイコン / 文言 で伝える。
+    // 例外は擬似要素で組む字形(チェック・シェブロン)と kbd のキートップだけ。
+    const rules = css.match(/[^{}]+\{[^{}]*\}/g) || [];
+    const accentBars = [];
+    for (const rule of rules) {
+      const [selector, body] = [rule.split('{')[0].trim(), rule.split('{')[1]];
+      const isGlyph = /::(?:after|before)/.test(selector) || /\bkbd\b/.test(selector);
+      for (const [decl, value] of body.matchAll(
+        /(border-(?:left|right|top|bottom|inline-start|inline-end)(?:-width)?\s*:\s*([^;]+));/gi,
+      )) {
+        const width = Number(value.match(/(\d+(?:\.\d+)?)px/)?.[1] ?? 0);
+        const isSideBar = /left|right|inline/i.test(decl);
+        if (width >= 3 || (width >= 2 && isSideBar && !isGlyph)) {
+          accentBars.push(`${selector} { ${decl} }`);
+        }
+      }
+    }
+    expect(accentBars).toEqual([]);
+  });
+
+  it('keeps page messages inline and reserves a surface for errors only', () => {
+    // info / success / warning は本文として読ませる(面を持たない)。
+    expect(designCss).toMatch(/\.page-msg,[\s\S]{0,600}?\.csv-status\s*{[\s\S]*?border:\s*0;[\s\S]*?background:\s*none;/);
+    // error だけがティント面を持ち、ユーザーの操作を止める状態だと分かるようにする。
+    expect(designCss).toMatch(/\.page-msg\.error,\s*\.status-msg-box\.error\s*{[\s\S]*?background:\s*var\(--tint-bad\);/);
     expect(read('js/my.js')).not.toContain('ログアウトしました。');
     for (const path of ['js/entry.js', 'js/my.js', 'js/admin_settings.js']) {
       expect(read(path), path).not.toContain('必須項目を入力してください。');
     }
-    expect(read('entry.html')).toContain('class="page-msg info is-visible entry-mail-notice"');
+    expect(read('entry.html')).toContain('class="entry-mail-notice"');
   });
 
   it('keeps email templates readable in dark mode', () => {

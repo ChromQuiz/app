@@ -1,6 +1,7 @@
 # CIQ Design System — MASTER (Global Source of Truth)
 
-> 2026-07 Swift App UI 全面刷新(v5・承認済み)。このファイルが全ページ・全コンポーネント・HTMLメールの唯一の設計根拠。
+> 2026-07 Swift App UI 全面刷新(v5)。2026-07-28 に認証体験・メッセージ階層・角丸/影トークンを再設計(v6)。
+> このファイルが全ページ・全コンポーネント・HTMLメールの唯一の設計根拠。
 
 ---
 
@@ -86,7 +87,9 @@ Gold #A05A00 / #FFD60A — 成績・順位の1点のみ
 ```
 
 - `ink-2` を意味のある補足文とplaceholderに使う。`ink-3` は disabled、装飾、非主要アイコンに限定する。
-- 状態は色だけで伝えず、テキスト、アイコン、罫線のいずれかを必ず併用する。
+- 状態は色だけで伝えず、テキスト、アイコン、配置のいずれかを必ず併用する。
+- **片側だけ太い色付き罫線を付けた通知枠は全面禁止**(`border-left: 3px` 等)。
+  面のティントは `--tint-neutral` / `--tint-ok` / `--tint-warn` / `--tint-bad` / `--tint-accent` を使い、罫線は必ず全周1pxにする。
 
 ### Typography(Webフォント読込なし・Apple system stack)
 ```css
@@ -107,10 +110,13 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - 優先順位はサイズではなく余白・ウェイト・濃淡で。見出し前の余白は後ろの2倍
 
 ### Material / Radius / Elevation / Motion / Layout
-- 角丸 9/12/16/18/22/28px。意味別に control=13px or pill / grouped surface=18px / overlay=22–28px / pill=999px とする。
+- 角丸は3段階のみ。`--r-control` 8px(ボタン/入力/選択/チップ) / `--r-surface` 12px(セクション/リスト/パネル/notice) / `--r-overlay` 16px(モーダル/ドロワー/ポップオーバー/トースト)。
+  `--r-full` はスイッチのトラックと円形アイコンボタンだけに使う。ボタンをピル型にしない。
+  9/13/18/22/26/28/30px のような中間値を新たに足さない。値は必ずトークン経由で参照する。
 - 面は plain section / grouped surface / overlay の3役に限定する。Grouped list は単一の外枠と行間の hairline で構成し、行ごとの入れ子カードを作らない。
+- 情報量が少ない要素(状態表示・空状態・エラー)をカードで囲わない。ページの状態としてそのまま置く。
 - 浮遊UIのみ material token を使う。`--material-toolbar` / `--material-popover` / `--material-modal` / `--material-notification` と `--material-blur` が許可範囲。
-- 影は浮遊UIの分離用途に限定する。通常面は1px罫線と余白で表す。
+- 影は浮遊UIの分離用途に限定する(`--sh-3` のみ)。通常面は1px罫線と余白で表し、内側の白ハイライト(ベベル)も使わない。
 - Motion 150–250ms fade/slide のみ。`prefers-reduced-motion` 全停止
 - 幅: ログイン・本人確認・フォーム・ヘルプ/規約本文は集中できる狭幅(概ね520〜840px)を維持する。admin、一覧、管理表、答案、集計、採点ボード、チェックインなど作業面は1600pxまで広げる。ただし1600px未満の画面でも端ギリギリにはせず、wide系は左右に十分なgutterを取る。これは方針差ではなく密度差であり、見た目の部品体系は同一。タッチターゲット44px。フォーカスリング3px
 - Z: sticky10 / appbar20 / dropdown30 / drawer40 / modal50 / toast60 / max70
@@ -128,6 +134,40 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 - Lucideは必要なSVG node dataだけをローカルにバンドルし、ランタイムCDNへ依存しない。ライセンスは `assets/vendor/lucide/LICENSE` に保持する。
 - 新しいアイコンが必要な場合はLucideから対応名を選び、`ICON_ALIASES` とバンドル済みnode dataを同期する。`currentColor` / `fill="none"` / `stroke-width="2"` / `round cap+join` を維持する。
 - 欠落アイコンを `circle-question` のまま放置しない。四角表示・途切れ・異なる太さを見つけたらレジストリ側で直す。
+
+## 5b. メッセージ階層(3段階のみ)
+
+通知・警告・エラーを「派手なカードの色違い」で処理しない。強さは**面の有無**で表す。
+
+| 段階 | クラス | 見た目 | 使いどころ |
+|---|---|---|---|
+| field note | `.field-note` | 面もアイコンも無し。13px/ink-2 | 入力欄直下の補足。対象への近さが意味を作る |
+| inline | `.page-msg` / `.status-msg-box` / `.entry-verify-help` / `.csv-status` ほか | 面無し。アイコン + 本文 | 補足・進行中・成功・警告。本文として読ませる |
+| notice | `.notice` / `.entry-mail-notice` / `.terms-alert` | `--tint-neutral` 面 + 12px角丸。全周罫線 | 読み飛ばされると困る案内。**1画面1つまで** |
+| toast | `.toast` | 浮遊material | 操作結果の一時通知 |
+| page state | `.empty-state` / `.loading-state` / `.error-state` | 面無し。見出し + 次の行動 | 領域全体が空/読み込み中/失敗のとき |
+
+- **面を持つのは error と notice だけ**。error(`--tint-bad` + 全周hairline)は「ユーザーの操作が止まる唯一の状態」なので面を与える。
+- `setPageMessage()` が種別ごとに固有アイコン(success=circle-check / warning=triangle-exclamation / error=circle-exclamation)を付ける。info は本文として読ませるためアイコンを付けない。
+- `.error-state` はページ全体を赤くしない。見出しは ink、アイコンだけ `--bad-600`。
+
+## 5c. 認証シェル(index / join 共通)
+
+ログイン画面と招待画面は**同一の認証体験**として1つのシェルを共有する。
+
+```
+body.page-auth (grid: 1fr / auto, 地色は --canvas-flat)
+  main.auth          … .auth-brand → .auth-title → .auth-lede → .auth-action → .auth-note
+  nav.auth-links     … 第2行に固定。上に要素が固まり下に空白が残る構成を作らない
+```
+
+- 認証画面はカードを置かない。認証はカードの中の作業ではなく**ページそのもの**。
+- Google認証は `.btn-google` **1実装のみ**。`css/design_system.css` にだけ定義し、`css/pages.css` では再定義しない。
+  高さ48px / 幅100% / `--r-control` / `--surface` / 15px 600 / Gマーク18px / gap 10px / hover・active・focus-visible・disabled・`aria-busy` を共有。
+- 文言は認証操作として一貫させ、既定は「Googleで続行」。画面ごとに変えない。サインアウトはGoogleブランドのボタンにしない。
+- 招待画面は「大きな通知カード + その下にボタン」の構造を取らない。役割と結果は本文コピーで伝え、状態(確認中/参加済み/失効)だけを inline message で示す。
+- 未ログインは異常ではなく既定の入口なので、ボタンの上に状態メッセージを重ねない。
+- `Powered by CIQ` フッターは全ページから廃止。大会名が主役であり、CIQのクレジットは画面の仕事をしていなかった。
 
 ## 6. 運営共通シェル
 
@@ -149,6 +189,8 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 ## 8. 実装アーキテクチャ
 
 - `css/design_system.css` = トークン+共通コンポーネント / `css/pages.css` = シェル+ページ固有。場当たりCSS禁止。
+- **トークンの `:root` は design_system.css に1ブロックのみ**。「refinement pass」「page pass」「final override」のような後段レイヤーで
+  同じセレクタを再定義しない。値を変えたいときは元の定義を直す。旧実装を互換のために残さない。
 - クラス語彙はJSが参照するコンポーネントAPI。変更はJSと同期して行う。
 - Edge Functions: `my-entry`(新設) / `_shared/participant_auth.ts`(トークン・レート制限) /
   edit-entry・cancel-entry・mark-late・disclose-result(トークン経路追加) / send-email(再設計)。

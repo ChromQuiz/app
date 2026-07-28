@@ -6,113 +6,138 @@
    ============================================================ */
 
 /* ============================================================
-   入口 — index.html(参加 / #create で作成モード)
+   認証シェル — index.html(ログイン / #create)と join.html(招待)で共有
+   ------------------------------------------------------------
+   認証はカードの中の作業ではなく「ページそのもの」。枠を置かず、
+   ブランド → 見出し → 説明 → 主操作 → 補足 の1本の読み順で構成する。
+   下部リンクをグリッドの第2行に固定し、上部に要素が固まって
+   下に意味のない空白が残る構成を作らない。
    ============================================================ */
-body.page-index {
+body.page-auth {
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  /* グループ面を持たない画面なので、地色はグレーではなくフラットな白/黒 */
+  background: var(--canvas-flat);
   padding:
-    calc(var(--sp-4) + env(safe-area-inset-top))
-    calc(var(--sp-4) + env(safe-area-inset-right))
-    calc(var(--sp-10) + env(safe-area-inset-bottom))
-    calc(var(--sp-4) + env(safe-area-inset-left));
-  background: var(--canvas);
+    calc(var(--sp-6) + env(safe-area-inset-top))
+    var(--page-pad-x)
+    calc(var(--sp-6) + env(safe-area-inset-bottom))
+    var(--page-pad-x);
 }
 
-/* hero は design_system.css の .hero に委譲。
-   index 固有の調整のみここで。 */
-body.page-index .hero {
-  padding-top: clamp(var(--sp-10), 14vh, var(--section-gap));
+.auth {
+  align-self: center;
+  justify-self: center;
+  width: min(400px, 100%);
+  /* 下側を厚くして視覚的な重心をわずかに上へ寄せる */
+  padding-block: var(--sp-8) clamp(var(--sp-8), 10vh, var(--sp-12));
 }
 
-/* ロールグリッドとフォームの間の呼吸する余白 */
-body.page-index .role-grid {
-  margin-bottom: var(--section-gap);
+.auth-brand {
+  margin: 0 0 var(--sp-6);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
 }
 
-/* ログイン/作成フォームカードの幅は従来通り維持(JS依存不変) */
-body.page-index .card {
-  width: min(420px, 100%);
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+.auth-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-26);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
-/* 下部導線(nav-tiles 化) */
-body.page-index .index-help-link-wrap {
-  margin-top: var(--sp-9);
+.auth-lede {
+  margin: var(--sp-3) 0 0;
+  font-size: var(--fs-15);
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--ink-2);
+  max-width: 34em;
 }
 
-body.page-index .card {
-  width: min(420px, 100%);
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+/* 主操作。見出しから離しすぎず、補足より明確に近い */
+.auth-action {
+  margin-top: var(--sp-7);
 }
 
-.auth-page-header {
-  margin-bottom: var(--sp-5);
+.auth-note {
+  margin: var(--sp-4) 0 0;
+  font-size: var(--fs-13);
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--ink-2);
 }
 
-.auth-page-header h2 {
-  font-size: var(--fs-21);
-}
-
-/* Google 認証パネル */
-.auth-provider-panel {
+/* サインイン済みのアカウント表示。選べない情報をフォームに見せない */
+.auth-identity {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  justify-content: space-between;
   gap: var(--sp-3);
-  padding: var(--sp-6);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  margin-bottom: var(--sp-5);
+  flex-wrap: wrap;
+  margin-top: var(--sp-7);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
 }
 
-.auth-provider-user {
-  font-size: var(--fs-14);
-  font-weight: 500;
+.auth-identity-user {
+  min-width: 0;
+  font-size: var(--fs-13);
   color: var(--ink-2);
   overflow-wrap: anywhere;
 }
 
-.auth-provider-user:empty {
+.auth-identity-user:empty {
   display: none;
 }
 
-.auth-provider-panel:not(.is-signed-in) .auth-provider-main {
-  display: none;
+/* 区切り付きの小見出し(参加できる大会 / 作成フォーム) */
+.auth-section {
+  margin-top: var(--sp-7);
 }
 
-.auth-provider-actions {
+.auth-section-title {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.auth-links {
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-  align-items: stretch;
-}
-
-.google-auth-btn {
-  width: 100%;
   justify-content: center;
-  gap: var(--sp-2);
-  min-height: 48px;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+  padding-top: var(--sp-6);
 }
 
-.google-g-mark {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
+.auth-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-h-sm);
+  font-size: var(--fs-13);
+  font-weight: 500;
+  color: var(--ink-2);
 }
 
-.google-auth-btn span {
-  line-height: 1;
+.auth-link:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 480px) {
+  .auth {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+
+  .auth-title {
+    font-size: var(--fs-24);
+  }
 }
 
 /* 参加できるプロジェクト一覧 */
@@ -122,8 +147,7 @@ body.page-index .card {
   gap: 0;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  margin-bottom: var(--sp-5);
+  border-radius: var(--r-surface);
 }
 
 .project-list:empty {
@@ -176,76 +200,6 @@ body.page-index .card {
   padding: var(--sp-4);
 }
 
-/* 採点者参加パネル */
-.scorer-join-panel {
-  border-top: 1px solid var(--line);
-  padding-top: var(--sp-5);
-}
-
-.scorer-join-title {
-  font-size: var(--fs-16);
-  font-weight: 600;
-  margin-bottom: var(--sp-4);
-}
-
-.scorer-join-panel input {
-  margin-bottom: var(--sp-4);
-}
-
-/* 下部リンク(作成導線は控えめなテキスト1行) */
-.index-help-link-wrap {
-  display: flex;
-  gap: var(--sp-6);
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: var(--sp-2);
-}
-
-.index-help-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--control-h-sm);
-  font-size: var(--fs-13);
-  color: var(--ink-2);
-}
-
-.index-help-link:hover {
-  color: var(--accent);
-}
-
-/* 作成完了 — 資格情報の提示 */
-.success-title {
-  font-size: var(--fs-21);
-  margin-bottom: var(--sp-2);
-}
-
-.success-desc {
-  font-size: var(--fs-14);
-  color: var(--ink-2);
-  margin-bottom: var(--sp-5);
-}
-
-.success-icon {
-  display: none;
-}
-
-.credential-panel {
-  text-align: left;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  padding: var(--sp-4);
-  margin-bottom: var(--sp-5);
-}
-
-.credential-panel label {
-  margin-top: var(--sp-3);
-}
-
-.credential-panel label:first-child {
-  margin-top: 0;
-}
-
 .credential-row {
   display: flex;
   gap: var(--sp-2);
@@ -274,10 +228,10 @@ body.page-index .card {
 body.page-wrapper {
   min-height: 100dvh;
   padding:
-    calc(var(--sp-9) + env(safe-area-inset-top))
-    calc(var(--sp-4) + env(safe-area-inset-right))
-    calc(var(--sp-8) + env(safe-area-inset-bottom))
-    calc(var(--sp-4) + env(safe-area-inset-left));
+    calc(var(--sp-7) + env(safe-area-inset-top))
+    var(--page-pad-x)
+    calc(var(--sp-9) + env(safe-area-inset-bottom))
+    var(--page-pad-x);
   background: var(--canvas);
 }
 
@@ -286,17 +240,18 @@ body.page-wrapper {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-6);
+  gap: var(--sp-5);
 }
 
 .page-container.full {
   width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
 }
 
-/* 大会名ヘッダー — 大会が主役、CIQ は黒衣 */
+/* 大会名ヘッダー — 大会が主役、CIQ は黒衣。
+   中央寄せをやめ、本文と同じ左の基準線に揃えて読み出しを1本にする。 */
 .page-logo {
-  text-align: center;
-  padding: var(--sp-2) 0 var(--sp-5);
+  padding: 0;
+  margin-bottom: var(--sp-2);
 }
 
 .page-logo .logo-icon {
@@ -304,13 +259,18 @@ body.page-wrapper {
 }
 
 .page-logo h1 {
-  font-size: clamp(var(--fs-26), 5vw, var(--fs-40));
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(var(--fs-24), 4.5vw, var(--fs-32));
   font-weight: 700;
+  line-height: 1.2;
   letter-spacing: -0.022em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
+  overflow-wrap: anywhere;
+}
+
+/* 読み込み中のタイトルにスピナーを置かない(見出しは見出しのまま保つ) */
+.page-logo h1 [data-icon] {
+  display: none;
 }
 
 .page-logo .logo-sub {
@@ -324,27 +284,10 @@ body.page-wrapper {
   body.page-wrapper {
     padding:
       calc(var(--sp-6) + env(safe-area-inset-top))
-      calc(var(--sp-3) + env(safe-area-inset-right))
-      calc(var(--sp-5) + env(safe-area-inset-bottom))
-      calc(var(--sp-3) + env(safe-area-inset-left));
+      var(--page-pad-x)
+      calc(var(--sp-8) + env(safe-area-inset-bottom))
+      var(--page-pad-x);
   }
-
-  .page-container {
-    gap: var(--sp-5);
-  }
-
-  .page-logo {
-    padding-bottom: var(--sp-3);
-  }
-}
-
-.page-footer {
-  text-align: center;
-  font-size: var(--fs-12);
-  font-weight: 500;
-  letter-spacing: var(--ls-caps);
-  color: var(--ink-3);
-  padding: var(--sp-5) 0 var(--sp-2);
 }
 
 .terms-link {
@@ -799,13 +742,12 @@ body.page-wrapper:has(#terms-card) .page-container {
   margin-bottom: var(--sp-1);
 }
 
+/* 引用は面ではなく字下げと色で示す(通知枠と読み違えさせない) */
 .terms-body blockquote {
-  margin: var(--sp-4) 0;
-  padding: var(--sp-3) var(--sp-4);
-  border-left: 3px solid var(--line-strong);
-  background: var(--surface-2);
+  margin: var(--sp-5) 0;
+  padding: 0 0 0 var(--sp-5);
+  border-left: 1px solid var(--line-strong);
   color: var(--ink-2);
-  border-radius: 0 var(--r-md) var(--r-md) 0;
 }
 
 .terms-body code {
@@ -1289,12 +1231,10 @@ body.page-wrapper:has(#terms-card) .page-container {
 
   .page-entry-list .entry-list-divider-rule {
     border-style: solid;
-    border-left-width: 4px;
-    border-left-color: var(--line-strong);
   }
 
+  /* 補欠行は面の濃さで示す。片側だけの太線は使わない */
   .page-entry-list .entry-row-waitlist {
-    border-left: 4px solid var(--line-strong);
     background: var(--surface-2);
   }
 }
@@ -1355,8 +1295,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 /* 参加者表・答案・集計のみに付与するwide breakout契約 */
-.admin-container .is-wide,
-.admin-container .wide-breakout {
+.admin-container .is-wide {
   width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
   max-width: none;
   margin-inline:
@@ -1577,10 +1516,10 @@ body.page-wrapper:has(#terms-card) .page-container {
     padding-left: var(--sp-2);
   }
 
-  .admin-container .is-wide,
-  .admin-container .wide-breakout {
-    width: 100%;
-    margin-inline: 0;
+  .admin-container .is-wide {
+    width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -1610,8 +1549,6 @@ body.page-wrapper:has(#terms-card) .page-container {
 .full {
   min-width: 0;
 }
-
-.page-index,
 .page-admin,
 .page-judge,
 .page-question,
@@ -1680,7 +1617,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   margin-bottom: 14px;
   padding: 6px;
   gap: 6px;
-  border-radius: 24px;
+  border-radius: var(--r-overlay);
 }
 
 .phase-quick-btn {
@@ -1699,7 +1636,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 .tab-btn {
   min-height: 54px;
   padding: 10px 16px;
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
 }
 
 .tab-content.active {
@@ -1709,7 +1646,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 .phase-block,
 .phase-subblock {
   padding: 22px;
-  border-radius: 22px;
+  border-radius: var(--r-overlay);
 }
 
 .phase-block > h2 {
@@ -1750,9 +1687,10 @@ body.page-wrapper:has(#terms-card) .page-container {
   gap: 14px;
 }
 
-.admin-container .is-wide,
-.admin-container .wide-breakout {
+.admin-container .is-wide {
+
   width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+
 }
 
 .judge-main {
@@ -1764,7 +1702,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   min-height: 88px;
   padding: 22px;
   margin-bottom: 20px;
-  border-radius: 22px;
+  border-radius: var(--r-overlay);
 }
 
 .judge-summary {
@@ -1780,7 +1718,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 .q-card {
   min-height: 118px;
   padding: 18px;
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
 }
 
 .q-card h2,
@@ -1943,7 +1881,7 @@ body.page-admin .saved-answers-section h2 {
 }
 
 body.page-admin .saved-answers-section #entry-list {
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
   background: var(--surface-2);
 }
 
@@ -2073,9 +2011,8 @@ body.page-admin .model-cell {
   min-height: 58px;
   padding: 10px 10px 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-surface);
   background: var(--surface-2);
-  box-shadow: inset var(--app-bg-inset);
   cursor: pointer;
 }
 
@@ -2126,7 +2063,7 @@ body.page-admin .model-cell .inline-edit-input {
   min-height: 34px;
   padding: 0 10px;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-surface);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--accent);
   font-size: var(--fs-15);
@@ -2174,9 +2111,9 @@ body.page-admin .tab-content.active {
 body.page-admin .phase-block {
   padding: 22px;
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: var(--r-overlay);
   background: var(--surface);
-  box-shadow: inset var(--app-bg-inset), 0 1px 2px rgba(0, 0, 0, 0.035);
+  box-shadow: none;
 }
 
 body.page-admin .phase-block:first-child {
@@ -2211,9 +2148,8 @@ body.page-admin .empty-state,
 body.page-admin .admin-entry-result,
 body.page-admin .stat-card {
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
   background: var(--surface-2);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 body.page-admin .phase-subblock {
@@ -2275,9 +2211,8 @@ body.page-admin .public-links {
   gap: 0;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
   background: var(--surface-2);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 body.page-admin .link-row {
@@ -2340,9 +2275,8 @@ body.page-admin .empty-state {
 body.page-admin .table-container {
   overflow: auto;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
   background: var(--surface);
-  box-shadow: inset var(--app-bg-inset);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -2394,8 +2328,7 @@ body.page-admin .danger-zone {
 .result-rank,
 .result-score,
 .result-score-unit,
-.streak-val,
-.error-code {
+.streak-val {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -2586,9 +2519,8 @@ body.page-admin .danger-zone {
 body.page-admin #entry-list {
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
   background: var(--surface-2);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 body.page-admin #entry-list:empty {
@@ -2748,7 +2680,7 @@ body.page-admin .saved-answers-section #batch-delete-btn {
 }
 
 body.page-admin .saved-answers-section #entry-list {
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
   background: var(--surface);
   border-color: var(--line);
 }
@@ -2769,7 +2701,7 @@ body.page-admin .saved-answers-section #entry-list .scan-cb-wrap {
 body.page-admin .saved-answers-section #entry-list .checkbox-mark {
   width: 22px;
   height: 22px;
-  border-radius: 7px;
+  border-radius: var(--r-control);
 }
 
 body.page-admin .saved-answers-section #entry-list .entry-name {
@@ -2926,7 +2858,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 .stats-legend-dot {
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: var(--r-control);
 }
 
 .legend-done    { background: var(--ok-500); }
@@ -3507,26 +3439,24 @@ body.page-404 {
 }
 
 .error-container {
+  width: min(420px, 100%);
   text-align: center;
-  max-width: 420px;
 }
 
-.error-container .decoration {
-  display: none;
-}
-
+/* コード自体は主役ではない。見出しの上に置く小さな識別子として扱う */
 .error-code {
-  font-family: var(--font-mono);
-  font-size: clamp(88px, 18vw, 132px);
+  font-size: var(--fs-13);
   font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-  margin-bottom: var(--sp-4);
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  margin-bottom: var(--sp-3);
 }
 
 .error-title {
-  font-size: clamp(var(--fs-24), 5vw, var(--fs-40));
+  font-family: var(--font-display);
+  font-size: var(--fs-26);
+  line-height: 1.25;
   letter-spacing: -0.022em;
   margin-bottom: var(--sp-3);
 }
@@ -3544,13 +3474,19 @@ body.page-404 {
   flex-wrap: wrap;
 }
 
+/* 本文の代わりに状態だけを出すときは、カードの枠を外して状態そのものを見せる */
+.page-card.is-bare {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
 /* ============================================================
    CIQ Swift App Page Pass
    ------------------------------------------------------------
    全ページを同じアプリとして読ませるページ固有の最終調整。
    見た目の基本は design_system.css、ここはシェルと密度差だけ。
    ============================================================ */
-body.page-index,
 body.page-wrapper,
 body.page-help,
 body.page-404,
@@ -3562,96 +3498,20 @@ body.page-checkin {
   background: var(--canvas);
 }
 
-body.page-index {
-  padding-left: max(20px, env(safe-area-inset-left));
-  padding-right: max(20px, env(safe-area-inset-right));
-}
-
-body.page-index .hero {
-  padding-top: clamp(72px, 12vh, 132px);
-  padding-bottom: clamp(32px, 5vw, 64px);
-}
-
-body.page-index .index-app-title {
-  margin: 0 0 var(--sp-2);
-  color: var(--ink);
-  font-size: clamp(var(--fs-32), 8vw, 56px);
-  font-weight: 800;
-  line-height: 1;
-}
-
-body.page-index .card {
-  width: min(520px, 100%);
-  padding: var(--sp-6);
-  border: 1px solid var(--line);
-  border-radius: 28px;
-  background: var(--surface);
-  box-shadow: inset var(--app-bg-inset), 0 18px 50px rgba(0, 0, 0, 0.08);
-}
-
-body.page-index .nav-tiles {
-  margin-top: var(--sp-8);
-}
-
-.page-wrapper {
-  min-height: 100dvh;
-  padding:
-    calc(var(--sp-8) + env(safe-area-inset-top))
-    max(20px, env(safe-area-inset-right))
-    calc(var(--sp-8) + env(safe-area-inset-bottom))
-    max(20px, env(safe-area-inset-left));
-}
-
-.page-container,
-.help-container,
-.error-container {
+.help-container {
   width: min(var(--container-narrow), 100%);
 }
 
-body.page-entry-list .page-container {
-  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
-}
-
-.page-logo,
-.help-header,
-.page-footer {
-  color: var(--ink-2);
-}
-
-.page-logo {
-  margin-bottom: var(--sp-7);
-}
-
-.page-logo h1,
 .help-header h1,
 .page-container > h1 {
-  font-size: clamp(var(--fs-32), 5vw, var(--fs-56));
-  line-height: 1.05;
-  letter-spacing: -0.035em;
-}
-
-.entry-steps {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-grouped);
-  padding: var(--sp-2);
-  box-shadow: inset var(--app-bg-inset);
-}
-
-.entry-step {
-  border-radius: var(--r-full);
-  color: var(--ink-3);
-}
-
-.entry-step.is-active {
-  background: var(--accent-soft);
-  color: var(--accent);
+  font-size: clamp(var(--fs-24), 4vw, var(--fs-32));
+  line-height: 1.15;
+  letter-spacing: -0.022em;
 }
 
 .entry-section-heading,
 .my-section-head,
 .period-heading,
-.scorer-join-title,
 .qa-category-title {
   font-size: var(--fs-13);
   font-weight: 700;
@@ -3671,11 +3531,10 @@ body.page-entry-list .page-container {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-grouped);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 .my-entry-card {
-  border-radius: 30px;
+  border-radius: var(--r-overlay);
   padding: clamp(var(--sp-6), 3vw, var(--sp-9));
 }
 
@@ -3868,7 +3727,6 @@ body.page-my .my-danger-section > .btn {
   background: color-mix(in srgb, var(--surface) 82%, transparent);
   border: 1px solid var(--line);
   border-radius: var(--r-full);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 .phase-quick-btn {
@@ -3894,7 +3752,6 @@ body.page-my .my-danger-section > .btn {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-grouped);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 .tab-content.active {
@@ -3904,14 +3761,13 @@ body.page-my .my-danger-section > .btn {
 
 .phase-block,
 .phase-subblock {
-  border-radius: 22px;
+  border-radius: var(--r-overlay);
 }
 
-.admin-container .is-wide,
-.admin-container .wide-breakout {
+.admin-container .is-wide {
+
   width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
-  margin-left: auto;
-  margin-right: auto;
+
 }
 
 .stats,
@@ -3933,10 +3789,9 @@ body.page-my .my-danger-section > .btn {
 .file-upload-zone {
   min-height: 132px;
   padding: 24px 18px;
-  border-radius: 22px;
+  border-radius: var(--r-overlay);
   background: var(--surface-2);
   border-color: var(--line);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 .file-upload-zone > [data-icon] {
@@ -3961,7 +3816,7 @@ body.page-my .my-danger-section > .btn {
 .save-overlay {
   background: var(--material-modal);
   border: 1px solid var(--material-line);
-  border-radius: 28px;
+  border-radius: var(--r-overlay);
   box-shadow: var(--material-shadow);
 }
 
@@ -4041,10 +3896,9 @@ body.page-checkin .main-content {
 
 #camera-container,
 .checkin-result-panel {
-  border-radius: 28px;
+  border-radius: var(--r-overlay);
   background: var(--surface);
   border: 1px solid var(--line);
-  box-shadow: inset var(--app-bg-inset);
   overflow: hidden;
 }
 
@@ -4062,7 +3916,6 @@ body.page-checkin .main-content {
   border: 1px solid var(--line);
   border-radius: var(--r-full);
   padding: var(--sp-2) var(--sp-4);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 .help-container {
@@ -4075,7 +3928,6 @@ body.page-checkin .main-content {
   border: 1px solid var(--line);
   border-radius: var(--radius-grouped);
   overflow: hidden;
-  box-shadow: inset var(--app-bg-inset);
 }
 
 .qa-category-title {
@@ -4097,14 +3949,6 @@ body.page-checkin .main-content {
 
 body.page-404 {
   background: var(--canvas);
-}
-
-.error-container {
-  padding: var(--sp-8);
-  border: 1px solid var(--line);
-  border-radius: 32px;
-  background: var(--surface);
-  box-shadow: inset var(--app-bg-inset), 0 18px 50px rgba(0, 0, 0, 0.08);
 }
 
 @media (min-width: 1100px) {
@@ -4143,14 +3987,8 @@ body.page-404 {
     width: min(100%, calc(100vw - 32px));
   }
 
-  body.page-index .card,
-  .error-container {
-    border-radius: 24px;
-    padding: var(--sp-5);
-  }
-
   .phase-quick-nav {
-    border-radius: 22px;
+    border-radius: var(--r-overlay);
   }
 }
 
@@ -4159,42 +3997,12 @@ body.page-404 {
    ------------------------------------------------------------
    上位レイヤーの後に必ず勝たせる余白補正。
    ============================================================ */
-body.page-wrapper,
-body.page-help,
-body.page-404 {
+body.page-help {
   padding-top: calc(24px + env(safe-area-inset-top));
 }
 
 .help-container {
   padding-top: calc(24px + env(safe-area-inset-top));
-}
-
-.page-container {
-  margin-top: 0;
-}
-
-/* Form/read pages need a compact title rhythm: title -> steps -> form. */
-body.page-wrapper .page-container {
-  gap: 14px;
-}
-
-body.page-wrapper .page-logo {
-  padding: 0;
-  margin-bottom: 4px;
-}
-
-body.page-wrapper .page-logo h1 {
-  font-size: clamp(var(--fs-26), 4vw, var(--fs-40));
-  line-height: 1.08;
-  letter-spacing: -0.028em;
-}
-
-body.page-wrapper .page-logo .logo-sub {
-  margin-top: 4px;
-}
-
-body.page-wrapper .entry-steps {
-  margin-bottom: 12px;
 }
 
 /* Admin uses the top stage bar as the only visible phase navigation.
@@ -4256,7 +4064,7 @@ body.page-admin .phase-block > h2 {
   margin-bottom: 18px;
   padding: 6px;
   gap: 6px;
-  border-radius: 24px;
+  border-radius: var(--r-overlay);
 }
 
 .phase-quick-btn {
@@ -4275,7 +4083,7 @@ body.page-admin .phase-block > h2 {
 .tab-btn {
   min-height: 54px;
   padding: 10px 16px;
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
 }
 
 .tab-content.active {
@@ -4285,7 +4093,7 @@ body.page-admin .phase-block > h2 {
 .phase-block,
 .phase-subblock {
   padding: 22px;
-  border-radius: 22px;
+  border-radius: var(--r-overlay);
 }
 
 .phase-block > h2 {
@@ -4320,9 +4128,10 @@ body.page-admin .phase-block > h2 {
   gap: 14px;
 }
 
-.admin-container .is-wide,
-.admin-container .wide-breakout {
+.admin-container .is-wide {
+
   width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+
 }
 
 .judge-main {
@@ -4334,7 +4143,7 @@ body.page-admin .phase-block > h2 {
   min-height: 96px;
   padding: 22px;
   margin-bottom: 20px;
-  border-radius: 22px;
+  border-radius: var(--r-overlay);
 }
 
 .judge-summary {
@@ -4350,7 +4159,7 @@ body.page-admin .phase-block > h2 {
 .q-card {
   min-height: 118px;
   padding: 18px;
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
 }
 
 .q-card h2,
@@ -4519,9 +4328,8 @@ body.page-admin .saved-answers-section #entry-list .entry-card {
   min-height: 68px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-overlay);
   background: var(--surface-2);
-  box-shadow: inset var(--app-bg-inset);
 }
 
 body.page-admin .saved-answers-section #entry-list .entry-card:hover {
@@ -4618,18 +4426,8 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     color: var(--ink-2);
     margin-top: 6px;
 }
-.page-join .page-card {
-    text-align: center;
-}
 @media (max-width: 640px) {
     .invite-form { flex-direction: column; align-items: stretch; }
     .invite-field input { max-width: none; }
     .invite-form .btn { width: 100%; }
-}
-
-/* 招待リンク方式への移行案内(index) */
-.scorer-join-note {
-    margin-top: 12px;
-    font-size: 14px;
-    color: var(--ink-2);
 }
