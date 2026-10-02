@@ -249,7 +249,7 @@ function createAnswerCard(cardData, idx) {
         event.preventDefault();
         selectCard(idx, { focus: true });
     });
-    card.addEventListener('dblclick', () => showPreview(projectId, null, cardData.entryNumber));
+    card.addEventListener('dblclick', () => showPreview(projectId, cardData.entryNumber));
     return card;
 }
 

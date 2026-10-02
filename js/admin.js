@@ -10,9 +10,7 @@
         // ============================
         const auth = requireAuth({ requireAdmin: true });
         if (!auth) throw new Error('auth');
-        const { projectId, secretHash } = auth;
-        const isSupabaseMode = auth.supabaseMode === true;
-        const adminHash = session.get('adminHash');
+        const { projectId } = auth;
         let adminScanCount = null;
 
         function adminIcon(className) {
@@ -281,7 +279,6 @@
         }
 
         async function refreshSupabaseScoringData() {
-            if (!isSupabaseMode) return;
             const [votes, finals, scorers] = await Promise.all([
                 CIQSupabaseAPI.listScoreVotes(projectId),
                 CIQSupabaseAPI.listFinalResults(projectId),
@@ -496,8 +493,8 @@
                         loadEntryList();
                         break;
                     case 'tab-settings':
-                        if (isSupabaseMode && typeof startProjectMembersAutoRefresh === 'function') startProjectMembersAutoRefresh();
-                        else if (isSupabaseMode && typeof loadProjectMembers === 'function') loadProjectMembers();
+                        if (typeof startProjectMembersAutoRefresh === 'function') startProjectMembersAutoRefresh();
+                        else if (typeof loadProjectMembers === 'function') loadProjectMembers();
                         break;
                 }
             }
@@ -642,8 +639,6 @@
             registerAdminShortcuts();
             if (typeof bindEmailSettingsAutosave === 'function') bindEmailSettingsAutosave();
 
-            if (!isSupabaseMode) throw new Error('Supabase設定が必要です。');
-
             await initSupabaseAdmin();
             const hash = location.hash.replace('#', '');
             if (hash && document.getElementById(hash)) {
@@ -655,7 +650,6 @@
         }
 
         async function ensureProjectPrivateKeyAvailable() {
-            if (!isSupabaseMode) return;
             if (session.get('projectKeyFunctionUnavailable') === 'true') return;
             const existing = projectKeyStore.get();
             if (existing) {

@@ -3,12 +3,9 @@ const session = {
   get(key) { return localStorage.getItem(key); },
   set(key, val) { localStorage.setItem(key, val); },
   clear() {
-    const projectId = localStorage.getItem('projectId');
-    ['projectId', 'projectName', 'scorer_name', 'scorer_role', 'secretHash', 'adminHash', 'privateKeyJwk', 'supabaseMode'].forEach(k => localStorage.removeItem(k));
+    ['projectId', 'projectName', 'scorer_name', 'scorer_role', 'privateKeyJwk'].forEach(k => localStorage.removeItem(k));
     // 秘密鍵は sessionStorage 側にも存在しうる(V9)
     try { sessionStorage.removeItem('privateKeyJwk'); } catch { /* noop */ }
-    // masterData キャッシュも削除
-    if (projectId) localStorage.removeItem(`masterData_${projectId}`);
   },
   get projectId() { return this.get('projectId'); },
   get scorerName() { return this.get('scorer_name'); },
