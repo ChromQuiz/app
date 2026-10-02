@@ -109,7 +109,7 @@ describe('production UI contracts', () => {
 
   it('keeps the required route and interaction hooks', () => {
     const required = {
-      'admin.html': ['id="project-id-display"', 'id="menu-panel"', 'id="dt-picker"', 'data-tab-target=', 'data-action='],
+      'admin.html': ['id="menu-panel"', 'id="dt-picker"', 'data-tab-target=', 'data-action='],
       'index.html': ['class="page-auth"', 'id="index-mode-title"', 'class="btn-google"'],
       'entry.html': ['id="entry-form"', 'id="form-card"', 'id="send-code-btn"', 'id="reentry-note"'],
       'my.html': ['id="auth-card"', 'id="hub"', 'id="my-number"', 'id="reentry-section"', 'id="reentry-link"'],

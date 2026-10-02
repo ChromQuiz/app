@@ -81,33 +81,8 @@
             return exportGradedPDF();
         }
 
-        const projectIdDisplay = document.getElementById('project-id-display');
-        if (projectIdDisplay) {
-            projectIdDisplay.textContent = '';
-            projectIdDisplay.append(adminIcon('copy'), ` ${projectId}`);
-        }
         const menuName = document.getElementById('menu-scorer-name');
         if (menuName) menuName.textContent = auth.scorerName;
-
-        function copyProjectId() {
-            const el = document.getElementById('project-id-display');
-            navigator.clipboard.writeText(projectId).then(() => {
-                const iconHolder = el.querySelector('[data-icon]');
-                if (iconHolder) {
-                    iconHolder.textContent = '';
-                    iconHolder.appendChild(createIcon('check'));
-                }
-                el.classList.add('copy-badge-success');
-                setTimeout(() => {
-                    const iconHolder2 = el.querySelector('[data-icon]');
-                    if (iconHolder2) {
-                        iconHolder2.textContent = '';
-                        iconHolder2.appendChild(createIcon('copy'));
-                    }
-                    el.classList.remove('copy-badge-success');
-                }, 1500);
-            });
-        }
 
         function openProjectPage(page) {
             window.open(`${page}?pid=${encodeURIComponent(projectId)}`, '_blank');
@@ -122,7 +97,6 @@
             document.body.classList.remove('body-scroll-locked');
             document.getElementById('menu-backdrop')?.classList.remove('active');
             document.getElementById('menu-panel')?.classList.remove('active');
-            document.getElementById('project-id-display')?.addEventListener('click', copyProjectId);
             document.querySelectorAll('[data-toggle-menu]').forEach((el) => {
                 el.addEventListener('click', toggleMenu);
             });
