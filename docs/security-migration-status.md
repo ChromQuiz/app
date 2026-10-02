@@ -888,6 +888,11 @@ Evidence:
 
 Rollback: Possible（commit 単位で revert 可能。DB 変更なし）
 Notes   :
+  - 観測（2026-10-02・デプロイ後）: 管理系 Edge Function は、ログインなしで呼ぶと 401 を返す
+    （admin-entry-qr / create-scorer-invite / check-in = 「Googleログインが必要です。」、project-key = Authentication required）。
+    admin-create-entry は入力検証が先に走り 400 だったため、認証の拒否は観測していない（コードは他と同じ getUser + ロール確認）。
+  - 状態証跡: 本番の全 14 関数が verify_jwt=false。supabase/README.md の旧記述（管理系は JWT 検証を有効のまま）は
+    実態と食い違っていたため、README を実態に合わせて修正した。各関数が関数内で getUser とロール確認を行うことを静的に確認。
   - 未検証: authenticated ロール（採点者・メンバー）の実行時 RLS 検証（backlog #1b）は引き続き未実施。
   - 未検証: 凍結（2026-07-27）以降のコード変更に対する独立したセキュリティレビューは実施していない。
   - 要評価: ②により「存在しない大会」と「受付停止中の大会」が区別できるようになった。大会 ID は公開値のため

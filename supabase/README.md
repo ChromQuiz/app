@@ -33,17 +33,21 @@ window.CIQ_SUPABASE_CONFIG = {
    - `SUPABASE_URL`
    - `SUPABASE_SECRET_KEYS`
 
-   The functions also fall back to the legacy `SUPABASE_SERVICE_ROLE_KEY` if needed.
+   The functions no longer fall back to the legacy `SUPABASE_SERVICE_ROLE_KEY`. If `SUPABASE_SECRET_KEYS` is missing, they fail with `Supabase secret key is not available`.
 
-6. Deploy browser-callable public Edge Functions without JWT verification. These functions are called before Google login and validate participant identity or project state inside the function:
+6. Deploy every Edge Function with `--no-verify-jwt`. Production runs all of them with `verify_jwt: false`, so deploy the same way to keep that state. The gateway does not check the JWT; each function authenticates inside:
+   - Public participant functions (`send-email`, `create-entry`, `my-entry`, `edit-entry`, `cancel-entry`, `mark-late`, `disclose-result`, `checkin-qr`) are called before Google login. They validate Turnstile, participant identity, or project state themselves.
+   - Staff functions (`check-in`, `project-key`, `admin-create-entry`, `admin-entry-qr`, `create-scorer-invite`) call `supabase.auth.getUser(token)` and then check an active `owner` / `admin` membership (`check-in` also allows `scorer` for desk operations). A request without a valid Google login gets 401.
+   - `redeem-scorer-invite` only requires a valid Google login, because the caller is not a member yet; the invite token decides whether they may join.
 
 ```bash
-for fn in send-email create-entry my-entry edit-entry cancel-entry mark-late disclose-result checkin-qr; do
+for fn in send-email create-entry my-entry edit-entry cancel-entry mark-late disclose-result checkin-qr \
+          check-in project-key admin-create-entry admin-entry-qr create-scorer-invite redeem-scorer-invite; do
   pnpm dlx supabase functions deploy "$fn" --project-ref YOUR_PROJECT_REF --no-verify-jwt
 done
 ```
 
-Admin/scorer-only functions such as `check-in`, `project-key`, `admin-create-entry`, and `admin-entry-qr` should keep JWT verification enabled.
+If you add a function, put the `getUser` and role check in the function. Without it, `--no-verify-jwt` leaves the function open.
 
 7. Set email Edge Function secrets. Brevo is the current default provider; SES remains available as a fallback by changing `CIQ_EMAIL_PROVIDER`.
 
