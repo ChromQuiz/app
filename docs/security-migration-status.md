@@ -862,6 +862,39 @@ Notes   : 親計画（V1〜V13 / Baseline v1.0）は**未変更**。本件は Ad
           運用上の注意: 招待リンクは発行時にしか表示できない（平文を保存しないため）。紛失時は再発行する。
 ```
 
+### 凍結後の確認 — 匿名アクセスのライブ回帰と、利用者向けエラー文言の具体化（親計画外・Additional Security Backlog）
+```
+Status  : Completed — 2026-10-02（確認と記録のみ。親計画 Baseline v1.0 は未変更）
+Evidence:
+  - Commits    : 50969eb (Unify wording and surface the real reason when the verification code cannot be sent)
+                 99a8d40 (Drop the v1 AES decrypt path and the legacy service-role key fallback)
+  - Migrations : なし
+  - Deploys    : 未実施（send-email / create-entry / redeem-scorer-invite / my-entry / edit-entry / cancel-entry /
+                 mark-late / disclose-result のエラー文言変更は、デプロイするまで本番に出ない）
+  - Verification:
+      観測 : CIQ_LIVE=1 の security_live.test.mjs を本番に対して実行 = 25 passed（匿名の GET と空ボディの RPC のみ・書き込みなし）
+      観測 : send_verification の IP レート制限（5回/10分）が実際に 429 を返すことを、本番のレスポンスで確認
+      静的 : npm test = 327 passed / 25 skipped（live は opt-in のためスキップ）
+
+① 発見: ライブテストが V7 以降は実行されておらず古くなっていた
+  - public_entry_list に対する `select=*` のテストが 401 で失敗した。原因は V7（202607260002）で entry_id を
+    列単位 GRANT から外したため、`*` が許可されない列を含むこと。サービスの不具合ではなく設計どおり。
+  - アプリは列を明示して取得しており（js/supabase_api.js getPublicEntries）、許可列の取得は 200 を観測。
+  - 是正: テストを許可列の明示取得に変更し、「entry_id は読めない」「select=* は拒否される」を独立の検査として追加。
+
+② 変更: 参加者向けエラーを具体化（受付停止・期間外・大会なし・送信上限）
+  - 汎用の 500 に丸めていた受付状態のエラーを、状態が分かる日本語で返すようにした。
+  - 英語のまま画面に出ていた send-email のエラー文（Invalid email address 等）を日本語化。
+
+Rollback: Possible（commit 単位で revert 可能。DB 変更なし）
+Notes   :
+  - 未検証: authenticated ロール（採点者・メンバー）の実行時 RLS 検証（backlog #1b）は引き続き未実施。
+  - 未検証: 凍結（2026-07-27）以降のコード変更に対する独立したセキュリティレビューは実施していない。
+  - 要評価: ②により「存在しない大会」と「受付停止中の大会」が区別できるようになった。大会 ID は公開値のため
+    リスクは小さいと見ているが、評価としては記録していない（観測も未実施）。
+  - 未確認: 画面の目視確認、デプロイ後のエラー文言の実表示。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

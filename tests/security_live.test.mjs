@@ -102,15 +102,25 @@ describe.skipIf(!LIVE)('live RLS / grant enforcement (anon, read-only)', () => {
     });
   }
 
-  it('public_entry_list is readable but PII-free', async () => {
-    const { status, body } = await anonGet('public_entry_list?select=*&limit=5');
+  // V7: 列単位の GRANT で許可した列だけが読める(アプリが実際に取得する列と同じ)。
+  const PUBLIC_LIST_COLUMNS = 'project_id,entry_number,entry_name,affiliation,grade,message,is_chubu,status,checked_in,created_at,updated_at';
+
+  it('public_entry_list is readable (allowed columns) but PII-free', async () => {
+    const { status, body } = await anonGet(`public_entry_list?select=${PUBLIC_LIST_COLUMNS}&limit=5`);
     expect(status).toBe(200);
     if (Array.isArray(body)) {
       for (const row of body) {
-        for (const k of ['encrypted_pii', 'email_hash', 'email_hash_v2', 'disclosure_password_hash', 'disclosure_password_hash_v2']) {
+        for (const k of ['encrypted_pii', 'email_hash', 'email_hash_v2', 'disclosure_password_hash', 'disclosure_password_hash_v2', 'entry_id']) {
           expect(row).not.toHaveProperty(k);
         }
       }
     }
+  });
+
+  it('public_entry_list does not expose entry_id (V7), so select=* is denied', async () => {
+    const byColumn = await anonGet('public_entry_list?select=entry_id&limit=1');
+    expect(byColumn.status).not.toBe(200);
+    const star = await anonGet('public_entry_list?select=*&limit=1');
+    expect(star.status).not.toBe(200);
   });
 });
