@@ -95,14 +95,14 @@ Deno.serve(withCors(async (req) => {
     const body = await req.json();
     const action = String(body.action || '');
     const projectId = String(body.projectId || '');
-    if (!projectId) return jsonResponse({ error: 'Missing projectId' }, 400);
+    if (!projectId) return jsonResponse({ error: 'プロジェクト情報が見つかりません。ページを再読み込みして、もう一度お試しください。' }, 400);
 
     const supabase = createServiceClient();
     const member = await requireAdminMember(supabase, projectId, token);
 
     if (action === 'store') {
       if (!body.privateKeyJwk || typeof body.privateKeyJwk !== 'object') {
-        return jsonResponse({ error: 'Missing privateKeyJwk' }, 400);
+        return jsonResponse({ error: '保存する鍵の情報が不足しています。ページを再読み込みして、もう一度お試しください。' }, 400);
       }
       const encryptedPrivateKey = await wrapPrivateKey(body.privateKeyJwk);
       const { error } = await supabase
@@ -124,17 +124,17 @@ Deno.serve(withCors(async (req) => {
         .eq('project_id', projectId)
         .single();
       if (error || !data?.encrypted_private_key) {
-        return jsonResponse({ error: 'Project key is not stored' }, 404);
+        return jsonResponse({ error: 'このプロジェクトの鍵は保存されていません。' }, 404);
       }
       const privateKeyJwk = await unwrapPrivateKey(data.encrypted_private_key);
       return jsonResponse({ ok: true, privateKeyJwk });
     }
 
-    return jsonResponse({ error: 'Unknown action' }, 400);
+    return jsonResponse({ error: '不明な操作です。' }, 400);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (message === 'Forbidden') return jsonResponse({ error: 'Forbidden' }, 403);
-    if (message.includes('Authentication')) return jsonResponse({ error: 'Authentication required' }, 401);
+    if (message === 'Forbidden') return jsonResponse({ error: 'このプロジェクトの鍵を扱う権限がありません。' }, 403);
+    if (message.includes('Authentication')) return jsonResponse({ error: 'Googleログインが必要です。' }, 401);
     return serverErrorResponse(error, 'project-key');
   }
 }));

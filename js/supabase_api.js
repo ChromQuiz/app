@@ -539,7 +539,7 @@ const CIQSupabaseAPI = {
             projectId,
             privateKeyJwk,
         });
-        if (!data?.ok) throw new Error(data?.error || 'Project key store failed');
+        if (!data?.ok) throw new Error(data?.error || 'プロジェクトの鍵を保存できませんでした。');
         return data;
     },
 
@@ -548,7 +548,7 @@ const CIQSupabaseAPI = {
             action: 'fetch',
             projectId,
         });
-        if (!data?.ok || !data.privateKeyJwk) throw new Error(data?.error || 'Project key fetch failed');
+        if (!data?.ok || !data.privateKeyJwk) throw new Error(data?.error || 'プロジェクトの鍵を取得できませんでした。');
         return data.privateKeyJwk;
     },
 
