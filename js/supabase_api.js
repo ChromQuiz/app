@@ -236,9 +236,21 @@ const CIQSupabaseAPI = {
         if (error) throw error;
     },
 
+    // 通信そのものに失敗したとき、ブラウザ由来の英語(Failed to fetch 等)を画面に出さない。
+    async fetchFunction(url, init) {
+        try {
+            return await fetch(url, init);
+        } catch (cause) {
+            console.error(cause);
+            const error = new Error('サーバーに接続できませんでした。通信状況をご確認のうえ、もう一度お試しください。');
+            error.status = 0;
+            throw error;
+        }
+    },
+
     async invokePublicFunction(name, payload) {
         const cfg = window.CIQ_SUPABASE_CONFIG;
-        const res = await fetch(`${cfg.url.replace(/\/$/, '')}/functions/v1/${name}`, {
+        const res = await this.fetchFunction(`${cfg.url.replace(/\/$/, '')}/functions/v1/${name}`, {
             method: 'POST',
             headers: {
                 'content-type': 'application/json',
@@ -249,7 +261,7 @@ const CIQSupabaseAPI = {
         });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
-            const error = new Error(data?.error || `${name} failed`);
+            const error = new Error(data?.error || '処理を完了できませんでした。時間をおいて再度お試しください。');
             error.status = res.status;
             error.functionName = name;
             throw error;
@@ -261,7 +273,7 @@ const CIQSupabaseAPI = {
         const cfg = window.CIQ_SUPABASE_CONFIG;
         const session = await this.getSession();
         if (!session?.access_token) throw new Error('Googleログインが必要です。');
-        const res = await fetch(`${cfg.url.replace(/\/$/, '')}/functions/v1/${name}`, {
+        const res = await this.fetchFunction(`${cfg.url.replace(/\/$/, '')}/functions/v1/${name}`, {
             method: 'POST',
             headers: {
                 'content-type': 'application/json',
@@ -272,7 +284,7 @@ const CIQSupabaseAPI = {
         });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
-            const error = new Error(data?.error || `${name} failed`);
+            const error = new Error(data?.error || '処理を完了できませんでした。時間をおいて再度お試しください。');
             error.status = res.status;
             error.functionName = name;
             throw error;
@@ -382,7 +394,7 @@ const CIQSupabaseAPI = {
 
     async createEntry(payload) {
         const data = await this.invokePublicFunction('create-entry', payload);
-        if (!data?.ok) throw new Error(data?.error || 'Entry failed');
+        if (!data?.ok) throw new Error(data?.error || 'エントリーを完了できませんでした。時間をおいて再度お試しください。');
         return data.entry;
     },
 
@@ -395,7 +407,7 @@ const CIQSupabaseAPI = {
             if (error.status !== 401 && !message.includes('Googleログイン')) throw error;
             data = await this.invokePublicFunction('create-entry', payload);
         }
-        if (!data?.ok) throw new Error(data?.error || 'Entry failed');
+        if (!data?.ok) throw new Error(data?.error || 'エントリーを完了できませんでした。時間をおいて再度お試しください。');
         return data.entry;
     },
 

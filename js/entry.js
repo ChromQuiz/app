@@ -471,7 +471,9 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         CIQTurnstile.reset('turnstile-entry');
         btn.disabled = false;
         btn.textContent = 'エントリーを確定する';
-        showStatus('エラーが発生しました: ' + err.message, 'error');
+        // サーバーや通信の日本語エラーだけを表示し、それ以外(内部の例外)は汎用の文言にする。
+        const known = err && (err.functionName || err.status !== undefined);
+        showStatus(known ? err.message : 'エントリーを送信できませんでした。時間をおいて再度お試しください。', 'error');
     }
 });
 

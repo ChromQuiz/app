@@ -353,7 +353,7 @@
                 renderModelGrid();
                 showAdminToast(`${lines.length}件読み込み中…`);
                 await saveModelAnswers();
-                showAdminToast(`${lines.length}件の模範解答を保存しました`, 'success');
+                showAdminToast(`${lines.length}件の模範解答を保存しました。`, 'success');
             };
             reader.readAsText(file, 'UTF-8');
         }
