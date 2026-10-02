@@ -480,7 +480,10 @@ function showWaitlistMessage() {
     waitMsg.className = 'waitlist-result-note';
     const strong = document.createElement('strong');
     strong.textContent = 'キャンセル待ち';
-    waitMsg.append(entryIcon('clock'), ' 定員に達したため、', strong, 'として登録されました。');
+    // flex の gap でテキストと太字の間が空かないよう、文章全体を1つの要素にまとめる。
+    const text = document.createElement('span');
+    text.append('定員に達したため、', strong, 'として登録されました。');
+    waitMsg.append(entryIcon('clock'), text);
     document.getElementById('r-entry-number').parentElement.after(waitMsg);
 }
 

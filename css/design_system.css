@@ -2008,6 +2008,11 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   color: var(--ink);
 }
 
+/* キャンセル待ちの案内の直下に別ブロック(メール保存の案内)が続くため、下側にも余白を取る */
+.waitlist-result-note {
+  margin-bottom: var(--sp-4);
+}
+
 .page-msg.info,
 .status-msg-box.info,
 .csv-status {
