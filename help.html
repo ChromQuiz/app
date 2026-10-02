@@ -26,7 +26,7 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-1" role="region" aria-labelledby="qa-question-1" aria-hidden="true"><div class="qa-answer-inner">
-                    「新規作成」からGoogleでログインし、回数を入力して大会を作成します。作成したユーザーは最初の管理者になります。プロジェクトIDは管理者・採点者が入室するための識別子なので、参加者向けの案内には原則含めません。
+                    Googleでログインし、回数を入力してプロジェクトを作成します。作成したユーザーは最初の管理者になります。採点者は招待リンクから参加するため、プロジェクトIDを別途共有する必要はありません。
                 </div></div>
             </div>
 
@@ -46,7 +46,7 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-3" role="region" aria-labelledby="qa-question-3" aria-hidden="true"><div class="qa-answer-inner">
-                    管理画面のリンク一覧から、エントリーフォーム、エントリーリスト、マイエントリー、参加規約の4つのリンクをコピーできます。エントリー内容の確認・編集、キャンセル、遅刻連絡、成績照会はマイエントリーに集約されています。二次元コードやメールに使う場合は、必ず本番で使うプロジェクトのリンクか確認してください。
+                    管理画面の「参加者に共有するリンク」から、エントリーフォーム、エントリーリスト、マイエントリー、参加規約の4つのリンクをコピーできます。エントリー内容の確認・編集、キャンセル、遅刻の連絡、成績照会はマイエントリーに集約されています。二次元コードやメールに使う場合は、必ず本番で使うプロジェクトのリンクか確認してください。
                 </div></div>
             </div>
         </div>
@@ -60,7 +60,7 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-4" role="region" aria-labelledby="qa-question-4" aria-hidden="true"><div class="qa-answer-inner">
-                    管理者は設定変更、参加者管理、答案アップロード、競合解決、集計出力を行えます。採点者は採点画面で割り当てられた問題を採点します。採点者には原則として参加者の個人情報や管理機能を見せない設計です。
+                    管理者は設定変更、参加者管理、答案アップロード、要確認の解決、集計出力を行えます。採点者は採点画面で割り当てられた問題を採点します。採点者には原則として参加者の個人情報や管理機能を見せない設計です。
                 </div></div>
             </div>
 
@@ -148,13 +148,13 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-12" role="region" aria-labelledby="qa-question-12" aria-hidden="true"><div class="qa-answer-inner">
-                    スキャンした答案PDFを答案管理からアップロードします。1ページが1人分の答案として扱われ、受付番号を読み取って参加者に紐づけます。読み取り失敗や受付番号不一致が出た場合は、参加者一覧とPDF上の番号を確認してください。
+                    スキャンした答案PDFを、採点フェーズの「答案の取り込み」からアップロードします。1ページが1人分の答案として扱われ、受付番号を読み取って参加者に紐づけます。読み取り失敗や受付番号不一致が出た場合は、参加者一覧とPDF上の番号を確認してください。
                 </div></div>
             </div>
         </div>
 
         <div class="qa-category">
-            <div class="qa-category-title">採点と競合解決</div>
+            <div class="qa-category-title">採点と要確認の解決</div>
 
             <div class="qa-item">
                 <button type="button" class="qa-question" id="qa-question-13" aria-expanded="false" aria-controls="qa-answer-13">
@@ -168,11 +168,11 @@
 
             <div class="qa-item">
                 <button type="button" class="qa-question" id="qa-question-14" aria-expanded="false" aria-controls="qa-answer-14">
-                    競合とは何か
+                    要確認とは何か
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-14" role="region" aria-labelledby="qa-question-14" aria-hidden="true"><div class="qa-answer-inner">
-                    同じ答案に対して採点者の判断が分かれ、必要人数の一致に達していない状態を競合として扱います。競合ページでは、管理者が該当答案、模範解答、採点者の投票を見て最終判定を決めます。
+                    同じ答案に対して採点者の判断が分かれ、必要人数の一致に達していない状態を「要確認」として扱います。「要確認」ページでは、管理者が該当答案、模範解答、採点者の投票を見て最終判定を決めます。
                 </div></div>
             </div>
 

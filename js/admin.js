@@ -63,7 +63,7 @@
             if (!window.CV) await loadAdminScriptOnce('js/cv.js');
             if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
             if (typeof window.generatePDF !== 'function' || typeof window.loadAnswers !== 'function') {
-                await loadAdminScriptOnce('js/admin_prep.js?v=28');
+                await loadAdminScriptOnce('js/admin_prep.js?v=29');
             }
         }
 
@@ -146,7 +146,7 @@
                     fileName.textContent = name;
                     fileName.classList.toggle('has-file', Boolean(name));
                 }
-                runAdminPrepAction('loadAnswers').catch(e => showAdminToast(e.message || '答案読み込みを開始できませんでした'));
+                runAdminPrepAction('loadAnswers').catch(e => showAdminToast(e.message || '答案読み込みを開始できませんでした。'));
             });
             const actions = {
                 'toggle-entry-open': toggleEntryOpen,

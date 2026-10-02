@@ -117,7 +117,7 @@
             try {
                 await CIQSupabaseAPI.updateProject(projectId, { question_count: qCount });
                 totalQuestions = qCount;
-                showAdminToast("問題数とレイアウトを保存しました！", "success");
+                showAdminToast("問題数とレイアウトを保存しました。", "success");
             } catch (err) {
                 showAdminToast("保存エラー: " + err.message);
             }
@@ -192,7 +192,7 @@
                 }
                 const sheetType = isFullOpen ? 'fullopen_' : '';
                 doc.save(`answer_sheet_${sheetType}${qCount}q.pdf`);
-                showAdminToast("PDFのダウンロードが完了しました！", "success");
+                showAdminToast("PDFのダウンロードが完了しました。", "success");
             } catch (err) {
                 showAdminToast("エラー: " + err.message);
             }
@@ -493,7 +493,7 @@
                     CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, answerPageRecords);
                 }
 
-                overlayText.textContent = '完了しました！';
+                overlayText.textContent = '完了しました。';
                 logPerf('answerUploadComplete', perfStats, { uploadFailures: uploadFailures.length });
                 setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);
                 if (uploadFailures.length) {
