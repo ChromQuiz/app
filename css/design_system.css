@@ -1858,36 +1858,6 @@ tbody tr:hover {
   color: var(--gold-600);
 }
 
-/* プロジェクトIDコピーバッジ */
-.id-copy-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  min-height: var(--control-h-sm);
-  padding: 0 var(--sp-3);
-  border-radius: var(--radius-control);
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
-  font-family: var(--font-mono);
-  font-size: var(--fs-13);
-  font-weight: 600;
-  color: var(--ink-2);
-  cursor: pointer;
-  transition: border-color var(--t-micro) var(--ease), color var(--t-micro) var(--ease),
-    background var(--t-micro) var(--ease);
-}
-
-.id-copy-badge:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.id-copy-badge.copy-badge-success {
-  border-color: var(--ok-500);
-  color: var(--ok-600);
-  background: var(--ok-100);
-}
-
 .copy-success {
   color: var(--ok-600) !important;
 }
@@ -4463,8 +4433,7 @@ select:focus {
 
 .menu-trigger,
 .menu-panel-close,
-.back-nav-btn,
-.id-copy-badge {
+.back-nav-btn {
   min-height: var(--control-h-sm);
   border-radius: var(--r-full);
   background: color-mix(in srgb, var(--surface) 58%, transparent);

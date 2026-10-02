@@ -20,7 +20,7 @@
   <script defer src="js/icons.js?v=8"></script>
   <script defer src="js/ui.js?v=23"></script>
   <script defer src="js/shared.js?v=2"></script>
-  <link rel="stylesheet" href="css/design_system.css?v=78">
+  <link rel="stylesheet" href="css/design_system.css?v=79">
   <link rel="stylesheet" href="css/pages.css?v=126">
 </head>
 
@@ -53,17 +53,12 @@
       <h2 class="auth-section-title">新しい大会</h2>
       <label for="create-edition">回数</label>
       <input type="number" id="create-edition" placeholder="13" min="1" max="999" inputmode="numeric" aria-describedby="create-edition-note" />
-      <p class="field-note" id="create-edition-note">第13回なら 13。入力した回数からプロジェクトIDが発行されます。</p>
+      <p class="field-note" id="create-edition-note">第13回なら 13。</p>
       <button class="btn u-full-width mt-md" id="create-btn">プロジェクトを作成</button>
     </section>
 
     <section class="auth-section" id="section-success" hidden>
       <h2 class="auth-section-title">プロジェクトを作成しました</h2>
-      <label for="success-id">プロジェクトID</label>
-      <div class="credential-row">
-        <input type="text" id="success-id" readonly />
-        <button class="btn standard credential-copy-btn" data-copy-target="success-id" aria-label="プロジェクトIDをコピー"><span data-icon="copy" aria-hidden="true"></span></button>
-      </div>
       <p class="field-note">採点者は運営ホームで招待リンクを発行して招待します。</p>
       <button class="btn u-full-width mt-md" id="admin-proceed-btn">運営をはじめる</button>
     </section>
@@ -78,7 +73,7 @@
     <a href="#" class="auth-link u-hidden" id="index-join-link">ログインに戻る</a>
     <a href="help.html" class="auth-link">ヘルプ</a>
   </nav>
-  <script defer src="js/index.js?v=18"></script>
+  <script defer src="js/index.js?v=19"></script>
 </body>
 
 </html>

@@ -145,7 +145,7 @@ function setTab(tab) {
     const lede = document.getElementById('index-mode-lede');
     if (lede) {
         lede.textContent = tab === 'create'
-            ? '回数を入力すると、この大会のプロジェクトIDが発行されます。'
+            ? '回数を入力して、新しい大会を作成します。'
             : '運営と採点はGoogleアカウントで行います。';
     }
     document.title = tab === 'create' ? '大会をつくる - CIQ' : 'CIQ';
@@ -296,17 +296,6 @@ async function signOutSupabase() {
     }
 }
 
-async function copyToClipboard(id, btn) {
-    const input = document.getElementById(id);
-    try {
-        await navigator.clipboard.writeText(input.value);
-        setButtonContent(btn, '', 'check', false);
-        setTimeout(() => setButtonContent(btn, '', 'copy', false), 1500);
-    } catch (err) {
-        showError('コピーに失敗しました');
-    }
-}
-
 async function createProject() {
     const edition = parseInt(document.getElementById('create-edition').value, 10);
     const keyWrappingPassword = generateStrongPassword();
@@ -358,8 +347,6 @@ async function createProject() {
         if (createSection) createSection.hidden = true;
         if (joinSection) joinSection.hidden = true;
         if (successSection) successSection.hidden = false;
-        const successId = document.getElementById('success-id');
-        if (successId) successId.value = pid;
 
         await renderProjectList();
     } catch (e) {
@@ -384,9 +371,6 @@ function setupIndexEvents() {
         setTab('join');
     });
     document.getElementById('create-btn')?.addEventListener('click', createProject);
-    document.querySelectorAll('[data-copy-target]').forEach((button) => {
-        button.addEventListener('click', () => copyToClipboard(button.dataset.copyTarget, button));
-    });
     document.getElementById('admin-proceed-btn')?.addEventListener('click', () => {
         location.href = 'admin.html';
     });
