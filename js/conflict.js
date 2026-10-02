@@ -234,7 +234,7 @@ function getEntryMeta(page) {
     return {
         entryId: page.entry_id,
         entryNumber,
-        displayName: entry.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
+        displayName: `No.${String(entryNumber).padStart(3, '0')}`,
         affiliation: entry.affiliation || '',
         grade: entry.grade || '',
         storagePath: page.storage_path || '',

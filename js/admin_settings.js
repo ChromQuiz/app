@@ -467,7 +467,6 @@
                 affiliation: getAdminEntryValue('admin-entry-affiliation'),
                 grade: getAdminEntryValue('admin-entry-grade'),
                 entryName: getAdminEntryValue('admin-entry-entry-name'),
-                recordNamePermission: document.querySelector('input[name="admin-entry-record-name-permission"]:checked')?.value || '',
                 message: getAdminEntryValue('admin-entry-public-message'),
                 inquiry: getAdminEntryValue('admin-entry-inquiry'),
                 isChubu: document.getElementById('admin-entry-chubu')?.checked === true,
@@ -495,8 +494,7 @@
 
                 const emailHash = await AppCrypto.hashPassword(values.email.toLowerCase());
                 const passwordHash = await AppCrypto.hashPassword(password);
-                const { recordNamePermission, ...piiValues } = values;
-                const piiData = { ...piiValues, useEntryName: false, allowRealNameInRecord: recordNamePermission === 'allow' };
+                const piiData = { ...values };
                 const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
                 const entry = await CIQSupabaseAPI.adminCreateEntry({
                     projectId,
@@ -1316,14 +1314,14 @@
 
         async function loadAdminEntries() {
             const tbody = document.getElementById('admin-entries-tbody');
-            setTableMessage(tbody, 10, '読み込み中...');
+            setTableMessage(tbody, 9, '読み込み中...');
 
             try {
                 const entries = getCachedAdminEntries() || await CIQSupabaseAPI.listEntriesForAdmin(projectId);
                 window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
                 entryNumbers = entries.map(e => e.entry_number || e.entryNumber).sort((a, b) => a - b);
                 if (!entries.length) {
-                    setTableMessage(tbody, 10, '名簿データがありません。');
+                    setTableMessage(tbody, 9, '名簿データがありません。');
                     window.setAdminEntriesCount?.(0);
                     return;
                 }
@@ -1365,7 +1363,7 @@
                     }).catch(e => console.warn('復号鍵の後追い読み込みをスキップ:', e));
                 }
             } catch (e) {
-                setTableMessage(tbody, 10, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
+                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
             }
         }
 
@@ -1422,13 +1420,6 @@
 
             const inquiry = pii?.inquiry || entry.inquiry || '';
             appendAdminEntryCell(row, inquiry || '-');
-
-            const realNamePermission = pii?.allowRealNameInRecord === true
-                ? '許可'
-                : pii?.allowRealNameInRecord === false
-                    ? '不許可'
-                    : encryptedStatus;
-            appendAdminEntryCell(row, realNamePermission);
 
             const statusTd = appendAdminEntryCell(row, document.createDocumentFragment());
             if (entry.status === 'canceled') {
@@ -1505,7 +1496,7 @@
         async function exportEntriesCSV() {
             const entriesData = window._entriesRaw || Object.fromEntries((await CIQSupabaseAPI.listEntriesForAdmin(projectId)).map(e => [e.id, normalizeSupabaseEntry(e)]));
             if (!entriesData) return;
-            const rows = [['受付番号', '姓', '名', 'セイ', 'メイ', 'メールアドレス', '所属機関', '学年', 'エントリー名', '記録集本名使用', '意気込み', '連絡事項', '状態', 'UUID']];
+            const rows = [['受付番号', '姓', '名', 'セイ', 'メイ', 'メールアドレス', '所属機関', '学年', 'エントリーネーム', '意気込み', '連絡事項', '状態', 'UUID']];
             
             const children = Object.values(entriesData).sort((a, b) => (a.entryNumber || 0) - (b.entryNumber || 0));
             
@@ -1520,10 +1511,9 @@
                 }
                 
                 const stat = v.status === 'canceled' ? 'canceled' : v.status === 'waitlist' ? 'waitlist' : v.checkedIn ? 'checkedIn' : 'registered';
-                const realNamePermission = pii.allowRealNameInRecord === true ? '許可' : pii.allowRealNameInRecord === false ? '不許可' : '';
                 rows.push([
                     v.entryNumber, pii.familyName || '', pii.firstName || '', pii.familyNameKana || '', pii.firstNameKana || '',
-                    pii.email || '', pii.affiliation || '', pii.grade || '', pii.entryName || '', realNamePermission, `"${(pii.message || '').replace(/"/g, '""')}"`,
+                    pii.email || '', pii.affiliation || '', pii.grade || '', pii.entryName || '', `"${(pii.message || '').replace(/"/g, '""')}"`,
                     `"${(pii.inquiry || '').replace(/"/g, '""')}"`, stat, v.uuid || v.id || ''
                 ]);
             }

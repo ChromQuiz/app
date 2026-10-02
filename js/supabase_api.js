@@ -951,7 +951,7 @@ const CIQSupabaseAPI = {
     async findEntryByNumber(projectId, entryNumber) {
         const { data, error } = await this.client()
             .from('entries')
-            .select('id, entry_number, entry_name, affiliation, grade, status, checked_in')
+            .select('id, entry_number, affiliation, grade, status, checked_in')
             .eq('project_id', projectId)
             .eq('entry_number', entryNumber)
             .single();
@@ -984,7 +984,7 @@ const CIQSupabaseAPI = {
                 storage_path,
                 cells,
                 uploaded_at,
-                entries!inner(entry_number, entry_name, affiliation, grade)
+                entries!inner(entry_number, affiliation, grade)
             `)
             .eq('project_id', projectId);
         if (error) throw error;
@@ -1141,7 +1141,7 @@ const CIQSupabaseAPI = {
                     return {
                         entryId: row.entry_id,
                         entryNumber,
-                        displayName: row.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
+                        displayName: `No.${String(entryNumber).padStart(3, '0')}`,
                         affiliation: row.affiliation || '',
                         grade: row.grade || '',
                         pageUrl: null,
@@ -1168,7 +1168,7 @@ const CIQSupabaseAPI = {
             return {
                 entryId: page.entry_id,
                 entryNumber,
-                displayName: entry.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
+                displayName: `No.${String(entryNumber).padStart(3, '0')}`,
                 affiliation: entry.affiliation || '',
                 grade: entry.grade || '',
                 pageUrl: null,
@@ -1647,7 +1647,7 @@ const CIQSupabaseAPI = {
                 q,
                 entryId: row.entry_id,
                 entryNumber,
-                displayName: row.entry_name || `No.${String(entryNumber).padStart(3, '0')}`,
+                displayName: `No.${String(entryNumber).padStart(3, '0')}`,
                 affiliation: row.affiliation || '',
                 grade: row.grade || '',
                 storagePath: row.storage_path || '',

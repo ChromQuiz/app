@@ -15,7 +15,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=2"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=38"></script>
+    <script defer src="js/supabase_api.js?v=39"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=22"></script>
@@ -158,26 +158,7 @@
                 <div class="form-group">
                     <label class="required" for="f-entry-name">エントリーネーム <span class="visibility-tag">公開</span></label>
                     <input type="text" id="f-entry-name" required placeholder="エントリーリストでの表示名">
-                    <div id="entry-name-pref-area" class="mt-sm">
-                        <div class="hint">当日は本名（姓名）での表示となります。</div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <fieldset class="choice-fieldset">
-                        <legend class="required">記録集での本名使用</legend>
-                        <div class="hint mb-md">大会後に発行される記録集への氏名掲載の可否です。</div>
-                        <div class="choice-row">
-                            <label class="choice-option">
-                                <input type="radio" name="f-record-name-permission" value="allow" required>
-                                <span>許可する</span>
-                            </label>
-                            <label class="choice-option">
-                                <input type="radio" name="f-record-name-permission" value="deny" required>
-                                <span>許可しない</span>
-                            </label>
-                        </div>
-                    </fieldset>
+                    <div class="hint mt-sm">当日の受付および大会後に発行する記録集では、本名（姓名）を使用します。エントリーをもって、この取り扱いに同意したものとします。</div>
                 </div>
 
                 <h2 class="entry-section-heading">任意</h2>
@@ -242,7 +223,7 @@
     <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script defer src="js/turnstile.js?v=2"></script>
     <script defer src="js/email.js?v=7"></script>
-    <script defer src="js/entry.js?v=19"></script>
+    <script defer src="js/entry.js?v=20"></script>
 </body>
 
 </html>

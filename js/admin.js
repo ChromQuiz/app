@@ -582,7 +582,7 @@
 
             function showPending(entry) {
                 pending = entry;
-                nameEl.textContent = entry.entryName || `No.${padNum(entry.entryNumber)}`;
+                nameEl.textContent = `No.${padNum(entry.entryNumber)}`;
                 subEl.textContent = [`受付番号 ${padNum(entry.entryNumber)}`, entrySubText(entry)].filter(Boolean).join(' · ');
 
                 const statusLabel = MANUAL_CHECKIN_STATUS_LABEL[entry.status] || entry.status || '';
@@ -632,7 +632,7 @@
                 clearPageMessage(statusEl);
                 withBusy(commitBtn, async () => {
                     const result = await CIQSupabaseAPI.checkInEntryManually(projectId, pending.entryNumber, pending.id);
-                    const name = result.entry?.entryName || `No.${padNum(pending.entryNumber)}`;
+                    const name = `No.${padNum(pending.entryNumber)}`;
                     if (result.result === 'already') {
                         setPageMessage(statusEl, `${name} はすでに受付済みです。`, 'warning');
                     } else {
@@ -644,7 +644,7 @@
 
             undoBtn?.addEventListener('click', async () => {
                 if (!pending) return;
-                const name = pending.entryName || `No.${padNum(pending.entryNumber)}`;
+                const name = `No.${padNum(pending.entryNumber)}`;
                 const ok = await showConfirm(`${name} の受付を取り消します。よろしいですか?`, '取り消す');
                 if (!ok) return;
                 clearPageMessage(statusEl);

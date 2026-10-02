@@ -13,7 +13,7 @@ const DESK_ROLES: Role[] = ['owner', 'admin', 'scorer'];
 // 番号だけで状態を書き換えられる経路をその端末に残さない。
 const STAFF_ONLY_ROLES: Role[] = ['owner', 'admin'];
 
-const ENTRY_COLUMNS = 'id, entry_number, entry_name, affiliation, grade, status, checked_in';
+const ENTRY_COLUMNS = 'id, entry_number, affiliation, grade, status, checked_in';
 
 async function requireProjectMember(
   supabase: ReturnType<typeof createServiceClient>,
@@ -45,7 +45,6 @@ function entryPayload(entry: Record<string, unknown>) {
   return {
     id: entry.id,
     entryNumber: entry.entry_number,
-    entryName: entry.entry_name,
     affiliation: entry.affiliation,
     grade: entry.grade,
     status: entry.status,

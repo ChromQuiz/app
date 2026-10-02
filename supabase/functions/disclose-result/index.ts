@@ -12,7 +12,6 @@ import { clientIp } from '../_shared/rate_limit.ts';
 type EntryRow = {
   id: string;
   entry_number: number;
-  entry_name: string | null;
   affiliation: string | null;
   grade: string | null;
 };
@@ -104,7 +103,7 @@ Deno.serve(withCors(async (req) => {
     const { entry } = await resolveParticipantAuth(
       supabase,
       body,
-      'id, entry_number, entry_name, affiliation, grade, status',
+      'id, entry_number, affiliation, grade, status',
       { ip: clientIp(req) },
     );
     const authEntry = entry as unknown as AuthEntryRow;
@@ -114,7 +113,7 @@ Deno.serve(withCors(async (req) => {
 
     const { data: entries, error: entriesError } = await supabase
       .from('entries')
-      .select('id, entry_number, entry_name, affiliation, grade')
+      .select('id, entry_number, affiliation, grade')
       .eq('project_id', projectId)
       .in('status', ['registered', 'late'])
       .order('entry_number', { ascending: true });
@@ -159,7 +158,9 @@ Deno.serve(withCors(async (req) => {
 
     return jsonResponse({
       ok: true,
-      displayName: authEntry.entry_name,
+      entryNumber: authEntry.entry_number,
+      affiliation: authEntry.affiliation || '',
+      grade: authEntry.grade || '',
       rank: ordinal(own.rank),
       rankNumber: own.rank,
       score: own.score,

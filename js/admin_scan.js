@@ -36,7 +36,7 @@
                 pages.forEach(page => {
                     const entry = page.entries || {};
                     const num = Number(entry.entry_number);
-                    const displayName = entry.entry_name || `No.${padNum(num)}`;
+                    const displayName = `No.${padNum(num)}`;
                     const subText = entry.affiliation || '';
                     const card = document.createElement('div');
                     card.className = 'entry-card';
