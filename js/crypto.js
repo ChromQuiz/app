@@ -77,13 +77,13 @@ const AppCrypto = {
     },
 
     async decryptAES(base64Data, password) {
-        const isV2 = typeof base64Data === 'string' && base64Data.startsWith('v2.');
-        const payload = isV2 ? base64Data.slice(3) : base64Data;
-        const combined = new Uint8Array(atob(payload).split('').map(c => c.charCodeAt(0)));
-        const legacySalt = new TextEncoder().encode("CIQ_Salt_2026");
-        const salt = isV2 ? combined.slice(0, 16) : legacySalt;
-        const iv = isV2 ? combined.slice(16, 28) : combined.slice(0, 12);
-        const data = isV2 ? combined.slice(28) : combined.slice(12);
+        if (typeof base64Data !== 'string' || !base64Data.startsWith('v2.')) {
+            throw new Error('Unsupported ciphertext format');
+        }
+        const combined = new Uint8Array(atob(base64Data.slice(3)).split('').map(c => c.charCodeAt(0)));
+        const salt = combined.slice(0, 16);
+        const iv = combined.slice(16, 28);
+        const data = combined.slice(28);
         const key = await this._getAESKey(password, salt);
         
         const decrypted = await crypto.subtle.decrypt(

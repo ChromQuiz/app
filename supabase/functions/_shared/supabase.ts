@@ -13,12 +13,9 @@ function getSupabaseSecretKey() {
         if (secret) return secret;
       }
     } catch {
-      // Fall back to the legacy service role key below.
+      // 不正な JSON は「キーなし」として扱う
     }
   }
-
-  const legacy = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (legacy) return legacy;
 
   throw new Error('Supabase secret key is not available');
 }
