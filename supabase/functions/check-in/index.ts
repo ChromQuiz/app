@@ -83,7 +83,7 @@ Deno.serve(withCors(async (req) => {
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
   try {
-    const { action, projectId, entryId, qr, entryNumber, confirmedEntryId } = await req.json();
+    const { action, projectId, qr, entryNumber, confirmedEntryId } = await req.json();
     if (!projectId || !action) return jsonResponse({ error: '当日受付のリクエスト情報が不足しています。ページを開き直してください。' }, 400);
 
     const supabase = createServiceClient();
@@ -108,7 +108,7 @@ Deno.serve(withCors(async (req) => {
     if (action === 'check') {
       const member = await requireProjectMember(supabase, req, projectId, DESK_ROLES);
 
-      const scanned = qr ?? entryId; // entryId は後方互換の受け口(中身は署名付きトークン)
+      const scanned = qr;
       if (scanned === undefined || scanned === null || String(scanned).length === 0) {
         return jsonResponse({ error: '二次元コードが必要です。' }, 400);
       }

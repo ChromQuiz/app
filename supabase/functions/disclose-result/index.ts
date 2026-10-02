@@ -169,7 +169,7 @@ Deno.serve(withCors(async (req) => {
     });
   } catch (error) {
     if (error instanceof ParticipantAuthError) {
-      // 従来クライアント互換のため、認証失敗は 'Entry not found' を含む文言を維持
+      // 認証失敗(404)は存在の有無を漏らさないよう固定文言にする
       const message = error.status === 404
         ? 'Entry not found'
         : error.message;

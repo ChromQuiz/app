@@ -23,12 +23,12 @@ describe('the project private key never lives in localStorage (V9)', () => {
     expect(src).toMatch(/set\(value\)[\s\S]*?localStorage\.removeItem\(this\.KEY\)/);
   });
 
-  it('migrates any key left in localStorage by an older build, then deletes it', () => {
+  it('never reads a key left in localStorage; it only deletes it', () => {
     const src = read('js/config.js');
     const getter = src.slice(src.indexOf('  get() {'), src.indexOf('  set(value) {'));
-    expect(getter).toMatch(/localStorage\.getItem\(this\.KEY\)/);
-    expect(getter).toMatch(/sessionStorage\.setItem\(this\.KEY, legacy\)/);
+    expect(getter).not.toMatch(/localStorage\.getItem/);
     expect(getter).toMatch(/localStorage\.removeItem\(this\.KEY\)/);
+    expect(getter).toMatch(/return sessionStorage\.getItem\(this\.KEY\)/);
   });
 
   it('session.clear() also clears the key from sessionStorage', () => {
