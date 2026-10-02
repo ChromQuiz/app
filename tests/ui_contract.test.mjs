@@ -346,10 +346,12 @@ describe('design-system contracts', () => {
     expect(css).not.toMatch(/\bglow\b/i);
   });
 
-  it('keeps toast notifications text-first and readable', () => {
-    expect(designCss).toMatch(/\.toast\s*{[^}]*display:\s*block;[^}]*max-width:\s*min\(420px,\s*calc\(100vw - 24px\)\);/s);
-    expect(designCss).toMatch(/\.toast-message\s*{[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/s);
-    expect(designCss).not.toMatch(/\.toast\s*{[^}]*grid-template-columns:\s*34px/s);
+  it('keeps toast notifications visually identical to the connection banners', () => {
+    // トーストは接続バナーと同じ「上中央のピル + アイコン + 状態色の文字」で統一する。
+    expect(designCss).toMatch(/\.toast\s*{[^}]*display:\s*flex;[^}]*border-radius:\s*var\(--r-full\);/s);
+    expect(designCss).toMatch(/\.toast-container\s*{[^}]*left:\s*50%;/s);
+    expect(designCss).toMatch(/\.toast-message\s*{[^}]*overflow-wrap:\s*anywhere;/s);
+    expect(designCss).toMatch(/\.toast\.toast-success\s*{\s*color:\s*var\(--ok-600\)/);
   });
 
   it('never renders status as a one-sided accent bar', () => {

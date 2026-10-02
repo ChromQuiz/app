@@ -407,6 +407,14 @@ function requireAuth(opts = {}) {
     return { projectId, secretHash, scorerName, scorerRole, supabaseMode };
 }
 
+// 種別ごとのアイコン。接続バナー(wifi / check-circle)と同じく、色だけで状態を伝えない。
+const TOAST_ICONS = {
+    success: 'check-circle',
+    error: 'circle-exclamation',
+    warning: 'triangle-exclamation',
+    info: 'circle-info',
+};
+
 function showToast(msg, type = 'info', duration = 3000) {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -427,6 +435,8 @@ function showToast(msg, type = 'info', duration = 3000) {
     toast.setAttribute('role', type === 'error' || type === 'warning' ? 'alert' : 'status');
     toast.setAttribute('aria-live', type === 'error' || type === 'warning' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
+    const iconName = TOAST_ICONS[type];
+    if (iconName) toast.append(createIcon(iconName));
     const body = document.createElement('span');
     body.className = 'toast-body';
     const text = document.createElement('span');
