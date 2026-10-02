@@ -265,7 +265,6 @@ function openSupabaseProject(projectId, projectName, role, displayName) {
     session.set('scorer_name', displayName || supabaseSession?.user?.email || '');
     const normalizedRole = role === 'scorer' ? 'scorer' : 'admin';
     session.set('scorer_role', normalizedRole);
-    session.set('supabaseMode', 'true');
     location.href = 'judge.html';
 }
 
@@ -336,7 +335,6 @@ async function createProject() {
         session.set('projectName', pName);
         session.set('scorer_name', ownerDisplayName);
         session.set('scorer_role', 'admin');
-        session.set('supabaseMode', 'true');
         projectKeyStore.set(JSON.stringify(privateKeyJwk));
 
         const tabsContainer = document.getElementById('tabs-container');

@@ -58,7 +58,6 @@
             session.set('projectName', project?.name || result.projectId);
             session.set('scorer_name', result.displayName || '');
             session.set('scorer_role', result.role === 'scorer' ? 'scorer' : 'admin');
-            session.set('supabaseMode', 'true');
 
             setStatus(
                 result.alreadyMember

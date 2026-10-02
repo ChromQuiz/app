@@ -435,7 +435,7 @@ async function render() {
             event.preventDefault();
             selectConflictCard(idx, { focus: true });
         });
-        card.addEventListener('dblclick', () => showPreview(projectId, null, conflict.entryNumber));
+        card.addEventListener('dblclick', () => showPreview(projectId, conflict.entryNumber));
         fragment.appendChild(card);
     });
     grid.appendChild(fragment);

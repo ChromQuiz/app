@@ -22,18 +22,7 @@ window.createIcon = createIconLegacyBridge;
 
 function logout() {
     session.clear();
-    Object.keys(localStorage).forEach(k => {
-        if (k.startsWith('masterData_')) localStorage.removeItem(k);
-    });
     location.href = 'index.html';
-}
-
-function getMasterData(projectId) {
-    try {
-        return JSON.parse(localStorage.getItem(`masterData_${projectId}`) || '{}');
-    } catch (e) {
-        return {};
-    }
 }
 
 function createPreviewHeader(titleText, onClose) {
@@ -56,7 +45,7 @@ function createPreviewHeader(titleText, onClose) {
     return header;
 }
 
-async function showPreview(projectId, secretHash, entryNum) {
+async function showPreview(projectId, entryNum) {
     let overlay = document.getElementById('preview-overlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -64,8 +53,7 @@ async function showPreview(projectId, secretHash, entryNum) {
         overlay.className = 'preview-overlay';
         document.body.appendChild(overlay);
     }
-    const masterData = getMasterData(projectId);
-    const name = masterData[entryNum]?.name || `No.${padNum(entryNum)}`;
+    const name = `No.${padNum(entryNum)}`;
 
     overlay.textContent = '';
     const header = createPreviewHeader(`${name} の解答用紙`, () => { overlay.classList.remove('show'); });
@@ -385,10 +373,8 @@ document.addEventListener('click', (event) => {
 
 function requireAuth(opts = {}) {
     const projectId = session.projectId;
-    const secretHash = session.get('secretHash');
     const scorerName = session.scorerName;
     const scorerRole = session.scorerRole;
-    const supabaseMode = session.get('supabaseMode') === 'true';
 
     if (!projectId || !scorerName) {
         location.href = 'index.html';
@@ -403,8 +389,7 @@ function requireAuth(opts = {}) {
         setTimeout(() => location.href = 'index.html', 3000);
         return null;
     }
-    if (!supabaseMode && typeof watchProjectDeletion === 'function') watchProjectDeletion(projectId);
-    return { projectId, secretHash, scorerName, scorerRole, supabaseMode };
+    return { projectId, scorerName, scorerRole };
 }
 
 // 種別ごとのアイコン。接続バナー(wifi / check-circle)と同じく、色だけで状態を伝えない。

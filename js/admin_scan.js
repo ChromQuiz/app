@@ -125,8 +125,7 @@
                 overlay.className = 'preview-overlay';
                 document.body.appendChild(overlay);
             }
-            const masterData = getMasterData(projectId);
-            const name = masterData[num]?.name || `No.${padNum(num)}`;
+            const name = `No.${padNum(num)}`;
             overlay.textContent = '';
             const header = createPreviewHeader(`${name} の解答用紙`, () => { overlay.classList.remove('show'); });
             const content = document.createElement('div');
