@@ -61,7 +61,7 @@ Deno.serve(withCors(async (req) => {
     }
     // 入力ハッシュの形式検証(クライアント SHA-256 hex)。クライアント送信の v2 値は読まない=無視。
     if (!isClientHash(emailHash) || !isClientHash(disclosurePasswordHash)) {
-      return jsonResponse({ error: '登録情報の形式が正しくありません。入力内容を確認して再度お試しください。' }, 400);
+      return jsonResponse({ error: 'エントリー情報の形式が正しくありません。入力内容を確認して再度お試しください。' }, 400);
     }
 
     const supabase = createServiceClient();

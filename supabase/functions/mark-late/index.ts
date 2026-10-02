@@ -31,13 +31,13 @@ Deno.serve(withCors(async (req) => {
     );
 
     if (entry.status === 'late') {
-      return jsonResponse({ error: '既に遅刻が届け出済みです。' }, 409);
+      return jsonResponse({ error: '遅刻の連絡はすでに受け付けています。' }, 409);
     }
     if (entry.checked_in) {
-      return jsonResponse({ error: '当日受付済みのため、遅刻届け出はできません。変更が必要な場合は運営へ連絡してください。' }, 409);
+      return jsonResponse({ error: '当日受付済みのため、遅刻の連絡はできません。変更が必要な場合は運営へ連絡してください。' }, 409);
     }
     if (entry.status !== 'registered') {
-      return jsonResponse({ error: 'このエントリーは遅刻届け出の対象ではありません。' }, 409);
+      return jsonResponse({ error: 'このエントリーは遅刻の連絡の対象ではありません。' }, 409);
     }
 
     const { data: updated, error: updateError } = await supabase
@@ -50,7 +50,7 @@ Deno.serve(withCors(async (req) => {
       .single();
 
     if (updateError || !updated) {
-      return jsonResponse({ error: '遅刻届け出を保存できませんでした。' }, 500);
+      return jsonResponse({ error: '遅刻の連絡を保存できませんでした。' }, 500);
     }
 
     await logServiceEvent(supabase, {

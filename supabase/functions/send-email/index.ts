@@ -270,7 +270,7 @@ function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: s
 function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
   const name = projectName(data);
   const entryNumber = String(data.entryNumber || '');
-  const status = data.status === 'waitlist' ? 'キャンセル待ち' : '登録完了';
+  const status = data.status === 'waitlist' ? 'キャンセル待ち' : '登録済み';
   const password = String(data.password || '');
   const myUrl = String(data.myUrl || '');
   const entryListUrl = String(data.entryListUrl || '');
@@ -289,7 +289,7 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     ${panel('このメールには受付二次元コードとマイエントリー用の情報が含まれます。大会当日まで保存してください。', 'info')}
     ${buttonPair('マイエントリー', myUrl, 'エントリーリスト', entryListUrl)}
     <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">
-      マイエントリーでは、登録内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。
+      マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。
     </p>
   `;
   return {
@@ -366,7 +366,7 @@ function lateNotice(data: Record<string, unknown>): EmailTemplate {
     data,
     subjectLabel: '遅刻連絡受付',
     title: '遅刻連絡受付',
-    message: '遅刻の届け出を受け付けました。',
+    message: '遅刻の連絡を受け付けました。',
     tone: 'warning',
     withMyCta: true,
   });
@@ -385,8 +385,8 @@ function waitlistPromoted(data: Record<string, unknown>): EmailTemplate {
 
 function verificationEmail(projectNameValue: string, code: string): EmailTemplate {
   return {
-    subject: `【${projectNameValue}】メール認証コード`,
-    html: shell('メール認証コード', projectNameValue, `
+    subject: `【${projectNameValue}】認証コード`,
+    html: shell('認証コード', projectNameValue, `
       <p class="ciq-mail-copy" style="margin:0;text-align:left;color:${MAIL.text};">エントリーフォームに以下のコードを入力してください。</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
         <tr>
@@ -395,9 +395,13 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
           </td>
         </tr>
       </table>
-      <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。</p>
+      <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダもご確認ください。心当たりがない場合は、このメールを破棄してください。</p>
     `),
-    text: `認証コード: ${code}\nこのコードは10分間有効です。`,
+    text: [
+      'エントリーフォームに以下のコードを入力してください。',
+      `認証コード: ${code}`,
+      'このコードは10分間有効です。心当たりがない場合は、このメールを破棄してください。',
+    ].join('\n'),
   };
 }
 
