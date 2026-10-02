@@ -16,7 +16,7 @@
         try { sessionStorage.setItem(TOKEN_KEY, token); } catch { /* storage 不可でも続行 */ }
     }
 
-    const INVALID_LINK_MESSAGE = '招待リンクが正しくありません。管理者から共有された最新のリンクを開いてください。';
+    const INVALID_LINK_MESSAGE = '招待リンクが正しくありません。運営から共有された最新のリンクを開いてください。';
 
     function el(id) { return document.getElementById(id); }
 
@@ -69,7 +69,7 @@
             show('join-continue-btn');
         } catch (e) {
             // 期限切れ・使用上限・失効はサーバの判定文をそのまま伝える(握りつぶさない)。
-            setStatus(e.message || '参加できませんでした。管理者に新しい招待リンクを依頼してください。', 'error');
+            setStatus(e.message || '参加できませんでした。運営に新しい招待リンクを依頼してください。', 'error');
             hide('join-signin-btn');
             hide('join-continue-btn');
         }
@@ -83,7 +83,7 @@
                 await CIQSupabaseAPI.signInWithGoogle();
             } catch (e) {
                 setSigninBusy(false);
-                setStatus('Googleサインインを開始できませんでした。時間をおいて再度お試しください。' + (e.message ? `(${e.message})` : ''), 'error');
+                setStatus('Googleログインを開始できませんでした。時間をおいて再度お試しください。' + (e.message ? `(${e.message})` : ''), 'error');
             }
         });
 

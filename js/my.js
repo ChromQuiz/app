@@ -67,7 +67,7 @@ function getEntryClosedReason() {
 }
 
 function getParticipantActionPayload() {
-    if (!projectId) throw new Error('プロジェクト情報が見つかりません。URLを確認してください。');
+    if (!projectId) throw new Error('大会情報が見つかりません。URLを確認してください。');
     if (!mySession?.token) throw new Error('セッションの有効期限が切れました。もう一度ログインしてください。');
     return { projectId, token: mySession.token };
 }
@@ -168,7 +168,7 @@ async function authenticate(event) {
     const pw = el('f-password').value.trim();
 
     const btn = el('auth-btn');
-    setBusy(btn, true, '確認中...');
+    setBusy(btn, true, '確認中…');
     setMsg('auth-msg', '', '');
 
     try {
@@ -414,8 +414,8 @@ async function saveEdit(event) {
     }
 
     const btn = el('save-btn');
-    setBusy(btn, true, '保存中...');
-    setMsg('edit-msg', '更新しています...', '');
+    setBusy(btn, true, '保存中…');
+    setMsg('edit-msg', '更新しています…', '');
 
     try {
         if (!publicKeyJwk) throw new Error('セキュリティキーが取得できません');
@@ -451,7 +451,7 @@ async function saveEdit(event) {
         if (mailSent) showToast('登録内容を更新しました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('edit-msg', '保存に失敗しました: ' + (err.message || ''), 'error');
+        setMsg('edit-msg', err.message || '保存できませんでした。時間をおいて再度お試しください。', 'error');
     } finally {
         setBusy(btn, false, '変更を保存する');
     }
@@ -460,11 +460,11 @@ async function saveEdit(event) {
 // ---------- 遅刻連絡 ----------
 
 async function markLate() {
-    const ok = await showConfirm('遅刻を運営へ連絡します。よろしいですか?', '遅刻を連絡する');
+    const ok = await showConfirm('遅刻を運営へ連絡します。よろしいですか？', '遅刻を連絡する');
     if (!ok) return;
 
     const btn = el('late-btn');
-    setBusy(btn, true, '送信中...');
+    setBusy(btn, true, '送信中…');
     try {
         const result = await CIQSupabaseAPI.markLate(getParticipantActionPayload());
 
@@ -483,7 +483,7 @@ async function markLate() {
         if (mailSent) showToast('遅刻の連絡を受け付けました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('late-msg', err.message || '遅刻連絡に失敗しました。', 'error');
+        setMsg('late-msg', err.message || '遅刻の連絡を送信できませんでした。時間をおいて再度お試しください。', 'error');
     } finally {
         setBusy(btn, false, '遅刻を連絡する');
     }
@@ -499,7 +499,7 @@ async function cancelEntry() {
     if (!ok) return;
 
     const btn = el('cancel-btn');
-    setBusy(btn, true, '処理中...');
+    setBusy(btn, true, '処理中…');
     try {
         const result = await CIQSupabaseAPI.cancelEntry(getParticipantActionPayload());
 
@@ -518,7 +518,7 @@ async function cancelEntry() {
         if (mailSent) showToast('エントリーをキャンセルしました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('cancel-msg', err.message || 'キャンセルに失敗しました。', 'error');
+        setMsg('cancel-msg', err.message || 'キャンセルできませんでした。時間をおいて再度お試しください。', 'error');
     } finally {
         setBusy(btn, false, 'エントリーをキャンセルする');
     }
@@ -531,7 +531,7 @@ let shareProjectName = '';
 
 async function viewResult() {
     const btn = el('view-result-btn');
-    setBusy(btn, true, '確認中...');
+    setBusy(btn, true, '確認中…');
     setMsg('result-msg', '', '');
     try {
         const disc = await CIQSupabaseAPI.discloseResult(getParticipantActionPayload());

@@ -15,7 +15,7 @@
             const overlayTitle = overlay.querySelector('h2');
             overlay.classList.add('is-visible-flex');
             setGradedPdfProgressClass(overlayBar, 0);
-            overlayTitle.textContent = '採点済みPDFを生成中...';
+            overlayTitle.textContent = '採点済みPDFを生成中…';
 
             try {
                 await refreshSupabaseScoringData();
@@ -162,7 +162,7 @@
                     doc.addImage(canvas.toDataURL('image/jpeg', 0.85), 'JPEG', drawX, drawY, drawW, drawH);
                 }
 
-                overlayText.textContent = 'PDFを保存中...';
+                overlayText.textContent = 'PDFを保存中…';
                 doc.save('graded_results.pdf');
                 overlayText.textContent = '完了しました！';
                 setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);

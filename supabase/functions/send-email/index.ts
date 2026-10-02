@@ -530,7 +530,7 @@ Deno.serve(withCors(async (req) => {
 
     const normalizedEmail = String(to).trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      return jsonResponse({ error: 'Invalid email address' }, 400);
+      return jsonResponse({ error: 'メールアドレスの形式が正しくありません。' }, 400);
     }
     // 宛先所有確認(assertEntryRecipient)は生の sha256 を入力にする(内部で pepper 化して v2 と照合)。
     const recipientHash = await sha256Hex(normalizedEmail);
@@ -540,12 +540,12 @@ Deno.serve(withCors(async (req) => {
 
     if (type === 'verify_code') {
       const effectiveProjectId = String(projectId ?? data.projectId ?? '').trim();
-      if (!effectiveProjectId) return jsonResponse({ error: 'Project is required' }, 400);
+      if (!effectiveProjectId) return jsonResponse({ error: '大会情報を取得できませんでした。ページを再読み込みして、もう一度お試しください。' }, 400);
       const code = String(data.code || '').trim();
       const signature = String(data.signature || '');
       const expiresAt = Number(data.expiresAt || 0);
-      if (!code || !signature || !expiresAt) return jsonResponse({ error: 'Missing verification fields' }, 400);
-      if (Date.now() > expiresAt) return jsonResponse({ verified: false, error: 'Code expired' }, 400);
+      if (!code || !signature || !expiresAt) return jsonResponse({ error: '認証コードの確認に必要な情報が不足しています。認証コードをもう一度送信してください。' }, 400);
+      if (Date.now() > expiresAt) return jsonResponse({ verified: false, error: '認証コードの有効期限が切れました。認証コードをもう一度送信してください。' }, 400);
       const expected = await hmacHex(signingSecret(), `${code}:${normalizedEmail}:${expiresAt}`);
       if (!safeEqual(expected, signature)) return jsonResponse({ verified: false });
       // コード検証成功時のみ、メール認証済みトークンを発行(eh はサーバ側で正規化メールから生成)。
@@ -555,7 +555,7 @@ Deno.serve(withCors(async (req) => {
 
     if (type === 'send_verification') {
       const effectiveProjectId = projectId || String(data.projectId || '');
-      if (!effectiveProjectId) return jsonResponse({ error: 'Project is required' }, 400);
+      if (!effectiveProjectId) return jsonResponse({ error: '大会情報を取得できませんでした。ページを再読み込みして、もう一度お試しください。' }, 400);
       // CAPTCHA(Turnstile)をコード発行の前提にする。クライアントの成功状態は信用せずサーバ検証する。
       // 検証失敗=403 / secret未設定・CF障害=fail-closed。レート制限より前に実行し、無認証の乱用を入口で止める。
       await verifyTurnstile({
@@ -564,7 +564,7 @@ Deno.serve(withCors(async (req) => {
         remoteip: clientIp(req),
       });
       const supabase = createServiceClient();
-      await enforceIpRateLimit(supabase, { bucket: 'send_verification', ip: clientIp(req), projectId: effectiveProjectId });
+      await enforceIpRateLimit(supabase, { bucket: 'send_verification', ip: clientIp(req), projectId: effectiveProjectId, message: '認証コードの送信回数が上限に達しました。10分ほど待ってから、もう一度お試しください。' });
       // 日次上限(V2 backstop)は無認証の send_verification のみに適用する。
       // 通知系(確認/キャンセル/管理者トリガ)は宛先所有確認・管理者認証で保護済のため cap を共有させず、
       // send_verification 撃ちで正規メールが枯渇(DoS-starvation)しないようにする。
@@ -590,7 +590,7 @@ Deno.serve(withCors(async (req) => {
     if (!template) return jsonResponse({ error: `Unknown template type: ${type}` }, 400);
 
     const effectiveProjectId = projectId || String(data.projectId || '');
-    if (!effectiveProjectId) return jsonResponse({ error: 'Project is required' }, 400);
+    if (!effectiveProjectId) return jsonResponse({ error: '大会情報を取得できませんでした。ページを再読み込みして、もう一度お試しください。' }, 400);
     const effectiveEntryId = entryId || String(data.entryId || '');
     // 宛先所有確認は送信先メールと DB の email_hash_v2 のみで行う(クライアント供給 hash は使わない)。
     if (!effectiveEntryId) {
@@ -638,7 +638,7 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof TurnstileError) {
       // 内部理由(code)はサーバログのみ。利用者には再試行可能な汎用文言を返す。
       console.error(`[send-email] turnstile rejected: ${error.code}`);
-      return jsonResponse({ error: '認証に失敗しました。ページを再読み込みして、もう一度お試しください。' }, error.status);
+      return jsonResponse({ error: '認証を完了できませんでした。ページを再読み込みして、もう一度お試しください。' }, error.status);
     }
     if (error instanceof TurnstileConfigError) {
       console.error('[send-email] turnstile secret is not configured');
@@ -646,7 +646,20 @@ Deno.serve(withCors(async (req) => {
     }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Too many email requests')) {
-      return jsonResponse({ error: message }, 429);
+      return jsonResponse({ error: 'メールの送信回数が上限に達しました。時間をおいて再度お試しください。' }, 429);
+    }
+    // 受付状態は参加者が取れる行動(待つ・運営に確認する)が違うため、汎用 500 に丸めずに伝える。
+    if (message.includes('Entry is closed')) {
+      return jsonResponse({ error: 'ただいまエントリーを受け付けていません。' }, 409);
+    }
+    if (message.includes('Entry period has not started')) {
+      return jsonResponse({ error: 'エントリーの受付はまだ始まっていません。' }, 409);
+    }
+    if (message.includes('Entry period has ended')) {
+      return jsonResponse({ error: 'エントリーの受付は終了しました。' }, 409);
+    }
+    if (message.includes('Project not found')) {
+      return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
     }
     if (message.includes('Missing entry verification fields')) {
       return jsonResponse({ error: 'メール送信に必要なエントリー確認情報が不足しています。ページを再読み込みしてからもう一度お試しください。' }, 400);

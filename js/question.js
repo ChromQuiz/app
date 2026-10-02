@@ -698,7 +698,7 @@ async function mark(entryId, result) {
         await checkAutoCompletion();
     } catch (e) {
         delete pendingWrites[entryId];
-        showToast('採点の保存に失敗しました: ' + e.message, 'error');
+        showToast('採点を保存できませんでした（詳細: ' + e.message + '）', 'error');
         await refreshVotes();
     }
 }

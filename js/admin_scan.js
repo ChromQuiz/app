@@ -15,7 +15,7 @@
 
         async function loadEntryList() {
             const el = document.getElementById('entry-list');
-            setScanMessage(el, '読み込み中...', { className: 'text-muted-loader', icon: 'spinner' });
+            setScanMessage(el, '読み込み中…', { className: 'text-muted-loader', icon: 'spinner' });
             try {
                 const pages = await CIQSupabaseAPI.listAnswerPages(projectId);
                 entryListData = pages.map(page => Number(page.entries?.entry_number)).filter(Boolean).sort((a, b) => a - b);
@@ -131,7 +131,7 @@
             const content = document.createElement('div');
             content.id = 'admin-preview-content';
             content.className = 'preview-overlay-content';
-            setScanMessage(content, '読み込み中...', { className: 'text-muted-loader', icon: 'spinner' });
+            setScanMessage(content, '読み込み中…', { className: 'text-muted-loader', icon: 'spinner' });
             overlay.append(header, content);
             overlay.classList.add('show');
             const pc = document.getElementById('admin-preview-content');
@@ -351,7 +351,7 @@
                     }
                 });
                 renderModelGrid();
-                showAdminToast(`${lines.length}件読み込み中...`);
+                showAdminToast(`${lines.length}件読み込み中…`);
                 await saveModelAnswers();
                 showAdminToast(`${lines.length}件の模範解答を保存しました`, 'success');
             };

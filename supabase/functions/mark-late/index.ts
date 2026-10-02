@@ -19,7 +19,7 @@ Deno.serve(withCors(async (req) => {
     const body = await req.json();
     const { projectId } = body;
     if (!projectId) {
-      return jsonResponse({ error: 'プロジェクト情報が見つかりません。メール内のリンクから開き直してください。' }, 400);
+      return jsonResponse({ error: '大会情報が見つかりません。メール内のリンクから開き直してください。' }, 400);
     }
 
     const supabase = createServiceClient();

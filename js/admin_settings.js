@@ -60,7 +60,7 @@
 
         function appendProjectMemberRow(tbody, member, currentUserId) {
             const roleLabel = member.role === 'owner' ? '所有者' : member.role === 'admin' ? '管理者' : '採点者';
-            const statusLabel = member.status === 'removed' ? '停止中' : '有効';
+            const statusLabel = member.status === 'removed' ? '外し済み' : '有効';
             const isSelf = member.user_id === currentUserId;
             const canChange = member.role !== 'owner' && !isSelf;
 
@@ -90,7 +90,7 @@
                     onClick: () => changeProjectMemberRole(member.id, member.role === 'admin' ? 'scorer' : 'admin'),
                 });
                 appendMemberActionButton(actionGroup, {
-                    label: 'キック',
+                    label: '外す',
                     icon: 'user-xmark',
                     variant: 'danger',
                     disabled: !canChange,
@@ -152,7 +152,7 @@
             submit.disabled = isSubmitting;
             submit.textContent = '';
             const icon = createIcon(isSubmitting ? 'spinner' : 'plus');
-            submit.append(icon, document.createTextNode(isSubmitting ? ' 追加中...' : ' 追加する'));
+            submit.append(icon, document.createTextNode(isSubmitting ? ' 追加中…' : ' 追加する'));
         }
 
         function resetAdminEntryForm() {
@@ -169,7 +169,7 @@
             });
             const receiptStatus = document.getElementById('admin-entry-receipt-status');
             if (receiptStatus) {
-                setPageMessage(receiptStatus, '二次元コード入り控え画像を生成しています...', 'info');
+                setPageMessage(receiptStatus, '二次元コード入り控え画像を生成しています…', 'info');
             }
             setAdminEntryStatus('');
             setAdminEntrySubmitting(false);
@@ -485,7 +485,7 @@
             }
 
             setAdminEntrySubmitting(true);
-            setAdminEntryStatus('参加者を追加しています...', 'info');
+            setAdminEntryStatus('参加者を追加しています…', 'info');
             const password = generateAdminEntryPassword();
             try {
                 const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
@@ -537,7 +537,7 @@
                 updateAdminOverview();
                 showAdminToast('参加者を追加しました', 'success');
             } catch (e) {
-                setAdminEntryStatus(e.message || '参加者の追加に失敗しました。', 'error');
+                setAdminEntryStatus(e.message || '参加者を追加できませんでした。', 'error');
             } finally {
                 setAdminEntrySubmitting(false);
             }
@@ -547,7 +547,7 @@
             const tbody = document.getElementById('project-members-tbody');
             if (!tbody || projectMembersLoading) return;
             projectMembersLoading = true;
-            if (!tbody.children.length) setMemberTableMessage(tbody, '読み込み中...');
+            if (!tbody.children.length) setMemberTableMessage(tbody, '読み込み中…');
             try {
                 const currentSession = await CIQSupabaseAPI.getSession();
                 const currentUserId = currentSession?.user?.id || '';
@@ -559,7 +559,7 @@
                 tbody.textContent = '';
                 members.forEach(member => appendProjectMemberRow(tbody, member, currentUserId));
             } catch (e) {
-                setMemberTableMessage(tbody, `読み込みに失敗しました: ${e.message}`, 'td-loading-error');
+                setMemberTableMessage(tbody, `読み込めませんでした（詳細: ${e.message}）`, 'td-loading-error');
             } finally {
                 projectMembersLoading = false;
             }
@@ -640,7 +640,7 @@
                 setInviteStatus('招待リンクを無効化しました。', 'success');
                 await loadScorerInvites();
             } catch (e) {
-                setInviteStatus('無効化に失敗しました: ' + (e.message || ''), 'error');
+                setInviteStatus('招待リンクを無効化できませんでした（詳細: ' + (e.message || '') + '）', 'error');
                 if (button) button.disabled = false;
             }
         }
@@ -654,7 +654,7 @@
                 return;
             }
             if (button) button.disabled = true;
-            setInviteStatus('招待リンクを発行しています...');
+            setInviteStatus('招待リンクを発行しています…');
             try {
                 const invite = await CIQSupabaseAPI.createScorerInvite(projectId, maxUses);
                 const url = inviteUrlFor(invite.token);
@@ -665,7 +665,7 @@
                 setInviteStatus('招待リンクを発行しました。この場でコピーしてください（再表示できません）。', 'success');
                 await loadScorerInvites();
             } catch (e) {
-                setInviteStatus('発行に失敗しました: ' + (e.message || ''), 'error');
+                setInviteStatus('招待リンクを発行できませんでした（詳細: ' + (e.message || '') + '）', 'error');
             } finally {
                 if (button) button.disabled = false;
             }
@@ -702,19 +702,19 @@
                 showAdminToast('権限を更新しました', 'success');
                 await loadProjectMembers();
             } catch (e) {
-                showAdminToast(e.message || '権限更新に失敗しました', 'error');
+                showAdminToast(e.message || '権限を更新できませんでした。', 'error');
             }
         }
 
         async function removeProjectMember(memberId) {
-            const ok = await showConfirm('このメンバーをキックします。同じパスワードでは再参加できなくなります。', 'キックする');
+            const ok = await showConfirm('このメンバーを外します。外したメンバーは、招待リンクを使っても再参加できなくなります。', '外す');
             if (!ok) return;
             try {
                 await CIQSupabaseAPI.removeProjectMember(memberId);
-                showAdminToast('メンバーを停止しました', 'success');
+                showAdminToast('メンバーを外しました', 'success');
                 await loadProjectMembers();
             } catch (e) {
-                showAdminToast(e.message || 'キックに失敗しました', 'error');
+                showAdminToast(e.message || 'メンバーを外せませんでした。', 'error');
             }
         }
 
@@ -724,7 +724,7 @@
                 showAdminToast('メンバーを復帰しました', 'success');
                 await loadProjectMembers();
             } catch (e) {
-                showAdminToast(e.message || '復帰に失敗しました', 'error');
+                showAdminToast(e.message || 'メンバーを復帰できませんでした。', 'error');
             }
         }
 
@@ -758,7 +758,7 @@
                         await updateEmailSettings();
                     } catch (e) {
                         input.checked = previous;
-                        showAdminToast(e.message || 'メール設定の更新に失敗しました', 'error');
+                        showAdminToast(e.message || 'メール設定を更新できませんでした。', 'error');
                     } finally {
                         ids.forEach((targetId) => {
                             const target = document.getElementById(targetId);
@@ -788,7 +788,7 @@
         function setMaxEntriesStatusSaving() {
             const badge = document.getElementById('max-entries-status');
             if (badge) {
-                badge.textContent = '保存中...';
+                badge.textContent = '保存中…';
                 badge.className = 'status-badge status-warning';
             }
         }
@@ -1314,7 +1314,7 @@
 
         async function loadAdminEntries() {
             const tbody = document.getElementById('admin-entries-tbody');
-            setTableMessage(tbody, 9, '読み込み中...');
+            setTableMessage(tbody, 9, '読み込み中…');
 
             try {
                 const entries = getCachedAdminEntries() || await CIQSupabaseAPI.listEntriesForAdmin(projectId);
@@ -1538,7 +1538,7 @@
             ))) return;
 
             try {
-                showAdminToast('プロジェクトをリセットしています...', 'info', 10000);
+                showAdminToast('プロジェクトをリセットしています…', 'info', 10000);
 
                 await CIQSupabaseAPI.resetProjectData(projectId);
                 showAdminToast('プロジェクトをリセットしました。ページを再読み込みします。', 'success', 3000);

@@ -219,8 +219,8 @@ async function resendVerification() {
     const email = document.getElementById('f-email').value.trim();
     const resendBtn = document.getElementById('resend-code-btn');
     resendBtn.disabled = true;
-    setEntryButton(resendBtn, '送信中...', 'spinner');
-    showVerifyMsg('認証コードを再送信しています...', '');
+    setEntryButton(resendBtn, '送信中…', 'spinner');
+    showVerifyMsg('認証コードを再送信しています…', '');
 
     const pName = document.getElementById('project-title')?.textContent || projectId;
     // Turnstile トークンはワンタイム。送信のたびに取得し、結果に関わらず reset して次回分を発行させる。
@@ -230,7 +230,7 @@ async function resendVerification() {
     CIQTurnstile.reset('turnstile-verify');
 
     if (!result || !result.success) {
-        showVerifyMsg('再送信に失敗しました。もう一度お試しください。', 'error');
+        showVerifyMsg(result?.error || '認証コードを再送信できませんでした。時間をおいて再度お試しください。', 'error');
         resendBtn.disabled = false;
         setEntryButton(resendBtn, '再送信', 'rotate-right');
         return;
@@ -260,8 +260,8 @@ async function sendVerification() {
 
     const btn = document.getElementById('send-code-btn');
     btn.disabled = true;
-    setEntryButton(btn, '送信中...', 'spinner');
-    showVerifyMsg('認証コードを送信しています...', '');
+    setEntryButton(btn, '送信中…', 'spinner');
+    showVerifyMsg('認証コードを送信しています…', '');
 
     const pName = document.getElementById('project-title')?.textContent || projectId;
     const result = await CIQEmail.sendVerificationCode(
@@ -270,7 +270,7 @@ async function sendVerification() {
     CIQTurnstile.reset('turnstile-verify');
 
     if (!result || !result.success) {
-        showVerifyMsg('認証コードの送信に失敗しました。メールアドレスを確認して、もう一度お試しください。', 'error');
+        showVerifyMsg(result?.error || '認証コードを送信できませんでした。メールアドレスをご確認のうえ、時間をおいて再度お試しください。', 'error');
         btn.disabled = false;
         setEntryButton(btn, '認証コードを送信', 'paper-plane');
         return;
@@ -303,12 +303,12 @@ async function verifyEmailCode() {
 
     const btn = document.getElementById('verify-code-btn');
     btn.disabled = true;
-    setEntryButton(btn, '確認中...', 'spinner');
+    setEntryButton(btn, '確認中…', 'spinner');
 
     const result = await CIQEmail.verifyCode(email, code, verifySignature, verifyExpiresAt, projectId);
     if (!result.verified || !result.emailVerifiedToken) {
         clearEmailVerification();
-        showVerifyMsg('認証コードが正しくないか、有効期限が切れています。', 'error');
+        showVerifyMsg('認証コードが正しくないか、有効期限が切れています。入力内容をご確認いただくか、認証コードを再送信してください。', 'error');
         btn.disabled = false;
         setEntryButton(btn, '認証する', 'check-circle');
         return;
@@ -408,8 +408,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     }
 
     btn.disabled = true;
-    btn.textContent = '処理中...';
-    showStatus('エントリーを送信しています...', 'info');
+    btn.textContent = '処理中…';
+    showStatus('エントリーを送信しています…', 'info');
 
     const pw = generatePW();
     try {
@@ -504,14 +504,14 @@ async function init() {
         note?.classList.add('is-visible');
     }
     if (!projectId) {
-        showDisabled('プロジェクトが指定されていません', '正しいエントリーURLへアクセスしてください。');
+        showDisabled('大会が指定されていません', '正しいエントリーURLへアクセスしてください。');
         return;
     }
 
     try {
         const settings = await loadPublicSettings();
         if (!settings) {
-            showDisabled('プロジェクトが見つかりません', '正しいエントリーURLへアクセスしてください。');
+            showDisabled('大会が見つかりません', '正しいエントリーURLへアクセスしてください。');
             return;
         }
 
@@ -528,7 +528,7 @@ async function init() {
         if (settings.entryOpen !== true) {
             blocked = true;
             blockTitle = 'エントリーは現在停止中です';
-            blockDetail = '管理者がエントリーを再開するまでお待ちください。';
+            blockDetail = '運営がエントリーを再開するまでお待ちください。';
         } else {
             const now = Date.now();
             const startDt = settings.periodStart ? new Date(settings.periodStart) : null;

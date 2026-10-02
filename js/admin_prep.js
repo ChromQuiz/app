@@ -211,7 +211,7 @@
             return new Promise((resolve, reject) => {
                 canvas.toBlob((blob) => {
                     if (blob) resolve(blob);
-                    else reject(new Error('画像の圧縮に失敗しました。'));
+                    else reject(new Error('画像を圧縮できませんでした。'));
                 }, type, quality);
             });
         }
@@ -285,7 +285,7 @@
             const overlayTitle = overlay.querySelector('h2');
             overlay.classList.add('is-visible-flex');
             setProgressClass(overlayBar, 0);
-            overlayTitle.textContent = '答案を読み込み中...';
+            overlayTitle.textContent = '答案を読み込み中…';
             let uploadedEntryNumbers = new Set();
             let uploadedPagePaths = new Set();
             let inFlightUploads = [];
@@ -465,7 +465,7 @@
                     tomboErrorPages: scanAnswers.filter(answer => answer.tomboError).map(answer => answer.page),
                 });
 
-                overlayTitle.textContent = 'サーバーへ保存中...';
+                overlayTitle.textContent = 'サーバーへ保存中…';
                 overlayText.textContent = '保存完了を確認中';
                 const entryNumberValidation = CIQUploadValidation.validateDetectedEntryNumbers(
                     scanAnswers.map(answer => answer.entryNumber),
@@ -501,7 +501,7 @@
                         .slice(0, 3)
                         .map(f => `p${f.page}: ${f.message}`)
                         .join(' / ');
-                    showAdminToast(`${uploadFailures.length}件の保存に失敗しました: ${detail}`, 'error');
+                    showAdminToast(`${uploadFailures.length}件を保存できませんでした（詳細: ${detail}）`, 'error');
                 } else {
                     showAdminToast(`${scanAnswers.length}件の答案を保存しました`, 'success');
                 }

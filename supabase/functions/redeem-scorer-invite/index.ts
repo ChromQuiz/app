@@ -11,7 +11,7 @@ import { clientIp, clientIpHash, enforceIpRateLimit, RateLimitError } from '../_
 import { logServiceEvent } from '../_shared/audit.ts';
 import { inviteTokenHash, isPlausibleInviteToken } from '../_shared/invite_token.ts';
 
-const INVALID_MESSAGE = 'この招待リンクは使用できません。管理者に新しいリンクを発行してもらってください。';
+const INVALID_MESSAGE = 'この招待リンクは使用できません。運営に新しいリンクを発行してもらってください。';
 
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
@@ -56,10 +56,10 @@ Deno.serve(withCors(async (req) => {
       const message = error.message || '';
       // 利用者にはリンクが使えない事実だけを伝え、どの条件で落ちたかは細かく出し分けない。
       if (message.includes('Invalid invite')) return jsonResponse({ error: INVALID_MESSAGE }, 404);
-      if (message.includes('Invite expired')) return jsonResponse({ error: 'この招待リンクは有効期限が切れています。管理者に新しいリンクを発行してもらってください。' }, 410);
+      if (message.includes('Invite expired')) return jsonResponse({ error: 'この招待リンクは有効期限が切れています。運営に新しいリンクを発行してもらってください。' }, 410);
       if (message.includes('Invite revoked')) return jsonResponse({ error: INVALID_MESSAGE }, 403);
-      if (message.includes('Invite exhausted')) return jsonResponse({ error: 'この招待リンクは使用上限に達しています。管理者にお問い合わせください。' }, 409);
-      if (message.includes('Member was removed')) return jsonResponse({ error: 'このアカウントはプロジェクトから削除されています。管理者にお問い合わせください。' }, 403);
+      if (message.includes('Invite exhausted')) return jsonResponse({ error: 'この招待リンクは使用上限に達しています。運営にお問い合わせください。' }, 409);
+      if (message.includes('Member was removed')) return jsonResponse({ error: 'このアカウントはメンバーから外されています。運営にお問い合わせください。' }, 403);
       throw error;
     }
 
