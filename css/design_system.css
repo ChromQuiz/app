@@ -1096,6 +1096,16 @@ svg[width="24"][stroke="currentColor"] {
   margin-top: 0.25em;
 }
 
+/* 見落とされると困る注意(本名の使用など)。赤は色だけに頼らず、アイコンと太字を併用する */
+.hint-alert {
+  color: var(--bad-600);
+  font-weight: 600;
+}
+
+.hint-alert [data-icon] {
+  flex: 0 0 auto;
+}
+
 /* ============================================================
    5b. HERO & STRUCTURAL NAVIGATION(LP・公開画面用)
    ------------------------------------------------------------
