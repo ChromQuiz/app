@@ -1,5 +1,5 @@
 // my.js — マイエントリー(参加者ハブ)
-// 1回の認証で: 受付番号+二次元コードの確認 / 登録内容の編集 / 遅刻連絡 / 成績照会 / キャンセル。
+// 1回の認証で: 受付番号+二次元コードの確認 / エントリー内容の編集 / 遅刻連絡 / 成績照会 / キャンセル。
 // 認証状態は my-entry が発行する短命トークンを sessionStorage に保持する
 // (タブを閉じると消える。パスワードはどこにも保存しない)。
 
@@ -248,7 +248,7 @@ function applyHubData(data) {
     // 二次元コード
     renderQr();
 
-    // 登録内容
+    // エントリー内容
     renderSummary();
 
     // 各セクションの表示可否
@@ -258,7 +258,7 @@ function applyHubData(data) {
         note.hidden = false;
         note.textContent = myEntryData.checkedIn
             ? '当日受付済みのため、内容の変更はできません。変更が必要な場合は運営へ連絡してください。'
-            : '現在、登録内容の変更はできません。';
+            : '現在、エントリー内容の変更はできません。';
     } else {
         note.hidden = true;
     }
@@ -445,10 +445,10 @@ async function saveEdit(event) {
                 familyName,
                 firstName,
                 senderName: (projectSettings?.projectName || projectId) + ' 実行委員会',
-            }, '登録内容の更新');
+            }, 'エントリー内容の更新');
         }
 
-        if (mailSent) showToast('登録内容を更新しました。', 'success');
+        if (mailSent) showToast('エントリー内容を更新しました。', 'success');
         await loadHub();
     } catch (err) {
         setMsg('edit-msg', err.message || '保存できませんでした。時間をおいて再度お試しください。', 'error');
