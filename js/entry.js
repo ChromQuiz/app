@@ -549,7 +549,9 @@ async function init() {
         }
         if (blocked) showDisabled(blockTitle, blockDetail);
     } catch (e) {
-        showDisabled('接続エラー', e.message || 'Supabaseに接続できませんでした。');
+        // 参加者向けの画面なので、内部のエラー文は出さずコンソールにだけ残す。
+        console.error(e);
+        showDisabled('大会情報を読み込めませんでした', '時間をおいて再度お試しください。');
     }
 }
 
