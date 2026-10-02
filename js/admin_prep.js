@@ -503,7 +503,7 @@
                         .join(' / ');
                     showAdminToast(`${uploadFailures.length}件を保存できませんでした（詳細: ${detail}）`, 'error');
                 } else {
-                    showAdminToast(`${scanAnswers.length}件の答案を保存しました`, 'success');
+                    showAdminToast(`${scanAnswers.length}件の答案を保存しました。`, 'success');
                 }
                 loadEntryList();
             } catch (e) {
@@ -511,7 +511,7 @@
                 await rollbackUploadedAnswers(uploadedEntryNumbers);
                 await CIQSupabaseAPI.deleteAnswerPageStoragePaths(Array.from(uploadedPagePaths)).catch(() => {});
                 console.error(e); overlay.classList.remove('is-visible-flex');
-                showAdminToast('処理エラー: ' + e.message);
+                showAdminToast('処理を完了できませんでした（詳細: ' + e.message + '）');
             } finally {
                 releaseScanAnswerCanvases();
                 workCanvas.width = 0;

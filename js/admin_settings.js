@@ -19,7 +19,7 @@
                 try {
                     await CIQSupabaseAPI.updateProject(projectId, { question_count: val });
                     totalQuestions = val;
-                    showAdminToast(`問題数を ${val} 問に変更しました`, 'success');
+                    showAdminToast(`問題数を ${val} 問に変更しました。`, 'success');
                 } catch(e) { console.error('問題数の同期失敗:', e); }
             }
         };
@@ -490,7 +490,7 @@
             try {
                 const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
                 const publicKeyJwk = settings?.publicKey;
-                if (!publicKeyJwk) throw new Error('セキュリティキーが取得できません。');
+                if (!publicKeyJwk) throw new Error('暗号鍵を取得できませんでした。ページを再読み込みして、もう一度お試しください。');
 
                 const emailHash = await AppCrypto.hashPassword(values.email.toLowerCase());
                 const passwordHash = await AppCrypto.hashPassword(password);
@@ -1363,7 +1363,7 @@
                     }).catch(e => console.warn('復号鍵の後追い読み込みをスキップ:', e));
                 }
             } catch (e) {
-                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? ` (${e.message})` : ''}`, 'td-loading-error');
+                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? `（詳細: ${e.message}）` : ''}`, 'td-loading-error');
             }
         }
 
@@ -1435,7 +1435,7 @@
                     color: 'var(--warn-600)',
                 }));
             } else if (entry.checked_in) {
-                statusTd.appendChild(createBadge('badge success', 'check', '受付済'));
+                statusTd.appendChild(createBadge('badge success', 'check', '受付済み'));
             } else {
                 statusTd.appendChild(createBadge('badge muted', 'clock', '未受付'));
             }
@@ -1490,7 +1490,7 @@
                 senderName: (adminProjectName || projectId) + ' 実行委員会'
             });
             await CIQSupabaseAPI.updateEntryNoticeState(entry.id, ok ? 'sent' : 'failed');
-            if (ok) showAdminToast(`受付番号 ${padNum(entry.entry_number)} へ繰り上げ通知を送信しました`, 'success');
+            if (ok) showAdminToast(`受付番号 ${padNum(entry.entry_number)} へ繰り上げ通知を送信しました。`, 'success');
         }
 
         async function exportEntriesCSV() {
@@ -1525,15 +1525,15 @@
 
         async function resetProject() {
             if (!(await showConfirm(
-                'プロジェクト内の全データ（エントリー・答案・スコア）をリセットしますか？\n\n' +
+                'プロジェクト内の全データ（エントリー・答案・模範解答・採点結果）をリセットしますか？\n\n' +
                 'この操作は取り消せません。\n' +
-                'プロジェクト設定（パスワード・暗号鍵等）は維持されます。',
+                'プロジェクトの設定（大会名・期間・参加規約・メンバー・招待リンク・暗号鍵など）は維持されます。',
                 'リセットする'
             ))) return;
 
             // 2段階確認
             if (!(await showConfirm(
-                `プロジェクト「${projectId}」を本当にリセットしますか？\nすべてのエントリー・答案・スコアが失われます。`,
+                `プロジェクト「${projectId}」を本当にリセットしますか？\nすべてのエントリー・答案・模範解答・採点結果が失われます。`,
                 'リセットを確定'
             ))) return;
 
@@ -1545,7 +1545,7 @@
                 setTimeout(() => { location.reload(); }, 2000);
             } catch (e) {
                 console.error('リセットエラー:', e);
-                showAdminToast('リセットエラー: ' + e.message, 'error');
+                showAdminToast('リセットできませんでした（詳細: ' + e.message + '）', 'error');
             }
         }
 

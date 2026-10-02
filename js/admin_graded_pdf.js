@@ -166,11 +166,11 @@
                 doc.save('graded_results.pdf');
                 overlayText.textContent = '完了しました。';
                 setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);
-                showAdminToast(`${total}人分の採点済みPDFを出力しました`, 'success');
+                showAdminToast(`${total}人分の採点済みPDFを出力しました。`, 'success');
 
             } catch (e) {
                 console.error('PDF生成エラー:', e);
                 overlay.classList.remove('is-visible-flex');
-                showAdminToast('PDF生成エラー: ' + e.message);
+                showAdminToast('採点済みPDFを生成できませんでした（詳細: ' + e.message + '）');
             }
         }
