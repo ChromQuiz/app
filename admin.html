@@ -11,7 +11,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=2"></script>
     <script defer src="js/supabase_client.js"></script>
-    <script defer src="js/supabase_api.js?v=38"></script>
+    <script defer src="js/supabase_api.js?v=39"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=22"></script>
@@ -227,13 +227,12 @@
                                         <th>学年</th>
                                         <th>メール</th>
                                         <th>運営への連絡</th>
-                                        <th>本名使用</th>
                                         <th>状態</th>
                                         <th>通知</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-entries-tbody">
-                                    <tr><td colspan="10" class="loading-state">読み込み中...</td></tr>
+                                    <tr><td colspan="9" class="loading-state">読み込み中...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -403,28 +402,6 @@
                     <div class="phase-block u-relative-layer">
                         <h2>採点結果の出力</h2>
                         <div class="csv-status" id="csv-status"><span data-icon="spinner" aria-hidden="true"></span> 確認中...</div>
-                        <div class="phase-subblock mb-md">
-                            <div class="u-grid-2">
-                                <div>
-                                    <label class="u-label-compact">名前区切り</label>
-                                    <select id="csv-name-sep" class="u-full-width">
-                                        <option value="fullspace">全角スペース</option>
-                                        <option value="halfspace">半角スペース</option>
-                                        <option value="none">区切りなし</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="u-label-compact">文字数固定</label>
-                                    <select id="csv-name-fixed" class="u-full-width">
-                                        <option value="0">なし</option>
-                                        <option value="4">4文字</option>
-                                        <option value="5">5文字</option>
-                                        <option value="6">6文字</option>
-                                        <option value="7">7文字</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
                         <div class="phase-actions">
                             <button class="btn secondary" id="csv-btn" disabled data-action="export-csv"><span data-icon="download" aria-hidden="true"></span> 採点結果CSV</button>
                             <button class="btn secondary" id="graded-pdf-btn" disabled data-action="export-graded-pdf"><span data-icon="file-pdf" aria-hidden="true"></span> 採点済みPDF</button>
@@ -441,12 +418,6 @@
                                 <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="1" aria-label="1増やす"><span data-icon="plus" aria-hidden="true"></span></button>
                             </div>
                             <span>人以下をハイライト</span>
-                        </div>
-                        <div class="config-row mt-sm">
-                            <label class="toggle-switch"><input type="checkbox" id="analytics-name-toggle" checked data-action="render-analytics"><span class="toggle-slider"></span></label>
-                            <div class="toggle-info">
-                                <div class="toggle-info-title">エントリーネーム表示</div>
-                            </div>
                         </div>
                         <div class="table-container u-table-scroll-md">
                             <table id="analytics-table">
@@ -693,21 +664,7 @@
                 <div class="form-group">
                     <label class="required">エントリーネーム</label>
                     <input type="text" id="admin-entry-entry-name" required>
-                </div>
-                <div class="form-group">
-                    <fieldset class="choice-fieldset">
-                        <legend class="required">記録集での本名使用</legend>
-                        <div class="choice-row">
-                            <label class="choice-option">
-                                <input type="radio" name="admin-entry-record-name-permission" value="allow" required>
-                                <span>許可する</span>
-                            </label>
-                            <label class="choice-option">
-                                <input type="radio" name="admin-entry-record-name-permission" value="deny" required>
-                                <span>許可しない</span>
-                            </label>
-                        </div>
-                    </fieldset>
+                    <div class="hint">当日の受付および大会後に発行する記録集では、本名（姓名）を使用します。エントリーをもって、この取り扱いに同意したものとします。</div>
                 </div>
                 <div class="form-group">
                     <label>意気込み</label>
@@ -743,11 +700,11 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=40"></script>
+    <script defer src="js/admin.js?v=41"></script>
     <script defer src="js/upload_validation.js?v=3"></script>
-    <script defer src="js/admin_scan.js?v=17"></script>
-    <script defer src="js/admin_stats.js?v=11"></script>
+    <script defer src="js/admin_scan.js?v=18"></script>
+    <script defer src="js/admin_stats.js?v=12"></script>
     <script defer src="js/admin_graded_pdf.js?v=9"></script>
-    <script defer src="js/admin_settings.js?v=37"></script>
+    <script defer src="js/admin_settings.js?v=38"></script>
 </body>
 </html>

@@ -116,61 +116,43 @@
 
 
         // ============================
-        // CSV出力（名前フォーマットオプション対応）
+        // CSV出力
         // ============================
-        function formatCsvName(familyName, firstName, entryName, useEntryName, sepType, fixedLen) {
-            // エントリーネーム使用者はそのまま
-            if (useEntryName && entryName) return entryName;
+        // 鍵で復号した氏名・所属・学年を受付番号ごとに返す（_entriesRaw が変わるまでキャッシュ）
+        let _masterCache = { source: null, key: null, data: null };
+        async function loadEntryMaster() {
+            const entriesData = window._entriesRaw || {};
+            const privJwkStr = projectKeyStore.get();
+            if (_masterCache.source === entriesData && _masterCache.key === privJwkStr && _masterCache.data) return _masterCache.data;
+            const masterData = {};
+            let privJwk = null;
+            if (privJwkStr) { try { privJwk = JSON.parse(privJwkStr); } catch(e){} }
 
-            const sep = sepType === 'fullspace' ? '\u3000' : sepType === 'halfspace' ? ' ' : '';
-
-            if (fixedLen > 0) {
-                const totalChars = familyName.length + firstName.length;
-                if (totalChars < fixedLen) {
-                    // 固定長未満 → 姓名間に全角スペースで埋める
-                    const padCount = fixedLen - totalChars;
-                    return familyName + '\u3000'.repeat(padCount) + firstName;
+            for (const v of Object.values(entriesData)) {
+                if (!v.entryNumber) continue;
+                let familyName = '', firstName = '', affiliation = '', grade = '';
+                if (v.encryptedPII && privJwk) {
+                    try {
+                        const jsonStr = await AppCrypto.decryptRSA(v.encryptedPII, privJwk);
+                        const pii = JSON.parse(jsonStr);
+                        familyName = pii.familyName || '';
+                        firstName = pii.firstName || '';
+                        affiliation = pii.affiliation || '';
+                        grade = pii.grade || '';
+                    } catch(e) {}
+                } else {
+                    // PII復号不可の場合、公開フィールドのみ使用
+                    affiliation = v.affiliation || '';
+                    grade = v.grade || '';
                 }
-                // 固定長以上 → スペースなしでそのまま結合
-                return familyName + firstName;
+                masterData[v.entryNumber] = { familyName, firstName, affiliation, grade };
             }
-            return familyName + sep + firstName;
+            _masterCache = { source: entriesData, key: privJwkStr, data: masterData };
+            return masterData;
         }
 
         async function exportCSV() {
-            const sepType = document.getElementById('csv-name-sep')?.value || 'fullspace';
-            const fixedLen = parseInt(document.getElementById('csv-name-fixed')?.value) || 0;
-
-            const entriesData = window._entriesRaw || {};
-            let masterData = {};
-            if (entriesData) {
-                const privJwkStr = projectKeyStore.get();
-                let privJwk = null;
-                if (privJwkStr) { try { privJwk = JSON.parse(privJwkStr); } catch(e){} }
-
-                for (const v of Object.values(entriesData)) {
-                    if (!v.entryNumber) continue;
-                    let familyName = '', firstName = '', affiliation = '', grade = '', entryName = '', useEntryName = false;
-                    if (v.encryptedPII && privJwk) {
-                        try {
-                            const jsonStr = await AppCrypto.decryptRSA(v.encryptedPII, privJwk);
-                            const pii = JSON.parse(jsonStr);
-                            familyName = pii.familyName || '';
-                            firstName = pii.firstName || '';
-                            affiliation = pii.affiliation || '';
-                            grade = pii.grade || '';
-                            entryName = pii.entryName || '';
-                            useEntryName = !!pii.useEntryName;
-                        } catch(e) {}
-                    } else {
-                        // PII復号不可の場合、公開フィールドのみ使用
-                        affiliation = v.affiliation || '';
-                        grade = v.grade || '';
-                        entryName = v.entryName || '';
-                    }
-                    masterData[v.entryNumber] = { familyName, firstName, affiliation, grade, entryName, useEntryName };
-                }
-            }
+            const masterData = await loadEntryMaster();
 
             const results = entryNumbers.map(en => {
                 const answers = []; for (let q = 1; q <= totalQuestions; q++) { const fd = scoresData[`__final__q${q}`] || {}; const r = fd[en] === 'correct' ? 1 : 0; answers.push(r); }
@@ -179,8 +161,7 @@
                 answers.forEach(a => { if (a === 1) { cur++; } else { streaks.push(cur); cur = 0; } });
                 streaks.push(cur);
                 const m = masterData[en] || {};
-                const name = formatCsvName(m.familyName || '', m.firstName || '', m.entryName || '', m.useEntryName, sepType, fixedLen);
-                return { entryNumber: en, name, affiliation: m.affiliation || '', grade: m.grade || '', score, answers, streaks };
+                return { entryNumber: en, familyName: m.familyName || '', firstName: m.firstName || '', affiliation: m.affiliation || '', grade: m.grade || '', score, answers, streaks };
             });
 
             // ソート: 点数降順 → 連答（第1連答 → 第2連答 → ...）で同点処理
@@ -208,7 +189,7 @@
                 return map;
             }, {});
 
-            const headers = ['順位', '完全一致同順位', '同順位人数', '所属', '学年', '氏名', '点数', ...streakHeaders];
+            const headers = ['順位', '完全一致同順位', '同順位人数', '所属', '学年', '姓', '名', '点数', ...streakHeaders];
             const rows = [headers];
             let currentRank = 1;
             results.forEach((r, idx) => {
@@ -226,7 +207,8 @@
                     sameCount > 1 ? sameCount : '',
                     r.affiliation,
                     r.grade,
-                    `"${r.name.replace(/"/g, '""')}"`,
+                    `"${r.familyName.replace(/"/g, '""')}"`,
+                    `"${r.firstName.replace(/"/g, '""')}"`,
                     r.score,
                     ...streakCols
                 ]);
@@ -236,7 +218,7 @@
 
         async function getAnalyticsData() {
             const threshold = parseInt(document.getElementById('analytics-threshold').value) || 5;
-            const masterData = getMasterData(projectId);
+            const masterData = await loadEntryMaster();
             const tp = entryNumbers.length || 1, qStats = [];
             for (let q = 1; q <= totalQuestions; q++) {
                 const fd = scoresData[`__final__q${q}`] || {};
@@ -251,14 +233,8 @@
                     if (fd[en] === 'correct') { cc++; ce.push(en); }
                 });
                 const rate = Math.round((cc / tp) * 100);
-                const useEntryName = document.getElementById('analytics-name-toggle')?.checked || false;
                 const names = (cc <= threshold && cc > 0) ? ce.map(e => {
-                    if (useEntryName) {
-                        // エントリーネームは entries の entryName フィールドから取得
-                        const entryData = window._entriesRaw ? Object.values(window._entriesRaw).find(d => d.entryNumber === e) : null;
-                        return entryData?.entryName || `No.${padNum(e)}`;
-                    }
-                    const m = masterData[e] || {}; return m.name ? `${m.affiliation || ''} ${m.name}`.trim() : `No.${padNum(e)}`;
+                    const m = masterData[e] || {}; const full = `${m.familyName || ''}${m.firstName || ''}`; return full ? `${m.affiliation || ''} ${full}`.trim() : `No.${padNum(e)}`;
                 }).join(' / ') : '';
                 let type = ''; if (cc === 0) type = '全滅'; else if (cc === 1) type = '単独正解'; else if (cc <= threshold) type = '少数正解';
                 qStats.push({ q, correctCount: cc, rate, type, names, isRare: cc <= threshold && cc > 0 });

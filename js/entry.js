@@ -348,14 +348,12 @@ function renderEntryConfirmSummary() {
     const list = document.getElementById('entry-confirm-list');
     if (!list) return;
     const val = (id) => document.getElementById(id)?.value?.trim() || '';
-    const permission = document.querySelector('input[name="f-record-name-permission"]:checked');
     const rows = [
         ['氏名', `${val('f-family-name')} ${val('f-first-name')}`.trim()],
         ['カナ', `${val('f-family-kana')} ${val('f-first-kana')}`.trim()],
         ['所属 / 学年', [val('f-affiliation'), val('f-grade')].filter(Boolean).join(' / ')],
         ['中部地方', document.getElementById('f-chubu')?.checked ? 'はい' : 'いいえ'],
         ['エントリーネーム', val('f-entry-name')],
-        ['記録集での本名使用', permission ? (permission.value === 'allow' ? '許可する' : '許可しない') : ''],
         ['意気込み', val('f-message')],
         ['運営への連絡', val('f-inquiry')],
     ];
@@ -394,7 +392,6 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     const affiliation = document.getElementById('f-affiliation').value.trim();
     const grade = document.getElementById('f-grade').value;
     const entryName = document.getElementById('f-entry-name').value.trim();
-    const recordNamePermission = document.querySelector('input[name="f-record-name-permission"]:checked')?.value || '';
     const message = document.getElementById('f-message').value.trim();
     const inquiry = document.getElementById('f-inquiry').value.trim();
     const isChubu = document.getElementById('f-chubu').checked;
@@ -422,9 +419,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
 
         const emailHash = await AppCrypto.hashPassword(email.toLowerCase());
         const pwHash = await AppCrypto.hashPassword(pw);
-        const useEntryName = false;
-        const allowRealNameInRecord = recordNamePermission === 'allow';
-        const piiData = { email, familyName, firstName, familyNameKana, firstNameKana, affiliation, grade, entryName, useEntryName, allowRealNameInRecord, isChubu, message, inquiry };
+        const piiData = { email, familyName, firstName, familyNameKana, firstNameKana, affiliation, grade, entryName, isChubu, message, inquiry };
         const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
 
         const entry = await CIQSupabaseAPI.createEntry({

@@ -48,7 +48,7 @@
       email, familyName: ln, firstName: fn,
       familyNameKana: lk, firstNameKana: fk,
       affiliation: school, grade, entryName: eName,
-      useEntryName: false, isChubu, message: msg, inquiry: ''
+      isChubu, message: msg, inquiry: ''
     };
     const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
     const emailHash = await AppCrypto.hashPassword(email);

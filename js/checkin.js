@@ -229,7 +229,7 @@ if (auth) {
         try {
             const result = await invoke();
             const entry = result.entry;
-            const name = entry.entryName || `No.${padNum(entry.entryNumber)}`;
+            const name = `No.${padNum(entry.entryNumber)}`;
             const sub = entrySub(entry);
             const number = `受付番号 ${padNum(entry.entryNumber)}`;
 

@@ -405,7 +405,6 @@ async function saveEdit(event) {
     const grade = el('e-grade').value;
     const isChubu = el('e-chubu').checked;
     const entryName = el('e-entry-name').value.trim();
-    const recordNamePermission = document.querySelector('input[name="e-record-name-permission"]:checked')?.value || '';
     const message = el('e-message').value.trim();
     const inquiry = el('e-inquiry').value.trim();
 
@@ -420,11 +419,10 @@ async function saveEdit(event) {
 
     try {
         if (!publicKeyJwk) throw new Error('セキュリティキーが取得できません');
-        const allowRealNameInRecord = recordNamePermission === 'allow';
         const piiData = {
             email: mySession.email,
             familyName, firstName, familyNameKana, firstNameKana,
-            affiliation, grade, entryName, useEntryName: false, allowRealNameInRecord, isChubu,
+            affiliation, grade, entryName, isChubu,
             message, inquiry,
         };
         const encryptedPII = await AppCrypto.encryptRSA(JSON.stringify(piiData), publicKeyJwk);
@@ -433,7 +431,7 @@ async function saveEdit(event) {
             ...getParticipantActionPayload(),
             encryptedPii: encryptedPII,
             publicProfile: {
-                entryName, affiliation, grade, message, inquiry, isChubu, allowRealNameInRecord,
+                entryName, affiliation, grade, message, inquiry, isChubu,
             },
         });
 
@@ -554,7 +552,7 @@ async function viewResult() {
 
 function renderResult(disc) {
     showEl(el('result-view'));
-    el('result-name').textContent = disc.displayName || '';
+    el('result-name').textContent = [`受付番号 ${String(disc.entryNumber ?? '').padStart(3, '0')}`, disc.affiliation, disc.grade].filter(Boolean).join(' · ');
     el('result-rank').textContent = disc.rank || '';
     el('result-score').textContent = disc.score;
 
