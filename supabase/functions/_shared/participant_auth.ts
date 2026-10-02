@@ -136,7 +136,7 @@ export async function enforceAuthRateLimit(
     .gte('created_at', since);
   if (error) throw error;
   if ((count || 0) >= limit) {
-    throw new ParticipantAuthError('試行回数が上限に達しました。しばらく待ってからお試しください。', 429);
+    throw new ParticipantAuthError('試行回数が上限に達しました。時間をおいて再度お試しください。', 429);
   }
 }
 
@@ -165,7 +165,7 @@ export async function resolveParticipantAuth(
   options: { ip?: string } = {},
 ): Promise<ParticipantAuthResult> {
   const projectId = String(body.projectId || '');
-  if (!projectId) throw new ParticipantAuthError('プロジェクト情報が見つかりません。メール内のリンクから開き直してください。', 400);
+  if (!projectId) throw new ParticipantAuthError('大会情報が見つかりません。メール内のリンクから開き直してください。', 400);
 
   // IP単位のレート制限(fail-open)。超過は 429 として既存catchに委ねる。
   // token/credentials 両経路の乱用を入口で抑える。

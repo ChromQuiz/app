@@ -63,7 +63,7 @@
             if (!window.CV) await loadAdminScriptOnce('js/cv.js');
             if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
             if (typeof window.generatePDF !== 'function' || typeof window.loadAnswers !== 'function') {
-                await loadAdminScriptOnce('js/admin_prep.js?v=27');
+                await loadAdminScriptOnce('js/admin_prep.js?v=28');
             }
         }
 
@@ -176,7 +176,7 @@
                 el.addEventListener(eventName, () => {
                     const fn = actions[el.dataset.action];
                     if (!fn) return;
-                    Promise.resolve(fn()).catch(e => showAdminToast(e.message || '操作に失敗しました'));
+                    Promise.resolve(fn()).catch(e => showAdminToast(e.message || '操作を完了できませんでした。'));
                 });
             });
             document.getElementById('admin-logout-btn')?.addEventListener('click', logout);
@@ -578,7 +578,7 @@
                 try {
                     await run();
                 } catch (e) {
-                    setPageMessage(statusEl, e.message || '操作に失敗しました。', 'error');
+                    setPageMessage(statusEl, e.message || '操作を完了できませんでした。', 'error');
                 } finally {
                     targets.forEach(el => { el.disabled = false; });
                 }
@@ -616,7 +616,7 @@
             undoBtn?.addEventListener('click', async () => {
                 if (!pending) return;
                 const name = `No.${padNum(pending.entryNumber)}`;
-                const ok = await showConfirm(`${name} の受付を取り消します。よろしいですか?`, '取り消す');
+                const ok = await showConfirm(`${name} の受付を取り消します。よろしいですか？`, '取り消す');
                 if (!ok) return;
                 clearPageMessage(statusEl);
                 withBusy(undoBtn, async () => {

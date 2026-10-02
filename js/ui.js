@@ -63,7 +63,7 @@ async function showPreview(projectId, entryNum) {
     pc.className = 'preview-overlay-content';
     const loading = document.createElement('div');
     loading.className = 'text-muted-loader';
-    loading.append(createIcon('spinner'), ' 読み込み中...');
+    loading.append(createIcon('spinner'), ' 読み込み中…');
     pc.appendChild(loading);
     overlay.append(header, pc);
 
@@ -747,7 +747,7 @@ function initTablist(container) {
 
 /**
  * ボタンに送信中状態を設定する。
- * - loading=true の場合、元のラベルを保存し、スピナー + "処理中..." を表示して disabled にする。
+ * - loading=true の場合、元のラベルを保存し、スピナー + "処理中…" を表示して disabled にする。
  * - loading=false の場合、元のラベルを復元して disabled を解除する。
  * 戻り値はPromiseの解決を待つための補助用（呼び出し側でawait不要）。
  */
@@ -766,7 +766,7 @@ function setButtonLoading(btn, loading, label) {
         btn.disabled = true;
         const icon = createIcon('circle-notch');
         const text = document.createElement('span');
-        text.textContent = label || '処理中...';
+        text.textContent = label || '処理中…';
         btn.replaceChildren(icon, text);
     } else {
         btn.dataset.loading = 'false';

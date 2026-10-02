@@ -87,7 +87,7 @@ if (auth) {
             return;
         }
 
-        setScanMessage('カメラを起動しています...');
+        setScanMessage('カメラを起動しています…');
         cameraStartPromise = (async () => {
             stopCamera();
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
@@ -174,7 +174,7 @@ if (auth) {
         if (err?.name === 'NotAllowedError') return 'カメラの使用が許可されていません。ブラウザのサイト設定でカメラを許可してください。';
         if (err?.name === 'NotFoundError') return '利用できるカメラが見つかりません。';
         if (err?.name === 'NotReadableError') return 'カメラを開始できません。他のアプリが使用している可能性があります。';
-        return `カメラの起動に失敗しました: ${err?.message || err}`;
+        return `カメラを起動できませんでした（詳細: ${err?.message || err}）`;
     }
 
     function setScanMessage(message) {
@@ -213,7 +213,7 @@ if (auth) {
         resultDiv.className = 'is-visible loading';
         resultDiv.textContent = '';
         const loading = document.createElement('div');
-        loading.textContent = '読み込み中...';
+        loading.textContent = '読み込み中…';
         resultDiv.appendChild(loading);
     }
 

@@ -171,7 +171,7 @@ function renderSupabaseAuth(sessionData) {
     const email = sessionData?.user?.email || '';
     const displayName = sessionData?.user ? getGoogleDisplayName() : '';
 
-    // サインイン済みのアカウントは選べない固定情報なので、フォームではなく
+    // ログイン済みのアカウントは選べない固定情報なので、フォームではなく
     // 見出しの下の identity 行として静かに示す。
     if (userEl) userEl.textContent = email ? `${displayName}（${email}）` : '';
     const identity = document.getElementById('auth-identity');
@@ -222,7 +222,7 @@ async function renderProjectList() {
     list.textContent = '';
     const loading = document.createElement('div');
     loading.className = 'project-list-empty';
-    loading.append(icon('spinner'), ' 読み込み中...');
+    loading.append(icon('spinner'), ' 読み込み中…');
     list.appendChild(loading);
     try {
         const projects = await CIQSupabaseAPI.listMyProjects();
@@ -281,7 +281,7 @@ async function signInWithSupabaseGoogle() {
         storeAuthIntent(currentTab);
         await CIQSupabaseAPI.signInWithGoogle();
     } catch (e) {
-        showError('Googleサインインを開始できませんでした: ' + e.message);
+        showError('Googleログインを開始できませんでした: ' + e.message);
     }
 }
 
@@ -291,7 +291,7 @@ async function signOutSupabase() {
         clearAuthIntent();
         session.clear();
     } catch (e) {
-        showError('Googleサインアウトに失敗しました: ' + e.message);
+        showError('Googleアカウントからログアウトできませんでした（詳細: ' + e.message + '）');
     }
 }
 
@@ -301,7 +301,7 @@ async function createProject() {
     const btn = document.getElementById('create-btn');
 
     if (!canCreateProject()) {
-        showError('先にGoogleアカウントでサインインしてください。');
+        showError('先にGoogleアカウントでログインしてください。');
         return;
     }
     if (!edition || edition < 1) {
@@ -313,7 +313,7 @@ async function createProject() {
     const pName = `CIQ the ${edition}${getOrdinalSuffix(edition)}`;
 
     btn.disabled = true;
-    setButtonContent(btn, '作成中...', 'circle-notch', false);
+    setButtonContent(btn, '作成中…', 'circle-notch', false);
 
     try {
         const { publicKeyJwk, privateKeyJwk } = await AppCrypto.generateRSAKeyPair();
@@ -348,7 +348,7 @@ async function createProject() {
 
         await renderProjectList();
     } catch (e) {
-        showError('作成に失敗しました: ' + e.message);
+        showError('プロジェクトを作成できませんでした（詳細: ' + e.message + '）');
         btn.disabled = false;
         renderCreateAuthState();
     }
@@ -388,7 +388,7 @@ async function initSupabaseAuth() {
         // 何が起きたかと次の一手は下のメッセージで伝える。
         if (loginBtn && location.protocol !== 'file:') loginBtn.disabled = true;
         showError(location.protocol === 'file:'
-            ? 'Googleサインインは file:// では開始できません。ローカルサーバーで開いてください。'
+            ? 'Googleログインは file:// では開始できません。ローカルサーバーで開いてください。'
             : (window.CIQSupabaseAPI?.getConfigErrorMessage?.() || 'Supabase設定が見つかりません。'), true);
         return;
     }
@@ -400,7 +400,7 @@ async function initSupabaseAuth() {
             renderSupabaseAuth(sessionData);
         });
     } catch (e) {
-        showError('Googleサインイン状態を確認できませんでした: ' + e.message);
+        showError('Googleログイン状態を確認できませんでした: ' + e.message);
     }
 }
 

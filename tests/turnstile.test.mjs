@@ -180,7 +180,7 @@ describe('Turnstile is enforced on both public endpoints with no bypass', () => 
   it('does not leak the internal rejection reason to clients', () => {
     for (const src of [sendEmail, createEntry]) {
       expect(src).toMatch(/TurnstileError[\s\S]*console\.error/);
-      expect(src).toMatch(/認証に失敗しました。ページを再読み込みして、もう一度お試しください。/);
+      expect(src).toMatch(/認証を完了できませんでした。ページを再読み込みして、もう一度お試しください。/);
       expect(src).not.toMatch(/error: error\.code/);
     }
   });

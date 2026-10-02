@@ -408,7 +408,7 @@ async function render() {
     const initialImageLimit = getInitialConflictImageLimit(currentConflicts);
     const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, initialImageLimit));
     if (missingImages.length) {
-        setConflictGridMessage('画像を準備中...', { icon: 'spinner' });
+        setConflictGridMessage('画像を準備中…', { icon: 'spinner' });
         const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
         const imageStartedAt = performance.now();
         await ensureConflictCellUrls(missingImages);

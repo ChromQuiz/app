@@ -37,7 +37,7 @@
             try {
                 await refreshSupabaseScoringData();
             } catch (e) {
-                showAdminToast('集計データの読み込みに失敗しました: ' + e.message);
+                showAdminToast('集計データを読み込めませんでした（詳細: ' + e.message + '）');
             }
             let confirmedCount = 0, doneCount = 0, conflictCount = 0, inprogressCount = 0, untouchedCount = 0, allConfirmed = true;
             for (let q = 1; q <= totalQuestions; q++) {

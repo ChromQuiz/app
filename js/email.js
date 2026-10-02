@@ -43,15 +43,15 @@ const CIQEmail = (() => {
         const result = await res.json().catch(() => ({}));
         if (!res.ok) {
             console.error('[CIQEmail] 送信失敗:', result);
-            return null;
+            return { success: false, error: typeof result?.error === 'string' ? result.error : '' };
         }
         return result;
     }
 
     function requireSendSuccess(result, type) {
         if (result?.success) return true;
-        const detail = result?.error || result?.reason || `${type} failed`;
-        throw new Error(`メール送信に失敗しました: ${detail}`);
+        const detail = result?.error || result?.reason;
+        throw new Error(detail ? `メールを送信できませんでした。${detail}` : 'メールを送信できませんでした。時間をおいて再度お試しください。');
     }
 
     async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, familyName, firstName, status, entryListUrl, qrData, senderName }) {
@@ -94,7 +94,7 @@ const CIQEmail = (() => {
     // turnstileToken はサーバ(send-email)が Siteverify で検証する。クライアントは中継のみ。
     async function sendVerificationCode(to, projectName, senderName, turnstileToken) {
         const result = await request('send_verification', to, { projectName, senderName, turnstileToken });
-        if (!result?.success) return null;
+        if (!result?.success) return { success: false, error: result?.error || '' };
         return result;
     }
 

@@ -14,7 +14,7 @@ import { hmacHex, signingSecret } from './signing.ts';
 
 export class RateLimitError extends Error {
   status: number;
-  constructor(message = 'リクエストが多すぎます。しばらく待ってから再度お試しください。') {
+  constructor(message = 'リクエストが多すぎます。時間をおいて再度お試しください。') {
     super(message);
     this.name = 'RateLimitError';
     this.status = 429;
@@ -71,7 +71,7 @@ type Bucket = keyof typeof RATE_LIMITS;
  */
 export async function enforceIpRateLimit(
   supabase: ReturnType<typeof createServiceClient>,
-  opts: { bucket: Bucket; ip: string; projectId?: string | null },
+  opts: { bucket: Bucket; ip: string; projectId?: string | null; message?: string },
 ): Promise<void> {
   const ip = opts.ip;
   if (!ip || ip === 'unknown') return; // IP不明時はスキップ(fail-open)
@@ -106,7 +106,7 @@ export async function enforceIpRateLimit(
   }
 
   if (priorCount >= limit) {
-    throw new RateLimitError();
+    throw new RateLimitError(opts.message);
   }
 }
 
@@ -139,6 +139,6 @@ export async function enforceProjectDailyEmailCap(
     return; // fail-open
   }
   if (priorCount >= cap) {
-    throw new RateLimitError('本日のメール送信上限に達しました。しばらくしてから再度お試しください。');
+    throw new RateLimitError('本日のメール送信上限に達しました。時間をおいて再度お試しください。');
   }
 }

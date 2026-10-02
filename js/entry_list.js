@@ -15,7 +15,7 @@ const params = new URLSearchParams(location.search);
         const disabledMsg = document.getElementById('disabled-msg');
         disabledMsg.textContent = '';
         const icon = createIcon('ban');
-        disabledMsg.append(icon, 'プロジェクトが指定されていません。正しいURLへアクセスしてください。');
+        disabledMsg.append(icon, '大会が指定されていません。正しいURLへアクセスしてください。');
     }
 
     let maxEntries = 0;

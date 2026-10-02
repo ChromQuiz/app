@@ -20,7 +20,7 @@ Deno.serve(withCors(async (req) => {
   try {
     const body = await req.json();
     const { projectId, encryptedPii, emailHash, disclosurePasswordHash, publicProfile, emailVerifiedToken, turnstileToken } = body;
-    if (!projectId) return jsonResponse({ error: 'プロジェクト情報が見つかりません。URLを確認してください。' }, 400);
+    if (!projectId) return jsonResponse({ error: '大会情報が見つかりません。URLを確認してください。' }, 400);
     if (!encryptedPii || !emailHash || !disclosurePasswordHash) {
       return jsonResponse({ error: 'エントリー情報が不足しています。入力内容を確認してもう一度送信してください。' }, 400);
     }
@@ -99,7 +99,7 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
     if (error instanceof TurnstileError) {
       console.error(`[create-entry] turnstile rejected: ${error.code}`);
-      return jsonResponse({ error: '認証に失敗しました。ページを再読み込みして、もう一度お試しください。' }, error.status);
+      return jsonResponse({ error: '認証を完了できませんでした。ページを再読み込みして、もう一度お試しください。' }, error.status);
     }
     if (error instanceof TurnstileConfigError) {
       console.error('[create-entry] turnstile secret is not configured');
