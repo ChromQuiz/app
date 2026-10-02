@@ -280,7 +280,7 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     ? panel('現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。', 'warning')
     : panel('エントリーを受け付けました。', 'success');
   const body = `
-    <p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person || '参加者')} 様</p>
+    ${person ? `<p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person)} 様</p>` : ''}
     ${waitlistNotice}
     ${numberCard('受付番号', entryNumber)}
     ${detailsTable([['パスワード', password], ['状態', status]])}
@@ -296,7 +296,7 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     subject: `【${name}】エントリー受付完了（No.${entryNumber}）`,
     html: shell('エントリー受付完了', name, body),
     text: [
-      `${person || '参加者'} 様`,
+      person ? `${person} 様` : '',
       `${name} のエントリーを受け付けました。`,
       `受付番号: ${entryNumber}`,
       data.status === 'waitlist' ? `状態: ${status}` : '',
@@ -324,13 +324,13 @@ function simpleNotice(args: {
   return {
     subject: `【${name}】${args.subjectLabel}（No.${entryNumber}）`,
     html: shell(args.title, name, `
-      <p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person || '参加者')} 様</p>
+      ${person ? `<p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person)} 様</p>` : ''}
       ${panel(args.message, args.tone)}
       ${detailsTable([['受付番号', entryNumber]])}
       ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
     `),
     text: [
-      `${person || '参加者'} 様`,
+      person ? `${person} 様` : '',
       `${name} — ${args.message}`,
       `受付番号: ${entryNumber}`,
       myUrl ? `マイエントリー: ${myUrl}` : '',
