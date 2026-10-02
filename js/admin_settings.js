@@ -239,7 +239,7 @@
             const password = document.getElementById('admin-entry-result-password')?.textContent || '';
             if (!password) return;
             await navigator.clipboard.writeText(password);
-            showAdminToast('パスワードをコピーしました', 'success');
+            showAdminToast('パスワードをコピーしました。', 'success');
         }
 
         function buildAdminEntryLinks() {
@@ -272,7 +272,7 @@
             const text = buildAdminEntryTemplateText();
             if (!text) return;
             await navigator.clipboard.writeText(text);
-            showAdminToast('定型文をコピーしました', 'success');
+            showAdminToast('定型文をコピーしました。', 'success');
         }
 
         function drawRoundedRect(ctx, x, y, w, h, r) {
@@ -433,7 +433,7 @@
 
         function downloadAdminEntryReceipt() {
             if (!lastAdminEntryReceipt?.imageBlob) {
-                showAdminToast('控え画像がまだ生成されていません', 'error');
+                showAdminToast('控え画像がまだ生成されていません。', 'error');
                 return;
             }
             const a = document.createElement('a');
@@ -535,7 +535,7 @@
                 window._entriesRaw = null;
                 await loadAdminEntries();
                 updateAdminOverview();
-                showAdminToast('参加者を追加しました', 'success');
+                showAdminToast('参加者を追加しました。', 'success');
             } catch (e) {
                 setAdminEntryStatus(e.message || '参加者を追加できませんでした。', 'error');
             } finally {
@@ -699,7 +699,7 @@
         async function changeProjectMemberRole(memberId, role) {
             try {
                 await CIQSupabaseAPI.updateProjectMemberRole(memberId, role);
-                showAdminToast('権限を更新しました', 'success');
+                showAdminToast('権限を更新しました。', 'success');
                 await loadProjectMembers();
             } catch (e) {
                 showAdminToast(e.message || '権限を更新できませんでした。', 'error');
@@ -711,7 +711,7 @@
             if (!ok) return;
             try {
                 await CIQSupabaseAPI.removeProjectMember(memberId);
-                showAdminToast('メンバーを外しました', 'success');
+                showAdminToast('メンバーを外しました。', 'success');
                 await loadProjectMembers();
             } catch (e) {
                 showAdminToast(e.message || 'メンバーを外せませんでした。', 'error');
@@ -721,7 +721,7 @@
         async function restoreProjectMember(memberId) {
             try {
                 await CIQSupabaseAPI.restoreProjectMember(memberId);
-                showAdminToast('メンバーを復帰しました', 'success');
+                showAdminToast('メンバーを復帰しました。', 'success');
                 await loadProjectMembers();
             } catch (e) {
                 showAdminToast(e.message || 'メンバーを復帰できませんでした。', 'error');
@@ -731,7 +731,7 @@
         async function updateTerms() {
             const termsText = document.getElementById('setting-terms').value.trim();
             await CIQSupabaseAPI.updateProject(projectId, { terms: termsText || null });
-            showAdminToast('参加規約を更新しました', 'success');
+            showAdminToast('参加規約を更新しました。', 'success');
         }
 
         async function updateEmailSettings() {
@@ -740,7 +740,7 @@
                 notify_entry_cancel: document.getElementById('setting-notify-entry-cancel')?.checked !== false,
                 notify_late_notice: document.getElementById('setting-notify-late-notice')?.checked !== false,
             });
-            showAdminToast('メール設定を更新しました', 'success');
+            showAdminToast('メール設定を更新しました。', 'success');
         }
 
         function bindEmailSettingsAutosave() {
@@ -801,7 +801,7 @@
             const enabled = document.getElementById('entry-open-toggle').checked;
             await CIQSupabaseAPI.updateProject(projectId, { entry_open: enabled });
             updateEntryOpenStatus();
-            showAdminToast(enabled ? 'エントリー設定を更新しました' : 'エントリーを停止しました', 'success');
+            showAdminToast(enabled ? 'エントリー設定を更新しました。' : 'エントリーを停止しました。', 'success');
         }
         function updateEntryOpenStatus() {
             const isOpen = document.getElementById('entry-open-toggle').checked;
@@ -868,7 +868,7 @@
                 badge.textContent = '制限なし';
                 badge.className = 'status-badge status-closed';
             }
-            showAdminToast('エントリー期間・定員を保存しました', 'success');
+            showAdminToast('エントリー期間・定員を保存しました。', 'success');
         }
 
         function updateWaitlistPromotionDeadlineDisplay() {
@@ -882,7 +882,7 @@
             const enabled = document.getElementById('disclosure-open-toggle').checked;
             await CIQSupabaseAPI.updateProject(projectId, { disclosure_enabled: enabled });
             updateDisclosureOpenStatus();
-            showAdminToast(enabled ? '成績照会を有効にしました' : '成績照会を停止しました', 'success');
+            showAdminToast(enabled ? '成績照会を有効にしました。' : '成績照会を停止しました。', 'success');
         }
 
         function updateDisclosureOpenStatus() {
@@ -938,7 +938,7 @@
                 disclosure_period_end: end ? new Date(end).toISOString() : null
             });
             updateDisclosureOpenStatus();
-            showAdminToast('照会期間を保存しました', 'success');
+            showAdminToast('照会期間を保存しました。', 'success');
         }
 
         // ============================

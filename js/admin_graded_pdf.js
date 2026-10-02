@@ -164,7 +164,7 @@
 
                 overlayText.textContent = 'PDFを保存中…';
                 doc.save('graded_results.pdf');
-                overlayText.textContent = '完了しました！';
+                overlayText.textContent = '完了しました。';
                 setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);
                 showAdminToast(`${total}人分の採点済みPDFを出力しました`, 'success');
 

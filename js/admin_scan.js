@@ -187,7 +187,7 @@
             [modelAnswers[index], modelAnswers[nextIndex]] = [modelAnswers[nextIndex], modelAnswers[index]];
             renderModelGrid();
             await saveModelAnswers();
-            showAdminToast('並び替えを保存しました', 'success');
+            showAdminToast('並び替えを保存しました。', 'success');
         }
         function renderModelGrid() {
             const grid = document.getElementById('model-answer-grid'); grid.textContent = '';
@@ -262,7 +262,7 @@
                         modelAnswers.splice(0, modelAnswers.length, ...newAnswers);
                         renderModelGrid(); // Re-render to fix the # numbers
                         await saveModelAnswers();
-                        showAdminToast('並び替えを保存しました', 'success');
+                        showAdminToast('並び替えを保存しました。', 'success');
                     } else {
                         renderModelGrid(); // reset DOM
                     }

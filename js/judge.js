@@ -238,5 +238,5 @@ function enterQ(q) {
 setupJudgeEvents();
 initializeApp().catch(error => {
     console.error(error);
-    showToast(error.message || '問題一覧を読み込めませんでした', 'error');
+    showToast(error.message || '問題一覧を読み込めませんでした。', 'error');
 });
