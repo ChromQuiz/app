@@ -480,7 +480,10 @@ function showWaitlistMessage() {
     waitMsg.className = 'waitlist-result-note';
     const strong = document.createElement('strong');
     strong.textContent = 'キャンセル待ち';
-    waitMsg.append(entryIcon('clock'), ' 定員に達したため、', strong, 'として登録されました。');
+    // flex の gap でテキストと太字の間が空かないよう、文章全体を1つの要素にまとめる。
+    const text = document.createElement('span');
+    text.append('定員に達したため、', strong, 'として登録されました。');
+    waitMsg.append(entryIcon('clock'), text);
     document.getElementById('r-entry-number').parentElement.after(waitMsg);
 }
 
@@ -546,7 +549,9 @@ async function init() {
         }
         if (blocked) showDisabled(blockTitle, blockDetail);
     } catch (e) {
-        showDisabled('接続エラー', e.message || 'Supabaseに接続できませんでした。');
+        // 参加者向けの画面なので、内部のエラー文は出さずコンソールにだけ残す。
+        console.error(e);
+        showDisabled('大会情報を読み込めませんでした', '時間をおいて再度お試しください。');
     }
 }
 
