@@ -653,26 +653,7 @@ const CIQSupabaseAPI = {
     async listEntriesForAdmin(projectId) {
         const { data, error } = await this.client()
             .rpc('list_entries_for_admin', { p_project_id: projectId });
-        if (error) {
-            const message = error.message || String(error);
-            const isMissingRpc = error.code === 'PGRST202'
-                || message.includes('Could not find the function')
-                || message.includes('schema cache');
-            if (!isMissingRpc) throw error;
-
-            console.warn('[CIQ upload debug] listEntriesForAdmin:fallbackDirectSelect', {
-                projectId,
-                code: error.code || null,
-                message,
-            });
-            const { data: fallbackData, error: fallbackError } = await this.client()
-                .from('entries')
-                .select('id, project_id, entry_number, entry_name, affiliation, grade, message, is_chubu, status, checked_in, created_at, updated_at, waitlist_promoted_at, waitlist_promotion_notice')
-                .eq('project_id', projectId)
-                .order('entry_number', { ascending: true });
-            if (fallbackError) throw fallbackError;
-            return fallbackData || [];
-        }
+        if (error) throw error;
         return data || [];
     },
 
@@ -1694,34 +1675,6 @@ const CIQSupabaseAPI = {
                 p_entry_id: entryId,
                 p_result: result,
             })
-            .single();
-        if (error) {
-            const message = error.message || '';
-            if (!message.includes('ambiguous')) throw error;
-            const fallback = await this.resolveScoreConflictDirect(projectId, questionNumber, entryId, result);
-            return fallback;
-        }
-        return data;
-    },
-
-    async resolveScoreConflictDirect(projectId, questionNumber, entryId, result) {
-        const sessionData = await this.getSession();
-        const members = await this.listProjectMembers(projectId);
-        const currentMember = members.find(member => member.user_id === sessionData?.user?.id);
-        if (!currentMember || !['owner', 'admin'].includes(currentMember.role)) {
-            throw new Error('要確認の確定には管理者権限が必要です。');
-        }
-        const { data, error } = await this.client()
-            .from('final_results')
-            .upsert({
-                project_id: projectId,
-                question_number: questionNumber,
-                entry_id: entryId,
-                result,
-                decided_by: currentMember.id,
-                decided_at: new Date().toISOString(),
-            }, { onConflict: 'project_id,question_number,entry_id' })
-            .select('project_id, question_number, entry_id, result, decided_by, decided_at')
             .single();
         if (error) throw error;
         return data;
