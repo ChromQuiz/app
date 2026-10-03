@@ -90,7 +90,16 @@ if (auth) {
         setScanMessage('カメラを起動しています…');
         cameraStartPromise = (async () => {
             stopCamera();
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+            // 解像度を指定しないと端末によっては 640×480 程度になり、細かい二次元コードがつぶれる。
+            // ideal は「できれば」の指定なので、対応しない端末でも失敗せず使える範囲で動く。
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                },
+                audio: false,
+            });
             await attachCameraStream(stream);
         })();
         try {
@@ -188,7 +197,8 @@ if (auth) {
             canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            // 反転(白黒逆)の二次元コードは使わない。既定の attemptBoth は毎フレーム2回走査して遅い。
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
             const qrData = code?.data?.trim();
             if (qrData && !processing && qrData !== lastUUID) {
                 processing = true;
