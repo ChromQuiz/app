@@ -14,6 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+ * 入力されたメールアドレスを整える。全角の「＋」「＠」「．」や全角の英数字、全角スペースを半角にし(NFKC)、前後の空白を除く。
+ * 日本語キーボードでは全角の記号が入りやすく、そのままだとメール会社に拒否される。
+ * ハッシュ(本人確認)にもこの値を使うので、メールアドレスを読む場所では必ずこれを通す。
+ * すでに半角のアドレスは変わらないため、これまでに登録された人のハッシュには影響しない。
+ */
+function normalizeEmailInput(value) {
+    return String(value ?? '').normalize('NFKC').trim();
+}
+
+/**
  * メールアドレスの形式チェック。サーバー側(supabase/functions/_shared/email_address.ts)と同じ規則。
  * 全角文字・空白・連続したドット・末尾の句点などを弾く(送信先のメール会社に拒否される形)。
  */

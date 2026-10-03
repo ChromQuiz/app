@@ -191,7 +191,7 @@ function clearStatus() {
 }
 
 function getPreVerificationSubmitMessage() {
-    const email = document.getElementById('f-email').value.trim();
+    const email = normalizeEmailInput(document.getElementById('f-email').value);
     const codeAreaVisible = !document.getElementById('code-input-area').classList.contains('u-hidden');
     const code = document.getElementById('f-verify-code').value.trim();
     if (!email) return 'メールアドレスを入力してください。';
@@ -227,7 +227,7 @@ function startResendCooldown() {
 async function resendVerification() {
     // 再送は新しいコードを発行するため、以前の認証済み状態とトークンを破棄する。
     clearEmailVerification();
-    const email = document.getElementById('f-email').value.trim();
+    const email = normalizeEmailInput(document.getElementById('f-email').value);
     const resendBtn = document.getElementById('resend-code-btn');
     resendBtn.disabled = true;
     setEntryButton(resendBtn, '送信中…', 'spinner');
@@ -256,7 +256,8 @@ async function resendVerification() {
 }
 
 async function sendVerification() {
-    const email = document.getElementById('f-email').value.trim();
+    const email = normalizeEmailInput(document.getElementById('f-email').value);
+    document.getElementById('f-email').value = email;   // 全角を直した結果を入力欄にも反映する
     clearStatus();
     // 新規にコードを送るときは、以前の認証済み状態とトークンを破棄する。
     clearEmailVerification();
@@ -300,7 +301,7 @@ async function sendVerification() {
 
 async function verifyEmailCode() {
     const code = document.getElementById('f-verify-code').value.trim();
-    const email = document.getElementById('f-email').value.trim();
+    const email = normalizeEmailInput(document.getElementById('f-email').value);
     clearStatus();
 
     if (!code) {
@@ -504,6 +505,9 @@ document.getElementById('send-code-btn')?.addEventListener('click', sendVerifica
 document.getElementById('verify-code-btn')?.addEventListener('click', verifyEmailCode);
 document.getElementById('resend-code-btn')?.addEventListener('click', resendVerification);
 // メールアドレスが編集されたら、保持中の認証済み状態・トークンを破棄する(防御的)。
+document.getElementById('f-email')?.addEventListener('change', (event) => {
+    event.target.value = normalizeEmailInput(event.target.value);
+});
 document.getElementById('f-email')?.addEventListener('input', () => {
     if (emailVerified || verifiedToken) clearEmailVerification();
 });

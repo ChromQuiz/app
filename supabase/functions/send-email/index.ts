@@ -527,7 +527,8 @@ Deno.serve(withCors(async (req) => {
     const { type, to, data = {}, projectId, entryId } = await req.json();
     if (!type || !to) return jsonResponse({ error: 'メール送信に必要な宛先または種別が不足しています。' }, 400);
 
-    const normalizedEmail = String(to).trim().toLowerCase();
+    // 画面側(normalizeEmailInput)と同じく NFKC で全角を半角に直してから検証・ハッシュする
+    const normalizedEmail = String(to).normalize('NFKC').trim().toLowerCase();
     if (!isValidEmailAddress(normalizedEmail)) {
       return jsonResponse({ error: 'メールアドレスの形式が正しくありません。全角の文字や空白が入っていないかご確認ください。' }, 400);
     }

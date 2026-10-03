@@ -459,7 +459,7 @@
 
         function readAdminEntryForm() {
             return {
-                email: getAdminEntryValue('admin-entry-email'),
+                email: normalizeEmailInput(getAdminEntryValue('admin-entry-email')),
                 familyName: getAdminEntryValue('admin-entry-family-name'),
                 firstName: getAdminEntryValue('admin-entry-first-name'),
                 familyNameKana: getAdminEntryValue('admin-entry-family-kana'),
