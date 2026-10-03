@@ -904,7 +904,7 @@ Notes   :
 ```
 Status  : Completed — 2026-10-03（親計画 Baseline v1.0 は未変更。V7 の TTL 判断 2026-07-26 を置き換える）
 Evidence:
-  - Commits    : （マージ時に追記）
+  - Commits    : 8fdf63d (Drop the expiry from the check-in code token and make the code coarser)
   - Migrations : なし
   - Deploys    : check-in / my-entry / checkin-qr / admin-entry-qr（_shared/qr_token.ts, qr.ts を共有）
   - Verification:
