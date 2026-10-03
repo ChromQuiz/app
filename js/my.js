@@ -162,9 +162,11 @@ function showAuth(message) {
 async function authenticate(event) {
     event?.preventDefault();
     const form = el('auth-card');
+    // type="email" のブラウザ検証は全角を弾くため、検証の前に半角へ直す
+    el('f-email').value = normalizeEmailInput(el('f-email').value);
     if (!form.reportValidity()) return;
 
-    const email = el('f-email').value.trim();
+    const email = el('f-email').value;
     const pw = el('f-password').value.trim();
 
     const btn = el('auth-btn');

@@ -26,6 +26,7 @@ function extractFunction(src, name) {
   throw new Error(`unbalanced ${name}`);
 }
 const clientCheck = new Function(`return (${extractFunction(read('js/shared.js'), 'isValidEmailAddress')})`)();
+const normalize = new Function(`return (${extractFunction(read('js/shared.js'), 'normalizeEmailInput')})`)();
 
 const VALID = [
   'a@b.co',
@@ -96,5 +97,62 @@ describe('the check is used where an address is entered or mailed', () => {
     expect(src).toMatch(/message\.startsWith\('Brevo send failed'\)/);
     expect(src).toMatch(/このメールアドレスには送信できません/);
     expect(src).toMatch(/\}, 502\)/);
+  });
+});
+
+describe('normalizeEmailInput (full-width characters from a Japanese keyboard)', () => {
+  it('turns the address that failed in production into a valid one', () => {
+    const typed = 'reon.s.717＋4@gmail.com';   // 「＋」が全角
+    expect(clientCheck(typed)).toBe(false);
+    const fixed = normalize(typed);
+    expect(fixed).toBe('reon.s.717+4@gmail.com');
+    expect(clientCheck(fixed)).toBe(true);
+    expect(serverCheck(fixed)).toBe(true);
+  });
+
+  it('converts full-width symbols, letters, digits and spaces, and trims', () => {
+    expect(normalize('ｎａｍｅ＠ｅｘａｍｐｌｅ．ｃｏｍ')).toBe('name@example.com');
+    expect(normalize('a－b@example.com')).toBe('a-b@example.com');
+    expect(normalize('　name@example.com　')).toBe('name@example.com');
+    expect(normalize(' \n name@example.com\t')).toBe('name@example.com');
+    expect(normalize('ｒｅｏｎ．ｓ．７１７＋４＠ｇｍａｉｌ．ｃｏｍ')).toBe('reon.s.717+4@gmail.com');
+  });
+
+  it('leaves a half-width address untouched, so existing identity hashes do not change', () => {
+    for (const email of VALID) expect(normalize(email)).toBe(email);
+  });
+
+  it('does not rescue what is still wrong (a trailing full-stop stays and fails the check)', () => {
+    expect(clientCheck(normalize('name@gmail.com。'))).toBe(false);
+    expect(clientCheck(normalize('日本語@example.com'))).toBe(false);
+  });
+
+  it('handles non-string input without throwing', () => {
+    expect(normalize(null)).toBe('');
+    expect(normalize(undefined)).toBe('');
+  });
+});
+
+describe('every place that reads an address normalizes it first', () => {
+  it('entry form reads the address only through normalizeEmailInput', () => {
+    const src = read('js/entry.js');
+    expect(src).not.toMatch(/getElementById\('f-email'\)\.value\.trim\(\)/);
+    expect((src.match(/normalizeEmailInput\(/g) || []).length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('my page normalizes before the browser validation and before hashing', () => {
+    const src = read('js/my.js');
+    const auth = src.slice(src.indexOf('async function authenticate'), src.indexOf('async function loadHub'));
+    expect(auth.indexOf('normalizeEmailInput')).toBeGreaterThan(-1);
+    expect(auth.indexOf('normalizeEmailInput')).toBeLessThan(auth.indexOf('reportValidity'));
+    expect(auth.indexOf('reportValidity')).toBeLessThan(auth.indexOf('hashPassword(email.toLowerCase())'));
+  });
+
+  it('admin proxy entry normalizes the address', () => {
+    expect(read('js/admin_settings.js')).toMatch(/email: normalizeEmailInput\(getAdminEntryValue\('admin-entry-email'\)\)/);
+  });
+
+  it('send-email applies the same NFKC normalization before validating and hashing', () => {
+    expect(read('supabase/functions/send-email/index.ts')).toMatch(/String\(to\)\.normalize\('NFKC'\)\.trim\(\)\.toLowerCase\(\)/);
   });
 });
