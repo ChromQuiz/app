@@ -4,7 +4,7 @@
 -- 常時表示しても増える負担は縦方向の固定費だけで済む(hover/click は採点のキーボード操作を分断する)。
 --
 -- answer に区切り文字を詰め込まず列を分ける。表示のたびに分解せずに済み、
--- 将来「別解も自動で正解扱いにする」等を入れるときにも壊れない。
+-- 別解を1件ずつ扱える。
 
 alter table public.model_answers
   add column if not exists alt_answers text[] not null default '{}';
