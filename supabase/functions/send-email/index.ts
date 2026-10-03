@@ -388,13 +388,7 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
     subject: `【${projectNameValue}】認証コード`,
     html: shell('認証コード', projectNameValue, `
       <p class="ciq-mail-copy" style="margin:0;text-align:left;color:${MAIL.text};">エントリーフォームに以下のコードを入力してください。</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
-        <tr>
-          <td class="ciq-mail-code-box" align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:18px;padding:24px;background:${MAIL.surface};">
-            <span class="ciq-mail-code" style="font-family:${MAIL_MONO};font-size:36px;font-weight:600;letter-spacing:10px;color:${MAIL.text};">${escapeHtml(code)}</span>
-          </td>
-        </tr>
-      </table>
+      ${numberCard('認証コード', code)}
       <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダもご確認ください。心当たりがない場合は、このメールを破棄してください。</p>
     `),
     text: [
