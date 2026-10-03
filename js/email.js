@@ -115,3 +115,7 @@ const CIQEmail = (() => {
 
     return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendWaitlistPromotion, sendVerificationCode, verifyCode };
 })();
+
+// ページ直下の const は window の属性にならない。my.js は window.CIQEmail? で有無を判定するため、
+// 明示的に公開しないと「キャンセル・変更・遅刻」の通知メールが黙って送られなくなる。
+window.CIQEmail = CIQEmail;
