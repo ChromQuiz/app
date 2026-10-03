@@ -448,8 +448,8 @@
         }
 
         function validateAdminEntryForm(values) {
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-                return '正しいメールアドレスを入力してください。';
+            if (!isValidEmailAddress(values.email)) {
+                return '正しいメールアドレスを入力してください。全角の文字や空白が入っていないかご確認ください。';
             }
             if (!/^[ァ-ヴー]+$/.test(values.familyNameKana) || !/^[ァ-ヴー]+$/.test(values.firstNameKana)) {
                 return 'カナは全角カタカナで入力してください。';

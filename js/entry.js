@@ -264,8 +264,8 @@ async function sendVerification() {
         showVerifyMsg('メールアドレスを入力してください。', 'error');
         return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showVerifyMsg('正しいメールアドレスを入力してください。', 'error');
+    if (!isValidEmailAddress(email)) {
+        showVerifyMsg('正しいメールアドレスを入力してください。全角の文字や空白が入っていないかご確認ください。', 'error');
         return;
     }
 
@@ -413,8 +413,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         showStatus('カナは全角カタカナで入力してください。', 'error');
         return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showStatus('正しいメールアドレスを入力してください。', 'error');
+    if (!isValidEmailAddress(email)) {
+        showStatus('正しいメールアドレスを入力してください。全角の文字や空白が入っていないかご確認ください。', 'error');
         return;
     }
 

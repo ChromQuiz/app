@@ -6,6 +6,7 @@ import { clientIp, enforceIpRateLimit, enforceProjectDailyEmailCap, RateLimitErr
 import { issueEmailVerifiedToken } from '../_shared/email_verify.ts';
 import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
 import { TurnstileConfigError, TurnstileError, verifyTurnstile } from '../_shared/turnstile.ts';
+import { isValidEmailAddress } from '../_shared/email_address.ts';
 
 type EmailTemplate = {
   subject: string;
@@ -527,8 +528,8 @@ Deno.serve(withCors(async (req) => {
     if (!type || !to) return jsonResponse({ error: 'メール送信に必要な宛先または種別が不足しています。' }, 400);
 
     const normalizedEmail = String(to).trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      return jsonResponse({ error: 'メールアドレスの形式が正しくありません。' }, 400);
+    if (!isValidEmailAddress(normalizedEmail)) {
+      return jsonResponse({ error: 'メールアドレスの形式が正しくありません。全角の文字や空白が入っていないかご確認ください。' }, 400);
     }
     // 宛先所有確認(assertEntryRecipient)は生の sha256 を入力にする(内部で pepper 化して v2 と照合)。
     const recipientHash = await sha256Hex(normalizedEmail);
@@ -665,6 +666,15 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof ParticipantHashConfigError) {
       console.error('[send-email] participant hash pepper is not configured');
       return jsonResponse({ error: 'メールを送信できませんでした。運営にお問い合わせください。' }, 503);
+    }
+    // メール会社(Brevo / SES)の失敗。汎用の 500 に丸めず、利用者が取れる行動が分かる応答にする。
+    // 失敗の詳細は email_events.error に記録済み(ここでは本文を出さない)。
+    if (message.startsWith('Brevo send failed') || message.startsWith('SES send failed')) {
+      console.error(`[send-email] provider rejected the message: ${message.slice(0, 120)}`);
+      if (/ 400 /.test(message) && /not valid|invalid/i.test(message)) {
+        return jsonResponse({ error: 'このメールアドレスには送信できません。メールアドレスをご確認ください。' }, 400);
+      }
+      return jsonResponse({ error: 'メールを送信できませんでした。時間をおいて再度お試しください。解決しない場合は運営にお問い合わせください。' }, 502);
     }
     return serverErrorResponse(error, 'send-email');
   }
