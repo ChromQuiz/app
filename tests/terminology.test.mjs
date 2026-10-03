@@ -2,7 +2,7 @@
 //
 // 「QRコード」はデンソーウェーブの登録商標なので、利用者の目に触れる文言では
 // 「二次元コード」を使う。ライブラリ名・関数名・環境変数などの識別子は対象外
-// (jsQR / QRCode / processQR / CIQ_QR_TTL_DAYS / npm:qrcode など)。
+// (jsQR / QRCode / processQR / npm:qrcode など)。
 
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -55,6 +55,6 @@ describe('利用者に見える文言では「二次元コード」を使う', (
     const qr = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr.ts'), 'utf8');
     expect(qr).toMatch(/import QRCode from 'npm:qrcode@/);
     const token = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr_token.ts'), 'utf8');
-    expect(token).toMatch(/CIQ_QR_TTL_DAYS/);
+    expect(token).toMatch(/export async function issueQrToken/);
   });
 });

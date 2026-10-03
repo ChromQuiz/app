@@ -11,18 +11,19 @@ const ROOT = resolve(import.meta.dirname, '..');
 const SECRET = 'test-signing-secret-0123456789abcdef';   // 32文字以上（V1 の下限を満たす）
 const ENTRY_ID = '080410bf-8742-4a6b-80db-139a680e3e53';
 
-let issueQrToken, verifyQrToken;
+let issueQrToken, verifyQrToken, hmacHex;
 
 beforeAll(async () => {
   globalThis.Deno = { env: { get: (k) => (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined) } };
   ({ issueQrToken, verifyQrToken } = await import('../supabase/functions/_shared/qr_token.ts'));
+  ({ hmacHex } = await import('../supabase/functions/_shared/signing.ts'));
 });
 
 describe('signed check-in QR tokens (V7)', () => {
   it('issues a token that is not the bare entry UUID', async () => {
     const token = await issueQrToken(ENTRY_ID);
     expect(token).not.toBe(ENTRY_ID);
-    expect(token.split('.')).toHaveLength(3);
+    expect(token.split('.')).toHaveLength(2);
     expect(token.startsWith(`${ENTRY_ID}.`)).toBe(true);
   });
 
@@ -31,60 +32,108 @@ describe('signed check-in QR tokens (V7)', () => {
     await expect(verifyQrToken(token)).resolves.toBe(ENTRY_ID);
   });
 
+  it('verifies the upper-case form that is embedded in the image', async () => {
+    const token = await issueQrToken(ENTRY_ID);
+    await expect(verifyQrToken(token.toUpperCase())).resolves.toBe(ENTRY_ID);
+    await expect(verifyQrToken(`  ${token.toUpperCase()}\n`)).resolves.toBe(ENTRY_ID);
+  });
+
   it('rejects a legacy bare UUID (old QR format)', async () => {
     await expect(verifyQrToken(ENTRY_ID)).resolves.toBeNull();
   });
 
   it('rejects a token whose entry id was swapped (forgery)', async () => {
     const token = await issueQrToken(ENTRY_ID);
-    const [, exp, sig] = token.split('.');
+    const [, sig] = token.split('.');
     const otherId = '0909e458-681c-4b4f-9d8e-f8ec6806c9d0';
-    await expect(verifyQrToken(`${otherId}.${exp}.${sig}`)).resolves.toBeNull();
+    await expect(verifyQrToken(`${otherId}.${sig}`)).resolves.toBeNull();
   });
 
-  it('rejects a tampered signature and a tampered expiry', async () => {
+  it('rejects a tampered, truncated, padded or non-hex signature', async () => {
     const token = await issueQrToken(ENTRY_ID);
-    const [id, exp, sig] = token.split('.');
-    await expect(verifyQrToken(`${id}.${exp}.${'0'.repeat(sig.length)}`)).resolves.toBeNull();
-    await expect(verifyQrToken(`${id}.${Number(exp) + 1}.${sig}`)).resolves.toBeNull();
+    const [id, sig] = token.split('.');
+    const flipped = (sig[0] === '0' ? '1' : '0') + sig.slice(1);
+    for (const bad of [
+      '0'.repeat(sig.length), flipped, sig.slice(0, -1), `${sig}0`, sig.replace(/./, 'z'), '',
+    ]) {
+      await expect(verifyQrToken(`${id}.${bad}`)).resolves.toBeNull();
+    }
   });
 
-  it('rejects an expired token', async () => {
-    const expired = await issueQrToken(ENTRY_ID, -1000);   // 過去に失効
-    await expect(verifyQrToken(expired)).resolves.toBeNull();
-  });
-
-  it('defaults to a bounded TTL (30 days), not an effectively unlimited one', async () => {
-    const token = await issueQrToken(ENTRY_ID);
-    const exp = Number(token.split('.')[1]);
-    const days = (exp - Date.now()) / 86400000;
-    expect(days).toBeGreaterThan(29);
-    expect(days).toBeLessThanOrEqual(30);
-  });
-
-  it('honours CIQ_QR_TTL_DAYS and clamps it to a sane range', async () => {
-    const withEnv = async (days) => {
-      globalThis.Deno = { env: { get: (k) => (k === 'CIQ_QR_TTL_DAYS' ? days : (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined)) } };
-      const token = await issueQrToken(ENTRY_ID);
-      return (Number(token.split('.')[1]) - Date.now()) / 86400000;
-    };
-    expect(await withEnv('2')).toBeLessThanOrEqual(2);
-    expect(await withEnv('99999')).toBeLessThanOrEqual(400);   // 上限クランプ
-    expect(await withEnv('0')).toBeGreaterThan(29);            // 不正値は既定へ
-    // 後続テストのため既定 env に戻す
+  it('carries no expiry: the same entry always gets the same token, whatever the old TTL setting says', async () => {
+    const first = await issueQrToken(ENTRY_ID);
+    globalThis.Deno = { env: { get: (k) => (k === 'CIQ_QR_TTL_DAYS' ? '1' : (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined)) } };
+    const second = await issueQrToken(ENTRY_ID);
     globalThis.Deno = { env: { get: (k) => (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined) } };
+    expect(second).toBe(first);
+    expect(first.split('.')).toHaveLength(2);
+  });
+
+  it('is short enough to stay at QR version 3 with error correction L, using only alphanumeric-mode characters', async () => {
+    const token = (await issueQrToken(ENTRY_ID)).toUpperCase();
+    // version 3-L の英数字モードの容量は 77 文字。英数字モード: 0-9 A-Z 空白 $%*+-./:
+    expect(token.length).toBeLessThanOrEqual(77);
+    expect(token).toMatch(/^[0-9A-F.\-]+$/);
   });
 
   it('binds a purpose+version tag so signatures cannot cross protocols', async () => {
     const src = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr_token.ts'), 'utf8');
-    expect(src).toMatch(/const TOKEN_VERSION = 'qr1'/);
-    expect(src).toMatch(/\$\{TOKEN_VERSION\}:\$\{entryId\}:\$\{expMs\}/);
+    expect(src).toMatch(/const TOKEN_VERSION = 'qr3'/);
+    expect(src).toMatch(/const LEGACY_TOKEN_VERSION = 'qr1'/);
+    expect(src).toMatch(/`\$\{TOKEN_VERSION\}:\$\{entryId\}`/);
+  });
+
+  it('does not accept a current-format signature as a legacy one, or the other way round', async () => {
+    const token = await issueQrToken(ENTRY_ID);
+    const [id, sig] = token.split('.');
+    // 現行の署名(32文字)を旧形式の枠(3パート)に入れても通らない
+    await expect(verifyQrToken(`${id}.${Date.now() + 1e9}.${sig}`)).resolves.toBeNull();
+    // 旧形式の署名を現行の枠(2パート)に入れても通らない
+    const exp = Date.now() + 86400000;
+    const legacySig = await hmacHex(SECRET, `qr1:${ENTRY_ID}:${exp}`);
+    await expect(verifyQrToken(`${ENTRY_ID}.${legacySig}`)).resolves.toBeNull();
   });
 
   it('rejects malformed input', async () => {
-    for (const bad of ['', 'a.b', 'a.b.c.d', null, undefined, 42, `${ENTRY_ID}.notanumber.abc`]) {
+    for (const bad of ['', 'a.b', 'a.b.c.d', null, undefined, 42, `${ENTRY_ID}.notanumber.abc`, `${ENTRY_ID}.`, `.${'a'.repeat(32)}`]) {
       await expect(verifyQrToken(bad)).resolves.toBeNull();
     }
+  });
+});
+
+describe('legacy tokens that were already issued (expiring format)', () => {
+  const legacy = async (id, expMs) => `${id}.${expMs}.${await hmacHex(SECRET, `qr1:${id}:${expMs}`)}`;
+
+  it('still verify while they are within their expiry', async () => {
+    const token = await legacy(ENTRY_ID, Date.now() + 5 * 86400000);
+    await expect(verifyQrToken(token)).resolves.toBe(ENTRY_ID);
+    await expect(verifyQrToken(token.toUpperCase())).resolves.toBe(ENTRY_ID);
+  });
+
+  it('are rejected once expired', async () => {
+    await expect(verifyQrToken(await legacy(ENTRY_ID, Date.now() - 1000))).resolves.toBeNull();
+  });
+
+  it('are rejected when the entry id, the expiry or the signature is tampered with', async () => {
+    const exp = Date.now() + 86400000;
+    const token = await legacy(ENTRY_ID, exp);
+    const [id, , sig] = token.split('.');
+    await expect(verifyQrToken(`0909e458-681c-4b4f-9d8e-f8ec6806c9d0.${exp}.${sig}`)).resolves.toBeNull();
+    await expect(verifyQrToken(`${id}.${exp + 1}.${sig}`)).resolves.toBeNull();
+    await expect(verifyQrToken(`${id}.${exp}.${'0'.repeat(64)}`)).resolves.toBeNull();
+    await expect(verifyQrToken(`${id}.${exp}.${sig.slice(0, 32)}`)).resolves.toBeNull();
+  });
+});
+
+describe('the QR image is generated small', () => {
+  const qrSrc = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr.ts'), 'utf8');
+
+  it('upper-cases the value so it is encoded in alphanumeric mode', () => {
+    expect(qrSrc).toMatch(/String\(value\)\.toUpperCase\(\)/);
+  });
+
+  it('uses error correction level L', () => {
+    expect(qrSrc).toMatch(/errorCorrectionLevel: 'L'/);
   });
 });
 
