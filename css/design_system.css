@@ -1992,7 +1992,15 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .entry-verify-help [data-icon],
 .entry-verified-box [data-icon],
 .waitlist-result-note [data-icon],
-.csv-status [data-icon] {
+.csv-status [data-icon],
+/* JS(createIcon)が直接追加する svg にも同じ位置・サイズ・色を当てる。
+   これがないと、アイコンが行の上端に寄り、色も本文色のままになる */
+.page-msg > svg[data-lucide],
+.status-msg-box > svg[data-lucide],
+.entry-verify-help > svg[data-lucide],
+.entry-verified-box > svg[data-lucide],
+.waitlist-result-note > svg[data-lucide],
+.csv-status > svg[data-lucide] {
   flex: 0 0 auto;
   width: 1.05em;
   height: 1.05em;
@@ -2066,7 +2074,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   flex: 0 0 auto;
   width: 1.1em;
   height: 1.1em;
-  margin-top: 0.2em;
+  /* 見出し(14px・行高1.4)の1行目の中心にアイコンの中心を合わせる値 */
+  margin-top: 0.06em;
   color: var(--ink-2);
 }
 
@@ -2155,7 +2164,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   color: var(--ink-2);
 }
 
-.empty-state [data-icon] {
+.empty-state [data-icon],
+.empty-state > svg[data-lucide] {
   font-size: var(--fs-32);
   color: var(--ink-3);
 }
@@ -2188,7 +2198,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   color: var(--ink);
 }
 
-.error-state [data-icon] {
+.error-state [data-icon],
+.error-state > svg[data-lucide] {
   font-size: var(--fs-24);
   color: var(--bad-600);
   margin-bottom: var(--sp-1);
