@@ -126,6 +126,14 @@ function setVerifyCodeValue(value) {
     syncVerifyCodeFromBoxes();
 }
 
+// 6桁そろったら「認証する」を押したのと同じ扱いにする(入力・貼り付け・メールの自動入力のどれでも)。
+function autoVerifyIfComplete() {
+    syncVerifyCodeFromBoxes();
+    const code = document.getElementById('f-verify-code')?.value || '';
+    const verifyButton = document.getElementById('verify-code-btn');
+    if (code.length === 6 && verifyButton && !verifyButton.disabled) verifyEmailCode();
+}
+
 function focusVerifyCodeBox(index = 0) {
     const boxes = getVerifyCodeBoxes();
     boxes[Math.max(0, Math.min(index, boxes.length - 1))]?.focus();
@@ -140,11 +148,13 @@ function setupVerifyCodeBoxes() {
                 const current = getVerifyCodeBoxes().map(box => box.value).join('');
                 setVerifyCodeValue(current.slice(0, index) + digits + current.slice(index + 1));
                 focusVerifyCodeBox(Math.min(index + digits.length, boxes.length - 1));
+                autoVerifyIfComplete();
                 return;
             }
             input.value = digits;
             syncVerifyCodeFromBoxes();
             if (digits && index < boxes.length - 1) focusVerifyCodeBox(index + 1);
+            autoVerifyIfComplete();
         });
         input.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
@@ -167,6 +177,7 @@ function setupVerifyCodeBoxes() {
             event.preventDefault();
             setVerifyCodeValue(text);
             focusVerifyCodeBox(Math.min(text.replace(/\D/g, '').length, boxes.length - 1));
+            autoVerifyIfComplete();
         });
     });
 }
@@ -195,7 +206,7 @@ function generatePW() {
 }
 
 function startResendCooldown() {
-    let sec = 10;
+    let sec = 60;
     const resendBtn = document.getElementById('resend-code-btn');
     showEl(resendBtn);
     resendBtn.disabled = true;

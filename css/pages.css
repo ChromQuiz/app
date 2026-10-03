@@ -348,7 +348,6 @@ body.page-question .header-center {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: var(--sp-2);
-  max-width: 360px;
 }
 
 .verify-code-box {
