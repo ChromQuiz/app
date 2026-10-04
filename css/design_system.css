@@ -825,6 +825,26 @@ svg[width="24"][stroke="currentColor"] {
   border-radius: var(--r-full);
 }
 
+/* 文中のリンクのように見せるボタン（「パスワードを忘れた場合」など、主役ではない操作） */
+.text-link-row {
+  margin-top: var(--sp-5);
+  text-align: center;
+}
+
+.text-link-btn {
+  padding: var(--sp-2) var(--sp-3);
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--fs-14);
+  cursor: pointer;
+}
+
+.text-link-btn:hover {
+  text-decoration: underline;
+}
+
 /* Number spinner */
 .number-spinner-wrap {
   display: inline-flex;
