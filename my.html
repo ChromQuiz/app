@@ -18,7 +18,7 @@
     <script defer src="js/shared.js?v=4"></script>
     <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script defer src="js/turnstile.js?v=2"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=84">
+    <link rel="stylesheet" href="css/design_system.css?v=85">
     <link rel="stylesheet" href="css/pages.css?v=128">
 </head>
 <body class="page-wrapper page-my">
@@ -40,7 +40,7 @@
             </div>
             <button type="submit" class="page-btn" id="auth-btn">ログイン</button>
             <div class="page-msg" id="auth-msg" role="status" aria-live="polite"></div>
-            <button type="button" class="btn ghost u-full-width" id="forgot-btn">パスワードを忘れた場合</button>
+            <div class="text-link-row"><button type="button" class="text-link-btn" id="forgot-btn">パスワードを忘れた場合</button></div>
         </form>
 
         <!-- パスワードの再発行（メール認証のあと、新しいパスワードを発行する） -->
@@ -61,10 +61,10 @@
                     <input type="text" id="r-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456">
                 </div>
                 <button type="button" class="page-btn" id="reset-verify-btn">認証してパスワードを再発行</button>
-                <button type="button" class="btn ghost u-full-width" id="reset-resend-btn">認証コードを再送信</button>
+                <div class="text-link-row"><button type="button" class="text-link-btn" id="reset-resend-btn">認証コードを再送信</button></div>
             </div>
             <div class="page-msg" id="reset-msg" role="status" aria-live="polite"></div>
-            <button type="button" class="btn ghost u-full-width" id="reset-back-btn">ログインに戻る</button>
+            <div class="text-link-row"><button type="button" class="text-link-btn" id="reset-back-btn">ログインに戻る</button></div>
         </section>
 
         <!-- ハブ本体 -->
