@@ -12,13 +12,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=2"></script>
     <script defer src="js/supabase_client.js?v=2"></script>
-    <script defer src="js/supabase_api.js?v=44"></script>
+    <script defer src="js/supabase_api.js?v=45"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=26"></script>
     <script defer src="js/shared.js?v=4"></script>
     <link rel="stylesheet" href="css/design_system.css?v=84">
-    <link rel="stylesheet" href="css/pages.css?v=127">
+    <link rel="stylesheet" href="css/pages.css?v=128">
 </head>
 
 <body class="page-judge">
@@ -100,11 +100,18 @@
         <!-- 状況サマリー(1行・控えめ) -->
         <p class="judge-summary" id="judge-summary" role="status" aria-live="polite"></p>
 
+        <!-- 採点中の枠(途中でやめた人の枠を解放する) -->
+        <details class="slot-panel u-hidden" id="slot-panel">
+            <summary class="slot-panel-summary" id="slot-panel-summary">採点中の枠</summary>
+            <ul class="slot-list" id="slot-list"></ul>
+            <p class="slot-panel-note">採点を途中でやめた人の枠は、ここから解放できます。解放すると、その人のその問題での判定は消え、ほかの人が入れるようになります。採点を完了した枠は解放できません。</p>
+        </details>
+
         <!-- 問題ボード -->
         <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
     </main>
 
-    <script defer src="js/judge.js?v=11"></script>
+    <script defer src="js/judge.js?v=12"></script>
 </body>
 
 </html>

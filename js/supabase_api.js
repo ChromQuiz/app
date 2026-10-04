@@ -1565,6 +1565,19 @@ const CIQSupabaseAPI = {
         return data || [];
     },
 
+    // 採点の枠を解放する(まだ完了していない枠だけ。その人のその問題での判定も消える)
+    async releaseQuestionScorer(projectId, questionNumber, scorerMemberId) {
+        const { data, error } = await this.client()
+            .rpc('release_question_scorer', {
+                p_project_id: projectId,
+                p_question_number: questionNumber,
+                p_scorer_member_id: scorerMemberId,
+            })
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
     async getCurrentProjectMember(projectId) {
         const session = await this.getSession();
         const userId = session?.user?.id || '';
