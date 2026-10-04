@@ -217,16 +217,99 @@ function logout() {
 }
 
 // ---------- パスワードの再発行 ----------
+// 見た目と操作はエントリーフォームのメール認証（6桁のボックス、貼り付け、60秒の再送待ち）に合わせる。
 
 let resetSignature = '';
 let resetExpiresAt = 0;
 let resetEmail = '';
+let resetCooldown = null;
 
-function setResetStep(step) {
-    ['email', 'code'].forEach((name) => {
-        const node = el(`reset-step-${name}`);
-        if (name === step) showEl(node); else hideEl(node);
+function resetBoxes() {
+    return Array.from(document.querySelectorAll('#verify-code-boxes .verify-code-box'));
+}
+
+function resetCode() {
+    return resetBoxes().map((box) => box.value).join('');
+}
+
+function setResetCode(value) {
+    const digits = String(value || '').replace(/\D/g, '').slice(0, 6).split('');
+    resetBoxes().forEach((box, index) => { box.value = digits[index] || ''; });
+}
+
+function focusResetBox(index = 0) {
+    const boxes = resetBoxes();
+    boxes[Math.max(0, Math.min(index, boxes.length - 1))]?.focus();
+}
+
+// 6桁そろったら「認証してパスワードを再発行」を押したのと同じ扱いにする。
+function autoVerifyResetIfComplete() {
+    const btn = el('reset-verify-btn');
+    if (resetCode().length === 6 && btn && !btn.disabled) verifyAndReset();
+}
+
+function setupResetBoxes() {
+    const boxes = resetBoxes();
+    boxes.forEach((input, index) => {
+        input.addEventListener('input', () => {
+            const digits = input.value.replace(/\D/g, '');
+            if (digits.length > 1) {
+                const current = resetCode();
+                setResetCode(current.slice(0, index) + digits + current.slice(index + 1));
+                focusResetBox(Math.min(index + digits.length, boxes.length - 1));
+                autoVerifyResetIfComplete();
+                return;
+            }
+            input.value = digits;
+            if (digits && index < boxes.length - 1) focusResetBox(index + 1);
+            autoVerifyResetIfComplete();
+        });
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (!el('reset-verify-btn').disabled) verifyAndReset();
+                return;
+            }
+            if (event.key === 'Backspace' && !input.value && index > 0) {
+                event.preventDefault();
+                boxes[index - 1].value = '';
+                focusResetBox(index - 1);
+            }
+        });
+        input.addEventListener('paste', (event) => {
+            const text = event.clipboardData?.getData('text') || '';
+            if (!text) return;
+            event.preventDefault();
+            setResetCode(text);
+            focusResetBox(Math.min(text.replace(/\D/g, '').length, boxes.length - 1));
+            autoVerifyResetIfComplete();
+        });
     });
+}
+
+function setResetButton(button, text, iconName) {
+    button.textContent = '';
+    if (iconName) button.append(createIcon(iconName), ' ');
+    button.appendChild(document.createTextNode(text));
+}
+
+function startResetCooldown() {
+    let sec = 60;
+    const btn = el('reset-resend-btn');
+    showEl(btn);
+    btn.disabled = true;
+    setResetButton(btn, `${sec}秒`, 'clock');
+    clearInterval(resetCooldown);
+    resetCooldown = setInterval(() => {
+        sec -= 1;
+        if (sec <= 0) {
+            clearInterval(resetCooldown);
+            btn.disabled = false;
+            setResetButton(btn, '再送信', 'rotate-right');
+        } else {
+            setResetButton(btn, `${sec}秒`, 'clock');
+        }
+    }, 1000);
 }
 
 function openReset() {
@@ -234,14 +317,18 @@ function openReset() {
     showEl(el('reset-card'));
     el('r-email').value = el('f-email').value;
     el('r-email').disabled = false;
-    el('r-code').value = '';
+    setResetCode('');
     resetSignature = '';
-    setResetStep('email');
+    clearInterval(resetCooldown);
+    hideEl(el('reset-code-area'));
+    hideEl(el('reset-resend-btn'));
+    showEl(el('reset-send-btn'));
     setMsg('reset-msg', '', '');
     CIQTurnstile.render('turnstile-reset', 'send_verification');
 }
 
 function closeReset() {
+    clearInterval(resetCooldown);
     hideEl(el('reset-card'));
     showEl(el('auth-card'));
 }
@@ -256,42 +343,48 @@ async function sendResetCode(isResend) {
         return;
     }
     const btn = el(isResend ? 'reset-resend-btn' : 'reset-send-btn');
-    const label = isResend ? '認証コードを再送信' : '認証コードを送信';
-    setBusy(btn, true, '送信中…');
-    setMsg('reset-msg', '', '');
+    btn.disabled = true;
+    setResetButton(btn, '送信中…', 'spinner');
+    setMsg('reset-msg', '認証コードを送信しています…', 'info');
 
     const name = projectSettings?.projectName || projectId;
     const result = await CIQEmail.sendVerificationCode(
         email, name, name + ' 実行委員会', CIQTurnstile.token('turnstile-reset'), 'password_reset',
     );
     CIQTurnstile.reset('turnstile-reset');
-    setBusy(btn, false, label);
 
     if (!result || !result.success) {
         setMsg('reset-msg', result?.error || '認証コードを送信できませんでした。時間をおいて再度お試しください。', 'error');
+        btn.disabled = false;
+        if (isResend) setResetButton(btn, '再送信', 'rotate-right');
+        else setResetButton(btn, '認証コードを送信', 'paper-plane');
         return;
     }
     resetSignature = result.signature;
     resetExpiresAt = result.expiresAt;
     resetEmail = email;
     input.disabled = true;
-    hideEl(el('reset-step-email'));
-    showEl(el('reset-step-code'));
-    el('r-code').value = '';
-    el('r-code').focus();
-    setMsg('reset-msg', `${email} にエントリーがある場合は、認証コードを送信しました。届かないときは、迷惑メールフォルダとメールアドレスをご確認ください。`, 'success');
+    hideEl(el('reset-send-btn'));
+    showEl(el('reset-code-area'));
+    setResetCode('');
+    focusResetBox(0);
+    setMsg('reset-msg', `${email} に認証コードを送信しました。`, 'success');
+    startResetCooldown();
 }
 
 async function verifyAndReset() {
-    const code = el('r-code').value.replace(/\D/g, '');
+    const code = resetCode();
     if (code.length !== 6) { setMsg('reset-msg', '6桁の認証コードを入力してください。', 'error'); return; }
     const btn = el('reset-verify-btn');
-    setBusy(btn, true, '確認中…');
+    btn.disabled = true;
+    setResetButton(btn, '確認中…', 'spinner');
     setMsg('reset-msg', '', '');
     try {
         const verified = await CIQEmail.verifyCode(resetEmail, code, resetSignature, resetExpiresAt, projectId);
         if (!verified.verified) {
             setMsg('reset-msg', '認証コードが正しくないか、有効期限が切れています。入力内容をご確認ください。', 'error');
+            setResetCode('');
+            focusResetBox(0);
             return;
         }
         const name = projectSettings?.projectName || projectId;
@@ -309,7 +402,8 @@ async function verifyAndReset() {
     } catch (err) {
         setMsg('reset-msg', err.message || 'パスワードを再発行できませんでした。時間をおいて再度お試しください。', 'error');
     } finally {
-        setBusy(btn, false, '認証してパスワードを再発行');
+        btn.disabled = false;
+        setResetButton(btn, '認証してパスワードを再発行', 'check-circle');
     }
 }
 
@@ -758,4 +852,5 @@ function setupEvents() {
 }
 
 setupEvents();
+setupResetBoxes();
 init();

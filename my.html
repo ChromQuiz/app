@@ -44,28 +44,39 @@
         </form>
 
         <!-- パスワードの再発行（メール認証のあと、新しいパスワードを発行する） -->
-        <section class="page-card u-hidden" id="reset-card" aria-labelledby="reset-heading">
-            <h2 id="reset-heading">パスワードの再発行</h2>
-            <p class="my-note">エントリー時のメールアドレスに認証コードを送ります。認証できると、新しいパスワードを発行して、同じメールアドレスに送ります。</p>
-            <div id="reset-step-email">
-                <div class="form-group">
-                    <label class="required" for="r-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
-                    <input type="email" id="r-email" required autocomplete="email" placeholder="name@example.com" inputmode="email">
-                </div>
-                <div id="turnstile-reset" class="turnstile-box u-hidden" aria-live="polite"></div>
-                <button type="button" class="page-btn" id="reset-send-btn">認証コードを送信</button>
+        <div class="page-card u-hidden" id="reset-card">
+            <div class="form-group">
+                <label class="required" for="r-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
+                <input type="email" id="r-email" required autocomplete="email" placeholder="name@example.com" inputmode="email">
+                <div class="hint"><span data-icon="circle-info" aria-hidden="true"></span> 認証コードを送信して本人確認を行い、新しいパスワードをメールでお送りします。</div>
             </div>
-            <div id="reset-step-code" class="u-hidden">
+            <div id="turnstile-reset" class="turnstile-box u-hidden" aria-live="polite"></div>
+            <button type="button" class="page-btn mb-lg" id="reset-send-btn">
+                <span data-icon="paper-plane" aria-hidden="true"></span> 認証コードを送信
+            </button>
+            <div id="reset-code-area" class="u-hidden">
                 <div class="form-group">
-                    <label class="required" for="r-code">認証コード（6桁）</label>
-                    <input type="text" id="r-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456">
+                    <label class="required" for="verify-code-0"><span data-icon="shield-halved" aria-hidden="true"></span> 認証コード</label>
+                    <div class="verify-code-boxes" id="verify-code-boxes" aria-label="認証コード">
+                        <input type="text" id="verify-code-0" class="verify-code-box" inputmode="numeric" maxlength="6" autocomplete="one-time-code" aria-label="認証コード 1桁目">
+                            <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 2桁目">
+                            <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 3桁目">
+                            <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 4桁目">
+                            <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 5桁目">
+                            <input type="text" class="verify-code-box" inputmode="numeric" maxlength="1" aria-label="認証コード 6桁目">
+                    </div>
                 </div>
-                <button type="button" class="page-btn" id="reset-verify-btn">認証してパスワードを再発行</button>
-                <div class="text-link-row"><button type="button" class="text-link-btn" id="reset-resend-btn">認証コードを再送信</button></div>
+                <button type="button" class="page-btn" id="reset-verify-btn">
+                    <span data-icon="check-circle" aria-hidden="true"></span> 認証してパスワードを再発行
+                </button>
+                <button type="button" class="entry-resend-btn u-hidden" id="reset-resend-btn" title="認証コードを再送信">
+                    <span data-icon="rotate-right" aria-hidden="true"></span><span>再送信</span>
+                </button>
+                <div class="entry-verify-help" id="reset-help" role="alert">メールが届かない場合は、迷惑メールフォルダを必ず確認してください。</div>
             </div>
             <div class="page-msg" id="reset-msg" role="status" aria-live="polite"></div>
             <div class="text-link-row"><button type="button" class="text-link-btn" id="reset-back-btn">ログインに戻る</button></div>
-        </section>
+        </div>
 
         <!-- ハブ本体 -->
         <div id="hub" class="u-hidden">
@@ -239,6 +250,6 @@
 
     <script defer src="js/email.js?v=11"></script>
     <script defer src="js/share_card.js?v=4"></script>
-    <script defer src="js/my.js?v=17"></script>
+    <script defer src="js/my.js?v=18"></script>
 </body>
 </html>
