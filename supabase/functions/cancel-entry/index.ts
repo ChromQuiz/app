@@ -9,6 +9,7 @@ import {
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
+import { triggerPromotionNotices } from '../_shared/promotion_notice.ts';
 
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
@@ -57,6 +58,9 @@ Deno.serve(withCors(async (req) => {
       actorIpHash: await clientIpHash(req),
       afterData: { status: 'canceled' },
     });
+
+    // 繰り上がった人がいれば、通知メールの送信を始める（応答は待たない）。
+    if (data.promoted_entry_id) triggerPromotionNotices(projectId);
 
     return jsonResponse({
       ok: true,

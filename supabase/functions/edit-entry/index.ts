@@ -10,6 +10,7 @@ import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
 import { isEntryWindowOpen } from '../_shared/entry_window.ts';
+import { triggerPromotionNotices } from '../_shared/promotion_notice.ts';
 
 type PublicProfile = {
   entryName?: string;
@@ -111,6 +112,7 @@ Deno.serve(withCors(async (req) => {
         p_allow_waitlist_promotion: true,
       });
     if (recomputeError) throw recomputeError;
+    triggerPromotionNotices(projectId);
 
     const { data: refreshed, error: refreshedError } = await supabase
       .from('entries')

@@ -76,6 +76,16 @@ pnpm dlx supabase secrets set \
 
 Use a long random value for `CIQ_EMAIL_SIGNING_SECRET`. It signs verification codes inside the Edge Function and must not be exposed in browser JavaScript.
 
+Automatic waitlist-promotion notices (the server decrypts only the promoted entrant's address in memory, sends, and discards it) need two more secrets. Without them the notices are still sent when an admin opens the entry list, but not automatically:
+
+```bash
+pnpm dlx supabase secrets set \
+  CIQ_CRON_SECRET=... \
+  CIQ_SITE_URL=https://YOUR_USER.github.io/YOUR_REPO/
+```
+
+`CIQ_CRON_SECRET` is a long random value shared with the Cloudflare Worker in `cloudflare/keepalive` (`npx wrangler secret put CIQ_CRON_SECRET`). `CIQ_SITE_URL` is the public address of the site; it is used for the "マイエントリー" link in the notice mail.
+
 ## Security Notes
 
 - Public participant flows must use Edge Functions. Do not grant anon direct write access to `entries`.

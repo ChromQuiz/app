@@ -84,13 +84,6 @@ const CIQEmail = (() => {
         return requireSendSuccess(result, 'late_notice');
     }
 
-    async function sendWaitlistPromotion(to, { projectName, entryNumber, entryId, familyName, firstName, senderName }) {
-        const result = await request('waitlist_promoted', to, {
-            projectName, entryNumber, entryId, familyName, firstName, senderName,
-        });
-        return Boolean(result?.success);
-    }
-
     // turnstileToken はサーバ(send-email)が Siteverify で検証する。クライアントは中継のみ。
     // purpose='password_reset' はパスワード再発行用（エントリー期間外でも送れる）。
     async function sendVerificationCode(to, projectName, senderName, turnstileToken, purpose) {
@@ -121,7 +114,7 @@ const CIQEmail = (() => {
         };
     }
 
-    return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendWaitlistPromotion, sendVerificationCode, verifyCode, resetPassword };
+    return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendVerificationCode, verifyCode, resetPassword };
 })();
 
 // ページ直下の const は window の属性にならない。my.js は window.CIQEmail? で有無を判定するため、

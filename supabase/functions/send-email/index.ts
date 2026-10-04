@@ -3,6 +3,8 @@ import { createServiceClient } from '../_shared/supabase.ts';
 import { emailProviderName, sendProviderEmail } from '../_shared/email_provider.ts';
 import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
+import { getBearerToken, requireAdminMember } from '../_shared/project_key.ts';
+import { processPromotionNotices } from '../_shared/promotion_notice.ts';
 import { clientIp, clientIpHash, enforceIpRateLimit, enforceProjectDailyEmailCap, RateLimitError } from '../_shared/rate_limit.ts';
 import { emailHashFromNormalized, issueEmailVerifiedToken, verifyEmailVerifiedToken } from '../_shared/email_verify.ts';
 import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
@@ -564,6 +566,54 @@ Deno.serve(withCors(async (req) => {
 
   try {
     const { type, to, data = {}, projectId, entryId } = await req.json();
+
+    if (type === 'process_promotions') {
+      // 繰り上げ通知の自動送信。呼べるのは、定期実行・サーバー内の処理（共有の合言葉つき）か、その大会の管理者だけ。
+      const supabase = createServiceClient();
+      const cronSecret = Deno.env.get('CIQ_CRON_SECRET') || '';
+      const given = req.headers.get('x-ciq-cron-secret') || '';
+      const isInternal = Boolean(cronSecret) && Boolean(given) && given.length === cronSecret.length && safeEqual(given, cronSecret);
+      const scopeProjectId = String(projectId ?? '').trim();
+      if (!isInternal) {
+        if (!scopeProjectId) return jsonResponse({ error: '大会情報を取得できませんでした。ページを再読み込みして、もう一度お試しください。' }, 400);
+        try {
+          await requireAdminMember(supabase, scopeProjectId, getBearerToken(req));
+        } catch {
+          return jsonResponse({ error: 'この操作を行う権限がありません。' }, 403);
+        }
+      }
+      const siteUrl = (Deno.env.get('CIQ_SITE_URL') || '').trim();
+      const projectNames = new Map<string, string>();
+      const result = await processPromotionNotices(supabase, {
+        projectId: scopeProjectId || undefined,
+        send: async (item) => {
+          if (!projectNames.has(item.projectId)) {
+            const project = await getProjectForMail(supabase, item.projectId);
+            projectNames.set(item.projectId, String(project.name || item.projectId));
+          }
+          const name = projectNames.get(item.projectId) as string;
+          const myUrl = /^https?:\/\//i.test(siteUrl)
+            ? new URL(`my.html?pid=${encodeURIComponent(item.projectId)}`, siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`).href
+            : '';
+          await recordAndSend({
+            projectId: item.projectId,
+            entryId: item.entryId,
+            recipientHash: await pepperHash(await sha256Hex(item.email.normalize('NFKC').trim().toLowerCase())),
+            template: 'waitlist_promoted',
+            to: item.email.normalize('NFKC').trim().toLowerCase(),
+            message: waitlistPromoted({
+              projectName: name,
+              entryNumber: String(item.entryNumber).padStart(3, '0'),
+              familyName: item.familyName,
+              firstName: item.firstName,
+              myUrl,
+            }),
+          });
+        },
+      });
+      return jsonResponse({ ok: true, ...result });
+    }
+
     if (!type || !to) return jsonResponse({ error: 'メール送信に必要な宛先または種別が不足しています。' }, 400);
 
     // 画面側(normalizeEmailInput)と同じく NFKC で全角を半角に直してから検証・ハッシュする
