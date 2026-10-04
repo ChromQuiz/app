@@ -7,22 +7,25 @@ import { resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..');
 const read = (p) => readFileSync(resolve(ROOT, p), 'utf8');
 
-describe('reset-password（サーバー）', () => {
-  const src = read('supabase/functions/reset-password/index.ts');
+describe('send-email の reset_password（サーバー）', () => {
+  const full = read('supabase/functions/send-email/index.ts');
+  const src = full.slice(full.indexOf("if (type === 'reset_password')"), full.indexOf('const template = templates[type]'));
 
-  it('メール認証済みトークンを、メールのハッシュと大会に結びつけて検証する', () => {
-    expect(src).toMatch(/verifyEmailVerifiedToken\(emailVerifiedToken, projectId, emailHash\)/);
+  it('メール認証済みトークンを、大会とメールのハッシュに結びつけて、更新の前に検証する', () => {
+    expect(src).toMatch(/verifyEmailVerifiedToken\(token, effectiveProjectId, recipientHash\)/);
     expect(src.indexOf('verifyEmailVerifiedToken')).toBeLessThan(src.indexOf('.update('));
   });
 
-  it('新しいパスワードはハッシュだけを受け取り、pepper を掛けて保存する', () => {
-    expect(src).toMatch(/isClientHash\(newPasswordHash\)/);
-    expect(src).toMatch(/pepperHash\(newPasswordHash\)/);
-    expect(src).not.toMatch(/console\.(log|error)\([^)]*(newPasswordHash|emailHash)\b/);
+  it('新しいパスワードはサーバーが作り、ハッシュに pepper を掛けて保存し、画面には返さない', () => {
+    expect(src).toMatch(/generatePassword\(\)/);
+    expect(src).toMatch(/pepperHash\(await sha256Hex\(password\)\)/);
+    expect(src).toMatch(/return jsonResponse\(\{ success: true \}\)/);
+    expect(src).not.toMatch(/jsonResponse\(\{[^)]*password/);
+    expect(src).not.toMatch(/console\.(log|error)\([^)]*\$\{password\}/);
   });
 
   it('更新対象は同じ大会・同じメールのエントリーだけで、個人情報は復号しない', () => {
-    expect(src).toMatch(/\.eq\('project_id', projectId\)\s*\.eq\('email_hash_v2', emailHashV2\)/);
+    expect(src).toMatch(/\.eq\('project_id', effectiveProjectId\)\s*\.eq\('email_hash_v2', recipientLogHash\)/);
     expect(src).not.toMatch(/encrypted_pii|decrypt/i);
   });
 
@@ -31,8 +34,9 @@ describe('reset-password（サーバー）', () => {
     expect(src).toMatch(/entry\.password_reset/);
   });
 
-  it('エラーは日本語', () => {
-    for (const m of src.matchAll(/error: '([^']*)'/g)) expect(m[1]).toMatch(/[぀-ヿ一-鿿]/);
+  it('パスワードのメールは受付番号と新しいパスワードを載せる', () => {
+    expect(full).toMatch(/function passwordReissued/);
+    expect(full).toMatch(/\['新しいパスワード', password\]/);
   });
 });
 
@@ -68,8 +72,9 @@ describe('my.html の画面', () => {
     expect(csp).toMatch(/frame-src[^;]*challenges\.cloudflare\.com/);
   });
 
-  it('新しいパスワードは画面を閉じると消える（保存しない）', () => {
-    expect(js).not.toMatch(/(local|session)Storage\.setItem\([^)]*[Pp]assword/);
-    expect(js).toMatch(/function closeReset\(\)[\s\S]*resetNewPassword = ''/);
+  it('新しいパスワードは画面に出さず、メールで届ける（エントリー時と同じ）', () => {
+    expect(js).toMatch(/CIQEmail\.resetPassword\(/);
+    expect(js).not.toMatch(/randomString\(8, RESET/);
+    expect(html).not.toMatch(/reset-new-password/);
   });
 });

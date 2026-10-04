@@ -954,7 +954,7 @@ Status  : Implemented — 2026-10-05（本番への反映は Edge Function の�
 Evidence:
   - Commits    : feature/password-reset（本ブランチ）
   - Migrations : なし（既存の entries.disclosure_password_hash_v2 を更新するだけ）
-  - Deploys    : reset-password（新規・verify_jwt=false）/ send-email
+  - Deploys    : send-email（type=reset_password を追加。新しい関数はなし）
   - Verification:
       静的 : npx vitest run（tests/reset_password.test.mjs）
       未検証: 本番での実際のメール受信・再発行・ログイン
@@ -965,19 +965,19 @@ Evidence:
 ② 流れ
   - my.html「パスワードを忘れた場合」→ メールアドレス入力 → Turnstile → send-email(send_verification, purpose=password_reset)
     → 認証コード（6桁・10分）→ verify_code でメール認証済みトークン（30分・大会とメールに束縛）
-    → ブラウザが新しいパスワードを作りハッシュだけ送る → reset-password が同じ大会・同じ email_hash_v2 の行の
-      disclosure_password_hash_v2 を差し替える（pepper はサーバー側で掛ける）→ 画面に新パスワードを 1 回だけ表示
+    → send-email(type=reset_password) がトークンを検証し、サーバーで新しいパスワードを作って、同じ大会・同じ email_hash_v2 の行の
+      disclosure_password_hash_v2 を差し替える（sha256 → pepper）→ 新しいパスワードをメールで送る（画面には出さない。エントリー完了メールと同じ扱い）
   - 二次元コードは再発行ではなく、新しいパスワードでログインしたマイエントリーに表示される（トークンは期限なしの決定的な値）
 
 ③ 守っているもの
   - メール認証済みトークンの検証（署名・大会・メールのハッシュ・期限）を更新の前に行う
   - 登録のないメールアドレスには認証コードを送らない。応答は同じ形にして、登録の有無を外から調べられないようにする
   - Turnstile（コード送信）と IP 単位の回数制限（send_verification・participant_auth）
-  - 個人情報（encrypted_pii）は復号しない。パスワードの平文はサーバーに届かず、保存もしない
+  - 個人情報（encrypted_pii）は復号しない。パスワードの平文は、メールに載せる間だけサーバーのメモリにある。保存せず、ログにも出さない（応答にも含めない）
   - 監査ログ entry.password_reset（IP はハッシュのみ）
   - エントリー期間外でも使える（受付終了後・当日にパスワードを失う場合のため）
 
-Rollback: Possible（functions を前のバージョンに戻し、my.html を revert）。DB の変更なし
+Rollback: Possible（send-email を前のバージョンに戻し、my.html を revert）。DB の変更なし
 Notes   : 再発行しても、既存のログイン済みセッション（30分の短命トークン）は失効しない。
           パスワード変更の通知メールは送らない（必要なら後続）
 ```

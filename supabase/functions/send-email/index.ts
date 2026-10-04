@@ -2,8 +2,9 @@ import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_
 import { createServiceClient } from '../_shared/supabase.ts';
 import { emailProviderName, sendProviderEmail } from '../_shared/email_provider.ts';
 import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
-import { clientIp, enforceIpRateLimit, enforceProjectDailyEmailCap, RateLimitError } from '../_shared/rate_limit.ts';
-import { emailHashFromNormalized, issueEmailVerifiedToken } from '../_shared/email_verify.ts';
+import { logServiceEvent } from '../_shared/audit.ts';
+import { clientIp, clientIpHash, enforceIpRateLimit, enforceProjectDailyEmailCap, RateLimitError } from '../_shared/rate_limit.ts';
+import { emailHashFromNormalized, issueEmailVerifiedToken, verifyEmailVerifiedToken } from '../_shared/email_verify.ts';
 import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
 import { TurnstileConfigError, TurnstileError, verifyTurnstile } from '../_shared/turnstile.ts';
 import { isValidEmailAddress } from '../_shared/email_address.ts';
@@ -403,6 +404,41 @@ function verificationEmail(projectNameValue: string, code: string, purpose = 'en
   };
 }
 
+function passwordReissued(data: Record<string, unknown>): EmailTemplate {
+  const name = projectName(data);
+  const entryNumber = String(data.entryNumber || '');
+  const password = String(data.password || '');
+  const myUrl = String(data.myUrl || '');
+  return {
+    subject: `【${name}】パスワードを再発行しました（No.${entryNumber}）`,
+    html: shell('パスワードの再発行', name, `
+      ${panel('パスワードを再発行しました。以前のパスワードは使えません。', 'success')}
+      ${detailsTable([['受付番号', entryNumber], ['新しいパスワード', password]])}
+      <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;text-align:left;">パスワードはマイエントリー、編集、キャンセルなどに使用します。心当たりがない場合は、運営へご連絡ください。</p>
+      ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
+    `),
+    text: [
+      `${name} のパスワードを再発行しました。以前のパスワードは使えません。`,
+      `受付番号：${entryNumber}`,
+      `新しいパスワード：${password}`,
+      '心当たりがない場合は、運営へご連絡ください。',
+      myUrl ? `マイエントリー：${myUrl}` : '',
+    ].filter(Boolean).join('\n'),
+  };
+}
+
+const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+function generatePassword(length = 8) {
+  const out: string[] = [];
+  const limit = 256 - (256 % PASSWORD_CHARS.length); // 偏りが出ないよう、端の値は捨てる
+  while (out.length < length) {
+    for (const b of crypto.getRandomValues(new Uint8Array(length * 2))) {
+      if (b < limit && out.length < length) out.push(PASSWORD_CHARS[b % PASSWORD_CHARS.length]);
+    }
+  }
+  return out.join('');
+}
+
 const templates: Record<string, (data: Record<string, unknown>) => EmailTemplate> = {
   entry_confirmation: entryConfirmation,
   entry_edited: entryEdited,
@@ -603,6 +639,54 @@ Deno.serve(withCors(async (req) => {
         message: verificationEmail(name, code, purpose),
       });
       return jsonResponse({ success: true, signature, expiresAt, emailEventId: result.id });
+    }
+
+    if (type === 'reset_password') {
+      // メール認証を済ませた本人にだけ、新しいパスワードを作ってメールで届ける。画面には出さない。
+      const effectiveProjectId = String(projectId ?? data.projectId ?? '').trim();
+      if (!effectiveProjectId) return jsonResponse({ error: '大会情報を取得できませんでした。ページを再読み込みして、もう一度お試しください。' }, 400);
+      const token = String(data.emailVerifiedToken || '');
+      const tokenError = 'メール認証を確認できませんでした。もう一度メール認証を行ってください。';
+      if (!token) return jsonResponse({ error: tokenError }, 400);
+      const ev = await verifyEmailVerifiedToken(token, effectiveProjectId, recipientHash);
+      if (!ev.ok) {
+        console.error(`[send-email] reset_password verification rejected: ${ev.reason}`);
+        return jsonResponse({ error: tokenError }, 401);
+      }
+      const supabase = createServiceClient();
+      await enforceIpRateLimit(supabase, { bucket: 'participant_auth', ip: clientIp(req), projectId: effectiveProjectId, message: '操作の回数が上限に達しました。時間をおいて再度お試しください。' });
+      const project = await getProjectForMail(supabase, effectiveProjectId);
+
+      const password = generatePassword();
+      const passwordHashV2 = await pepperHash(await sha256Hex(password));
+      const { data: updated, error: updateError } = await supabase
+        .from('entries')
+        .update({ disclosure_password_hash_v2: passwordHashV2 })
+        .eq('project_id', effectiveProjectId)
+        .eq('email_hash_v2', recipientLogHash)
+        .select('id, entry_number');
+      if (updateError) throw updateError;
+      if (!updated || updated.length === 0) {
+        return jsonResponse({ error: 'このメールアドレスで登録されたエントリーが見つかりません。' }, 404);
+      }
+      const ipHash = await clientIpHash(req);
+      for (const row of updated) {
+        await logServiceEvent(supabase, {
+          projectId: effectiveProjectId, action: 'entry.password_reset', targetId: String(row.id),
+          actorKind: 'participant', actorIpHash: ipHash,
+        });
+      }
+      const entry = updated[0];
+      const myUrl = /^https?:\/\//i.test(String(data.myUrl || '')) ? String(data.myUrl) : '';
+      await recordAndSend({
+        projectId: effectiveProjectId,
+        entryId: String(entry.id),
+        recipientHash: recipientLogHash,
+        template: type,
+        to: normalizedEmail,
+        message: passwordReissued({ projectName: data.projectName || project.name, entryNumber: entry.entry_number, password, myUrl }),
+      });
+      return jsonResponse({ success: true });
     }
 
     const template = templates[type];

@@ -99,6 +99,13 @@ const CIQEmail = (() => {
         return result;
     }
 
+    // 新しいパスワードを作り、メールで届ける（画面には出さない）。メール認証済みトークンが必要。
+    async function resetPassword(to, projectName, senderName, emailVerifiedToken, projectId) {
+        const result = await request('reset_password', to, { projectName, senderName, emailVerifiedToken, projectId });
+        if (!result?.success) return { success: false, error: result?.error || '' };
+        return result;
+    }
+
     // 明示的オブジェクトで返す(呼び出し側が誤判定しないよう、失敗時も同型)。
     // 成功: { verified:true, emailVerifiedToken:'...', emailVerifiedExpiresAt:number }
     // 失敗: { verified:false, emailVerifiedToken:null, emailVerifiedExpiresAt:0 }
@@ -114,7 +121,7 @@ const CIQEmail = (() => {
         };
     }
 
-    return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendWaitlistPromotion, sendVerificationCode, verifyCode };
+    return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendWaitlistPromotion, sendVerificationCode, verifyCode, resetPassword };
 })();
 
 // ページ直下の const は window の属性にならない。my.js は window.CIQEmail? で有無を判定するため、

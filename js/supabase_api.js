@@ -454,13 +454,6 @@ const CIQSupabaseAPI = {
         return data;
     },
 
-    // パスワードの再発行（メール認証済みトークンが必要）
-    async resetPassword(payload) {
-        const data = await this.invokePublicFunction('reset-password', payload);
-        if (!data?.ok) throw new Error(data?.error || 'パスワードを再発行できませんでした。時間をおいて再度お試しください。');
-        return data;
-    },
-
     async getCheckInStats(projectId) {
         const data = await this.invokeAuthedFunction('check-in', {
             action: 'stats',

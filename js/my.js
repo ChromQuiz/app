@@ -218,14 +218,12 @@ function logout() {
 
 // ---------- パスワードの再発行 ----------
 
-const RESET_PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
 let resetSignature = '';
 let resetExpiresAt = 0;
 let resetEmail = '';
-let resetNewPassword = '';
 
 function setResetStep(step) {
-    ['email', 'code', 'done'].forEach((name) => {
+    ['email', 'code'].forEach((name) => {
         const node = el(`reset-step-${name}`);
         if (name === step) showEl(node); else hideEl(node);
     });
@@ -238,16 +236,12 @@ function openReset() {
     el('r-email').disabled = false;
     el('r-code').value = '';
     resetSignature = '';
-    resetNewPassword = '';
-    el('reset-new-password').textContent = '';
     setResetStep('email');
     setMsg('reset-msg', '', '');
     CIQTurnstile.render('turnstile-reset', 'send_verification');
 }
 
 function closeReset() {
-    resetNewPassword = '';
-    el('reset-new-password').textContent = '';
     hideEl(el('reset-card'));
     showEl(el('auth-card'));
 }
@@ -300,30 +294,23 @@ async function verifyAndReset() {
             setMsg('reset-msg', '認証コードが正しくないか、有効期限が切れています。入力内容をご確認ください。', 'error');
             return;
         }
-        const newPassword = AppCrypto.randomString(8, RESET_PASSWORD_CHARS);
-        await CIQSupabaseAPI.resetPassword({
-            projectId,
-            emailHash: await AppCrypto.hashPassword(resetEmail.toLowerCase()),
-            newPasswordHash: await AppCrypto.hashPassword(newPassword),
-            emailVerifiedToken: verified.emailVerifiedToken,
-        });
-        resetNewPassword = newPassword;
-        el('reset-new-password').textContent = newPassword;
-        setResetStep('done');
-        setMsg('reset-msg', '', '');
+        const name = projectSettings?.projectName || projectId;
+        const sent = await CIQEmail.resetPassword(resetEmail, name, name + ' 実行委員会', verified.emailVerifiedToken, projectId);
+        if (!sent.success) {
+            setMsg('reset-msg', sent.error || 'パスワードを再発行できませんでした。時間をおいて再度お試しください。', 'error');
+            return;
+        }
+        // 新しいパスワードは画面に出さない。エントリー時と同じく、メールで届ける。
+        const doneEmail = resetEmail;
+        closeReset();
+        el('f-email').value = doneEmail;
+        el('f-password').value = '';
+        setMsg('auth-msg', `新しいパスワードを ${doneEmail} に送信しました。メールを確認して、ログインしてください。`, 'success');
     } catch (err) {
         setMsg('reset-msg', err.message || 'パスワードを再発行できませんでした。時間をおいて再度お試しください。', 'error');
     } finally {
-        setBusy(btn, false, '認証して新しいパスワードを発行');
+        setBusy(btn, false, '認証してパスワードを再発行');
     }
-}
-
-async function loginWithNewPassword() {
-    const password = resetNewPassword;
-    el('f-email').value = resetEmail;
-    el('f-password').value = password;
-    closeReset();
-    await authenticate();
 }
 
 // ---------- ハブ描画 ----------
@@ -758,7 +745,6 @@ function setupEvents() {
     el('reset-send-btn')?.addEventListener('click', () => sendResetCode(false));
     el('reset-resend-btn')?.addEventListener('click', () => sendResetCode(true));
     el('reset-verify-btn')?.addEventListener('click', verifyAndReset);
-    el('reset-login-btn')?.addEventListener('click', loginWithNewPassword);
     el('qr-download-btn')?.addEventListener('click', downloadQr);
     el('open-edit-btn')?.addEventListener('click', openEdit);
     el('close-edit-btn')?.addEventListener('click', () => hideEl(el('edit-section')));
