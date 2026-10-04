@@ -1217,6 +1217,25 @@
             }
         }
 
+        // 選んだ日時が、もう一方の日時と前後しないかを調べる。問題なければ空文字。
+        //  - エントリー期間・成績照会期間: 終了は開始より後
+        //  - キャンセル繰り上げ期限: エントリーの開始より後
+        function validatePeriodOrder(scope, target, val) {
+            const at = (id) => document.getElementById(id)?.value || '';
+            const later = (a, b) => new Date(a).getTime() > new Date(b).getTime();
+            if (scope === 'waitlist') {
+                const start = at('entry-period-start');
+                if (start && !later(val, start)) return 'キャンセル繰り上げの期限は、エントリーの開始日時より後にしてください。';
+                return '';
+            }
+            const prefix = scope === 'disclosure' ? 'disclosure' : 'entry';
+            const label = scope === 'disclosure' ? '照会' : 'エントリー';
+            const start = target === 'start' ? val : at(`${prefix}-period-start`);
+            const end = target === 'end' ? val : at(`${prefix}-period-end`);
+            if (start && end && !later(end, start)) return `${label}の終了日時は、開始日時より後にしてください。`;
+            return '';
+        }
+
         function dtConfirm() {
             const selectedTime = readDtTimeInput();
             dtHour = selectedTime.hour;
@@ -1225,7 +1244,14 @@
             // Format as datetime-local value
             const pad = n => String(n).padStart(2, '0');
             const val = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-            
+
+            // 終了は開始より後にする(ピッカーは開いたままにして、選び直せるようにする)
+            const orderError = validatePeriodOrder(dtScope, dtTarget, val);
+            if (orderError) {
+                showAdminToast(orderError);
+                return;
+            }
+
             const prefix = getPeriodPrefix();
             document.getElementById(`${prefix}-period-${dtTarget}`).value = val;
             document.getElementById(getDtDisplayId(dtScope, dtTarget)).textContent = formatDtDisplay(val);

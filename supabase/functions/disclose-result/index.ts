@@ -18,6 +18,7 @@ type EntryRow = {
 
 type AuthEntryRow = EntryRow & {
   status: string;
+  checked_in: boolean;
 };
 
 type FinalResultRow = {
@@ -103,19 +104,20 @@ Deno.serve(withCors(async (req) => {
     const { entry } = await resolveParticipantAuth(
       supabase,
       body,
-      'id, entry_number, affiliation, grade, status',
+      'id, entry_number, affiliation, grade, status, checked_in',
       { ip: clientIp(req) },
     );
     const authEntry = entry as unknown as AuthEntryRow;
-    if (authEntry.status !== 'registered' && authEntry.status !== 'late') {
-      return jsonResponse({ error: 'このエントリーは成績照会の対象外です。' }, 409);
+    // 成績照会の対象は、当日受付を済ませた人だけ(順位もその人たちの中で付ける)
+    if (authEntry.checked_in !== true) {
+      return jsonResponse({ error: 'このエントリーは成績照会の対象外です。当日受付を済ませた方が対象です。' }, 409);
     }
 
     const { data: entries, error: entriesError } = await supabase
       .from('entries')
       .select('id, entry_number, affiliation, grade')
       .eq('project_id', projectId)
-      .in('status', ['registered', 'late'])
+      .eq('checked_in', true)
       .order('entry_number', { ascending: true });
     if (entriesError) throw entriesError;
 

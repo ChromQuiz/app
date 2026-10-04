@@ -19,6 +19,7 @@ import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp } from '../_shared/rate_limit.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
 import { issueQrToken } from '../_shared/qr_token.ts';
+import { isEntryWindowOpen, isWithinPeriod } from '../_shared/entry_window.ts';
 
 const ENTRY_COLUMNS = [
   'id',
@@ -33,13 +34,6 @@ const ENTRY_COLUMNS = [
   'is_chubu',
   'created_at',
 ].join(', ');
-
-function isWithinPeriod(start: string | null, end: string | null) {
-  const now = Date.now();
-  if (start && new Date(start).getTime() > now) return false;
-  if (end && new Date(end).getTime() < now) return false;
-  return true;
-}
 
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
@@ -67,16 +61,20 @@ Deno.serve(withCors(async (req) => {
 
     // キャンセル済みでもサマリーは返す(状態を本人が確認できることが目的)。
     // 操作可否はクライアント表示 + 各Edge Functionの再検証で二重に守る。
+    // 編集は受付中だけ、遅刻の連絡は受付が終わってから(受付中でないとき)だけ。
+    // 受付中は編集、受付が終わったら遅刻の連絡、と切り替わるので、同じ時期に両方が出ることはない。
+    const entryWindowOpen = isEntryWindowOpen(project);
     const editable = !checkedIn
       && (status === 'registered' || status === 'waitlist')
-      && project.entry_open === true
-      && isWithinPeriod(project.period_start, project.period_end);
+      && entryWindowOpen;
 
-    const canMarkLate = !checkedIn && status === 'registered';
+    const canMarkLate = !checkedIn && status === 'registered' && !entryWindowOpen;
     const cancellable = !checkedIn && status !== 'canceled';
 
+    // 成績照会の対象は、当日受付を済ませた人だけ(順位も受付済みの人の中で付ける)
     const disclosureOpen = project.disclosure_enabled === true
-      && isWithinPeriod(project.disclosure_period_start, project.disclosure_period_end);
+      && isWithinPeriod(project.disclosure_period_start, project.disclosure_period_end)
+      && checkedIn;
 
     // 当日受付二次元コード — 署名付きトークン(V7)を埋め込む。素の entry UUID は埋め込まない。
     // メール(send-email/checkin-qr)と同一形式なので受付側でそのまま読める。

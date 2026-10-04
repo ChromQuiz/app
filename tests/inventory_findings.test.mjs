@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
+import { isEntryWindowOpen, isWithinPeriod } from '../supabase/functions/_shared/entry_window.ts';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -60,7 +61,7 @@ describe('FND-06: メール認証後のフォーム保持は、サーバーの�
   });
 });
 
-describe('FND-01: 集計の対象は、成績照会と同じ「登録済み・遅刻連絡済み」だけ', () => {
+describe('FND-01 / FND-03: 採点・集計・成績照会の対象は、当日受付を済ませた人だけ', () => {
   const stats = read('js/admin_stats.js');
   const graded = read('js/admin_graded_pdf.js');
 
@@ -69,8 +70,8 @@ describe('FND-01: 集計の対象は、成績照会と同じ「登録済み・�
     expect(graded).not.toMatch(/\bentryNumbers\b/);
   });
 
-  it('対象は status が registered か late の人で、使う前にサーバーから取り直す', () => {
-    expect(stats).toMatch(/entry\.status === 'registered' \|\| entry\.status === 'late'/);
+  it('対象は checked_in の人で、使う前にサーバーから取り直す', () => {
+    expect(stats).toMatch(/entry\.checked_in === true/);
     expect(stats).toMatch(/async function refreshScoringEntryNumbers/);
     for (const name of ['updateStatsView', 'exportCSV', 'exportAnalyticsCSV']) {
       const body = stats.slice(stats.indexOf(`async function ${name}`));
@@ -79,8 +80,111 @@ describe('FND-01: 集計の対象は、成績照会と同じ「登録済み・�
     expect(graded).toContain('await refreshScoringEntryNumbers();');
   });
 
-  it('成績照会側も同じ対象(registered / late)で順位を付けている', () => {
-    expect(read('supabase/functions/disclose-result/index.ts')).toMatch(/\.in\('status', \['registered', 'late'\]\)/);
+  it('成績照会も同じ対象(受付済み)で順位を付け、受付していない人は対象外', () => {
+    const src = read('supabase/functions/disclose-result/index.ts');
+    expect(src).toMatch(/\.eq\('checked_in', true\)/);
+    expect(src).toMatch(/authEntry\.checked_in !== true/);
+    expect(src).not.toMatch(/\.in\('status', \['registered', 'late'\]\)/);
+  });
+
+  it('マイエントリーは、受付済みの人にだけ成績の欄を出す', () => {
+    expect(read('supabase/functions/my-entry/index.ts')).toMatch(/isWithinPeriod\(project\.disclosure_period_start, project\.disclosure_period_end\)\s*&& checkedIn/);
+  });
+
+  it('要確認の数え方は、要確認ページと同じデータベースの定義(list_score_conflicts)を使う', () => {
+    expect(stats).toMatch(/CIQSupabaseAPI\.listScoreConflicts\(projectId\)/);
+    expect(stats).not.toMatch(/scoringEntryNumbers\.forEach\(en => \{\s*const qs = scoresData/);
+  });
+
+  it('取得に失敗したときは、CSVの出力を許可しない', () => {
+    expect(stats).toMatch(/dataLoaded = false/);
+    expect(stats).toMatch(/allConfirmed && dataLoaded/);
+  });
+});
+
+describe('FND-03: 採点系のデータベース関数が、受付済みの人だけを対象にする(マイグレーション)', () => {
+  const mig = read('supabase/migrations/202610050001_score_checked_in_entries_only.sql');
+  const fn = (name) => {
+    const m = mig.match(new RegExp(`create or replace function public\\.${name}\\(.*?\\n\\$\\$;`, 's'));
+    expect(m, name).toBeTruthy();
+    return m[0];
+  };
+
+  it('答案カードと要確認の一覧は checked_in の人だけ', () => {
+    expect(fn('list_question_answer_cards')).toMatch(/e\.checked_in = true/);
+    expect(fn('list_score_conflicts')).toMatch(/e\.checked_in = true/);
+  });
+
+  it('確定の対象は checked_in の人(状態が登録済み・遅刻連絡済みという条件は外す)', () => {
+    const body = fn('complete_question_scoring');
+    expect(body).toMatch(/e\.checked_in = true/);
+    expect(body).not.toMatch(/e\.status in \('registered', 'late'\)/);
+  });
+
+  it('受付済みでない人の答案には、新しい判定を付けられない(日本語のエラー)', () => {
+    const body = fn('set_score_vote');
+    expect(body).toMatch(/e\.checked_in = true/);
+    expect(body).toContain('受付済みでない参加者の答案は採点できません。');
+  });
+
+  it('引数と返す列は変えない(create or replace なので権限も保たれる)', () => {
+    expect(mig).not.toMatch(/drop function/i);
+  });
+});
+
+describe('FND-07: 編集は受付中、遅刻の連絡は受付が終わってから', () => {
+  const open = { entry_open: true, period_start: '2026-01-01T00:00:00Z', period_end: '2026-12-31T00:00:00Z' };
+  const now = Date.parse('2026-06-01T00:00:00Z');
+
+  it('受付中: スイッチがオンで期間内', () => {
+    expect(isEntryWindowOpen(open, now)).toBe(true);
+  });
+
+  it('受付中でない: 停止中 / 開始前 / 終了後', () => {
+    expect(isEntryWindowOpen({ ...open, entry_open: false }, now)).toBe(false);
+    expect(isEntryWindowOpen(open, Date.parse('2025-12-31T00:00:00Z'))).toBe(false);
+    expect(isEntryWindowOpen(open, Date.parse('2027-01-01T00:00:00Z'))).toBe(false);
+  });
+
+  it('期間が未設定なら、スイッチだけで決まる', () => {
+    expect(isEntryWindowOpen({ entry_open: true, period_start: null, period_end: null }, now)).toBe(true);
+    expect(isEntryWindowOpen({ entry_open: false, period_start: null, period_end: null }, now)).toBe(false);
+    expect(isWithinPeriod(null, null, now)).toBe(true);
+  });
+
+  it('マイエントリーの「編集」と「遅刻の連絡」は、同じ判定で切り替わる', () => {
+    const src = read('supabase/functions/my-entry/index.ts');
+    expect(src).toMatch(/const entryWindowOpen = isEntryWindowOpen\(project\)/);
+    expect(src).toMatch(/&& entryWindowOpen;/);
+    expect(src).toMatch(/status === 'registered' && !entryWindowOpen/);
+  });
+
+  it('遅刻の連絡の API も、受付中は断る(画面の表示だけに頼らない)', () => {
+    const src = read('supabase/functions/mark-late/index.ts');
+    expect(src).toMatch(/if \(isEntryWindowOpen\(project\)\)/);
+    expect(src).toContain('エントリーの受付中は、遅刻の連絡はできません。');
+  });
+
+  it('編集の API は、受付中でなければ断る(同じ判定を使う)', () => {
+    expect(read('supabase/functions/edit-entry/index.ts')).toMatch(/if \(!isEntryWindowOpen\(project\)\)/);
+  });
+});
+
+describe('FND-12: 終了日時は開始日時より後', () => {
+  it('画面は、保存の前に順序を確かめ、ピッカーは開いたままにする', () => {
+    const src = read('js/admin_settings.js');
+    expect(src).toMatch(/function validatePeriodOrder\(scope, target, val\)/);
+    const confirmBody = src.slice(src.indexOf('function dtConfirm()'));
+    expect(confirmBody.indexOf('validatePeriodOrder')).toBeGreaterThan(-1);
+    expect(confirmBody.indexOf('validatePeriodOrder')).toBeLessThan(confirmBody.indexOf('closeDatePicker()'));
+    expect(src).toContain('終了日時は、開始日時より後にしてください。');
+  });
+
+  it('データベースにも制約がある', () => {
+    const mig = read('supabase/migrations/202610050002_period_order_checks.sql');
+    expect(mig).toMatch(/projects_entry_period_order_check/);
+    expect(mig).toMatch(/period_end > period_start/);
+    expect(mig).toMatch(/disclosure_period_end > disclosure_period_start/);
   });
 });
 

@@ -9,6 +9,7 @@ import {
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
+import { isEntryWindowOpen } from '../_shared/entry_window.ts';
 
 type PublicProfile = {
   entryName?: string;
@@ -18,18 +19,6 @@ type PublicProfile = {
   inquiry?: string;
   isChubu?: boolean;
 };
-
-function isEntryEditOpen(project: {
-  entry_open: boolean;
-  period_start: string | null;
-  period_end: string | null;
-}) {
-  if (project.entry_open !== true) return false;
-  const now = Date.now();
-  if (project.period_start && new Date(project.period_start).getTime() > now) return false;
-  if (project.period_end && new Date(project.period_end).getTime() < now) return false;
-  return true;
-}
 
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
@@ -59,7 +48,7 @@ Deno.serve(withCors(async (req) => {
       .eq('id', projectId)
       .single();
     if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
-    if (!isEntryEditOpen(project)) {
+    if (!isEntryWindowOpen(project)) {
       return jsonResponse({ error: '現在エントリー内容の編集はできません。' }, 403);
     }
 

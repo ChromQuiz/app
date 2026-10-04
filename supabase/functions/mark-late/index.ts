@@ -9,6 +9,7 @@ import {
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
+import { isEntryWindowOpen } from '../_shared/entry_window.ts';
 
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
@@ -32,6 +33,16 @@ Deno.serve(withCors(async (req) => {
 
     if (entry.status === 'late') {
       return jsonResponse({ error: '遅刻の連絡はすでに受け付けています。' }, 409);
+    }
+    // 遅刻の連絡は、エントリーの受付が終わってから(受付中でないとき)だけ。受付中は内容の編集ができる。
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('entry_open, period_start, period_end')
+      .eq('id', projectId)
+      .single();
+    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
+    if (isEntryWindowOpen(project)) {
+      return jsonResponse({ error: 'エントリーの受付中は、遅刻の連絡はできません。受付が終わってからお試しください。' }, 409);
     }
     if (entry.checked_in) {
       return jsonResponse({ error: '当日受付済みのため、遅刻の連絡はできません。変更が必要な場合は運営へ連絡してください。' }, 409);
