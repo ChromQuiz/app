@@ -9,6 +9,7 @@ import {
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
+import { isEntryWindowOpen } from '../_shared/entry_window.ts';
 
 type PublicProfile = {
   entryName?: string;
@@ -19,22 +20,10 @@ type PublicProfile = {
   isChubu?: boolean;
 };
 
-function isEntryEditOpen(project: {
-  entry_open: boolean;
-  period_start: string | null;
-  period_end: string | null;
-}) {
-  if (project.entry_open !== true) return false;
-  const now = Date.now();
-  if (project.period_start && new Date(project.period_start).getTime() > now) return false;
-  if (project.period_end && new Date(project.period_end).getTime() < now) return false;
-  return true;
-}
-
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
-  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
+  if (req.method !== 'POST') return jsonResponse({ error: 'この方法ではアクセスできません。' }, 405);
 
   try {
     const body = await req.json();
@@ -58,8 +47,8 @@ Deno.serve(withCors(async (req) => {
       .select('entry_open, period_start, period_end')
       .eq('id', projectId)
       .single();
-    if (projectError || !project) return jsonResponse({ error: 'Project not found' }, 404);
-    if (!isEntryEditOpen(project)) {
+    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
+    if (!isEntryWindowOpen(project)) {
       return jsonResponse({ error: '現在エントリー内容の編集はできません。' }, 403);
     }
 

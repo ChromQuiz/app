@@ -1,16 +1,41 @@
 // admin_settings.js — プロジェクト設定・エクスポート・削除・オンボーディング
 
+        // 答案がすでに保存されているとき、問題数を変えると読み取り済みの解答欄の位置が合わなくなる。
+        // 取り返しがつかなくなる前に確認する。答案がまだ無ければ確認は出さない。
+        // 答案の件数を取得できないときは、確認を出す側に倒す。
+        window.confirmQuestionCountChange = async function(nextValue) {
+            const current = totalQuestions;
+            if (nextValue === current) return true;
+            let pageCount = -1;
+            try {
+                pageCount = (await CIQSupabaseAPI.listAnswerPages(projectId)).length;
+            } catch (e) {
+                console.warn('答案の件数を取得できませんでした:', e);
+            }
+            if (pageCount === 0) return true;
+            const saved = pageCount > 0 ? `${pageCount}件の答案が保存されています。` : '答案が保存されている可能性があります。';
+            return showConfirm(
+                `${saved}問題数を ${current} 問から ${nextValue} 問に変えると、読み取り済みの答案の解答欄の位置が合わなくなり、採点を正しく進められなくなります。\n\n問題数を間違えて入力していた場合など、必要なときだけ変更してください。変更しますか？`,
+                '変更する',
+            );
+        };
+
         window.adjustNumberInput = async function(id, delta) {
             const input = document.getElementById(id);
             if (!input) return;
+            const previous = input.value;
             let val = parseInt(input.value) || 0;
             const min = parseInt(input.min);
             const max = parseInt(input.max);
             val += delta;
             if (!isNaN(min) && val < min) val = min;
             if (!isNaN(max) && val > max) val = max;
+
+            // 問題数だけは、答案が保存済みなら先に確認する(承認されなければ何も変えない)
+            if (id === 'question-count' && !(await confirmQuestionCountChange(val))) return;
+
             input.value = val;
-            
+
             const event = new Event('change', { bubbles: true });
             input.dispatchEvent(event);
 
@@ -20,7 +45,11 @@
                     await CIQSupabaseAPI.updateProject(projectId, { question_count: val });
                     totalQuestions = val;
                     showAdminToast(`問題数を ${val} 問に変更しました。`, 'success');
-                } catch(e) { console.error('問題数の同期失敗:', e); }
+                } catch (e) {
+                    console.error('問題数の同期失敗:', e);
+                    input.value = previous;   // 保存できなかったので表示を元に戻す
+                    showAdminToast('問題数を保存できませんでした（詳細：' + e.message + '）');
+                }
             }
         };
 
@@ -256,15 +285,15 @@
                 `${receipt.familyName} ${receipt.firstName} 様`,
                 '',
                 `${receipt.projectName} のエントリーを代理で登録しました。`,
-                `受付番号: ${receipt.entryNumber}`,
-                ...(receipt.status === 'waitlist' ? ['状態: キャンセル待ち'] : []),
-                `パスワード: ${receipt.password}`,
+                `受付番号：${receipt.entryNumber}`,
+                ...(receipt.status === 'waitlist' ? ['状態：キャンセル待ち'] : []),
+                `パスワード：${receipt.password}`,
                 '',
                 '当日受付には、別途送付する二次元コード画像が必要です。',
                 'この画像とパスワードは大会当日まで保管してください。',
                 '',
-                `マイエントリー(内容の確認・変更): ${receipt.myUrl}`,
-                `エントリーリスト: ${receipt.entryListUrl}`,
+                `マイエントリー（内容の確認・変更）：${receipt.myUrl}`,
+                `エントリーリスト：${receipt.entryListUrl}`,
             ].join('\n');
         }
 
@@ -559,7 +588,7 @@
                 tbody.textContent = '';
                 members.forEach(member => appendProjectMemberRow(tbody, member, currentUserId));
             } catch (e) {
-                setMemberTableMessage(tbody, `読み込めませんでした（詳細: ${e.message}）`, 'td-loading-error');
+                setMemberTableMessage(tbody, `読み込めませんでした（詳細：${e.message}）`, 'td-loading-error');
             } finally {
                 projectMembersLoading = false;
             }
@@ -640,7 +669,7 @@
                 setInviteStatus('招待リンクを無効化しました。', 'success');
                 await loadScorerInvites();
             } catch (e) {
-                setInviteStatus('招待リンクを無効化できませんでした（詳細: ' + (e.message || '') + '）', 'error');
+                setInviteStatus('招待リンクを無効化できませんでした（詳細：' + (e.message || '') + '）', 'error');
                 if (button) button.disabled = false;
             }
         }
@@ -665,7 +694,7 @@
                 setInviteStatus('招待リンクを発行しました。この場でコピーしてください（再表示できません）。', 'success');
                 await loadScorerInvites();
             } catch (e) {
-                setInviteStatus('招待リンクを発行できませんでした（詳細: ' + (e.message || '') + '）', 'error');
+                setInviteStatus('招待リンクを発行できませんでした（詳細：' + (e.message || '') + '）', 'error');
             } finally {
                 if (button) button.disabled = false;
             }
@@ -1188,6 +1217,25 @@
             }
         }
 
+        // 選んだ日時が、もう一方の日時と前後しないかを調べる。問題なければ空文字。
+        //  - エントリー期間・成績照会期間: 終了は開始より後
+        //  - キャンセル繰り上げ期限: エントリーの開始より後
+        function validatePeriodOrder(scope, target, val) {
+            const at = (id) => document.getElementById(id)?.value || '';
+            const later = (a, b) => new Date(a).getTime() > new Date(b).getTime();
+            if (scope === 'waitlist') {
+                const start = at('entry-period-start');
+                if (start && !later(val, start)) return 'キャンセル繰り上げの期限は、エントリーの開始日時より後にしてください。';
+                return '';
+            }
+            const prefix = scope === 'disclosure' ? 'disclosure' : 'entry';
+            const label = scope === 'disclosure' ? '照会' : 'エントリー';
+            const start = target === 'start' ? val : at(`${prefix}-period-start`);
+            const end = target === 'end' ? val : at(`${prefix}-period-end`);
+            if (start && end && !later(end, start)) return `${label}の終了日時は、開始日時より後にしてください。`;
+            return '';
+        }
+
         function dtConfirm() {
             const selectedTime = readDtTimeInput();
             dtHour = selectedTime.hour;
@@ -1196,7 +1244,14 @@
             // Format as datetime-local value
             const pad = n => String(n).padStart(2, '0');
             const val = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-            
+
+            // 終了は開始より後にする(ピッカーは開いたままにして、選び直せるようにする)
+            const orderError = validatePeriodOrder(dtScope, dtTarget, val);
+            if (orderError) {
+                showAdminToast(orderError);
+                return;
+            }
+
             const prefix = getPeriodPrefix();
             document.getElementById(`${prefix}-period-${dtTarget}`).value = val;
             document.getElementById(getDtDisplayId(dtScope, dtTarget)).textContent = formatDtDisplay(val);
@@ -1363,7 +1418,7 @@
                     }).catch(e => console.warn('復号鍵の後追い読み込みをスキップ:', e));
                 }
             } catch (e) {
-                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? `（詳細: ${e.message}）` : ''}`, 'td-loading-error');
+                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? `（詳細：${e.message}）` : ''}`, 'td-loading-error');
             }
         }
 
@@ -1429,13 +1484,14 @@
                     background: 'var(--warning-soft)',
                     color: 'var(--warning)',
                 }));
+            } else if (entry.checked_in) {
+                // 遅刻の連絡をした人も、来て受付を済ませたら「受付済み」にする
+                statusTd.appendChild(createBadge('badge success', 'check', '受付済み'));
             } else if (entry.status === 'late') {
                 statusTd.appendChild(createBadge('badge', 'clock-rotate-left', '遅刻', {
                     background: 'var(--warn-100)',
                     color: 'var(--warn-600)',
                 }));
-            } else if (entry.checked_in) {
-                statusTd.appendChild(createBadge('badge success', 'check', '受付済み'));
             } else {
                 statusTd.appendChild(createBadge('badge muted', 'clock', '未受付'));
             }
@@ -1545,7 +1601,7 @@
                 setTimeout(() => { location.reload(); }, 2000);
             } catch (e) {
                 console.error('リセットエラー:', e);
-                showAdminToast('リセットできませんでした（詳細: ' + e.message + '）', 'error');
+                showAdminToast('リセットできませんでした（詳細：' + e.message + '）', 'error');
             }
         }
 

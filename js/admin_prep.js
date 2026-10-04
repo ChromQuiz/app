@@ -111,15 +111,22 @@
             return config;
         }
 
+        // 保存できたら true。問題数が不正、確認で取りやめ、保存の失敗のときは false(呼び出し側は処理を止める)。
         async function saveQuestionCount() {
             const qCount = parseInt(document.getElementById('question-count').value);
-            if (!qCount || qCount < 10 || qCount % 10 !== 0) { showAdminToast("問題数は10の倍数で指定してください"); return; }
+            if (!qCount || qCount < 10 || qCount % 10 !== 0) { showAdminToast("問題数は10の倍数で指定してください"); return false; }
+            if (!(await confirmQuestionCountChange(qCount))) {
+                document.getElementById('question-count').value = totalQuestions;
+                return false;
+            }
             try {
                 await CIQSupabaseAPI.updateProject(projectId, { question_count: qCount });
                 totalQuestions = qCount;
                 showAdminToast("問題数とレイアウトを保存しました。", "success");
+                return true;
             } catch (err) {
-                showAdminToast("保存エラー: " + err.message);
+                showAdminToast('問題数を保存できませんでした（詳細：' + err.message + '）');
+                return false;
             }
         }
 
@@ -128,8 +135,8 @@
                 const qCount = parseInt(document.getElementById('question-count').value);
                 const qCols = 5;
                 if (qCount < 10 || qCount % 10 !== 0) { showAdminToast("問題数は10の倍数で指定してください"); return; }
-                // 自動的に問題数も保存
-                await saveQuestionCount();
+                // 自動的に問題数も保存(保存できなかったときはPDFを作らない)
+                if (!(await saveQuestionCount())) return;
                 window.jsPDF = window.jspdf.jsPDF;
                 const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 const pageWidth = 210, pageHeight = 297;
@@ -194,7 +201,7 @@
                 doc.save(`answer_sheet_${sheetType}${qCount}q.pdf`);
                 showAdminToast("PDFのダウンロードが完了しました。", "success");
             } catch (err) {
-                showAdminToast("エラー: " + err.message);
+                showAdminToast('解答用紙のPDFを作成できませんでした（詳細：' + err.message + '）');
             }
         }
 
@@ -421,14 +428,14 @@
                     const transform = calcPerspectiveTransform(scanConfig.tombo.map(r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })), detectedResult.points);
                     const entryNumber = readEntryNumber(scanConfig.markCells.map(cell => transformRegion(cell, transform)));
                     if (!Number.isInteger(entryNumber) || entryNumber <= 0) {
-                        throw new Error(`ページ${i}: 受付番号を読み取れませんでした`);
+                        throw new Error(`ページ${i}：受付番号を読み取れませんでした`);
                     }
                     if (seenEntryNumbers.has(entryNumber)) {
-                        throw new Error(`ページ${i}: 受付番号 ${padNum(entryNumber)} が重複しています`);
+                        throw new Error(`ページ${i}：受付番号 ${padNum(entryNumber)} が重複しています`);
                     }
                     seenEntryNumbers.add(entryNumber);
                     if (!entryByNumber.has(Number(entryNumber))) {
-                        throw new Error(`ページ${i}: 受付番号 ${padNum(entryNumber)} の参加者が見つかりません。`);
+                        throw new Error(`ページ${i}：受付番号 ${padNum(entryNumber)} の参加者が見つかりません。`);
                     }
                     // セルのクロップ座標を計算（画像は保存しない — 採点画面でオンデマンドクロップ）
                     const cellRegions = {};
@@ -501,7 +508,7 @@
                         .slice(0, 3)
                         .map(f => `p${f.page}: ${f.message}`)
                         .join(' / ');
-                    showAdminToast(`${uploadFailures.length}件を保存できませんでした（詳細: ${detail}）`, 'error');
+                    showAdminToast(`${uploadFailures.length}件を保存できませんでした（詳細：${detail}）`, 'error');
                 } else {
                     showAdminToast(`${scanAnswers.length}件の答案を保存しました。`, 'success');
                 }
@@ -511,7 +518,7 @@
                 await rollbackUploadedAnswers(uploadedEntryNumbers);
                 await CIQSupabaseAPI.deleteAnswerPageStoragePaths(Array.from(uploadedPagePaths)).catch(() => {});
                 console.error(e); overlay.classList.remove('is-visible-flex');
-                showAdminToast('処理を完了できませんでした（詳細: ' + e.message + '）');
+                showAdminToast('処理を完了できませんでした（詳細：' + e.message + '）');
             } finally {
                 releaseScanAnswerCanvases();
                 workCanvas.width = 0;

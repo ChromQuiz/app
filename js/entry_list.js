@@ -152,7 +152,8 @@ const params = new URLSearchParams(location.search);
             const h = d.getHours().toString().padStart(2,'0');
             const min = d.getMinutes().toString().padStart(2,'0');
             const timeStr = `${m}/${day} ${h}:${min}`;
-            const grade = e.grade !== '非表示' ? e.grade : '';
+            // 学年を非公開にした人は空欄にする(入力フォームの値は「非公開」、古いデータには「非表示」がある)
+            const grade = (e.grade === '非公開' || e.grade === '非表示') ? '' : (e.grade || '');
 
             const tr = document.createElement('tr');
             if (isWaitlist) tr.classList.add('entry-row-waitlist');

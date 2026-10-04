@@ -18,6 +18,7 @@ type EntryRow = {
 
 type AuthEntryRow = EntryRow & {
   status: string;
+  checked_in: boolean;
 };
 
 type FinalResultRow = {
@@ -74,7 +75,7 @@ function sameRankKey(a: { score: number; streaks: number[] }, b: { score: number
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
-  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
+  if (req.method !== 'POST') return jsonResponse({ error: 'この方法ではアクセスできません。' }, 405);
 
   try {
     const body = await req.json();
@@ -90,32 +91,33 @@ Deno.serve(withCors(async (req) => {
       .select('id, disclosure_enabled, disclosure_period_start, disclosure_period_end, question_count')
       .eq('id', projectId)
       .single();
-    if (projectError || !project) return jsonResponse({ error: 'Project not found' }, 404);
-    if (!project.disclosure_enabled) return jsonResponse({ error: 'Disclosure is closed' }, 403);
+    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
+    if (!project.disclosure_enabled) return jsonResponse({ error: '成績照会は現在利用できません。' }, 403);
     const now = Date.now();
     if (project.disclosure_period_start && new Date(project.disclosure_period_start).getTime() > now) {
-      return jsonResponse({ error: 'Disclosure has not started' }, 403);
+      return jsonResponse({ error: '成績照会はまだ始まっていません。' }, 403);
     }
     if (project.disclosure_period_end && new Date(project.disclosure_period_end).getTime() < now) {
-      return jsonResponse({ error: 'Disclosure has ended' }, 403);
+      return jsonResponse({ error: '成績照会は終了しました。' }, 403);
     }
 
     const { entry } = await resolveParticipantAuth(
       supabase,
       body,
-      'id, entry_number, affiliation, grade, status',
+      'id, entry_number, affiliation, grade, status, checked_in',
       { ip: clientIp(req) },
     );
     const authEntry = entry as unknown as AuthEntryRow;
-    if (authEntry.status !== 'registered' && authEntry.status !== 'late') {
-      return jsonResponse({ error: 'このエントリーは成績照会の対象外です。' }, 409);
+    // 成績照会の対象は、当日受付を済ませた人だけ(順位もその人たちの中で付ける)
+    if (authEntry.checked_in !== true) {
+      return jsonResponse({ error: 'このエントリーは成績照会の対象外です。当日受付を済ませた方が対象です。' }, 409);
     }
 
     const { data: entries, error: entriesError } = await supabase
       .from('entries')
       .select('id, entry_number, affiliation, grade')
       .eq('project_id', projectId)
-      .in('status', ['registered', 'late'])
+      .eq('checked_in', true)
       .order('entry_number', { ascending: true });
     if (entriesError) throw entriesError;
 
@@ -154,7 +156,7 @@ Deno.serve(withCors(async (req) => {
     }
 
     const own = ranked.find((row) => row.entry.id === authEntry.id);
-    if (!own) return jsonResponse({ error: 'Entry is not eligible for disclosure' }, 404);
+    if (!own) return jsonResponse({ error: 'このエントリーは成績照会の対象外です。' }, 404);
 
     return jsonResponse({
       ok: true,

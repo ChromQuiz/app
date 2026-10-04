@@ -15,7 +15,7 @@ function isClientHash(value: unknown): value is string {
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
-  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
+  if (req.method !== 'POST') return jsonResponse({ error: 'この方法ではアクセスできません。' }, 405);
 
   try {
     const body = await req.json();

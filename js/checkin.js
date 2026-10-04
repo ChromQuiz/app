@@ -183,7 +183,7 @@ if (auth) {
         if (err?.name === 'NotAllowedError') return 'カメラの使用が許可されていません。ブラウザのサイト設定でカメラを許可してください。';
         if (err?.name === 'NotFoundError') return '利用できるカメラが見つかりません。';
         if (err?.name === 'NotReadableError') return 'カメラを開始できません。他のアプリが使用している可能性があります。';
-        return `カメラを起動できませんでした（詳細: ${err?.message || err}）`;
+        return `カメラを起動できませんでした（詳細：${err?.message || err}）`;
     }
 
     function setScanMessage(message) {

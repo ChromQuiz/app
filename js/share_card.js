@@ -122,7 +122,7 @@ const ShareCard = (() => {
         // テキスト
         const centerX = W / 2 + 10;
         const textY = bannerY + bannerH / 2 + 1;
-        const suffix = ' に参加しました!!';
+        const suffix = ' に参加しました！！';
 
         ctx.save();
         ctx.textBaseline = 'middle';

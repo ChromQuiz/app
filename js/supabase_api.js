@@ -203,7 +203,7 @@ const CIQSupabaseAPI = {
 
     client() {
         if (!this.isEnabled()) {
-            throw new Error(this.getConfigErrorMessage() || 'Supabase is not configured.');
+            throw new Error(this.getConfigErrorMessage() || 'サーバーの設定が見つかりません。');
         }
         return window.CIQSupabase.getClient();
     },
@@ -422,7 +422,7 @@ const CIQSupabaseAPI = {
             ? { ...payload, token: String(payload.token) }
             : payload;
         const data = await this.invokePublicFunction('cancel-entry', normalizedPayload);
-        if (!data?.ok) throw new Error(data?.error || 'Cancel failed');
+        if (!data?.ok) throw new Error(data?.error || 'キャンセルできませんでした。時間をおいて再度お試しください。');
         return data;
     },
 
@@ -431,26 +431,26 @@ const CIQSupabaseAPI = {
             ? { ...payload, token: String(payload.token) }
             : payload;
         const data = await this.invokePublicFunction('disclose-result', normalizedPayload);
-        if (!data?.ok) throw new Error(data?.error || 'Disclosure failed');
+        if (!data?.ok) throw new Error(data?.error || '成績を取得できませんでした。時間をおいて再度お試しください。');
         return data;
     },
 
     async editEntry(payload) {
         const data = await this.invokePublicFunction('edit-entry', payload);
-        if (!data?.ok) throw new Error(data?.error || 'Edit failed');
+        if (!data?.ok) throw new Error(data?.error || 'エントリー内容を更新できませんでした。時間をおいて再度お試しください。');
         return data;
     },
 
     async markLate(payload) {
         const data = await this.invokePublicFunction('mark-late', payload);
-        if (!data?.ok) throw new Error(data?.error || 'Late report failed');
+        if (!data?.ok) throw new Error(data?.error || '遅刻の連絡を送信できませんでした。時間をおいて再度お試しください。');
         return data;
     },
 
     // マイエントリー(my.html): 認証 + サマリー + 二次元コード + セッショントークン
     async myEntry(payload) {
         const data = await this.invokePublicFunction('my-entry', payload);
-        if (!data?.ok) throw new Error(data?.error || 'My entry failed');
+        if (!data?.ok) throw new Error(data?.error || 'エントリー情報を取得できませんでした。時間をおいて再度お試しください。');
         return data;
     },
 
@@ -459,7 +459,7 @@ const CIQSupabaseAPI = {
             action: 'stats',
             projectId,
         });
-        if (!data?.ok) throw new Error(data?.error || 'Check-in stats failed');
+        if (!data?.ok) throw new Error(data?.error || '受付の人数を取得できませんでした。');
         return data.stats;
     },
 
@@ -470,7 +470,7 @@ const CIQSupabaseAPI = {
             projectId,
             qr,
         });
-        if (!data?.ok) throw new Error(data?.error || 'Check-in failed');
+        if (!data?.ok) throw new Error(data?.error || '受付できませんでした。時間をおいて再度お試しください。');
         return data;
     },
 
@@ -482,7 +482,7 @@ const CIQSupabaseAPI = {
             projectId,
             entryNumber,
         });
-        if (!data?.ok) throw new Error(data?.error || 'Lookup failed');
+        if (!data?.ok) throw new Error(data?.error || '照会できませんでした。時間をおいて再度お試しください。');
         return data.entry;
     },
 
@@ -494,7 +494,7 @@ const CIQSupabaseAPI = {
             entryNumber,
             confirmedEntryId,
         });
-        if (!data?.ok) throw new Error(data?.error || 'Check-in failed');
+        if (!data?.ok) throw new Error(data?.error || '受付できませんでした。時間をおいて再度お試しください。');
         return data;
     },
 
@@ -506,7 +506,7 @@ const CIQSupabaseAPI = {
             entryNumber,
             confirmedEntryId,
         });
-        if (!data?.ok) throw new Error(data?.error || 'Undo failed');
+        if (!data?.ok) throw new Error(data?.error || '受付を取り消せませんでした。時間をおいて再度お試しください。');
         return data;
     },
 

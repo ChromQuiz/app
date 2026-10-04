@@ -12,7 +12,8 @@ let verifyExpiresAt = 0;
 let verifiedToken = '';   // メール認証済みトークン(メモリのみ・localStorageへ保存しない)
 let resendCooldown = null;
 let sessionTimer = null;
-const SESSION_TIMEOUT = 10 * 60 * 1000;
+// サーバーのメール認証トークン(30分)より少しだけ短くする。これより長く画面側だけ先にリセットすると、有効なのに最初からになる。
+const SESSION_TIMEOUT = 29 * 60 * 1000;
 
 // メール認証済み状態・メール・トークンを同時に破棄する(メモリのみ)。
 // メール変更/再送/タイムアウト/登録成功/フォームリセット/認証失敗など全ての破棄点で使う。
@@ -556,12 +557,12 @@ async function init() {
             if (startDt && startDt.getTime() > now) {
                 blocked = true;
                 blockTitle = 'エントリーはまだ開始されていません';
-                blockDetail = 'エントリー開始: ' + startDt.toLocaleString('ja-JP');
+                blockDetail = 'エントリー開始：' + startDt.toLocaleString('ja-JP');
             }
             if (endDt && endDt.getTime() < now) {
                 blocked = true;
                 blockTitle = 'エントリーは終了しました';
-                blockDetail = 'エントリー終了: ' + endDt.toLocaleString('ja-JP');
+                blockDetail = 'エントリー終了：' + endDt.toLocaleString('ja-JP');
             }
         }
         if (blocked) showDisabled(blockTitle, blockDetail);

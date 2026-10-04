@@ -83,7 +83,7 @@
                 await CIQSupabaseAPI.signInWithGoogle();
             } catch (e) {
                 setSigninBusy(false);
-                setStatus('Googleログインを開始できませんでした。時間をおいて再度お試しください。' + (e.message ? `(${e.message})` : ''), 'error');
+                setStatus('Googleログインを開始できませんでした。時間をおいて再度お試しください。' + (e.message ? `（詳細：${e.message}）` : ''), 'error');
             }
         });
 

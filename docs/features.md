@@ -1,5 +1,7 @@
 # Features
 
+A detailed, checkable inventory of every feature (conditions, expected behavior, and open questions) is in [feature_inventory.md](feature_inventory.md). This file is the short overview.
+
 ## Administration
 
 - Project creation and settings.
