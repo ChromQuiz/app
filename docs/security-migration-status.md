@@ -948,6 +948,40 @@ Notes   : 訂正（2026-10-03）: 上の V7 再確認（2026-07-26）の記述�
           1 年キャッシュを指定）、旧形式の画像が残るが、旧形式も期限内は読み取れる
 ```
 
+### パスワードの再発行（親計画外・Additional Security Backlog）
+```
+Status  : Implemented — 2026-10-05（本番への反映は Edge Function のデプロイ待ち。デプロイ後に更新する）
+Evidence:
+  - Commits    : feature/password-reset（本ブランチ）
+  - Migrations : なし（既存の entries.disclosure_password_hash_v2 を更新するだけ）
+  - Deploys    : reset-password（新規・verify_jwt=false）/ send-email
+  - Verification:
+      静的 : npx vitest run（tests/reset_password.test.mjs）
+      未検証: 本番での実際のメール受信・再発行・ログイン
+
+① 目的
+  - パスワードを失った参加者がマイエントリー（受付番号・二次元コード）に入れなくなる問題を、運営の手を介さず解消する
+
+② 流れ
+  - my.html「パスワードを忘れた場合」→ メールアドレス入力 → Turnstile → send-email(send_verification, purpose=password_reset)
+    → 認証コード（6桁・10分）→ verify_code でメール認証済みトークン（30分・大会とメールに束縛）
+    → ブラウザが新しいパスワードを作りハッシュだけ送る → reset-password が同じ大会・同じ email_hash_v2 の行の
+      disclosure_password_hash_v2 を差し替える（pepper はサーバー側で掛ける）→ 画面に新パスワードを 1 回だけ表示
+  - 二次元コードは再発行ではなく、新しいパスワードでログインしたマイエントリーに表示される（トークンは期限なしの決定的な値）
+
+③ 守っているもの
+  - メール認証済みトークンの検証（署名・大会・メールのハッシュ・期限）を更新の前に行う
+  - 登録のないメールアドレスには認証コードを送らない。応答は同じ形にして、登録の有無を外から調べられないようにする
+  - Turnstile（コード送信）と IP 単位の回数制限（send_verification・participant_auth）
+  - 個人情報（encrypted_pii）は復号しない。パスワードの平文はサーバーに届かず、保存もしない
+  - 監査ログ entry.password_reset（IP はハッシュのみ）
+  - エントリー期間外でも使える（受付終了後・当日にパスワードを失う場合のため）
+
+Rollback: Possible（functions を前のバージョンに戻し、my.html を revert）。DB の変更なし
+Notes   : 再発行しても、既存のログイン済みセッション（30分の短命トークン）は失効しない。
+          パスワード変更の通知メールは送らない（必要なら後続）
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

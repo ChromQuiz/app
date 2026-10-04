@@ -36,12 +36,12 @@ window.CIQ_SUPABASE_CONFIG = {
    The functions no longer fall back to the legacy `SUPABASE_SERVICE_ROLE_KEY`. If `SUPABASE_SECRET_KEYS` is missing, they fail with `Supabase secret key is not available`.
 
 6. Deploy every Edge Function with `--no-verify-jwt`. Production runs all of them with `verify_jwt: false`, so deploy the same way to keep that state. The gateway does not check the JWT; each function authenticates inside:
-   - Public participant functions (`send-email`, `create-entry`, `my-entry`, `edit-entry`, `cancel-entry`, `mark-late`, `disclose-result`, `checkin-qr`) are called before Google login. They validate Turnstile, participant identity, or project state themselves.
+   - Public participant functions (`send-email`, `create-entry`, `my-entry`, `edit-entry`, `cancel-entry`, `mark-late`, `disclose-result`, `reset-password`, `checkin-qr`) are called before Google login. They validate Turnstile, participant identity, or project state themselves.
    - Staff functions (`check-in`, `project-key`, `admin-create-entry`, `admin-entry-qr`, `create-scorer-invite`) call `supabase.auth.getUser(token)` and then check an active `owner` / `admin` membership (`check-in` also allows `scorer` for desk operations). A request without a valid Google login gets 401.
    - `redeem-scorer-invite` only requires a valid Google login, because the caller is not a member yet; the invite token decides whether they may join.
 
 ```bash
-for fn in send-email create-entry my-entry edit-entry cancel-entry mark-late disclose-result checkin-qr \
+for fn in send-email create-entry my-entry edit-entry cancel-entry mark-late disclose-result reset-password checkin-qr \
           check-in project-key admin-create-entry admin-entry-qr create-scorer-invite redeem-scorer-invite; do
   pnpm dlx supabase functions deploy "$fn" --project-ref YOUR_PROJECT_REF --no-verify-jwt
 done

@@ -3,7 +3,7 @@ import { createServiceClient } from '../_shared/supabase.ts';
 import { emailProviderName, sendProviderEmail } from '../_shared/email_provider.ts';
 import { hmacHex, safeEqual, signingSecret, SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, enforceIpRateLimit, enforceProjectDailyEmailCap, RateLimitError } from '../_shared/rate_limit.ts';
-import { issueEmailVerifiedToken } from '../_shared/email_verify.ts';
+import { emailHashFromNormalized, issueEmailVerifiedToken } from '../_shared/email_verify.ts';
 import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
 import { TurnstileConfigError, TurnstileError, verifyTurnstile } from '../_shared/turnstile.ts';
 import { isValidEmailAddress } from '../_shared/email_address.ts';
@@ -384,16 +384,18 @@ function waitlistPromoted(data: Record<string, unknown>): EmailTemplate {
   });
 }
 
-function verificationEmail(projectNameValue: string, code: string): EmailTemplate {
+function verificationEmail(projectNameValue: string, code: string, purpose = 'entry'): EmailTemplate {
+  const reset = purpose === 'password_reset';
+  const lead = reset ? 'パスワードの再発行のため、以下のコードを入力してください。' : 'エントリーフォームに以下のコードを入力してください。';
   return {
     subject: `【${projectNameValue}】認証コード`,
     html: shell('認証コード', projectNameValue, `
-      <p class="ciq-mail-copy" style="margin:0;text-align:left;color:${MAIL.text};">エントリーフォームに以下のコードを入力してください。</p>
+      <p class="ciq-mail-copy" style="margin:0;text-align:left;color:${MAIL.text};">${lead}</p>
       ${numberCard('認証コード', code)}
       <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダもご確認ください。心当たりがない場合は、このメールを破棄してください。</p>
     `),
     text: [
-      'エントリーフォームに以下のコードを入力してください。',
+      lead,
       // iPhone のコード候補が読み取る行なので、半角のコロンのままにする(動作確認済み)
       `認証コード: ${code}`,
       'このコードは10分間有効です。心当たりがない場合は、このメールを破棄してください。',
@@ -571,18 +573,34 @@ Deno.serve(withCors(async (req) => {
       // send_verification 撃ちで正規メールが枯渇(DoS-starvation)しないようにする。
       await enforceProjectDailyEmailCap(supabase, effectiveProjectId);
       const project = await getProjectForMail(supabase, effectiveProjectId);
-      assertEntryOpen(project);
+      // パスワードの再発行は、エントリー期間が終わっていても使えるようにする。
+      const purpose = data.purpose === 'password_reset' ? 'password_reset' : 'entry';
+      if (purpose === 'entry') assertEntryOpen(project);
 
       const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000);
       const expiresAt = Date.now() + 10 * 60 * 1000;
       const signature = await hmacHex(signingSecret(), `${code}:${normalizedEmail}:${expiresAt}`);
       const name = projectName({ ...data, projectName: data.projectName || project.name });
+      if (purpose === 'password_reset') {
+        // 登録のないアドレスには送らない。ただし応答は同じ形にして、登録の有無を外から調べられないようにする。
+        const emailHashV2 = await pepperHash(await emailHashFromNormalized(normalizedEmail));
+        const { data: found, error: foundError } = await supabase
+          .from('entries')
+          .select('id')
+          .eq('project_id', effectiveProjectId)
+          .eq('email_hash_v2', emailHashV2)
+          .limit(1);
+        if (foundError) throw foundError;
+        if (!found || found.length === 0) {
+          return jsonResponse({ success: true, signature, expiresAt });
+        }
+      }
       const result = await recordAndSend({
         projectId: effectiveProjectId,
         recipientHash: recipientLogHash,
         template: type,
         to: normalizedEmail,
-        message: verificationEmail(name, code),
+        message: verificationEmail(name, code, purpose),
       });
       return jsonResponse({ success: true, signature, expiresAt, emailEventId: result.id });
     }

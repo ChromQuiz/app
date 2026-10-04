@@ -92,8 +92,9 @@ const CIQEmail = (() => {
     }
 
     // turnstileToken はサーバ(send-email)が Siteverify で検証する。クライアントは中継のみ。
-    async function sendVerificationCode(to, projectName, senderName, turnstileToken) {
-        const result = await request('send_verification', to, { projectName, senderName, turnstileToken });
+    // purpose='password_reset' はパスワード再発行用（エントリー期間外でも送れる）。
+    async function sendVerificationCode(to, projectName, senderName, turnstileToken, purpose) {
+        const result = await request('send_verification', to, { projectName, senderName, turnstileToken, purpose });
         if (!result?.success) return { success: false, error: result?.error || '' };
         return result;
     }
