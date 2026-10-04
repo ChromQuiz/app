@@ -8,6 +8,7 @@
 // HEALTHCHECK_URL が未設定なら通知はスキップし、keepalive だけが動く。
 
 const MAX_ATTEMPTS = 2;
+const PROMOTION_CRON = '*/5 * * * *';
 
 async function pingSupabase(env) {
     const url = `${env.SUPABASE_URL}${env.KEEPALIVE_PATH}`;
@@ -54,9 +55,31 @@ async function runKeepalive(env) {
     return result;
 }
 
+// 繰り上げ通知の取りこぼしを拾う。サーバー内の処理が失敗した・設定を変えて繰り上がった、などのときの保険。
+// 合言葉（CIQ_CRON_SECRET）は Secret に置く。未設定ならスキップする。
+async function runPromotionNotices(env) {
+    if (!env.CIQ_CRON_SECRET) return;
+    try {
+        const response = await fetch(`${env.SUPABASE_URL}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+                apikey: env.SUPABASE_PUBLISHABLE_KEY,
+                'x-ciq-cron-secret': env.CIQ_CRON_SECRET,
+            },
+            body: JSON.stringify({ type: 'process_promotions' }),
+        });
+        console.log(`promotion notices status ${response.status}`);
+    } catch (error) {
+        console.error(`promotion notices failed: ${error.message}`);
+    }
+}
+
 export default {
     async scheduled(event, env, ctx) {
-        ctx.waitUntil(runKeepalive(env));
+        // 5 分おきの cron は繰り上げ通知、それ以外は keepalive。
+        if (event.cron === PROMOTION_CRON) ctx.waitUntil(runPromotionNotices(env));
+        else ctx.waitUntil(runKeepalive(env));
     },
 
     // 手動確認用。cron を待たずにブラウザで叩いて動作を確かめられる。

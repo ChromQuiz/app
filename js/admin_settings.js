@@ -1520,33 +1520,23 @@
                     const pii = JSON.parse(await AppCrypto.decryptRSA(entry.encrypted_pii, privJwk));
                     row.textContent = '';
                     appendAdminEntryRow(row, entry, pii);
-                    if (entry.waitlist_promotion_notice === 'pending') {
-                        sendWaitlistPromotionNotice(entry, pii).catch(e => console.warn('繰り上げ通知スキップ:', e));
-                    }
                 } catch (e) {
                     console.warn('PII復号をスキップ:', e);
                 }
                 await yieldToBrowser();
             }
+            requestPromotionNotices(rows.map(({ entry }) => entry));
         }
 
-        async function sendWaitlistPromotionNotice(entry, pii) {
-            if (!entry?.id) return;
-            await CIQSupabaseAPI.updateEntryNoticeState(entry.id, 'sending');
-            if (!pii?.email) {
-                await CIQSupabaseAPI.updateEntryNoticeState(entry.id, 'failed');
-                return;
+        // 繰り上げ通知は、サーバーが宛先を復号して自動で送る。ここでは「送信待ち」があるときに、取りこぼしを拾うよう依頼するだけ。
+        async function requestPromotionNotices(entries) {
+            if (!entries.some(entry => entry.waitlist_promotion_notice === 'pending')) return;
+            try {
+                const result = await CIQSupabaseAPI.processPromotionNotices(projectId);
+                if (result?.sent > 0) showAdminToast(`繰り上げ通知を${result.sent}件送信しました。`, 'success');
+            } catch (e) {
+                console.warn('繰り上げ通知の依頼に失敗:', e);
             }
-            const ok = await CIQEmail.sendWaitlistPromotion(pii.email, {
-                projectName: adminProjectName || projectId,
-                entryNumber: String(entry.entry_number).padStart(3, '0'),
-                entryId: entry.id,
-                familyName: pii.familyName || '',
-                firstName: pii.firstName || '',
-                senderName: (adminProjectName || projectId) + ' 実行委員会'
-            });
-            await CIQSupabaseAPI.updateEntryNoticeState(entry.id, ok ? 'sent' : 'failed');
-            if (ok) showAdminToast(`受付番号 ${padNum(entry.entry_number)} へ繰り上げ通知を送信しました。`, 'success');
         }
 
         async function exportEntriesCSV() {

@@ -669,15 +669,9 @@ const CIQSupabaseAPI = {
         return data || [];
     },
 
-    async updateEntryNoticeState(entryId, noticeState) {
-        const { data, error } = await this.client()
-            .from('entries')
-            .update({ waitlist_promotion_notice: noticeState })
-            .eq('id', entryId)
-            .select('id, waitlist_promotion_notice')
-            .single();
-        if (error) throw error;
-        return data;
+    // 送信待ちの繰り上げ通知を、サーバーに送らせる（宛先の復号もサーバー側）
+    async processPromotionNotices(projectId) {
+        return this.invokeAuthedFunction('send-email', { type: 'process_promotions', projectId });
     },
 
     async listModelAnswers(projectId) {

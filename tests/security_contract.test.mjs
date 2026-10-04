@@ -103,7 +103,8 @@ describe('legacy participant-hash columns are dropped in a migration (P2-e5)', (
 describe('Edge Function authorization gates stay in place', () => {
   const ADMIN_FNS = ['admin-create-entry', 'admin-entry-qr', 'project-key'];
   for (const fn of ADMIN_FNS) {
-    const src = read(`supabase/functions/${fn}/index.ts`);
+    // project-key の管理者確認は _shared/project_key.ts に移した（繰り上げ通知と共有）
+    const src = read(`supabase/functions/${fn}/index.ts`) + (fn === 'project-key' ? read('supabase/functions/_shared/project_key.ts') : '');
     it(`${fn}: requires an active owner/admin member`, () => {
       expect(src).toMatch(/requireAdminMember\(/);
       // owner/admin restriction — JS comparison or SQL `.in('role', [...])` form

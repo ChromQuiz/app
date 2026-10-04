@@ -982,6 +982,45 @@ Notes   : 再発行しても、既存のログイン済みセッション（30�
           パスワード変更の通知メールは送らない（必要なら後続）
 ```
 
+### 繰り上げ通知の自動送信（親計画外・Additional Security Backlog）
+```
+Status  : Implemented — 2026-10-05（本番への反映は Edge Function のデプロイと Secret の設定待ち。済んだら更新する）
+Evidence:
+  - Commits    : feature/auto-promotion-notice（本ブランチ）
+  - Migrations : なし（entries.waitlist_promotion_notice と updated_at の既存列を使う）
+  - Deploys    : send-email / cancel-entry / edit-entry / project-key（_shared/project_key.ts を共有するため）、cloudflare/keepalive
+  - Secrets    : CIQ_CRON_SECRET（Edge と Worker で同じ値）、CIQ_SITE_URL
+  - Verification:
+      静的 : npx vitest run（tests/promotion_notice.test.mjs: 偽の DB で処理の流れ、ブラウザの暗号化との突き合わせ）
+      未検証: 本番での実際の送信、Worker の cron、Secret 設定後の動作
+
+① 目的
+  - 繰り上げ通知が、管理画面を開いたときにしか送られず、鍵がない端末では送られない状態をなくす（FND-14）
+
+② 変更内容
+  - サーバーが、保管してあるプロジェクトの秘密鍵（project_private_keys。包んだ状態で保存）を取り出し、
+    繰り上がった人の encrypted_pii から宛先メールだけをメモリ上で復号して送る。復号した値は保存せず、ログにも出さない
+  - 状態の遷移は pending → sending → sent/failed。「送信待ち」から「送信中」への更新が取れたものだけを処理して、二重送信を防ぐ。
+    10 分以上「送信中」のまま止まったものは取り直す
+  - 通知の対象は status が registered / late の人だけ
+  - 始まる場所: cancel-entry / edit-entry の直後（Secret があれば内部呼び出し）、管理画面の参加者一覧（管理者の JWT）、
+    Cloudflare Worker の 5 分おきの cron（保険）。いずれも send-email の type=process_promotions
+  - 呼べる人: x-ciq-cron-secret が CIQ_CRON_SECRET と一致する内部の処理か、その大会の active な owner / admin。
+    管理者は大会の指定が必須で、他の大会は処理できない
+  - 管理画面のブラウザで宛先を復号して送る処理は撤去した
+
+③ 守っているもの
+  - 秘密鍵はサーバーの中だけで使い、ブラウザには出さない（従来の project-key の受け渡しは変更なし）
+  - 送れる宛先は、その大会の「送信待ち」の人のメールだけ。送信内容は固定の繰り上げ文面
+  - 宛先・氏名・復号結果をログに出さない（失敗時は例外の種類だけ）
+  - 送信は email_events に記録される（従来どおり）
+
+Rollback: Possible（send-email などを前のバージョンに戻し、js を revert。DB の変更なし）
+Notes   : サーバーが秘密鍵で個人情報を復号できる範囲が、「管理者が開いたとき」から「繰り上げ通知のとき」に広がる。
+          復号するのは宛先と氏名だけで、同じ鍵はすでにサーバーが包んで保管していた（project-key）。
+          CIQ_CRON_SECRET が漏れると、誰でも未送信の通知を送らせられる（宛先・文面は選べない）。漏れたら入れ替える
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

@@ -21,7 +21,7 @@ describe('removed members are rejected consistently (V11)', () => {
 
   it('staff-facing functions all gate on an explicit active status', () => {
     for (const fn of ['check-in', 'admin-create-entry', 'admin-entry-qr', 'project-key']) {
-      const src = read(`supabase/functions/${fn}/index.ts`);
+      const src = read(`supabase/functions/${fn}/index.ts`) + (fn === 'project-key' ? read('supabase/functions/_shared/project_key.ts') : '');
       expect(src, `${fn} must require active`).toMatch(/status !== 'active'|\.eq\('status', 'active'\)/);
     }
   });
