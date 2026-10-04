@@ -63,7 +63,7 @@
             if (!window.CV) await loadAdminScriptOnce('js/cv.js');
             if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
             if (typeof window.generatePDF !== 'function' || typeof window.loadAnswers !== 'function') {
-                await loadAdminScriptOnce('js/admin_prep.js?v=30');
+                await loadAdminScriptOnce('js/admin_prep.js?v=31');
             }
         }
 
@@ -239,11 +239,13 @@
         };
 
         function registerAdminShortcuts() {
+            // 画面のフェーズ番号(1 準備 / 2 公開 / 3 当日 / 4 採点 / 5 結果)と同じ番号にそろえる。設定は 6。
             KeyboardShortcuts.register('1', '準備フェーズ', () => switchTab('tab-prep'));
             KeyboardShortcuts.register('2', '公開フェーズ', () => switchTab('tab-entries'));
-            KeyboardShortcuts.register('3', '採点フェーズ', () => switchTab('tab-scan'));
-            KeyboardShortcuts.register('4', '結果フェーズ', () => switchTab('tab-stats'));
-            KeyboardShortcuts.register('5', '設定', () => switchTab('tab-settings'));
+            KeyboardShortcuts.register('3', '当日フェーズ', () => switchTab('tab-checkin'));
+            KeyboardShortcuts.register('4', '採点フェーズ', () => switchTab('tab-scan'));
+            KeyboardShortcuts.register('5', '結果フェーズ', () => switchTab('tab-stats'));
+            KeyboardShortcuts.register('6', '設定', () => switchTab('tab-settings'));
         }
 
 

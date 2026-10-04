@@ -10,10 +10,10 @@
 function createCiqSupabaseClient() {
     const cfg = window.CIQ_SUPABASE_CONFIG;
     if (!cfg?.url || !cfg?.publishableKey) {
-        throw new Error('Supabase configuration is missing.');
+        throw new Error('サーバーの設定が見つかりません。');
     }
     if (!window.supabase?.createClient) {
-        throw new Error('Supabase JS client is not loaded.');
+        throw new Error('サーバーとの通信に必要なライブラリを読み込めませんでした。ページを再読み込みしてください。');
     }
 
     return window.supabase.createClient(cfg.url, cfg.publishableKey, {

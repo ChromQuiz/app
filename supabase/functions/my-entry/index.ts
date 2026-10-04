@@ -44,7 +44,7 @@ function isWithinPeriod(start: string | null, end: string | null) {
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
-  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
+  if (req.method !== 'POST') return jsonResponse({ error: 'この方法ではアクセスできません。' }, 405);
 
   try {
     const body = await req.json();
@@ -59,7 +59,7 @@ Deno.serve(withCors(async (req) => {
       .select('name, entry_open, period_start, period_end, disclosure_enabled, disclosure_period_start, disclosure_period_end')
       .eq('id', projectId)
       .single();
-    if (projectError || !project) return jsonResponse({ error: 'Project not found' }, 404);
+    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
 
     const entryId = String(entry.id);
     const status = String(entry.status || '');

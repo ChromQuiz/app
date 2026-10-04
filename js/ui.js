@@ -83,7 +83,7 @@ async function showPreview(projectId, entryNum) {
             setPreviewMessage(pc, 'ページ画像が保存されていません。管理画面から答案を再読み込みしてください。');
         }
     } catch (e) {
-        setPreviewMessage(pc, `ページ画像を読み込めませんでした: ${e.message}`);
+        setPreviewMessage(pc, `ページ画像を読み込めませんでした（詳細：${e.message}）`);
     }
 }
 

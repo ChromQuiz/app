@@ -61,8 +61,8 @@ function getEntryClosedReason() {
     const now = Date.now();
     const start = projectSettings.periodStart ? new Date(projectSettings.periodStart) : null;
     const end = projectSettings.periodEnd ? new Date(projectSettings.periodEnd) : null;
-    if (start && start.getTime() > now) return `エントリー受付はまだ開始されていません。開始: ${start.toLocaleString('ja-JP')}`;
-    if (end && end.getTime() < now) return `エントリー受付は終了しました。終了: ${end.toLocaleString('ja-JP')}`;
+    if (start && start.getTime() > now) return `エントリー受付はまだ開始されていません。開始：${start.toLocaleString('ja-JP')}`;
+    if (end && end.getTime() < now) return `エントリー受付は終了しました。終了：${end.toLocaleString('ja-JP')}`;
     return '現在、再エントリーできません。';
 }
 
@@ -540,13 +540,8 @@ async function viewResult() {
         renderResult(disc);
         hideEl(btn);
     } catch (e) {
-        if (e.message?.includes('成績照会の対象外')) {
-            setMsg('result-msg', 'このエントリーは成績照会の対象外です。', 'error');
-        } else if (e.message?.includes('Disclosure')) {
-            setMsg('result-msg', '成績照会は現在利用できません。', 'error');
-        } else {
-            setMsg('result-msg', e.message || 'エラーが発生しました。もう一度お試しください。', 'error');
-        }
+        // サーバーの理由(成績照会の対象外・期間外など)は日本語で返るので、そのまま見せる
+        setMsg('result-msg', e.message || '成績を取得できませんでした。時間をおいて再度お試しください。', 'error');
     } finally {
         setBusy(btn, false, '成績を表示する');
     }
@@ -587,7 +582,7 @@ function renderResult(disc) {
 
 function getShareText() {
     const tag = '#' + shareProjectName.replace(/\s+/g, '');
-    return `${tag} に参加しました!!`;
+    return `${tag} に参加しました！！`;
 }
 
 async function generateShareCard(disc) {

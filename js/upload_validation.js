@@ -113,19 +113,19 @@
         if (unreadablePages.length) {
             return {
                 ok: false,
-                message: `受付番号を読み取れないページがあります: p${unreadablePages.slice(0, 8).join(', p')}${unreadablePages.length > 8 ? ` ほか${unreadablePages.length - 8}件` : ''}。受付番号マークを確認してください。`,
+                message: `受付番号を読み取れないページがあります：p${unreadablePages.slice(0, 8).join(', p')}${unreadablePages.length > 8 ? ` ほか${unreadablePages.length - 8}件` : ''}。受付番号マークを確認してください。`,
             };
         }
         if (duplicates.size) {
             return {
                 ok: false,
-                message: `PDF内で受付番号が重複しています: ${summarizeEntryNumbers(Array.from(duplicates))}。同じ答案を重複して読み込んでいないか確認してください。`,
+                message: `PDF内で受付番号が重複しています：${summarizeEntryNumbers(Array.from(duplicates))}。同じ答案を重複して読み込んでいないか確認してください。`,
             };
         }
         if (missing.size) {
             return {
                 ok: false,
-                message: `PDFから読んだ受付番号が参加者一覧にありません: ${summarizeEntryNumbers(Array.from(missing))}。参加者一覧の番号は ${summarizeEntryRange(Array.from(known))} です。正しいプロジェクト/PDFか、答案の受付番号マークを確認してください。`,
+                message: `PDFから読んだ受付番号が参加者一覧にありません：${summarizeEntryNumbers(Array.from(missing))}。参加者一覧の番号は ${summarizeEntryRange(Array.from(known))} です。正しいプロジェクト/PDFか、答案の受付番号マークを確認してください。`,
             };
         }
         return { ok: true };

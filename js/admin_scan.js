@@ -87,7 +87,7 @@
                 document.getElementById('select-all-cb').checked = false;
             } catch (e) {
                 console.error('Supabase答案リスト読み込みエラー:', e);
-                setScanMessage(el, `答案リストを読み込めませんでした: ${e.message}`);
+                setScanMessage(el, `答案リストを読み込めませんでした（詳細：${e.message}）`);
             }
         }
 
@@ -361,7 +361,7 @@
             try {
                 await CIQSupabaseAPI.saveModelAnswers(projectId, modelAnswers);
             } catch(e) {
-                showAdminToast('保存に失敗: ' + e.message);
+                showAdminToast('模範解答を保存できませんでした（詳細：' + e.message + '）');
             }
         }
 

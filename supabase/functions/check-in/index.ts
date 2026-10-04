@@ -80,7 +80,7 @@ function parseEntryNumber(value: unknown) {
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
-  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
+  if (req.method !== 'POST') return jsonResponse({ error: 'この方法ではアクセスできません。' }, 405);
 
   try {
     const { action, projectId, qr, entryNumber, confirmedEntryId } = await req.json();
@@ -161,7 +161,7 @@ Deno.serve(withCors(async (req) => {
       return await commitCheckIn(supabase, req, projectId, entry, member?.id ?? null);
     }
 
-    return jsonResponse({ error: 'Invalid action' }, 400);
+    return jsonResponse({ error: 'この操作は受け付けられません。ページを開き直してください。' }, 400);
   } catch (error) {
     if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
     const message = error instanceof Error ? error.message : String(error);

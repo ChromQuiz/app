@@ -299,13 +299,13 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     text: [
       person ? `${person} 様` : '',
       `${name} のエントリーを受け付けました。`,
-      `受付番号: ${entryNumber}`,
-      data.status === 'waitlist' ? `状態: ${status}` : '',
-      `パスワード: ${password}`,
+      `受付番号：${entryNumber}`,
+      data.status === 'waitlist' ? `状態：${status}` : '',
+      `パスワード：${password}`,
       'このメールには受付二次元コードとマイエントリー用の情報が含まれます。大会当日まで保存してください。',
       '二次元コードはマイエントリーからも再表示できます。',
-      myUrl ? `マイエントリー: ${myUrl}` : '',
-      entryListUrl ? `エントリーリスト: ${entryListUrl}` : '',
+      myUrl ? `マイエントリー：${myUrl}` : '',
+      entryListUrl ? `エントリーリスト：${entryListUrl}` : '',
     ].filter(Boolean).join('\n'),
   };
 }
@@ -333,8 +333,8 @@ function simpleNotice(args: {
     text: [
       person ? `${person} 様` : '',
       `${name} — ${args.message}`,
-      `受付番号: ${entryNumber}`,
-      myUrl ? `マイエントリー: ${myUrl}` : '',
+      `受付番号：${entryNumber}`,
+      myUrl ? `マイエントリー：${myUrl}` : '',
     ].filter(Boolean).join('\n'),
   };
 }
@@ -394,6 +394,7 @@ function verificationEmail(projectNameValue: string, code: string): EmailTemplat
     `),
     text: [
       'エントリーフォームに以下のコードを入力してください。',
+      // iPhone のコード候補が読み取る行なので、半角のコロンのままにする(動作確認済み)
       `認証コード: ${code}`,
       'このコードは10分間有効です。心当たりがない場合は、このメールを破棄してください。',
     ].join('\n'),
@@ -521,7 +522,7 @@ async function recordAndSend(args: {
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
-  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
+  if (req.method !== 'POST') return jsonResponse({ error: 'この方法ではアクセスできません。' }, 405);
 
   try {
     const { type, to, data = {}, projectId, entryId } = await req.json();
@@ -587,7 +588,7 @@ Deno.serve(withCors(async (req) => {
     }
 
     const template = templates[type];
-    if (!template) return jsonResponse({ error: `Unknown template type: ${type}` }, 400);
+    if (!template) return jsonResponse({ error: 'メールの種類が正しくありません。' }, 400);
 
     const effectiveProjectId = projectId || String(data.projectId || '');
     if (!effectiveProjectId) return jsonResponse({ error: '大会情報を取得できませんでした。ページを再読み込みして、もう一度お試しください。' }, 400);

@@ -34,7 +34,7 @@ function isEntryEditOpen(project: {
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
   if (options) return options;
-  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
+  if (req.method !== 'POST') return jsonResponse({ error: 'この方法ではアクセスできません。' }, 405);
 
   try {
     const body = await req.json();
@@ -58,7 +58,7 @@ Deno.serve(withCors(async (req) => {
       .select('entry_open, period_start, period_end')
       .eq('id', projectId)
       .single();
-    if (projectError || !project) return jsonResponse({ error: 'Project not found' }, 404);
+    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
     if (!isEntryEditOpen(project)) {
       return jsonResponse({ error: '現在エントリー内容の編集はできません。' }, 403);
     }

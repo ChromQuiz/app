@@ -18,6 +18,7 @@
             overlayTitle.textContent = '採点済みPDFを生成中…';
 
             try {
+                await refreshScoringEntryNumbers();
                 await refreshSupabaseScoringData();
                 // 1) 採点結果を全問取得
                 const finalResults = {}; // finalResults[qNum][entryNum] = 'correct' | undefined
@@ -27,7 +28,7 @@
 
                 // 2) エントリーごとにスコア・連答を計算
                 const entryResults = {};
-                for (const en of entryNumbers) {
+                for (const en of scoringEntryNumbers) {
                     const answers = [];
                     for (let q = 1; q <= totalQuestions; q++) {
                         answers.push(finalResults[q][en] === 'correct' ? 1 : 0);
@@ -42,7 +43,7 @@
                 }
 
                 // 3) 受付番号順にソート
-                const sortedEntries = [...entryNumbers].sort((a, b) => a - b);
+                const sortedEntries = [...scoringEntryNumbers].sort((a, b) => a - b);
 
                 // 4) jsPDF初期化
                 window.jsPDF = window.jspdf.jsPDF;
@@ -171,6 +172,6 @@
             } catch (e) {
                 console.error('PDF生成エラー:', e);
                 overlay.classList.remove('is-visible-flex');
-                showAdminToast('採点済みPDFを生成できませんでした（詳細: ' + e.message + '）');
+                showAdminToast('採点済みPDFを生成できませんでした（詳細：' + e.message + '）');
             }
         }

@@ -33,11 +33,29 @@
             row.appendChild(td);
         }
 
+        // 確定の判定・順位・CSV・アナリティクス・採点済みPDFが対象にする人は、成績照会と同じ
+        // 「登録済み」「遅刻連絡済み」の人だけにそろえる(キャンセル済み・キャンセル待ちは入れない)。
+        // どのタブを先に開いたかで人数が変わらないよう、使う前にサーバーから取り直す。
+        let scoringEntryNumbers = [];
+        async function refreshScoringEntryNumbers() {
+            const rows = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
+            if (!window._entriesRaw) {
+                window._entriesRaw = Object.fromEntries(rows.map(entry => [entry.id, normalizeSupabaseEntry(entry)]));
+            }
+            scoringEntryNumbers = rows
+                .filter(entry => entry.status === 'registered' || entry.status === 'late')
+                .map(entry => Number(entry.entry_number))
+                .filter(Number.isFinite)
+                .sort((a, b) => a - b);
+            return scoringEntryNumbers;
+        }
+
         async function updateStatsView() {
             try {
+                await refreshScoringEntryNumbers();
                 await refreshSupabaseScoringData();
             } catch (e) {
-                showAdminToast('集計データを読み込めませんでした（詳細: ' + e.message + '）');
+                showAdminToast('集計データを読み込めませんでした（詳細：' + e.message + '）');
             }
             let confirmedCount = 0, doneCount = 0, conflictCount = 0, inprogressCount = 0, untouchedCount = 0, allConfirmed = true;
             for (let q = 1; q <= totalQuestions; q++) {
@@ -47,7 +65,7 @@
                 let hasConflict = false, allResolved = true;
                 
                 if (allDone) { 
-                    entryNumbers.forEach(en => { 
+                    scoringEntryNumbers.forEach(en => {
                         const qs = scoresData[en]?.[`q${q}`] || {}; 
                         const v = Object.values(qs); 
                         const co = v.filter(x => x === 'correct').length, 
@@ -152,9 +170,10 @@
         }
 
         async function exportCSV() {
+            await refreshScoringEntryNumbers();
             const masterData = await loadEntryMaster();
 
-            const results = entryNumbers.map(en => {
+            const results = scoringEntryNumbers.map(en => {
                 const answers = []; for (let q = 1; q <= totalQuestions; q++) { const fd = scoresData[`__final__q${q}`] || {}; const r = fd[en] === 'correct' ? 1 : 0; answers.push(r); }
                 const score = answers.reduce((a, b) => a + b, 0);
                 const streaks = []; let cur = 0;
@@ -219,7 +238,7 @@
         async function getAnalyticsData() {
             const threshold = parseInt(document.getElementById('analytics-threshold').value) || 5;
             const masterData = await loadEntryMaster();
-            const tp = entryNumbers.length || 1, qStats = [];
+            const tp = scoringEntryNumbers.length || 1, qStats = [];
             for (let q = 1; q <= totalQuestions; q++) {
                 const fd = scoresData[`__final__q${q}`] || {};
                 // __final__ が空 = まだ確定していない → 未確定として扱う
@@ -229,7 +248,7 @@
                     continue;
                 }
                 let cc = 0, ce = [];
-                entryNumbers.forEach(en => {
+                scoringEntryNumbers.forEach(en => {
                     if (fd[en] === 'correct') { cc++; ce.push(en); }
                 });
                 const rate = Math.round((cc / tp) * 100);
@@ -243,7 +262,7 @@
         let _lastAnalyticsHash = '';
         async function renderAnalytics() {
             const tbody = document.getElementById('analytics-tbody');
-            if (!entryNumbers.length) {
+            if (!scoringEntryNumbers.length) {
                 setAnalyticsMessage(tbody, 'データがありません。');
                 _lastAnalyticsHash = '';
                 return;
@@ -265,7 +284,8 @@
             });
         }
         async function exportAnalyticsCSV() {
-            const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率(%)', '状態', '正解者一覧']; const rows = [headers];
+            await refreshScoringEntryNumbers();
+            const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率（％）', '状態', '正解者一覧']; const rows = [headers];
             qs.forEach(s => rows.push([s.q, s.correctCount, s.rate, s.type, `"${s.names.replace(/"/g, '""')}"`]));
             const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'analytics_all_qs.csv'; a.click();
         }
