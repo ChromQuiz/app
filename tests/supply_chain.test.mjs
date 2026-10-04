@@ -54,11 +54,12 @@ describe('third-party scripts are pinned and integrity-checked (V8)', () => {
 });
 
 describe('CSP allows only the CDNs actually used (V8)', () => {
-  // 実利用: cdn.jsdelivr.net(supabase-js/jsQR/marked) / challenges.cloudflare.com(Turnstile, entry のみ)
+  // 実利用: cdn.jsdelivr.net(supabase-js/jsQR/marked) / challenges.cloudflare.com(Turnstile, entry と my のみ)
   //         unpkg.com + cdnjs.cloudflare.com(jspdf/pdf.js, admin のみ・動的ロード)
   const EXPECTED_SCRIPT_HOSTS = {
     'admin.html': ['https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com', 'https://unpkg.com'],
     'entry.html': ['https://cdn.jsdelivr.net', 'https://challenges.cloudflare.com'],
+    'my.html': ['https://cdn.jsdelivr.net', 'https://challenges.cloudflare.com'],
     'help.html': [],
     '404.html': [],
   };

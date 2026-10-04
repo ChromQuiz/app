@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self'; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self' https://challenges.cloudflare.com; img-src 'self' data: blob:;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="favicon.png?v=4">
     <meta name="description" content="マイエントリー - エントリー内容の確認・編集・遅刻連絡・キャンセル・成績照会">
@@ -16,6 +16,8 @@
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=26"></script>
     <script defer src="js/shared.js?v=4"></script>
+    <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+    <script defer src="js/turnstile.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=84">
     <link rel="stylesheet" href="css/pages.css?v=128">
 </head>
@@ -38,7 +40,32 @@
             </div>
             <button type="submit" class="page-btn" id="auth-btn">ログイン</button>
             <div class="page-msg" id="auth-msg" role="status" aria-live="polite"></div>
+            <button type="button" class="btn ghost u-full-width" id="forgot-btn">パスワードを忘れた場合</button>
         </form>
+
+        <!-- パスワードの再発行（メール認証のあと、新しいパスワードを発行する） -->
+        <section class="page-card u-hidden" id="reset-card" aria-labelledby="reset-heading">
+            <h2 id="reset-heading">パスワードの再発行</h2>
+            <p class="my-note">エントリー時のメールアドレスに認証コードを送ります。認証できると、新しいパスワードを発行して、同じメールアドレスに送ります。</p>
+            <div id="reset-step-email">
+                <div class="form-group">
+                    <label class="required" for="r-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
+                    <input type="email" id="r-email" required autocomplete="email" placeholder="name@example.com" inputmode="email">
+                </div>
+                <div id="turnstile-reset" class="turnstile-box u-hidden" aria-live="polite"></div>
+                <button type="button" class="page-btn" id="reset-send-btn">認証コードを送信</button>
+            </div>
+            <div id="reset-step-code" class="u-hidden">
+                <div class="form-group">
+                    <label class="required" for="r-code">認証コード（6桁）</label>
+                    <input type="text" id="r-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456">
+                </div>
+                <button type="button" class="page-btn" id="reset-verify-btn">認証してパスワードを再発行</button>
+                <button type="button" class="btn ghost u-full-width" id="reset-resend-btn">認証コードを再送信</button>
+            </div>
+            <div class="page-msg" id="reset-msg" role="status" aria-live="polite"></div>
+            <button type="button" class="btn ghost u-full-width" id="reset-back-btn">ログインに戻る</button>
+        </section>
 
         <!-- ハブ本体 -->
         <div id="hub" class="u-hidden">
@@ -210,8 +237,8 @@
 
     </div>
 
-    <script defer src="js/email.js?v=9"></script>
+    <script defer src="js/email.js?v=11"></script>
     <script defer src="js/share_card.js?v=4"></script>
-    <script defer src="js/my.js?v=15"></script>
+    <script defer src="js/my.js?v=17"></script>
 </body>
 </html>

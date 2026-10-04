@@ -216,6 +216,103 @@ function logout() {
     setMsg('auth-msg', '', '');
 }
 
+// ---------- パスワードの再発行 ----------
+
+let resetSignature = '';
+let resetExpiresAt = 0;
+let resetEmail = '';
+
+function setResetStep(step) {
+    ['email', 'code'].forEach((name) => {
+        const node = el(`reset-step-${name}`);
+        if (name === step) showEl(node); else hideEl(node);
+    });
+}
+
+function openReset() {
+    hideEl(el('auth-card'));
+    showEl(el('reset-card'));
+    el('r-email').value = el('f-email').value;
+    el('r-email').disabled = false;
+    el('r-code').value = '';
+    resetSignature = '';
+    setResetStep('email');
+    setMsg('reset-msg', '', '');
+    CIQTurnstile.render('turnstile-reset', 'send_verification');
+}
+
+function closeReset() {
+    hideEl(el('reset-card'));
+    showEl(el('auth-card'));
+}
+
+async function sendResetCode(isResend) {
+    const input = el('r-email');
+    const email = normalizeEmailInput(input.value);
+    input.value = email;
+    if (!email) { setMsg('reset-msg', 'メールアドレスを入力してください。', 'error'); return; }
+    if (!isValidEmailAddress(email)) {
+        setMsg('reset-msg', '正しいメールアドレスを入力してください。全角の文字や空白が入っていないかご確認ください。', 'error');
+        return;
+    }
+    const btn = el(isResend ? 'reset-resend-btn' : 'reset-send-btn');
+    const label = isResend ? '認証コードを再送信' : '認証コードを送信';
+    setBusy(btn, true, '送信中…');
+    setMsg('reset-msg', '', '');
+
+    const name = projectSettings?.projectName || projectId;
+    const result = await CIQEmail.sendVerificationCode(
+        email, name, name + ' 実行委員会', CIQTurnstile.token('turnstile-reset'), 'password_reset',
+    );
+    CIQTurnstile.reset('turnstile-reset');
+    setBusy(btn, false, label);
+
+    if (!result || !result.success) {
+        setMsg('reset-msg', result?.error || '認証コードを送信できませんでした。時間をおいて再度お試しください。', 'error');
+        return;
+    }
+    resetSignature = result.signature;
+    resetExpiresAt = result.expiresAt;
+    resetEmail = email;
+    input.disabled = true;
+    hideEl(el('reset-step-email'));
+    showEl(el('reset-step-code'));
+    el('r-code').value = '';
+    el('r-code').focus();
+    setMsg('reset-msg', `${email} にエントリーがある場合は、認証コードを送信しました。届かないときは、迷惑メールフォルダとメールアドレスをご確認ください。`, 'success');
+}
+
+async function verifyAndReset() {
+    const code = el('r-code').value.replace(/\D/g, '');
+    if (code.length !== 6) { setMsg('reset-msg', '6桁の認証コードを入力してください。', 'error'); return; }
+    const btn = el('reset-verify-btn');
+    setBusy(btn, true, '確認中…');
+    setMsg('reset-msg', '', '');
+    try {
+        const verified = await CIQEmail.verifyCode(resetEmail, code, resetSignature, resetExpiresAt, projectId);
+        if (!verified.verified) {
+            setMsg('reset-msg', '認証コードが正しくないか、有効期限が切れています。入力内容をご確認ください。', 'error');
+            return;
+        }
+        const name = projectSettings?.projectName || projectId;
+        const sent = await CIQEmail.resetPassword(resetEmail, name, name + ' 実行委員会', verified.emailVerifiedToken, projectId);
+        if (!sent.success) {
+            setMsg('reset-msg', sent.error || 'パスワードを再発行できませんでした。時間をおいて再度お試しください。', 'error');
+            return;
+        }
+        // 新しいパスワードは画面に出さない。エントリー時と同じく、メールで届ける。
+        const doneEmail = resetEmail;
+        closeReset();
+        el('f-email').value = doneEmail;
+        el('f-password').value = '';
+        setMsg('auth-msg', `新しいパスワードを ${doneEmail} に送信しました。メールを確認して、ログインしてください。`, 'success');
+    } catch (err) {
+        setMsg('reset-msg', err.message || 'パスワードを再発行できませんでした。時間をおいて再度お試しください。', 'error');
+    } finally {
+        setBusy(btn, false, '認証してパスワードを再発行');
+    }
+}
+
 // ---------- ハブ描画 ----------
 
 const STATUS_LABELS = {
@@ -643,6 +740,11 @@ function ordinal(n) {
 
 function setupEvents() {
     el('auth-card')?.addEventListener('submit', authenticate);
+    el('forgot-btn')?.addEventListener('click', openReset);
+    el('reset-back-btn')?.addEventListener('click', closeReset);
+    el('reset-send-btn')?.addEventListener('click', () => sendResetCode(false));
+    el('reset-resend-btn')?.addEventListener('click', () => sendResetCode(true));
+    el('reset-verify-btn')?.addEventListener('click', verifyAndReset);
     el('qr-download-btn')?.addEventListener('click', downloadQr);
     el('open-edit-btn')?.addEventListener('click', openEdit);
     el('close-edit-btn')?.addEventListener('click', () => hideEl(el('edit-section')));

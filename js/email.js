@@ -92,8 +92,16 @@ const CIQEmail = (() => {
     }
 
     // turnstileToken はサーバ(send-email)が Siteverify で検証する。クライアントは中継のみ。
-    async function sendVerificationCode(to, projectName, senderName, turnstileToken) {
-        const result = await request('send_verification', to, { projectName, senderName, turnstileToken });
+    // purpose='password_reset' はパスワード再発行用（エントリー期間外でも送れる）。
+    async function sendVerificationCode(to, projectName, senderName, turnstileToken, purpose) {
+        const result = await request('send_verification', to, { projectName, senderName, turnstileToken, purpose });
+        if (!result?.success) return { success: false, error: result?.error || '' };
+        return result;
+    }
+
+    // 新しいパスワードを作り、メールで届ける（画面には出さない）。メール認証済みトークンが必要。
+    async function resetPassword(to, projectName, senderName, emailVerifiedToken, projectId) {
+        const result = await request('reset_password', to, { projectName, senderName, emailVerifiedToken, projectId });
         if (!result?.success) return { success: false, error: result?.error || '' };
         return result;
     }
@@ -113,7 +121,7 @@ const CIQEmail = (() => {
         };
     }
 
-    return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendWaitlistPromotion, sendVerificationCode, verifyCode };
+    return { configure, sendEntryConfirmation, sendCancellation, sendEntryEdited, sendLateNotice, sendWaitlistPromotion, sendVerificationCode, verifyCode, resetPassword };
 })();
 
 // ページ直下の const は window の属性にならない。my.js は window.CIQEmail? で有無を判定するため、
