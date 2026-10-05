@@ -101,3 +101,20 @@ describe('IDX-09 大会の作成（入力と名前）', () => {
     expect(js).toMatch(/btn\.disabled = true;\s*setButtonContent\(btn, '作成中…'/);
   });
 });
+
+describe('IDX-10 作成モードの出入り', () => {
+  const js = read('js/index.js');
+
+  it('参加モードに切り替えたら一覧を読み込む（作成モードから「ログインに戻る」で戻っても一覧が出る）', () => {
+    const setTab = js.slice(js.indexOf('function setTab('), js.indexOf('function renderSupabaseAuth('));
+    expect(setTab).toMatch(/if \(tab === 'join'\) renderProjectList\(\)/);
+  });
+
+  it('Google から戻ったときは、作成モードの意図を復元して URL に #create を戻す', () => {
+    const body = js.slice(js.indexOf('function renderSupabaseAuth('), js.indexOf('function renderCreateAuthState('));
+    expect(body).toMatch(/currentTab === 'create' && location\.hash !== '#create'/);
+    expect(body).toMatch(/history\.replaceState\(null, '', location\.pathname \+ location\.search \+ '#create'\)/);
+    // 一覧の読み込みは setTab に任せる（二重に読まない）
+    expect(body).not.toMatch(/renderProjectList\(\)/);
+  });
+});
