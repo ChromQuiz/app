@@ -214,9 +214,10 @@
             document.body.removeChild(ta);
         }
 
-        window.copyUrl = function(linkId, btn) {
-            const url = document.getElementById(linkId)?.href;
-            if (!url) return;
+        // コピーしたら、ボタンのアイコンを1.5秒だけチェック印にする（リンクのコピー全般で共通）。
+        // 戻り値は成功したかどうか（コピーできないブラウザでは代替の方法を試す）。
+        window.copyText = function(text, btn) {
+            if (!text || !btn) return Promise.resolve(false);
             const originalNodes = [...btn.childNodes].map(node => node.cloneNode(true));
             function onSuccess() {
                 setIconOnlyButton(btn, 'check');
@@ -226,16 +227,22 @@
                     btn.append(...originalNodes.map(node => node.cloneNode(true)));
                     btn.classList.remove('copy-success');
                 }, 1500);
+                return true;
             }
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
-                    fallbackCopy(url);
-                    onSuccess();
+                return navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+                    fallbackCopy(text);
+                    return onSuccess();
                 });
-            } else {
-                fallbackCopy(url);
-                onSuccess();
             }
+            fallbackCopy(text);
+            return Promise.resolve(onSuccess());
+        };
+
+        window.copyUrl = function(linkId, btn) {
+            const url = document.getElementById(linkId)?.href;
+            if (!url) return;
+            window.copyText(url, btn);
         };
 
         function registerAdminShortcuts() {

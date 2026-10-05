@@ -702,13 +702,11 @@
 
         function setupScorerInvites() {
             document.getElementById('invite-create-btn')?.addEventListener('click', createScorerInvite);
-            document.getElementById('invite-copy-btn')?.addEventListener('click', () => {
+            document.getElementById('invite-copy-btn')?.addEventListener('click', (event) => {
                 const field = document.getElementById('invite-new-url');
                 if (!field?.value) return;
-                navigator.clipboard.writeText(field.value).then(
-                    () => setInviteStatus('招待リンクをコピーしました。', 'success'),
-                    () => setInviteStatus('コピーできませんでした。手動で選択してください。', 'error'),
-                );
+                // 参加者に共有するリンクのコピーと同じ動作（アイコンがチェック印に変わる）。
+                window.copyText(field.value, event.currentTarget);
             });
             loadScorerInvites();
         }
