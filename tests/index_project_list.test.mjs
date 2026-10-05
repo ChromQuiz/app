@@ -49,3 +49,11 @@ describe('管理画面のコピー動作', () => {
     expect(admin).toMatch(/takesButton \? fn\(el\) : fn\(\)/);
   });
 });
+
+describe('IDX-08 採点者向けの案内', () => {
+  it('採点者への案内は「運営」から共有された招待リンク（「管理者」はロール名なので使わない）', () => {
+    const html = read('index.html');
+    expect(html).toMatch(/採点者として参加するには、運営から共有された招待リンクを開いてください。/);
+    expect(html).not.toMatch(/管理者から共有された招待リンク/);
+  });
+});
