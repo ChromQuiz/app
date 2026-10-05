@@ -4572,3 +4572,40 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   line-height: 1.6;
   color: var(--ink-2);
 }
+
+/* ============================================================
+   管理画面: スマホ幅のはみ出しとタブ
+   ------------------------------------------------------------
+   - フェーズの中身は grid の1列。列の幅が中身の最小幅で決まると、親より広くなって右にはみ出す。
+     列を親の幅に固定する（minmax(0, 1fr)）。
+   - 6つのフェーズのタブは、スマホ幅では横スクロールせず、6列に収める（番号を上、名前を下）。
+   ============================================================ */
+.phase,
+.tab-content.active {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 640px) {
+  .phase-quick-nav {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2px;
+    padding: 4px;
+    overflow: visible;
+  }
+
+  .phase-quick-btn {
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    min-height: 52px;
+    padding: 6px 0;
+    font-size: var(--fs-12);
+  }
+
+  /* 幅広のブロックも、親（余白の内側）の幅に収める */
+  .admin-container .is-wide {
+    width: auto;
+    max-width: 100%;
+  }
+}
