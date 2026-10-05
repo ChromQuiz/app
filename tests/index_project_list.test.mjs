@@ -57,3 +57,12 @@ describe('IDX-08 採点者向けの案内', () => {
     expect(html).not.toMatch(/管理者から共有された招待リンク/);
   });
 });
+
+describe('Google ログイン', () => {
+  it('毎回アカウントの選択を出す（ログアウト後に前のアカウントへ自動で入らない）', () => {
+    const api = read('js/supabase_api.js');
+    const body = api.slice(api.indexOf('async signInWithGoogle()'), api.indexOf('async signOut()'));
+    expect(body).toMatch(/queryParams: \{ prompt: 'select_account' \}/);
+    expect(body).toMatch(/provider: 'google'/);
+  });
+});
