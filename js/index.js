@@ -161,6 +161,9 @@ function setTab(tab) {
     document.getElementById('index-join-link')?.classList.toggle('u-hidden', tab !== 'create');
 
     renderCreateAuthState();
+    // 参加モードに切り替えたときは、一覧を読み込む（作成モードから戻った場合、ここで読まないと空のままになる）。
+    // 未ログインなら renderProjectList が一覧を空にする（ログアウト後に前の一覧を残さない）。
+    if (tab === 'join') renderProjectList();
 }
 
 function renderSupabaseAuth(sessionData) {
@@ -172,6 +175,11 @@ function renderSupabaseAuth(sessionData) {
     if (sessionData?.user && authIntent) {
         currentTab = authIntent === 'create' ? 'create' : 'join';
         clearAuthIntent();
+        // Google から戻ると URL の # が消えているので、作成モードのアドレス（#create）に戻す。
+        // replaceState は hashchange を起こさないので、ここで表示も合わせる。
+        if (currentTab === 'create' && location.hash !== '#create') {
+            history.replaceState(null, '', location.pathname + location.search + '#create');
+        }
     }
 
     const userEl = document.getElementById('supabase-auth-user');
@@ -187,9 +195,9 @@ function renderSupabaseAuth(sessionData) {
     if (identity) identity.hidden = !email;
     panel.hidden = Boolean(email);
     setAuthButtonVisibility(loginBtn, logoutBtn, Boolean(email));
+    // 参加モードのときの一覧の読み込みは setTab が行う
     setTab(currentTab);
     renderCreateAuthState();
-    renderProjectList();
 }
 
 function renderCreateAuthState() {
