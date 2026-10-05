@@ -5473,3 +5473,16 @@ tbody td {
 /* Apple-style notifications */
 
 /* Notification HUD: quiet in-app status, not an OS notification clone. */
+
+/* メニューの区切り線: 見出しの下には引かず、見えている項目どうしの間にだけ引く。
+   見出しの直後の項目だけを対象にする書き方だと、間に非表示の項目（権限で隠す運営ホームなど）が
+   挟まるセクションで線が出てしまうため、「見えている項目の次の、見えている項目」に線を引く。 */
+.menu-section .menu-item,
+.menu-footer .menu-item {
+  border-top-color: transparent;
+}
+
+.menu-section .menu-item:not(.u-hidden) ~ .menu-item:not(.u-hidden),
+.menu-footer .menu-item:not(.u-hidden) ~ .menu-item:not(.u-hidden) {
+  border-top-color: var(--line);
+}
