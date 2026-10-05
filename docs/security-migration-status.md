@@ -1023,6 +1023,42 @@ Notes   : サーバーが秘密鍵で個人情報を復号できる範囲が、�
           CIQ_CRON_SECRET が漏れると、誰でも未送信の通知を送らせられる（宛先・文面は選べない）。漏れたら入れ替える
 ```
 
+### 監査ログの書き込みをサーバー側だけに限る（親計画外・Additional Security Backlog）
+```
+Status  : Completed — 2026-10-05
+Evidence:
+  - Commits    : fix/audit-log-and-menu（本ブランチ）
+  - Migrations : 202610050004_lock_down_audit_logs（本番に適用済み・履歴に記録）
+  - Deploys    : なし（Edge Function の変更なし）。judge.html / js/judge.js（メニュー）は GitHub Pages
+  - Verification:
+      静的 : npx vitest run（tests/audit_log_lockdown.test.mjs）
+      観測 : 適用前にトランザクション内でドライラン（ロールバック）→ 本番に適用。適用後、pg_policies は SELECT の 1 本、
+             authenticated の権限は SELECT のみ、log_audit_event の anon/authenticated の EXECUTE は 0。
+             未ログイン（公開キー）で audit_logs への INSERT と log_audit_event の RPC を試し、どちらも 401（権限なし）
+      未検証: ログイン済みメンバー（採点者・管理者）の JWT での書き込み拒否（JWT フィクスチャが必要。権限は上のカタログで確認）
+
+① 見つかった問題（権限の棚卸しの途中で発見）
+  - audit_logs_insert_member: 大会のメンバーなら誰でも、監査ログに任意の行を足せた（偽の操作記録を作れる）
+  - log_audit_event(): ログイン済みなら誰でも実行でき、p_project_id を確認しないため、他の大会の監査ログにも書けた。
+    ブラウザ・Edge Function のどちらからも使われていなかった
+  - authenticated に INSERT / TRUNCATE / TRIGGER / REFERENCES が付いていた
+
+② 変更内容
+  - ポリシー audit_logs_insert_member を削除。anon / authenticated から書き込み系の権限を外した
+  - log_audit_event を service_role だけにした
+  - 書き込みは SECURITY DEFINER の関数（log_service_event / release_question_scorer / reset_project_data）と service_role だけ。
+    読み取り（audit_logs_select_admin: 所有者・管理者）は従来どおり
+
+③ 残っているもの
+  - 他のテーブルにも、Supabase の既定で anon / authenticated に付く TRUNCATE / TRIGGER / REFERENCES が残っている可能性がある
+    （Data API では使えないが、不要な権限）。別の作業として棚卸しする
+
+Rollback: Possible（ポリシーと grant を戻す。通常は戻す理由がない）
+Notes   : 採点者が localStorage の scorer_role を書き換えると運営画面の枠までは開く（画面の判定はブラウザだけ）。
+          書き込みは RLS で所有者・管理者に限られている（ポリシーを確認）。読み取りは参加者の暗号化情報以外が見える
+          が、運営に見られて困るものはないという判断（2026-10-05、運営側の確認）。
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

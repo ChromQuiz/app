@@ -104,6 +104,8 @@ async function initializeApp() {
 
     if (scorerRole === 'admin') {
         document.getElementById('admin-menu-home')?.classList.remove('u-hidden');
+        // 要確認の解決は管理者だけ。採点者には出さない。
+        document.getElementById('admin-menu-conflict')?.classList.remove('u-hidden');
     }
 
     renderQuestionCards();
