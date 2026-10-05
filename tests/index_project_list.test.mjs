@@ -66,3 +66,38 @@ describe('Google ログイン', () => {
     expect(body).toMatch(/provider: 'google'/);
   });
 });
+
+describe('IDX-09 大会の作成（入力と名前）', () => {
+  // index.js はブラウザ用のスクリプトなので、必要な関数だけを取り出して動かす
+  const js = read('js/index.js');
+  const pick = (name) => {
+    const start = js.indexOf(`function ${name}(`);
+    const end = js.indexOf('\n}\n', start) + 2;
+    return js.slice(start, end);
+  };
+  const { getOrdinalSuffix, parseEdition } = new Function(`${pick('getOrdinalSuffix')}\n${pick('parseEdition')}\nreturn { getOrdinalSuffix, parseEdition };`)();
+
+  it('大会の名前の序数: 1st 2nd 3rd 4th、11〜13 は th、21st 22nd 23rd、111〜113 も th', () => {
+    const name = (n) => `CIQ the ${n}${getOrdinalSuffix(n)}`;
+    expect([1, 2, 3, 4, 10, 11, 12, 13, 14, 21, 22, 23, 101, 111, 112, 113, 121].map(name)).toEqual([
+      'CIQ the 1st', 'CIQ the 2nd', 'CIQ the 3rd', 'CIQ the 4th', 'CIQ the 10th',
+      'CIQ the 11th', 'CIQ the 12th', 'CIQ the 13th', 'CIQ the 14th',
+      'CIQ the 21st', 'CIQ the 22nd', 'CIQ the 23rd',
+      'CIQ the 101st', 'CIQ the 111th', 'CIQ the 112th', 'CIQ the 113th', 'CIQ the 121st',
+    ]);
+  });
+
+  it('回数は数字（全角も可）で 1〜999 のときだけ受け付ける', () => {
+    expect(['1', '13', '999', ' 7 ', '１３'].map(parseEdition)).toEqual([1, 13, 999, 7, 13]);
+    expect(['', '0', '-1', '1000', '1.5', '12abc', 'abc', '1e3', null, undefined].map(parseEdition)).toEqual(Array(10).fill(0));
+  });
+
+  it('プロジェクト ID は ciq + 回数で、サーバーの形式（英数字3〜40文字）に収まる', () => {
+    for (const n of [1, 13, 999]) expect(/^[a-z0-9][a-z0-9_-]{2,39}$/.test(`ciq${n}`)).toBe(true);
+  });
+
+  it('未ログインなら先にログインを促す。作成中はボタンを無効にする', () => {
+    expect(js).toMatch(/先にGoogleアカウントでログインしてください。/);
+    expect(js).toMatch(/btn\.disabled = true;\s*setButtonContent\(btn, '作成中…'/);
+  });
+});
