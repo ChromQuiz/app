@@ -4607,5 +4607,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   .admin-container .is-wide {
     width: auto;
     max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
