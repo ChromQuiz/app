@@ -40,4 +40,12 @@ describe('管理画面のコピー動作', () => {
     expect(settings).toMatch(/window\.copyText\(field\.value, event\.currentTarget\)/);
     expect(settings).not.toMatch(/招待リンクをコピーしました。/);
   });
+
+  it('定型文のコピーも同じ処理で、ボタンが「コピーしました」に変わる。ほかの操作には引数を渡さない', () => {
+    const admin = read('js/admin.js');
+    const settings = read('js/admin_settings.js');
+    expect(settings).toMatch(/window\.copyText\(text, button\)/);
+    expect(settings).not.toMatch(/定型文をコピーしました。/);
+    expect(admin).toMatch(/takesButton \? fn\(el\) : fn\(\)/);
+  });
 });

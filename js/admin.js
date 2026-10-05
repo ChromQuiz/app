@@ -156,7 +156,6 @@
                 'export-entries-csv': exportEntriesCSV,
                 'open-admin-entry-modal': openAdminEntryModal,
                 'close-admin-entry-modal': closeAdminEntryModal,
-                'copy-admin-entry-password': copyAdminEntryPassword,
                 'copy-admin-entry-template': copyAdminEntryTemplate,
                 'download-admin-entry-receipt': downloadAdminEntryReceipt,
                 'finish-admin-entry': finishAdminEntryFlow,
@@ -176,7 +175,9 @@
                 el.addEventListener(eventName, () => {
                     const fn = actions[el.dataset.action];
                     if (!fn) return;
-                    Promise.resolve(fn()).catch(e => showAdminToast(e.message || '操作を完了できませんでした。'));
+                    // ボタンを渡すのは、押したボタンの表示を変えるコピーの操作だけ（他の関数は引数なしで呼ぶ）
+                    const takesButton = el.dataset.action === 'copy-admin-entry-template';
+                    Promise.resolve(takesButton ? fn(el) : fn()).catch(e => showAdminToast(e.message || '操作を完了できませんでした。'));
                 });
             });
             document.getElementById('admin-logout-btn')?.addEventListener('click', logout);
@@ -219,8 +220,11 @@
         window.copyText = function(text, btn) {
             if (!text || !btn) return Promise.resolve(false);
             const originalNodes = [...btn.childNodes].map(node => node.cloneNode(true));
+            // 文字つきのボタンは、チェック印と「コピーしました」に一時的に切り替える。アイコンだけのボタンはチェック印だけ。
+            const hasLabel = btn.textContent.trim() !== '';
             function onSuccess() {
                 setIconOnlyButton(btn, 'check');
+                if (hasLabel) btn.append(' コピーしました');
                 btn.classList.add('copy-success');
                 setTimeout(() => {
                     btn.textContent = '';

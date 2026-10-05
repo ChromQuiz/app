@@ -264,13 +264,6 @@
             closeAdminEntryModal(true);
         }
 
-        async function copyAdminEntryPassword() {
-            const password = document.getElementById('admin-entry-result-password')?.textContent || '';
-            if (!password) return;
-            await navigator.clipboard.writeText(password);
-            showAdminToast('パスワードをコピーしました。', 'success');
-        }
-
         function buildAdminEntryLinks() {
             const baseUrl = new URL('.', window.location.href);
             return {
@@ -297,11 +290,11 @@
             ].join('\n');
         }
 
-        async function copyAdminEntryTemplate() {
+        async function copyAdminEntryTemplate(button) {
             const text = buildAdminEntryTemplateText();
             if (!text) return;
-            await navigator.clipboard.writeText(text);
-            showAdminToast('定型文をコピーしました。', 'success');
+            // 他のコピーと同じ動作（ボタンがチェック印と「コピーしました」に変わる）
+            await window.copyText(text, button);
         }
 
         function drawRoundedRect(ctx, x, y, w, h, r) {
