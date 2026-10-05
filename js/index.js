@@ -11,6 +11,15 @@ function getOrdinalSuffix(n) {
     }
 }
 
+// 回数の入力を整数にする。数字だけ（全角は半角に直す）・1〜999 のとき以外は 0（不正）を返す。
+// parseInt だと「12abc」が 12、「1.5」が 1 として通ってしまう。
+function parseEdition(value) {
+    const text = String(value ?? '').normalize('NFKC').trim();
+    if (!/^\d{1,3}$/.test(text)) return 0;
+    const n = Number(text);
+    return n >= 1 && n <= 999 ? n : 0;
+}
+
 function generateStrongPassword() {
     const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const lower = 'abcdefghijklmnopqrstuvwxyz';
@@ -296,7 +305,8 @@ async function signOutSupabase() {
 }
 
 async function createProject() {
-    const edition = parseInt(document.getElementById('create-edition').value, 10);
+    const rawEdition = document.getElementById('create-edition').value;
+    const edition = parseEdition(rawEdition);
     const keyWrappingPassword = generateStrongPassword();
     const btn = document.getElementById('create-btn');
 
@@ -304,8 +314,11 @@ async function createProject() {
         showError('先にGoogleアカウントでログインしてください。');
         return;
     }
-    if (!edition || edition < 1) {
-        showError('回数を入力してください。');
+    if (!edition) {
+        // 空・0以下は「入力してください」、それ以外の不正な値（小数・文字・1000以上）は範囲を示す
+        showError(String(rawEdition).trim() === '' || Number(rawEdition) <= 0
+            ? '回数を入力してください。'
+            : '回数は1から999までの整数で入力してください。');
         return;
     }
 
