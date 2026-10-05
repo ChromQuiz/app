@@ -30,3 +30,14 @@ describe('index.js', () => {
     expect(js).toMatch(/renderSupabaseAuth\(supabaseSession\)/);
   });
 });
+
+describe('管理画面のコピー動作', () => {
+  it('参加者に共有するリンクと採点者の招待リンクは、同じコピー処理（アイコンがチェック印に変わる）を使う', () => {
+    const admin = read('js/admin.js');
+    const settings = read('js/admin_settings.js');
+    expect(admin).toMatch(/window\.copyText = function/);
+    expect(admin).toMatch(/window\.copyText\(url, btn\)/);
+    expect(settings).toMatch(/window\.copyText\(field\.value, event\.currentTarget\)/);
+    expect(settings).not.toMatch(/招待リンクをコピーしました。/);
+  });
+});
