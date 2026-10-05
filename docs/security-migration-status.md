@@ -950,7 +950,7 @@ Notes   : 訂正（2026-10-03）: 上の V7 再確認（2026-07-26）の記述�
 
 ### パスワードの再発行（親計画外・Additional Security Backlog）
 ```
-Status  : Implemented — 2026-10-05（本番への反映は Edge Function のデプロイ待ち。デプロイ後に更新する）
+Status  : Completed — 2026-10-05（send-email をデプロイ済み。メールの通しは実機で未確認）
 Evidence:
   - Commits    : feature/password-reset（本ブランチ）
   - Migrations : なし（既存の entries.disclosure_password_hash_v2 を更新するだけ）
@@ -984,7 +984,7 @@ Notes   : 再発行しても、既存のログイン済みセッション（30�
 
 ### 繰り上げ通知の自動送信（親計画外・Additional Security Backlog）
 ```
-Status  : Implemented — 2026-10-05（本番への反映は Edge Function のデプロイと Secret の設定待ち。済んだら更新する）
+Status  : Completed — 2026-10-05（本番にデプロイ済み。Secret 設定済み。cron の経路は本番で確認、キャンセル直後の経路は未確認）
 Evidence:
   - Commits    : feature/auto-promotion-notice（本ブランチ）
   - Migrations : なし（entries.waitlist_promotion_notice と updated_at の既存列を使う）
@@ -992,7 +992,9 @@ Evidence:
   - Secrets    : CIQ_CRON_SECRET（Edge と Worker で同じ値）、CIQ_SITE_URL
   - Verification:
       静的 : npx vitest run（tests/promotion_notice.test.mjs: 偽の DB で処理の流れ、ブラウザの暗号化との突き合わせ）
-      未検証: 本番での実際の送信、Worker の cron、Secret 設定後の動作
+      観測 : 本番で #120 をキャンセル→#116 が繰り上がり「送信待ち」→ 5 分以内に Worker の cron が拾い「送信済み」（email_events も sent）。
+             #122 を「送信待ち」に戻して同様に送信し、メールの到着も確認
+      未検証: 参加者のキャンセル直後に動く経路（cancel-entry から内部呼び出し）
 
 ① 目的
   - 繰り上げ通知が、管理画面を開いたときにしか送られず、鍵がない端末では送られない状態をなくす（FND-14）
