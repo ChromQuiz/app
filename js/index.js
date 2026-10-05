@@ -417,3 +417,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setupIndexEvents();
     initSupabaseAuth();
 });
+
+// 「戻る」で戻ったときは、ブラウザが前の状態のまま画面を復元することがある。
+// その間にログインした・大会に参加した可能性があるので、ログイン状態と大会の一覧を読み直す。
+window.addEventListener('pageshow', async (event) => {
+    if (!event.persisted || !useSupabaseAuth()) return;
+    try {
+        supabaseSession = await CIQSupabaseAPI.getSession();
+        renderSupabaseAuth(supabaseSession);
+    } catch (e) {
+        console.error(e);
+    }
+});

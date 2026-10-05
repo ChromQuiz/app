@@ -583,6 +583,10 @@ const CIQSupabaseAPI = {
 
 
     async listMyProjects() {
+        // 管理者は大会の全メンバーの行を読める。自分の行だけに絞らないと、別の人の役割が先頭に来ることがある。
+        const session = await this.getSession();
+        const userId = session?.user?.id;
+        if (!userId) return [];
         const { data, error } = await this.client()
             .from('projects')
             .select(`
@@ -592,6 +596,7 @@ const CIQSupabaseAPI = {
                 project_members!project_members_project_id_fkey!inner(role, display_name, status)
             `)
             .eq('project_members.status', 'active')
+            .eq('project_members.user_id', userId)
             .order('updated_at', { ascending: false });
         if (error) throw error;
         return (data || []).map((project) => ({
