@@ -36,3 +36,11 @@ describe('採点者のメニュー', () => {
     expect(js).toMatch(/if \(scorerRole === 'admin'\) \{[\s\S]*admin-menu-conflict[\s\S]*\}/);
   });
 });
+
+describe('メニューの区切り線', () => {
+  it('見出しの下には引かず、見えている項目の間にだけ引く（非表示の項目が間に挟まっても同じ）', () => {
+    const css = read('css/design_system.css');
+    expect(css).toMatch(/\.menu-section \.menu-item:not\(\.u-hidden\) ~ \.menu-item:not\(\.u-hidden\)/);
+    expect(css).toMatch(/\.menu-section \.menu-item,\s*\.menu-footer \.menu-item \{\s*border-top-color: transparent;/);
+  });
+});
