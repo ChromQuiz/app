@@ -224,9 +224,14 @@ const CIQSupabaseAPI = {
             const redirectUrl = new URL('/app/', location.origin);
             redirectTo = redirectUrl.href;
         }
+        // ログアウトしても Google 側のログイン状態は残る。毎回アカウントを選ばせないと、
+        // 前に使ったアカウントに自動で入ってしまう（複数のアカウントを使い分ける運営・採点者のため）。
         const { error } = await this.client().auth.signInWithOAuth({
             provider: 'google',
-            options: redirectTo ? { redirectTo } : undefined,
+            options: {
+                ...(redirectTo ? { redirectTo } : {}),
+                queryParams: { prompt: 'select_account' },
+            },
         });
         if (error) throw error;
     },
