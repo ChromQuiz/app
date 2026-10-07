@@ -118,3 +118,14 @@ describe('IDX-10 作成モードの出入り', () => {
     expect(body).not.toMatch(/renderProjectList\(\)/);
   });
 });
+
+describe('IDX-11 一覧の読み込み失敗', () => {
+  const js = read('js/index.js');
+
+  it('失敗の表示は消さずに残し、次の行動を書く。読み込めたら消す', () => {
+    expect(js).toMatch(/showError\('プロジェクトを読み込めませんでした。時間をおいて、ページを再読み込みしてください。', true\)/);
+    expect(js).toMatch(/if \(projectListLoadFailed\) \{\s*projectListLoadFailed = false;\s*clearPageMessage/);
+    // 0件で早く抜ける前に消す（0件でも「読み込めた」）
+    expect(js.indexOf('projectListLoadFailed = false')).toBeLessThan(js.indexOf('if (projects.length === 0)'));
+  });
+});
