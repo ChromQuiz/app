@@ -143,3 +143,27 @@ describe('JOIN 採点者の参加の文言', () => {
     expect(fn).toMatch(/Member was removed/);
   });
 });
+
+describe('ENT-04/05 開始・終了の日時の表示', () => {
+  const src = read('js/shared.js');
+  const start = src.indexOf('function formatDateTimeJa(');
+  const formatDateTimeJa = new Function(`${src.slice(start)}\nreturn formatDateTimeJa;`)();
+
+  it('日本時間で、秒なしの「2026年10月13日 0:08」の形にする（端末の時間帯に依存しない）', () => {
+    expect(formatDateTimeJa('2026-10-12T15:08:30Z')).toBe('2026年10月13日 0:08');
+    expect(formatDateTimeJa(new Date('2026-07-03T11:00:00Z'))).toBe('2026年7月3日 20:00');
+    expect(formatDateTimeJa('2026-12-31T14:59:00Z')).toBe('2026年12月31日 23:59');
+    expect(formatDateTimeJa('2026-12-31T15:00:00Z')).toBe('2027年1月1日 0:00');
+  });
+
+  it('不正な値は空にする', () => {
+    expect(formatDateTimeJa('not a date')).toBe('');
+  });
+
+  it('エントリーとマイエントリーの案内は、この書式を使う', () => {
+    expect(read('js/entry.js')).toMatch(/'エントリー開始：' \+ formatDateTimeJa\(startDt\)/);
+    expect(read('js/entry.js')).toMatch(/'エントリー終了：' \+ formatDateTimeJa\(endDt\)/);
+    expect(read('js/my.js')).toMatch(/開始：\$\{formatDateTimeJa\(start\)\}/);
+    expect(read('js/my.js')).not.toMatch(/toLocaleString\('ja-JP'\)/);
+  });
+});

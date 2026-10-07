@@ -557,12 +557,12 @@ async function init() {
             if (startDt && startDt.getTime() > now) {
                 blocked = true;
                 blockTitle = 'エントリーはまだ開始されていません';
-                blockDetail = 'エントリー開始：' + startDt.toLocaleString('ja-JP');
+                blockDetail = 'エントリー開始：' + formatDateTimeJa(startDt);
             }
             if (endDt && endDt.getTime() < now) {
                 blocked = true;
                 blockTitle = 'エントリーは終了しました';
-                blockDetail = 'エントリー終了：' + endDt.toLocaleString('ja-JP');
+                blockDetail = 'エントリー終了：' + formatDateTimeJa(endDt);
             }
         }
         if (blocked) showDisabled(blockTitle, blockDetail);
