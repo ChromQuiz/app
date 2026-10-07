@@ -61,8 +61,8 @@ function getEntryClosedReason() {
     const now = Date.now();
     const start = projectSettings.periodStart ? new Date(projectSettings.periodStart) : null;
     const end = projectSettings.periodEnd ? new Date(projectSettings.periodEnd) : null;
-    if (start && start.getTime() > now) return `エントリー受付はまだ開始されていません。開始：${start.toLocaleString('ja-JP')}`;
-    if (end && end.getTime() < now) return `エントリー受付は終了しました。終了：${end.toLocaleString('ja-JP')}`;
+    if (start && start.getTime() > now) return `エントリー受付はまだ開始されていません。開始：${formatDateTimeJa(start)}`;
+    if (end && end.getTime() < now) return `エントリー受付は終了しました。終了：${formatDateTimeJa(end)}`;
     return '現在、再エントリーできません。';
 }
 

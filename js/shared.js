@@ -34,3 +34,20 @@ function isValidEmailAddress(value) {
     const match = new RegExp(`^(${local})@(${domain})$`).exec(value);
     return Boolean(match) && match[1].length <= 64;
 }
+
+/**
+ * 日時を「2026年10月13日 0:08」の形（日本時間・秒なし）にする。
+ * 参加者の画面では、端末の時間帯に関係なく、大会の運営と同じ日本時間で見せる。
+ */
+function formatDateTimeJa(value) {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const parts = Object.fromEntries(
+        new Intl.DateTimeFormat('ja-JP', {
+            timeZone: 'Asia/Tokyo',
+            year: 'numeric', month: 'numeric', day: 'numeric',
+            hour: 'numeric', minute: '2-digit', hourCycle: 'h23',
+        }).formatToParts(date).map(part => [part.type, part.value]),
+    );
+    return `${parts.year}年${parts.month}月${parts.day}日 ${parts.hour}:${parts.minute}`;
+}
