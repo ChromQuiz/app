@@ -78,6 +78,7 @@ function tabFromLocation() {
 
 let currentTab = tabFromLocation();
 let supabaseSession = null;
+let projectListLoadFailed = false;
 
 /**
  * プロジェクト作成の権限ゲート。
@@ -243,6 +244,11 @@ async function renderProjectList() {
     list.appendChild(loading);
     try {
         const projects = await CIQSupabaseAPI.listMyProjects();
+        // 読み込めたら、前の失敗の表示は消す
+        if (projectListLoadFailed) {
+            projectListLoadFailed = false;
+            clearPageMessage(document.getElementById('status-msg'));
+        }
         if (projects.length === 0) {
             clearProjectList();
             return;
@@ -271,7 +277,9 @@ async function renderProjectList() {
         });
     } catch (e) {
         clearProjectList();
-        showError('プロジェクトを読み込めませんでした。');
+        // 消えると、空の一覧だけが残って理由も次の行動も分からなくなるので、消さずに残す
+        projectListLoadFailed = true;
+        showError('プロジェクトを読み込めませんでした。時間をおいて、ページを再読み込みしてください。', true);
         console.error(e);
     }
 }
