@@ -129,3 +129,17 @@ describe('IDX-11 一覧の読み込み失敗', () => {
     expect(js.indexOf('projectListLoadFailed = false')).toBeLessThan(js.indexOf('if (projects.length === 0)'));
   });
 });
+
+describe('JOIN 採点者の参加の文言', () => {
+  it('想定外のときの文言にも、次の行動を書く', () => {
+    expect(read('js/supabase_api.js')).toMatch(/参加できませんでした。運営に新しい招待リンクを依頼するか、時間をおいて再度お試しください。/);
+  });
+
+  it('サーバーが返す使えない理由は、日本語で運営への連絡を案内する', () => {
+    const fn = read('supabase/functions/redeem-scorer-invite/index.ts');
+    for (const m of fn.matchAll(/error: '([^']*)'/g)) expect(m[1]).toMatch(/[぀-ヿ一-鿿]/);
+    expect(fn).toMatch(/Invite expired/);
+    expect(fn).toMatch(/Invite exhausted/);
+    expect(fn).toMatch(/Member was removed/);
+  });
+});
