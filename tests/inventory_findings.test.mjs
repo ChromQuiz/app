@@ -22,6 +22,14 @@ describe('FND-04: Edge Function のエラーは日本語で返す', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('変数経由で返す文言にも、英語（Entry not found など）が残っていない', () => {
+    const offenders = [];
+    for (const [fn, src] of Object.entries(fnSources)) {
+      for (const m of src.matchAll(/\?\s*'([A-Z][A-Za-z ]{6,})'\s*:/g)) offenders.push(`${fn}: ${m[1]}`);
+    }
+    expect(offenders).toEqual([]);
+  });
+
   it('画面側のフォールバックにも英語の「◯◯ failed」が残っていない', () => {
     const api = read('js/supabase_api.js');
     const offenders = [...api.matchAll(/data\?\.error \|\| '([^']*)'/g)].map((m) => m[1]).filter((t) => /^[A-Za-z]/.test(t));
