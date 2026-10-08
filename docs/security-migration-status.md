@@ -1061,7 +1061,7 @@ Notes   : 採点者が localStorage の scorer_role を書き換えると運営�
 
 ### 入力の長さの制限（親計画外・Additional Security Backlog）
 ```
-Status  : Implemented — 2026-10-08（Edge Function 3 つのデプロイ待ち）
+Status  : Implemented — 2026-10-08（上限を引き締めた版の Edge Function 3 つのデプロイ待ち）
 Evidence:
   - Commits    : fix/entry-field-limits（本ブランチ）
   - Migrations : なし（検討したが、下の「残っているもの」のとおり見送り）
@@ -1077,8 +1077,8 @@ Evidence:
     メール認証と Turnstile を通れば、非常に長い文字列を保存でき、エントリーリストが崩れる・保存領域を使われる恐れがあった
 
 ② 変更内容
-  - 共通の検証 validateEntryInput: エントリーネーム 40 / 所属 60 / 学年 10 / 意気込み 200 / 運営への連絡 1000 文字、
-    暗号化データ 30000 文字。文字列でない値も断る。日本語の文言（項目名つき）で 400 を返す
+  - 共通の検証 validateEntryInput: エントリーネーム 20 / 所属 20 / 学年 10 / 意気込み 100 / 運営への連絡 100 文字、
+    暗号化データ 8000 文字（2026-10-08 に運営の判断で 40/60/200/1000 から引き締めた）。文字列でない値も断る。日本語の文言（項目名つき）で 400 を返す
   - 登録（Turnstile とメール認証のあと）・編集・代理登録（管理者の確認のあと）の 3 つで使う
   - 入力欄に同じ値の maxlength（entry.html / my.html / admin.html）
 
