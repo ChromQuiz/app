@@ -147,7 +147,8 @@ describe('JOIN 採点者の参加の文言', () => {
 describe('ENT-04/05 開始・終了の日時の表示', () => {
   const src = read('js/shared.js');
   const start = src.indexOf('function formatDateTimeJa(');
-  const formatDateTimeJa = new Function(`${src.slice(start)}\nreturn formatDateTimeJa;`)();
+  const end = src.indexOf('\n}\n', start) + 2;
+  const formatDateTimeJa = new Function(`${src.slice(start, end)}\nreturn formatDateTimeJa;`)();
 
   it('日本時間で、秒なしの「2026年10月13日 0:08」の形にする（端末の時間帯に依存しない）', () => {
     expect(formatDateTimeJa('2026-10-12T15:08:30Z')).toBe('2026年10月13日 0:08');

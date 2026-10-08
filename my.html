@@ -15,7 +15,7 @@
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=26"></script>
-    <script defer src="js/shared.js?v=5"></script>
+    <script defer src="js/shared.js?v=6"></script>
     <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script defer src="js/turnstile.js?v=2"></script>
     <link rel="stylesheet" href="css/design_system.css?v=86">
@@ -125,28 +125,28 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="required" for="e-family-name">姓（全角）</label>
-                            <input type="text" id="e-family-name" name="family-name" required autocomplete="family-name" placeholder="山田">
+                            <input type="text" id="e-family-name" maxlength="30" name="family-name" required autocomplete="family-name" placeholder="山田">
                         </div>
                         <div class="form-group">
                             <label class="required" for="e-first-name">名（全角）</label>
-                            <input type="text" id="e-first-name" name="first-name" required autocomplete="given-name" placeholder="太郎">
+                            <input type="text" id="e-first-name" maxlength="30" name="first-name" required autocomplete="given-name" placeholder="太郎">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="required" for="e-family-kana">セイ（全角カタカナ）</label>
-                            <input type="text" id="e-family-kana" required placeholder="ヤマダ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
+                            <input type="text" id="e-family-kana" maxlength="40" required placeholder="ヤマダ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
                         </div>
                         <div class="form-group">
                             <label class="required" for="e-first-kana">メイ（全角カタカナ）</label>
-                            <input type="text" id="e-first-kana" required placeholder="タロウ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
+                            <input type="text" id="e-first-kana" maxlength="40" required placeholder="タロウ" pattern="^[ァ-ヴー]+$" title="全角カタカナで入力してください">
                         </div>
                     </div>
                     <div id="affiliation-section">
                         <div class="form-row">
                             <div class="form-group u-flex-2">
                                 <label class="required" for="e-affiliation">所属教育機関 <span class="visibility-tag">公開</span></label>
-                                <input type="text" id="e-affiliation" name="organization" required autocomplete="organization" placeholder="○○高">
+                                <input type="text" id="e-affiliation" maxlength="60" name="organization" required autocomplete="organization" placeholder="○○高">
                                 <div class="hint">非公開を希望する場合は「非公開」と入力してください。</div>
                             </div>
                             <div class="form-group u-flex-1">
@@ -176,16 +176,16 @@
                     </div>
                     <div class="form-group">
                         <label class="required" for="e-entry-name">エントリーネーム <span class="visibility-tag">公開</span></label>
-                        <input type="text" id="e-entry-name" required placeholder="エントリーリストでの表示名">
+                        <input type="text" id="e-entry-name" maxlength="40" required placeholder="エントリーリストでの表示名">
                         <div class="hint hint-alert"><span data-icon="circle-exclamation" aria-hidden="true"></span><span>当日の受付および大会後に発行する記録集では、本名（姓名）を使用します。エントリーをもって、この取り扱いに同意したものとします。</span></div>
                     </div>
                     <div class="form-group">
                         <label for="e-message">意気込み <span class="visibility-tag">公開</span></label>
-                        <input type="text" id="e-message" placeholder="エントリーリストに表示されます">
+                        <input type="text" id="e-message" maxlength="200" placeholder="エントリーリストに表示されます">
                     </div>
                     <div class="form-group">
                         <label for="e-inquiry">運営への連絡</label>
-                        <textarea id="e-inquiry" placeholder="配慮事項などがあればご記入ください"></textarea>
+                        <textarea id="e-inquiry" maxlength="1000" placeholder="配慮事項などがあればご記入ください"></textarea>
                     </div>
                     <div class="my-edit-actions">
                         <button type="button" class="btn ghost" id="close-edit-btn">閉じる</button>

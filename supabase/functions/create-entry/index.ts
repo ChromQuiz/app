@@ -4,6 +4,7 @@ import { clientIp, clientIpHash, enforceIpRateLimit, RateLimitError } from '../_
 import { logServiceEvent } from '../_shared/audit.ts';
 import { emailVerificationRequired, verifyEmailVerifiedToken } from '../_shared/email_verify.ts';
 import { ParticipantHashConfigError, pepperHash } from '../_shared/participant_hash.ts';
+import { validateEntryInput } from '../_shared/entry_profile.ts';
 import { TurnstileConfigError, TurnstileError, verifyTurnstile } from '../_shared/turnstile.ts';
 
 // クライアントの SHA-256(hex) 形式検証: 64文字の小文字16進のみ許可(前後空白・大文字・非hexは不可)。
@@ -45,6 +46,10 @@ Deno.serve(withCors(async (req) => {
         return jsonResponse({ error: 'メール認証を確認できませんでした。もう一度メール認証を行ってください。' }, 401);
       }
     }
+
+    // 入力の長さ（Turnstile とメール認証のあとに見る。ボットに検証の詳細を教えない）
+    const inputError = validateEntryInput(publicProfile, encryptedPii);
+    if (inputError) return jsonResponse({ error: inputError }, 400);
 
     const supabase = createServiceClient();
     await enforceIpRateLimit(supabase, { bucket: 'create_entry', ip: clientIp(req), projectId });

@@ -51,3 +51,22 @@ function formatDateTimeJa(value) {
     );
     return `${parts.year}年${parts.month}月${parts.day}日 ${parts.hour}:${parts.minute}`;
 }
+
+/**
+ * カナの入力を整える: 半角カナは全角に、ひらがなはカタカナに、空白は取り除く。
+ * 検証は全角カタカナだけを通すので、見た目が正しくても末尾の空白やひらがなで弾かれるのを防ぐ。
+ */
+function normalizeKanaInput(value) {
+    return String(value ?? '')
+        .normalize('NFKC')
+        .replace(/[ぁ-ゖ]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60))
+        .replace(/\s+/g, '');
+}
+
+// カナの欄（エントリー・マイエントリー・代理登録）は、入力を離れたときに整える。
+document.addEventListener('change', (event) => {
+    const input = event.target;
+    if (input instanceof HTMLInputElement && input.getAttribute('pattern') === '^[ァ-ヴー]+$') {
+        input.value = normalizeKanaInput(input.value);
+    }
+});

@@ -10,6 +10,7 @@ import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp, clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
 import { isEntryWindowOpen } from '../_shared/entry_window.ts';
+import { validateEntryInput } from '../_shared/entry_profile.ts';
 import { triggerPromotionNotices } from '../_shared/promotion_notice.ts';
 
 type PublicProfile = {
@@ -83,6 +84,9 @@ Deno.serve(withCors(async (req) => {
         },
       });
     }
+
+    const inputError = validateEntryInput(publicProfile, encryptedPii);
+    if (inputError) return jsonResponse({ error: inputError }, 400);
 
     const profile = publicProfile || {};
     const { data: updated, error: updateError } = await supabase
