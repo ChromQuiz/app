@@ -15,7 +15,7 @@
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=26"></script>
-    <script defer src="js/shared.js?v=5"></script>
+    <script defer src="js/shared.js?v=6"></script>
     <link rel="stylesheet" href="css/design_system.css?v=86">
     <link rel="stylesheet" href="css/pages.css?v=133">
 </head>
@@ -609,21 +609,21 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="required">姓</label>
-                        <input type="text" id="admin-entry-family-name" autocomplete="family-name" required>
+                        <input type="text" id="admin-entry-family-name" maxlength="30" autocomplete="family-name" required>
                     </div>
                     <div class="form-group">
                         <label class="required">名</label>
-                        <input type="text" id="admin-entry-first-name" autocomplete="given-name" required>
+                        <input type="text" id="admin-entry-first-name" maxlength="30" autocomplete="given-name" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="required">セイ</label>
-                        <input type="text" id="admin-entry-family-kana" pattern="^[ァ-ヴー]+$" required>
+                        <input type="text" id="admin-entry-family-kana" maxlength="40" pattern="^[ァ-ヴー]+$" required>
                     </div>
                     <div class="form-group">
                         <label class="required">メイ</label>
-                        <input type="text" id="admin-entry-first-kana" pattern="^[ァ-ヴー]+$" required>
+                        <input type="text" id="admin-entry-first-kana" maxlength="40" pattern="^[ァ-ヴー]+$" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -633,7 +633,7 @@
                 <div class="form-row">
                     <div class="form-group u-flex-2">
                         <label class="required">所属教育機関</label>
-                        <input type="text" id="admin-entry-affiliation" required>
+                        <input type="text" id="admin-entry-affiliation" maxlength="60" required>
                         <div class="hint">非公開を希望する場合は「非公開」と入力してください。</div>
                     </div>
                     <div class="form-group u-flex-1">
@@ -662,7 +662,7 @@
                 </div>
                 <div class="form-group">
                     <label class="required">エントリーネーム</label>
-                    <input type="text" id="admin-entry-entry-name" required>
+                    <input type="text" id="admin-entry-entry-name" maxlength="40" required>
                     <div class="hint">当日の受付および大会後に発行する記録集では、本名（姓名）を使用します。エントリーをもって、この取り扱いに同意したものとします。</div>
                 </div>
                 <div class="form-group">
@@ -671,7 +671,7 @@
                 </div>
                 <div class="form-group">
                     <label>運営への連絡</label>
-                    <textarea id="admin-entry-inquiry"></textarea>
+                    <textarea id="admin-entry-inquiry" maxlength="1000"></textarea>
                 </div>
                 <div class="admin-entry-modal-actions">
                     <button type="button" class="btn secondary" data-action="close-admin-entry-modal">キャンセル</button>

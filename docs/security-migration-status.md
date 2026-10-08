@@ -1059,6 +1059,37 @@ Notes   : 採点者が localStorage の scorer_role を書き換えると運営�
           が、運営に見られて困るものはないという判断（2026-10-05、運営側の確認）。
 ```
 
+### 入力の長さの制限（親計画外・Additional Security Backlog）
+```
+Status  : Implemented — 2026-10-08（Edge Function 3 つのデプロイ待ち）
+Evidence:
+  - Commits    : fix/entry-field-limits（本ブランチ）
+  - Migrations : なし（検討したが、下の「残っているもの」のとおり見送り）
+  - Deploys    : create-entry / edit-entry / admin-create-entry（_shared/entry_profile.ts を共有）
+  - Verification:
+      静的 : npx vitest run（tests/entry_limits.test.mjs）
+      観測 : いまのデータの最大長（エントリーネーム 8・所属 6・学年 3・意気込み 14・運営への連絡 14・暗号化データ 900）を確認し、
+             上限はそれに余裕を持たせた
+      未検証: デプロイ後の本番での拒否
+
+① 見つかった問題（機能一覧の ENT-28 の確認で発見）
+  - 公開される項目（エントリーネーム・所属・学年・意気込み）と運営への連絡に、サーバー側にもデータベースにも長さの制限がなかった。
+    メール認証と Turnstile を通れば、非常に長い文字列を保存でき、エントリーリストが崩れる・保存領域を使われる恐れがあった
+
+② 変更内容
+  - 共通の検証 validateEntryInput: エントリーネーム 40 / 所属 60 / 学年 10 / 意気込み 200 / 運営への連絡 1000 文字、
+    暗号化データ 30000 文字。文字列でない値も断る。日本語の文言（項目名つき）で 400 を返す
+  - 登録（Turnstile とメール認証のあと）・編集・代理登録（管理者の確認のあと）の 3 つで使う
+  - 入力欄に同じ値の maxlength（entry.html / my.html / admin.html）
+
+③ 残っているもの
+  - データベースの CHECK 制約は入れていない（Edge Function を通らない書き込みは、RLS で管理者に限られているため）。
+    入れるなら、既存データが収まることを確認した上で別の migration にする
+  - 姓名・カナ・メールは暗号化データの中なので、個別の長さは画面の maxlength と、暗号化データ全体の大きさでしか制限できない
+
+Rollback: Possible（Edge Function を前のバージョンに戻す。画面の maxlength は残っても害はない）
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。

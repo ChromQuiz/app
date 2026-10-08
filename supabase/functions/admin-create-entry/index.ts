@@ -1,4 +1,5 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
+import { validateEntryInput } from '../_shared/entry_profile.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { clientIpHash } from '../_shared/rate_limit.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
@@ -66,6 +67,8 @@ Deno.serve(withCors(async (req) => {
 
     const supabase = createServiceClient();
     const member = await requireAdminMember(supabase, req, projectId);
+    const inputError = validateEntryInput(publicProfile, encryptedPii);
+    if (inputError) return jsonResponse({ error: inputError }, 400);
 
     // v2(peppered)を生成。両方そろってから RPC を呼ぶ(pepper 未設定なら例外→RPC未実行)。
     const emailHashV2 = await pepperHash(emailHash);
