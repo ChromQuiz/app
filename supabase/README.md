@@ -129,3 +129,13 @@ Implemented:
 
 Not wired yet:
 - Email delivery still needs Brevo or SES secrets and final provider verification.
+
+## Database behavior check
+
+`supabase/tests/db_behavior.sql` runs the real functions and permissions of the linked database inside one transaction that always ends with `rollback`, impersonating owner / admin / scorer / removed / outsider users through `request.jwt.claims`. Nothing is left behind. Run it after any migration that touches functions, RLS or grants:
+
+```bash
+npx supabase db query --linked --project-ref YOUR_PROJECT_REF -f supabase/tests/db_behavior.sql
+```
+
+The last result set lists every check as `ok` true/false; any `false` row carries a `detail`.

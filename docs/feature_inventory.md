@@ -570,40 +570,40 @@
 
 ### J-2. 関数とトリガー
 
-- [ ] **DB-01 `create_entry_atomic`** — 受付外は例外。受付番号の採番と作成が同時実行でも重複しない(ロック)。
-- [ ] **DB-02 `recompute_entry_statuses`** — 0-3 の規則。受付済みの状態は変えない。繰り上げの通知状態を `pending` にする。
-- [ ] **DB-03 トリガー `projects_recompute_entry_statuses`** — `max_entries` と `period_start` の更新で再計算が走る。
-- [ ] **DB-04 `cancel_entry_by_id_atomic`** — 受付済みは拒否。キャンセル後に再計算(期限内なら繰り上げ)。
-- [ ] **DB-05 トリガー `entries_sync_public_entry_list` / `projects_sync_public_project_settings`** — 公開用の表に、個人情報を含まない列だけが同期される。
-- [ ] **DB-06 `join_question_scorer`** — 必要人数に達していると「満員」。すでに入っている人は何度でも入れる。
-- [ ] **DB-07 `set_score_vote`** — 正解・不正解・保留のみ。役割が owner/admin/scorer。判定の更新(上書き)。受付済みでない人の答案には付けられない。問題の枠に入っていなければ、判定を付けた時点で自動で入る。
-- [ ] **DB-08 `complete_question_scoring`** — 必要人数が完了したとき、**当日受付を済ませた人**について確定を記録する(`final_results`)。
-- [ ] **DB-09 `list_question_answer_cards` / `list_score_conflicts`** — 採点画面と要確認ページ用。いずれも**当日受付を済ませた人**だけ。要確認は管理者のみ。別解を返す。
-- [ ] **DB-10a `release_question_scorer`** — メンバーなら誰でも、まだ完了していない枠を解放できる。その人のその問題での判定も消す。完了した枠は例外。行をロックして二重に消えない。監査ログ。
-- [ ] **DB-10 `resolve_score_conflict`** — 管理者のみ。最終判定(正解・不正解・保留)を保存し、履歴を残す。
-- [ ] **DB-11 `create_project_with_owner`** — 所有者の作成。回数の重複は例外。
-- [ ] **DB-12 `update_project_member_role` / `remove_project_member` / `restore_project_member`** — 所有者は変更できない。自分自身は変更できない。
-- [ ] **DB-13 `create_scorer_invite` / `redeem_scorer_invite` / `revoke_scorer_invite`** — 平文トークンを保存しない。並列でも上限を超えない。
-- [ ] **DB-14 `reset_project_data`** — 管理者のみ。0-4 のとおり。監査ログ。
-- [ ] **DB-15 `list_entries_for_admin`** — 管理者のみ。**キャンセル済み・キャンセル待ちも含めて全員**を返す。
-- [ ] **DB-16 `rate_limit_hit`** — サービスのみ。排他制御つきで数える。
-- [ ] **DB-17 `log_audit_event` / `log_service_event`** — 監査ログ。
-- [ ] **DB-24 補助の関数** — `is_project_member`、`has_project_role`、`current_member_id`(権限判定の部品)、`auth_display_name`(表示名)、`touch_updated_at`(更新日時のトリガー)、`recompute_entry_statuses_after_project_update`(DB-03 のトリガー関数)。旧関数 `cancel_entry_atomic` と、採点者の参加コード方式の `join_project_with_scorer_code` は、本番にはもうない(確認済み)。本番には `rls_auto_enable`(Supabase が自動で入れる、新しい表に RLS を有効にするイベントトリガーの部品)もあるが、リポジトリのマイグレーションには無い。
+- [x] **DB-01 `create_entry_atomic`** — 受付外は例外。受付番号の採番と作成が同時実行でも重複しない(ロック)。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（連番、受付停止・開始前・終了後は例外、同じメールの二重登録は断る、失敗しても番号は進まない）。同時実行は排他制御（ロック）の定義を読んだだけで、実測していない)*
+- [x] **DB-02 `recompute_entry_statuses`** — 0-3 の規則。受付済みの状態は変えない。繰り上げの通知状態を `pending` にする。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（定員、開始24時間以内は中部が優先され、中部以外が押し出される、繰り上げの通知状態は pending、受付済みは変わらない）)*
+- [x] **DB-03 トリガー `projects_recompute_entry_statuses`** — `max_entries` と `period_start` の更新で再計算が走る。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（定員を増やすと繰り上がり pending、減らしても受付済みの人は残る）)*
+- [x] **DB-04 `cancel_entry_by_id_atomic`** — 受付済みは拒否。キャンセル後に再計算(期限内なら繰り上げ)。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（繰り上げ、受付済みは拒否、別の大会の ID は拒否）)*
+- [x] **DB-05 トリガー `entries_sync_public_entry_list` / `projects_sync_public_project_settings`** — 公開用の表に、個人情報を含まない列だけが同期される。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（公開用の表に個人情報・ハッシュの列がない。同期される）)*
+- [x] **DB-06 `join_question_scorer`** — 必要人数に達していると「満員」。すでに入っている人は何度でも入れる。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（満員、再入場、外された人・関係のない人は拒否）)*
+- [x] **DB-07 `set_score_vote`** — 正解・不正解・保留のみ。役割が owner/admin/scorer。判定の更新(上書き)。受付済みでない人の答案には付けられない。問題の枠に入っていなければ、判定を付けた時点で自動で入る。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（判定の値、上書きで1人1票、受付済みでない人・キャンセル済みは拒否、満員の問題には入れない、空いていれば自動で入る、外された人は拒否）)*
+- [x] **DB-08 `complete_question_scoring`** — 必要人数が完了したとき、**当日受付を済ませた人**について確定を記録する(`final_results`)。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（1人だけの完了では確定しない、必要人数が完了すると全員一致だけ確定、意見が割れた答案は確定しない、受付していない人には作らない、あとで受付しても作らない、履歴が残る）)*
+- [x] **DB-09 `list_question_answer_cards` / `list_score_conflicts`** — 採点画面と要確認ページ用。いずれも**当日受付を済ませた人**だけ。要確認は管理者のみ。別解を返す。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（受付済みの人だけ、要確認は管理者のみで票つき、別解が返る、関係のない人には何も返らない）)*
+- [x] **DB-10a `release_question_scorer`** — メンバーなら誰でも、まだ完了していない枠を解放できる。その人のその問題での判定も消す。完了した枠は例外。行をロックして二重に消えない。監査ログ。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（誰でも未完了の枠を解放、判定も消える、監査ログ、完了した枠は不可、関係のない人は不可）)*
+- [x] **DB-10 `resolve_score_conflict`** — 管理者のみ。最終判定(正解・不正解・保留)を保存し、履歴を残す。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（管理者のみ、値の検証、履歴は conflict_resolved → final_changed、決めた人が記録される）)*
+- [x] **DB-11 `create_project_with_owner`** — 所有者の作成。回数の重複は例外。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（所有者の登録、重複・不正な ID・未ログインは拒否）)*
+- [x] **DB-12 `update_project_member_role` / `remove_project_member` / `restore_project_member`** — 所有者は変更できない。自分自身は変更できない。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（所有者・自分自身は変えられない、外す・復帰、採点者は不可）)*
+- [x] **DB-13 `create_scorer_invite` / `redeem_scorer_invite` / `revoke_scorer_invite`** — 平文トークンを保存しない。並列でも上限を超えない。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（ハッシュだけ保存・上限・7日、参加、上限、すでに参加は回数を増やさない、外された人は戻れない、失効）。**失効が公開以来ずっとエラーで動いていなかったので、修正の migration 202610080001 を適用**。並列の上限は、条件つきの1回の更新であることを定義で確認)*
+- [x] **DB-14 `reset_project_data`** — 管理者のみ。0-4 のとおり。監査ログ。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（採点者は不可、管理者は可、エントリー・答案・模範解答・採点が消え受付番号が0に戻る、メンバーと設定は残る、公開用の一覧も空、監査ログ）。ストレージの画像はこの関数では消えず、画面側が先に消す)*
+- [x] **DB-15 `list_entries_for_admin`** — 管理者のみ。**キャンセル済み・キャンセル待ちも含めて全員**を返す。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（管理者は全員・キャンセル済みも、採点者・関係のない人は不可）)*
+- [x] **DB-16 `rate_limit_hit`** — サービスのみ。排他制御つきで数える。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（0, 1, 2 と数える、ログイン済みの利用者は呼べない）)*
+- [x] **DB-17 `log_audit_event` / `log_service_event`** — 監査ログ。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（利用者は呼べない・audit_logs に直接書けない、サービス側は書ける）)*
+- [x] **DB-24 補助の関数** — `is_project_member`、`has_project_role`、`current_member_id`(権限判定の部品)、`auth_display_name`(表示名)、`touch_updated_at`(更新日時のトリガー)、`recompute_entry_statuses_after_project_update`(DB-03 のトリガー関数)。旧関数 `cancel_entry_atomic` と、採点者の参加コード方式の `join_project_with_scorer_code` は、本番にはもうない(確認済み)。本番には `rls_auto_enable`(Supabase が自動で入れる、新しい表に RLS を有効にするイベントトリガーの部品)もあるが、リポジトリのマイグレーションには無い。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（旧関数が本番にない、public の全部の表で RLS が有効）)*
 
 ### J-3. 権限(RLS・列の権限)
 
-- [ ] **DB-18 匿名のアクセス** — `entries` の暗号化列・ハッシュ列、`project_private_keys`、招待のトークンハッシュは、匿名では読めない。`public_entry_list` は許可した列だけ(`entry_id` は読めない)。本番のライブテスト25件で確認済み。
-- [ ] **DB-19 メンバーの権限** — 採点者が管理系の表・操作を使えない。外された人は何も読めない。採点者・メンバーとしてログインした状態での実測は**未実施**(backlog #1b)。
-- [ ] **DB-20 Realtime** — `public_entry_list`、`question_scorers`、`score_votes`、`final_results` が配信対象。画面で使っているのは `public_entry_list`(エントリーリスト)のみ。
+- [x] **DB-18 匿名のアクセス** — `entries` の暗号化列・ハッシュ列、`project_private_keys`、招待のトークンハッシュは、匿名では読めない。`public_entry_list` は許可した列だけ(`entry_id` は読めない)。本番のライブテスト25件で確認済み。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（公開用の一覧は許可した列だけ、entry_id・暗号化列・ハッシュ・鍵・招待のハッシュ・監査ログは読めない、書き込みも関数も不可）。ライブテスト25件でも確認済み)*
+- [x] **DB-19 メンバーの権限** — 採点者が管理系の表・操作を使えない。外された人は何も読めない。採点者・メンバーとしてログインした状態での実測は**未実施**(backlog #1b)。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）。**未実施だった「採点者・外された人・関係のない人としてログインした状態の実測」を実施**（採点者は鍵の保管庫・監査ログ・招待のハッシュ・暗号化列を読めず、管理系の表を書き換えられない。外された人・関係のない人は何も読めない）)*
+- [x] **DB-20 Realtime** — `public_entry_list`、`question_scorers`、`score_votes`、`final_results` が配信対象。画面で使っているのは `public_entry_list`(エントリーリスト)のみ。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（public_entry_list が配信対象。個人情報の表は対象外）)*
 
 ### J-4. ストレージ
 
-- [ ] **DB-21 バケット** — `answer-pages`(ページ全体)、`answer-cells`(解答欄の切り出し)。どちらも非公開。署名付きURLで読む。書き込みは管理者のみ。
+- [x] **DB-21 バケット** — `answer-pages`(ページ全体)、`answer-cells`(解答欄の切り出し)。どちらも非公開。署名付きURLで読む。書き込みは管理者のみ。 *(2026-10-08 本番と同じデータベースで、巻き戻す取引の中で、ログイン中の利用者になりすまして実際に動かして確認（supabase/tests/db_behavior.sql）（2つとも非公開、読み取りはメンバー・書き込みは管理者の方針、匿名に開いた方針なし）。署名付きURLでの実際の読み出しは未確認)*
 - [ ] **DB-22 削除** — 答案を削除するとページとセルの画像が消える。リセットでも消える。
 
 ### J-5. 監査ログ
 
-- [ ] **DB-23 記録される操作** — `entry.create`、`entry.create_by_staff`、`entry.edit`、`entry.mark_late`、`entry.cancel`、`entry.checkin`、`entry.checkin.undo`、`scorer_invite.create`、`scorer_invite.redeem`、`project_data_reset`。誰が(参加者/運営)、どのIP(HMAC化)で。
+- [x] **DB-23 記録される操作** — `entry.create`、`entry.create_by_staff`、`entry.edit`、`entry.mark_late`、`entry.cancel`、`entry.checkin`、`entry.checkin.undo`、`scorer_invite.create`、`scorer_invite.redeem`、`project_data_reset`。誰が(参加者/運営)、どのIP(HMAC化)で。 *(2026-10-08 10種類の操作が、すべてサーバー関数・migration のコードにあることを確認。実際に記録された行は、本番の使用で確認（entry.checkin など）)*
 
 ---
 

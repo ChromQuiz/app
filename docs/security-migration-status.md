@@ -1090,6 +1090,41 @@ Evidence:
 Rollback: Possible（Edge Function を前のバージョンに戻す。画面の maxlength は残っても害はない）
 ```
 
+### ログイン中の利用者としての実測（RLS・関数の権限）と、招待の失効の修正（親計画外・Additional Security Backlog #1b）
+```
+Status  : Completed — 2026-10-08
+Evidence:
+  - Commits    : test/db-j（本ブランチ）
+  - Migrations : 202610080001_fix_revoke_scorer_invite（本番に適用済み・履歴に記録）
+  - Deploys    : なし（Edge Function の変更なし）
+  - Verification:
+      観測 : supabase/tests/db_behavior.sql を本番で実行 → 117 件すべて ok（修正の前は 115 件 ok・2 件 ng）。
+             全体が 1 つの取引で、最後に必ず rollback する。実行の前後で、テスト用のユーザー・大会・監査ログが 0 件であることを確認
+
+① 目的
+  - 「認証付きの実行時 RLS（要 JWT フィクスチャ）」が未実施だった（#1b）。request.jwt.claims と role を取引の中で切り替えて、
+    その人としてログインした状態を再現し、権限・RLS・関数の権限を本物の定義で確かめる
+
+② 結果
+  - 採点者: 鍵の保管庫・監査ログ・招待のトークンハッシュ・entries の暗号化列とハッシュ列を読めない。entries・projects・
+    final_results・model_answers・project_members・answer_pages を書き換えられない。他人の判定を書き換えられない
+  - 外された人・関係のない人: 大会・メンバー・判定・答案の一覧を読めない
+  - ログイン済みの利用者（管理者を含む）: rate_limit_hit・log_service_event・log_audit_event を呼べない。audit_logs に直接書けない
+  - 匿名: 公開用の一覧は許可した列だけ。entry_id・暗号化列・ハッシュ・鍵・招待のハッシュ・監査ログは読めない。書けない
+  - 採点の流れ（枠・判定・確定・要確認・解放・リセット）は、仕様どおり。当日受付していない人は、判定も確定も作られない
+
+③ 見つかった不具合（修正済み）
+  - revoke_scorer_invite（招待リンクの失効）が、戻り値の列名 revoked_at と表の列名が曖昧で、公開（2026-07-27）以来、
+    常にエラーになっていた。管理画面の「失効」ボタンが動いていなかった。表名つきで書いて修正（挙動は同じ）
+
+④ 残っているもの
+  - 並列実行（同時に参加・同時に採点）は、1 つの取引の中では再現できない。条件つきの 1 回の更新・排他制御であることを定義で確認している
+  - ストレージの署名付き URL での実際の読み出し・書き込みの権限の実測（バケットの方針は確認済み）
+
+Rollback: 不要（修正は関数の再定義だけ。前の定義に戻すと、また失敗する）
+Notes   : supabase/tests/db_behavior.sql は、関数・権限を変える migration のあとに、同じ手順で再実行できる
+```
+
 ## 5. 記載フォーマット（今後のエントリ標準）
 
 以後のセキュリティ施策は「計画書」と「実施記録」を分けず、本文書へ**更新型**で 1 エントリずつ記す。
