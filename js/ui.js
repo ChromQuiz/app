@@ -20,6 +20,15 @@ function createIconLegacyBridge(nameOrClass, opts) {
 }
 window.createIcon = createIconLegacyBridge;
 
+// CSV の1セル。カンマ・引用符・改行を含むときは引用符で囲む。
+// 先頭が = + - @ のときは、表計算ソフトが式として実行しないよう、先頭に ' を付ける。
+function csvCell(value) {
+  let text = value === null || value === undefined ? '' : String(value);
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+window.csvCell = csvCell;
+
 function logout() {
     session.clear();
     location.href = 'index.html';

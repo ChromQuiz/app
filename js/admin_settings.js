@@ -1549,9 +1549,9 @@
                 
                 const stat = v.status === 'canceled' ? 'canceled' : v.status === 'waitlist' ? 'waitlist' : v.checkedIn ? 'checkedIn' : 'registered';
                 rows.push([
-                    v.entryNumber, pii.familyName || '', pii.firstName || '', pii.familyNameKana || '', pii.firstNameKana || '',
-                    pii.email || '', pii.affiliation || '', pii.grade || '', pii.entryName || '', `"${(pii.message || '').replace(/"/g, '""')}"`,
-                    `"${(pii.inquiry || '').replace(/"/g, '""')}"`, stat, v.uuid || v.id || ''
+                    v.entryNumber, csvCell(pii.familyName), csvCell(pii.firstName), csvCell(pii.familyNameKana), csvCell(pii.firstNameKana),
+                    csvCell(pii.email), csvCell(pii.affiliation), csvCell(pii.grade), csvCell(pii.entryName), csvCell(pii.message),
+                    csvCell(pii.inquiry), stat, csvCell(v.uuid || v.id)
                 ]);
             }
             const csv = rows.map(r => r.join(',')).join('\n');
