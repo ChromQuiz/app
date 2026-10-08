@@ -16,8 +16,8 @@
     <script defer src="js/icons.js?v=8"></script>
     <script defer src="js/ui.js?v=26"></script>
     <script defer src="js/shared.js?v=7"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=86">
-    <link rel="stylesheet" href="css/pages.css?v=133">
+    <link rel="stylesheet" href="css/design_system.css?v=87">
+    <link rel="stylesheet" href="css/pages.css?v=134">
 </head>
 
 <body class="page-admin">
@@ -82,7 +82,7 @@
         </div>
     </div>
 
-    <div class="admin-container">
+    <div class="admin-container" role="main">
         <nav class="phase-quick-nav" aria-label="運営フェーズショートカット">
             <button type="button" class="phase-quick-btn" data-tab-target="tab-prep"><span>1</span><b>準備</b></button>
             <button type="button" class="phase-quick-btn active" data-tab-target="tab-entries"><span>2</span><b>公開</b></button>
@@ -123,7 +123,7 @@
                             <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
                             <div class="file-label">模範解答CSVをアップロード</div>
                             <div class="file-name" id="csv-file-name"></div>
-                            <input type="file" id="csv-file" accept=".csv" />
+                            <input type="file" id="csv-file" accept=".csv" aria-label="模範解答のCSVファイル" />
                         </div>
                         <div class="model-grid mt-md" id="model-answer-grid"></div>
                     </div>
@@ -183,7 +183,7 @@
                             <div id="max-entries-input-area" class="mt-md mb-zero">
                                 <div class="number-spinner-wrap u-input-compact">
                                     <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-1" aria-label="1人減らす"><span data-icon="minus" aria-hidden="true"></span></button>
-                                    <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" />
+                                    <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" aria-label="定員（人数）" />
                                     <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="1" aria-label="1人増やす"><span data-icon="plus" aria-hidden="true"></span></button>
                                 </div>
                             </div>
@@ -306,7 +306,7 @@
                             <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
                             <div class="file-label">答案PDFをアップロード</div>
                             <div class="file-name" id="pdf-file-name"></div>
-                            <input type="file" id="pdf-file" accept="application/pdf" />
+                            <input type="file" id="pdf-file" accept="application/pdf" aria-label="答案のPDFファイル" />
                         </div>
                     </div>
                     <div class="phase-block is-wide saved-answers-section">
@@ -413,7 +413,7 @@
                             <span>正答数</span>
                             <div class="number-spinner-wrap u-input-compact">
                                 <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="-1" aria-label="1減らす"><span data-icon="minus" aria-hidden="true"></span></button>
-                                <input type="number" id="analytics-threshold" value="5" min="0" max="100" data-action="render-analytics" />
+                                <input type="number" id="analytics-threshold" value="5" min="0" max="100" data-action="render-analytics" aria-label="正答数のしきい値" />
                                 <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="1" aria-label="1増やす"><span data-icon="plus" aria-hidden="true"></span></button>
                             </div>
                             <span>人以下をハイライト</span>
@@ -523,7 +523,7 @@
                     <div class="phase-block">
                         <h2>参加規約</h2>
                         <div class="name-input-flex u-stack-stretch">
-                            <textarea id="setting-terms" class="u-min-h-120 mb-md" placeholder="規約を入力しない場合は空にしてください"></textarea>
+                            <textarea id="setting-terms" class="u-min-h-120 mb-md" aria-label="参加規約（Markdown）" placeholder="規約を入力しない場合は空にしてください"></textarea>
                             <button class="btn secondary" data-action="update-terms"><span data-icon="arrows-rotate" aria-hidden="true"></span> 参加規約を更新</button>
                         </div>
                     </div>
@@ -608,36 +608,36 @@
             <form id="admin-entry-form" novalidate>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="required">姓</label>
+                        <label class="required" for="admin-entry-family-name">姓</label>
                         <input type="text" id="admin-entry-family-name" maxlength="30" autocomplete="family-name" required>
                     </div>
                     <div class="form-group">
-                        <label class="required">名</label>
+                        <label class="required" for="admin-entry-first-name">名</label>
                         <input type="text" id="admin-entry-first-name" maxlength="30" autocomplete="given-name" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="required">セイ</label>
+                        <label class="required" for="admin-entry-family-kana">セイ</label>
                         <input type="text" id="admin-entry-family-kana" maxlength="40" pattern="^[ァ-ヴー]+$" required>
                     </div>
                     <div class="form-group">
-                        <label class="required">メイ</label>
+                        <label class="required" for="admin-entry-first-kana">メイ</label>
                         <input type="text" id="admin-entry-first-kana" maxlength="40" pattern="^[ァ-ヴー]+$" required>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="required">メールアドレス</label>
+                    <label class="required" for="admin-entry-email">メールアドレス</label>
                     <input type="email" id="admin-entry-email" autocomplete="email" required inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください">
                 </div>
                 <div class="form-row">
                     <div class="form-group u-flex-2">
-                        <label class="required">所属教育機関</label>
+                        <label class="required" for="admin-entry-affiliation">所属教育機関</label>
                         <input type="text" id="admin-entry-affiliation" maxlength="20" required>
                         <div class="hint">非公開を希望する場合は「非公開」と入力してください。</div>
                     </div>
                     <div class="form-group u-flex-1">
-                        <label class="required">学年</label>
+                        <label class="required" for="admin-entry-grade">学年</label>
                         <select id="admin-entry-grade" required>
                             <option value="">選択</option>
                             <option value="１年">１年</option>
@@ -661,16 +661,16 @@
                     </label>
                 </div>
                 <div class="form-group">
-                    <label class="required">エントリーネーム</label>
+                    <label class="required" for="admin-entry-entry-name">エントリーネーム</label>
                     <input type="text" id="admin-entry-entry-name" maxlength="20" required>
                     <div class="hint">当日の受付および大会後に発行する記録集では、本名（姓名）を使用します。エントリーをもって、この取り扱いに同意したものとします。</div>
                 </div>
                 <div class="form-group">
-                    <label>意気込み</label>
+                    <label for="admin-entry-public-message">意気込み</label>
                     <input type="text" id="admin-entry-public-message">
                 </div>
                 <div class="form-group">
-                    <label>運営への連絡</label>
+                    <label for="admin-entry-inquiry">運営への連絡</label>
                     <textarea id="admin-entry-inquiry" maxlength="100"></textarea>
                 </div>
                 <div class="admin-entry-modal-actions">

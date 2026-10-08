@@ -90,6 +90,7 @@ describe('my-entry（MY-02〜05、API-01、API-05、API-07）', () => {
   it('トークンで再認証でき、新しいトークンが返る。改ざん・別の大会・期限切れ・エントリーなしは断る', async () => {
     const { call, db } = await setup('my-entry', { mocks: QR_MOCK });
     const first = await call(creds);
+    await new Promise((r) => setTimeout(r, 5)); // 同じミリ秒だと、同じトークンになってしまう
     const again = await call({ projectId: PROJECT, token: first.json.token });
     expect(again.status).toBe(200);
     expect(again.json.token).not.toBe(first.json.token);
