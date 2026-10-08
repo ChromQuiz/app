@@ -201,6 +201,8 @@ async function loadHub({ silent = false } = {}) {
         showEl(el('hub'));
         return true;
     } catch (err) {
+        // サーバーが認めなかったトークン（期限切れ・エントリーなし）は、残しても使えない。通信の失敗のときは残す。
+        if (err?.status === 401 || err?.status === 404) storeSession(null);
         if (!silent) showAuth(err.message || 'もう一度ログインしてください。');
         return false;
     }
