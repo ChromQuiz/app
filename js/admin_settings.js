@@ -1413,13 +1413,14 @@
             }
         }
 
-        function createBadge(className, iconClass, title, styles = {}) {
+        // 状態はアイコンだけで伝えない(タッチ端末ではツールチップが出ず、読み上げにも出ない)。label を文字でも出す。
+        function createBadge(className, iconClass, title, styles = {}, label = title) {
             const badge = document.createElement('span');
             badge.className = className;
             badge.title = title;
             Object.assign(badge.style, styles);
             const icon = createIcon(iconClass);
-            badge.appendChild(icon);
+            badge.append(icon, ` ${label}`);
             return badge;
         }
 
@@ -1493,11 +1494,11 @@
                 noticeTd.appendChild(createBadge('badge', 'clock', '繰り上げ通知送信待ち', {
                     background: 'var(--surface-2)',
                     color: 'var(--ink)',
-                }));
+                }, '送信待ち'));
             } else if (noticeState === 'sent') {
-                noticeTd.appendChild(createBadge('badge success', 'check', '繰り上げ通知送信済み'));
+                noticeTd.appendChild(createBadge('badge success', 'check', '繰り上げ通知送信済み', {}, '送信済み'));
             } else if (noticeState === 'failed') {
-                noticeTd.appendChild(createBadge('badge danger', 'triangle-exclamation', '繰り上げ通知未送信'));
+                noticeTd.appendChild(createBadge('badge danger', 'triangle-exclamation', '繰り上げ通知未送信', {}, '未送信'));
             } else {
                 noticeTd.textContent = '-';
             }
