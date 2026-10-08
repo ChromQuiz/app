@@ -258,7 +258,9 @@ describe('production UI contracts', () => {
     expect(read('sw.js')).not.toContain('favicon.svg');
 
     for (const { path, source } of pageSources()) {
-      expect(source, `${path}: png favicon`).toContain('rel="icon" type="image/png" href="favicon.png?v=4"');
+      // 404.html は深い階層の住所でも開かれるので、/app/ からの絶対パスにしている
+      const href = path === '404.html' ? '/app/favicon.png?v=4' : 'favicon.png?v=4';
+      expect(source, `${path}: png favicon`).toContain(`rel="icon" type="image/png" href="${href}"`);
       expect(source, `${path}: svg favicon`).not.toContain('favicon.svg');
       expect(source, `${path}: og-image`).not.toMatch(/og:image|og-image\.png/);
     }

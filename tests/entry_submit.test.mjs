@@ -56,3 +56,35 @@ describe('マイエントリーのセッション（MY-05）', () => {
     expect(my).toMatch(/if \(err\?\.status === 401 \|\| err\?\.status === 404\) storeSession\(null\)/);
   });
 });
+
+describe('404 ページ（404-01、404-02）', () => {
+  const html = read('404.html');
+
+  it('どんな深さの住所でも開かれるので、参照は /app/ からの絶対パス', () => {
+    for (const m of html.matchAll(/(?:href|src)="([^"#]+)"/g)) {
+      const url = m[1];
+      if (/^https?:/.test(url)) continue;
+      expect(url, url).toMatch(/^\/app\//);
+    }
+  });
+
+  it('履歴がなければ index.html へ。絶対パスで移動する', () => {
+    const js = read('js/not_found.js');
+    expect(js).toMatch(/window\.history\.length > 1/);
+    expect(js).toMatch(/window\.location\.href = '\/app\/index\.html'/);
+  });
+});
+
+describe('エントリーリスト（LST-09）', () => {
+  const src = read('js/entry_list.js');
+
+  it('キャンセル待ちはサーバーが決めた状態を使う（受付済みの人を、順位だけでキャンセル待ちに出さない）', () => {
+    expect(src).toMatch(/e\._showWaitlist = e\.status \? e\.status === 'waitlist' : e\._isWaitlist/);
+    expect(src).toMatch(/const firstWaitlistIndex = ordered\.findIndex\(e => e\._showWaitlist\)/);
+    expect(src).toMatch(/renderRow\(entry, entry\._showWaitlist\)/);
+  });
+
+  it('日時は日本時間で出す', () => {
+    expect(src).toMatch(/formatShortDateTimeJa\(e\.timestamp/);
+  });
+});
