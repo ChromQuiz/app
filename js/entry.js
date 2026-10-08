@@ -340,20 +340,28 @@ async function verifyEmailCode() {
     document.getElementById('verified-email').textContent = email;
 
     sessionTimer = setTimeout(() => {
-        clearEmailVerification();
-        hideEl(document.getElementById('form-body'));
-        showEl(document.getElementById('email-verify-section'));
-        document.getElementById('f-email').disabled = false;
-        document.getElementById('f-email').value = '';
-        setVerifyCodeValue('');
-        hideEl(document.getElementById('code-input-area'));
-        showEl(document.getElementById('send-code-btn'));
-        setEntryStepState('verify');
-        document.getElementById('send-code-btn').disabled = false;
-        setEntryButton(document.getElementById('send-code-btn'), '認証コードを送信', 'paper-plane');
-        hideEl(document.getElementById('resend-code-btn'));
-        showVerifyMsg('セッションの有効期限が切れました。再度メール認証を行ってください。', 'error');
+        returnToEmailVerification('セッションの有効期限が切れました。再度メール認証を行ってください。');
     }, SESSION_TIMEOUT);
+}
+
+// フォームを閉じて、メール認証のやり直しに戻す（時間切れ・サーバーに認証を認められなかったとき）。
+function returnToEmailVerification(message) {
+    clearEmailVerification();
+    if (sessionTimer) clearTimeout(sessionTimer);
+    clearInterval(resendCooldown);
+    hideEl(document.getElementById('form-body'));
+    showEl(document.getElementById('email-verify-section'));
+    document.getElementById('f-email').disabled = false;
+    document.getElementById('f-email').value = '';
+    setVerifyCodeValue('');
+    hideEl(document.getElementById('code-input-area'));
+    showEl(document.getElementById('send-code-btn'));
+    setEntryStepState('verify');
+    document.getElementById('send-code-btn').disabled = false;
+    setEntryButton(document.getElementById('send-code-btn'), '認証コードを送信', 'paper-plane');
+    hideEl(document.getElementById('resend-code-btn'));
+    clearStatus();
+    showVerifyMsg(message, 'error');
 }
 
 // 確定前の確認サマリー — details を開いたときに入力内容を要約する
@@ -391,6 +399,8 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const btn = document.getElementById('submit-btn');
+    // 送信中は、ボタン以外から（Enter や別の呼び出しで）もう一度来ても受け付けない。二重に登録されない。
+    if (btn.disabled) return;
     if (!emailVerified || !verifiedEmail) {
         showVerifyMsg(getPreVerificationSubmitMessage(), 'error');
         clearStatus();
@@ -462,7 +472,11 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             entryListUrl,
             qrData: entry.id,
             senderName: pName + ' 実行委員会'
-        }).catch(err => console.warn('メール送信スキップ:', err));
+        }).catch((err) => {
+            // パスワードは確認メールにしか載らない。送れなかったことを完了画面で伝え、再発行への道を示す。
+            console.warn('確認メールを送信できませんでした:', err);
+            showConfirmationMailFailure();
+        });
 
         // 登録成功でトークンは役目を終えるため破棄する。
         clearEmailVerification();
@@ -486,9 +500,24 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         btn.textContent = 'エントリーを確定する';
         // サーバーや通信の日本語エラーだけを表示し、それ以外(内部の例外)は汎用の文言にする。
         const known = err && (err.functionName || err.status !== undefined);
+        // メール認証をサーバーに認められなかったときは、何度送っても同じなので、本人確認からやり直させる。
+        if (known && (err.status === 401 || (err.status === 400 && /メール認証/.test(err.message || '')))) {
+            returnToEmailVerification(err.message);
+            return;
+        }
         showStatus(known ? err.message : 'エントリーを送信できませんでした。時間をおいて再度お試しください。', 'error');
     }
 });
+
+function showConfirmationMailFailure() {
+    const desc = document.querySelector('#result-card .result-desc');
+    if (desc) desc.textContent = '確認メールを送信できませんでした。';
+    const note = document.createElement('div');
+    note.className = 'page-msg';
+    note.setAttribute('role', 'alert');
+    setPageMessage(note, 'パスワードと二次元コードは、マイエントリーで確認できます。パスワードが分からないときは、マイエントリーの「パスワードを忘れた場合」から、再発行してください。', 'warning');
+    desc?.after(note);
+}
 
 function showWaitlistMessage() {
     const waitMsg = document.createElement('div');
