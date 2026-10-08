@@ -619,8 +619,11 @@
                     const name = `No.${padNum(pending.entryNumber)}`;
                     if (result.result === 'already') {
                         setPageMessage(statusEl, `${name} はすでに受付済みです。`, 'warning');
-                    } else {
+                    } else if (result.result === 'success') {
                         setPageMessage(statusEl, `${name} を受付しました。`, 'success');
+                    } else {
+                        // 照会のあとに、キャンセル待ち・キャンセル済みに変わっていたとき。受付はされていない。
+                        setPageMessage(statusEl, `${name} は受付対象外です（キャンセル待ちまたはキャンセル済み）。受付していません。状態を確認してください。`, 'warning');
                     }
                     resetPanel();
                 });
@@ -633,8 +636,13 @@
                 if (!ok) return;
                 clearPageMessage(statusEl);
                 withBusy(undoBtn, async () => {
-                    await CIQSupabaseAPI.undoCheckIn(projectId, pending.entryNumber, pending.id);
-                    setPageMessage(statusEl, `${name} の受付を取り消しました。`, 'success');
+                    const result = await CIQSupabaseAPI.undoCheckIn(projectId, pending.entryNumber, pending.id);
+                    if (result.result === 'undone') {
+                        setPageMessage(statusEl, `${name} の受付を取り消しました。`, 'success');
+                    } else {
+                        // すでに取り消されていた（別の端末で先に操作された）とき
+                        setPageMessage(statusEl, `${name} は、受付済みではありません。取り消す内容がありませんでした。`, 'warning');
+                    }
                     resetPanel();
                 });
             });

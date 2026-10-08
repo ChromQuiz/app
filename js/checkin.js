@@ -30,10 +30,14 @@ if (auth) {
     const scanningText = document.getElementById('scanning-text');
     let processing = false;
     let lastUUID = '';
+    // 二次元コードが最後に映った時刻。しばらく映らなければ「前回のコード」を忘れる（同じコードを続けて処理しないため）。
+    // フレーム数ではなく時間で決める（端末の速さで、忘れるまでの長さが変わらないように）。
+    let lastSeenAt = 0;
     let hideTimer = null;
     let cameraStream = null;
     let scanFrameId = 0;
     let cameraStartPromise = null;
+    const FORGET_AFTER_MS = 800;
 
     init();
 
@@ -200,6 +204,12 @@ if (auth) {
             // 反転(白黒逆)の二次元コードは使わない。既定の attemptBoth は毎フレーム2回走査して遅い。
             const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
             const qrData = code?.data?.trim();
+            const now = performance.now();
+            if (qrData) {
+                lastSeenAt = now;
+            } else if (lastUUID && now - lastSeenAt > FORGET_AFTER_MS) {
+                lastUUID = '';
+            }
             if (qrData && !processing && qrData !== lastUUID) {
                 processing = true;
                 lastUUID = qrData;
@@ -215,7 +225,9 @@ if (auth) {
         if (document.visibilityState !== 'hidden') startCamera();
     });
     document.addEventListener('visibilitychange', () => {
+        // 画面を隠したら（別のアプリ・タブに移ったら）カメラを止める。戻ったら再開する。
         if (document.visibilityState === 'visible') startCamera();
+        else stopCamera();
     });
 
     function showLoading() {
@@ -254,8 +266,10 @@ if (auth) {
                 await loadStats();
             }
         } catch (err) {
+            // 前回のコードは忘れない。エラーのコード（他の大会のもの・期限切れなど）が映ったままだと、
+            // 毎フレームサーバーに問い合わせ続け、「見つからない」の回数制限（会場の同じ回線で共有）に達して、全端末の受付が止まる。
+            // コードが画面から外れたら（scanFrame）、次のコードを受け付ける。
             showResultUI('error', 'xmark', 'エラーが発生しました', err.message, '', '');
-            lastUUID = '';
         }
         processing = false;
     }
@@ -289,7 +303,6 @@ if (auth) {
 
         hideTimer = setTimeout(() => {
             resultDiv.classList.remove('is-visible');
-            lastUUID = '';
         }, 3000);
     }
 }
