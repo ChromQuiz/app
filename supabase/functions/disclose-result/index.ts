@@ -121,11 +121,8 @@ Deno.serve(withCors(async (req) => {
     });
   } catch (error) {
     if (error instanceof ParticipantAuthError) {
-      // 認証失敗(404)は存在の有無を漏らさないよう固定文言にする
-      const message = error.status === 404
-        ? 'Entry not found'
-        : error.message;
-      return jsonResponse({ error: message }, error.status);
+      // 認証の失敗は、参加者向けの日本語の文言をそのまま返す（メールとパスワードの不一致は、存在の有無を区別しない同じ文言）
+      return jsonResponse({ error: error.message }, error.status);
     }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[disclose-result] participant hash pepper is not configured');
