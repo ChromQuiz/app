@@ -8,6 +8,7 @@ import {
 } from '../_shared/participant_auth.ts';
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp } from '../_shared/rate_limit.ts';
+import { assignRanks, compareRank, ordinal, streaksFromAnswers } from '../_shared/ranking.ts';
 
 type EntryRow = {
   id: string;
@@ -26,51 +27,6 @@ type FinalResultRow = {
   question_number: number;
   result: string;
 };
-
-function ordinal(n: number): string {
-  const v = n % 100;
-  if (v >= 11 && v <= 13) return `${n}th`;
-  switch (n % 10) {
-    case 1:
-      return `${n}st`;
-    case 2:
-      return `${n}nd`;
-    case 3:
-      return `${n}rd`;
-    default:
-      return `${n}th`;
-  }
-}
-
-function streaksFromAnswers(answers: number[]): number[] {
-  const streaks: number[] = [];
-  let current = 0;
-  for (const answer of answers) {
-    if (answer === 1) {
-      current += 1;
-    } else {
-      streaks.push(current);
-      current = 0;
-    }
-  }
-  streaks.push(current);
-  return streaks;
-}
-
-function compareRank(a: { score: number; streaks: number[] }, b: { score: number; streaks: number[] }): number {
-  if (b.score !== a.score) return b.score - a.score;
-  const maxLen = Math.max(a.streaks.length, b.streaks.length);
-  for (let i = 0; i < maxLen; i += 1) {
-    const av = a.streaks[i] || 0;
-    const bv = b.streaks[i] || 0;
-    if (bv !== av) return bv - av;
-  }
-  return 0;
-}
-
-function sameRankKey(a: { score: number; streaks: number[] }, b: { score: number; streaks: number[] }): boolean {
-  return a.score === b.score && JSON.stringify(a.streaks) === JSON.stringify(b.streaks);
-}
 
 Deno.serve(withCors(async (req) => {
   const options = handleOptions(req);
@@ -147,15 +103,9 @@ Deno.serve(withCors(async (req) => {
       return { entry: entryRow, score, streaks, answers, rank: 0 };
     }).sort(compareRank);
 
-    let currentRank = 1;
-    for (let i = 0; i < ranked.length; i += 1) {
-      if (i > 0 && !sameRankKey(ranked[i - 1], ranked[i])) {
-        currentRank = i + 1;
-      }
-      ranked[i].rank = currentRank;
-    }
+    const rankedWithRank = assignRanks(ranked);
 
-    const own = ranked.find((row) => row.entry.id === authEntry.id);
+    const own = rankedWithRank.find((row) => row.entry.id === authEntry.id);
     if (!own) return jsonResponse({ error: 'このエントリーは成績照会の対象外です。' }, 404);
 
     return jsonResponse({
