@@ -700,11 +700,6 @@ const CIQSupabaseAPI = {
 
     async saveModelAnswers(projectId, answers) {
         const client = this.client();
-        const { error: deleteError } = await client
-            .from('model_answers')
-            .delete()
-            .eq('project_id', projectId);
-        if (deleteError) throw deleteError;
 
         // 呼び出し側は文字列でも { answer, altAnswers } でも渡せる。
         const rows = (answers || [])
@@ -720,13 +715,24 @@ const CIQSupabaseAPI = {
             // 主答えが空の問題は行ごと持たない(別解だけの行は意味を持たない)
             .filter(row => row.answer);
 
-        if (rows.length === 0) return [];
-        const { data, error } = await client
-            .from('model_answers')
-            .upsert(rows, { onConflict: 'project_id,question_number' })
-            .select('question_number, answer, alt_answers');
-        if (error) throw error;
-        return data || [];
+        // 先に書き込み、あとで不要な行を消す。先に全件を消すと、書き込みが失敗したときに模範解答がすべて失われる。
+        let saved = [];
+        if (rows.length > 0) {
+            const { data, error } = await client
+                .from('model_answers')
+                .upsert(rows, { onConflict: 'project_id,question_number' })
+                .select('question_number, answer, alt_answers');
+            if (error) throw error;
+            saved = data || [];
+        }
+
+        let cleanup = client.from('model_answers').delete().eq('project_id', projectId);
+        if (rows.length > 0) {
+            cleanup = cleanup.not('question_number', 'in', `(${rows.map(row => row.question_number).join(',')})`);
+        }
+        const { error: deleteError } = await cleanup;
+        if (deleteError) throw deleteError;
+        return saved;
     },
 
     dataUrlToBlob(dataUrl) {

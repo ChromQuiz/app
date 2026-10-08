@@ -186,8 +186,7 @@
             if (nextIndex < 0 || nextIndex >= modelAnswers.length) return;
             [modelAnswers[index], modelAnswers[nextIndex]] = [modelAnswers[nextIndex], modelAnswers[index]];
             renderModelGrid();
-            await saveModelAnswers();
-            showAdminToast('並び替えを保存しました。', 'success');
+            if (await saveModelAnswers()) showAdminToast('並び替えを保存しました。', 'success');
         }
         function renderModelGrid() {
             const grid = document.getElementById('model-answer-grid'); grid.textContent = '';
@@ -261,8 +260,7 @@
                     if (changed) {
                         modelAnswers.splice(0, modelAnswers.length, ...newAnswers);
                         renderModelGrid(); // Re-render to fix the # numbers
-                        await saveModelAnswers();
-                        showAdminToast('並び替えを保存しました。', 'success');
+                        if (await saveModelAnswers()) showAdminToast('並び替えを保存しました。', 'success');
                     } else {
                         renderModelGrid(); // reset DOM
                     }
@@ -351,17 +349,19 @@
                     }
                 });
                 renderModelGrid();
-                showAdminToast(`${lines.length}件読み込み中…`);
-                await saveModelAnswers();
-                showAdminToast(`${lines.length}件の模範解答を保存しました。`, 'success');
+                showAdminToast(`${lines.length}件読み込み中…`, 'info');
+                if (await saveModelAnswers()) showAdminToast(`${lines.length}件の模範解答を保存しました。`, 'success');
             };
             reader.readAsText(file, 'UTF-8');
         }
+        // 保存できたかどうかを返す。呼び出し側は、成功したときだけ「保存しました」と出す。
         async function saveModelAnswers() {
             try {
                 await CIQSupabaseAPI.saveModelAnswers(projectId, modelAnswers);
+                return true;
             } catch(e) {
                 showAdminToast('模範解答を保存できませんでした（詳細：' + e.message + '）');
+                return false;
             }
         }
 
