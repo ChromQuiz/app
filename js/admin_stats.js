@@ -124,7 +124,9 @@
                 const pdfB = document.getElementById('graded-pdf-btn');
                 if (pdfB) pdfB.disabled = false;
             } else { 
-                setCsvStatus(csvS, 'notready', 'circle-xmark', `未確定の問題があります（${confirmedCount} / ${totalQuestions} 確定済み）`);
+                setCsvStatus(csvS, 'notready', 'circle-xmark', dataLoaded
+                    ? `未確定の問題があります（${confirmedCount} / ${totalQuestions} 確定済み）`
+                    : '集計データを読み込めなかったため、出力できません。結果タブを開き直してください');
                 csvB.disabled = true;
                 const pdfB2 = document.getElementById('graded-pdf-btn');
                 if (pdfB2) pdfB2.disabled = true;
@@ -225,10 +227,10 @@
                     currentRank,
                     sameCount > 1 ? '完全一致' : '',
                     sameCount > 1 ? sameCount : '',
-                    r.affiliation,
-                    r.grade,
-                    `"${r.familyName.replace(/"/g, '""')}"`,
-                    `"${r.firstName.replace(/"/g, '""')}"`,
+                    csvCell(r.affiliation),
+                    csvCell(r.grade),
+                    csvCell(r.familyName),
+                    csvCell(r.firstName),
                     r.score,
                     ...streakCols
                 ]);
@@ -287,6 +289,6 @@
         async function exportAnalyticsCSV() {
             await refreshScoringEntryNumbers();
             const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率（％）', '状態', '正解者一覧']; const rows = [headers];
-            qs.forEach(s => rows.push([s.q, s.correctCount, s.rate, s.type, `"${s.names.replace(/"/g, '""')}"`]));
+            qs.forEach(s => rows.push([s.q, s.correctCount, s.rate, s.type, csvCell(s.names)]));
             const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'analytics_all_qs.csv'; a.click();
         }
