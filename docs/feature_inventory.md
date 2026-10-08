@@ -654,8 +654,10 @@
   - 2026-10-08 確認: security_contract/メールテンプレートの XSS テスト、規約Markdownの危険URL無効化、CSP でインライン実行なし。
 - [x] **SEC-04 CORS** — 許可したオリジンのみ。
   - 2026-10-08 確認: cors_allowlist テスト(許可オリジンのみ)。
-- [ ] **SEC-05 ボット対策** — Turnstile(認証コード送信とエントリー作成)。ホスト名の制限。
-- [ ] **SEC-06 総当たり** — ログインの失敗の制限、受付の「見つからない」照会の制限、認証コードの送信制限。
+- [x] **SEC-05 ボット対策** — Turnstile(認証コード送信とエントリー作成)。ホスト名の制限。
+  - 2026-10-08 確認: 本番に TURNSTILE_SECRET_KEY と CIQ_TURNSTILE_HOSTNAMES が設定済み、CIQ_TURNSTILE_DISABLED は未設定。拒否の挙動は turnstile テストと本番403で確認。
+- [x] **SEC-06 総当たり** — ログインの失敗の制限、受付の「見つからない」照会の制限、認証コードの送信制限。
+  - 2026-10-08 確認: 参加者ログイン・受付の見つからない照会・認証コード送信・登録に制限(participant_auth / checkin_miss / send_verification / create_entry)。超過時の429は各関数のテストで確認。
 - [x] **SEC-07 二次元コード** — 署名の検証、他の大会では使えない、受付済みは再利用できない、署名鍵を更新すると全員失効。期限はない(2026-10-03 に変更)。本人との照合は受付番号・所属・学年。
   - 2026-10-08 確認: qr_token テスト23件(署名・他大会・再利用・鍵更新)。
 - [x] **SEC-08 招待リンク** — 平文を保存しない、並列でも上限を超えない、期限7日、無効化できる。
@@ -675,7 +677,8 @@
 
 - [ ] **OPS-01 デプロイ** — フロントは GitHub Pages(main へのマージで反映)。Edge Function は手動(`supabase functions deploy`、`--no-verify-jwt`)。変更した関数を忘れずに配置する。
 - [ ] **OPS-02 マイグレーション** — 新しい変更は新しい番号のファイルで。適用済みのファイルは書き換えない(コメント以外)。
-- [ ] **OPS-03 シークレット** — `CIQ_EMAIL_SIGNING_SECRET`、`CIQ_PARTICIPANT_HASH_PEPPER`、`CIQ_RATE_LIMIT_PEPPER`、`CIQ_ALLOWED_ORIGINS`、`CIQ_TURNSTILE_HOSTNAMES`、`CIQ_EMAIL_PROVIDER`、メールのAPIキー、Turnstile のシークレット。
+- [x] **OPS-03 シークレット** — `CIQ_EMAIL_SIGNING_SECRET`、`CIQ_PARTICIPANT_HASH_PEPPER`、`CIQ_RATE_LIMIT_PEPPER`、`CIQ_ALLOWED_ORIGINS`、`CIQ_TURNSTILE_HOSTNAMES`、`CIQ_EMAIL_PROVIDER`、メールのAPIキー、Turnstile のシークレット。
+  - 2026-10-08 確認: 本番に必要なシークレットがすべて存在(値は見ていない): CIQ_EMAIL_SIGNING_SECRET / PARTICIPANT_HASH_PEPPER / RATE_LIMIT_PEPPER / ALLOWED_ORIGINS / TURNSTILE_HOSTNAMES / EMAIL_PROVIDER / BREVO_* / TURNSTILE_SECRET_KEY、ほか CRON_SECRET / SITE_URL / PROJECT_KEY_ENCRYPTION_SECRET。
 - [ ] **OPS-04 Brevo** — 承認済みIPの制限は無効にしてある(Edge Function の送信元IPが固定でないため)。1日300通の無料枠。エントリーが集中する日は足りるか。
 - [x] **OPS-05 Supabase の無料プラン** — 7日間リクエストがないと停止する。Cloudflare Workers の定期実行(1日2回)で防ぐ。本番で200を返すか、大会の前に確認する。
   - 2026-10-08 確認: Worker と公開ビューが本番で 200 を返した。
