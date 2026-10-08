@@ -49,3 +49,10 @@ describe('登録のサーバー側（ENT-38〜40）', () => {
     expect(fn.indexOf('verifyEmailVerifiedToken(')).toBeLessThan(fn.indexOf("rpc('create_entry_atomic'"));
   });
 });
+
+describe('マイエントリーのセッション（MY-05）', () => {
+  it('サーバーが認めなかったトークン（401・404）は消し、通信の失敗では残す', () => {
+    const my = read('js/my.js');
+    expect(my).toMatch(/if \(err\?\.status === 401 \|\| err\?\.status === 404\) storeSession\(null\)/);
+  });
+});
