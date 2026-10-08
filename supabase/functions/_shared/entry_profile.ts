@@ -5,12 +5,14 @@
 // 数え方は文字（コードポイント）。画面の maxlength と同じ値にする（js は entry.html / my.html の属性）。
 
 export const ENTRY_LIMITS = {
-  entryName: 40,
-  affiliation: 60,
+  entryName: 20,
+  affiliation: 20,
   grade: 10,
-  message: 200,
-  inquiry: 1000,
-  encryptedPii: 30000,
+  message: 100,
+  inquiry: 100,
+  // 暗号化前の最大: メール254 + 姓名計60 + カナ計80 + 所属20 + エントリーネーム20 + 意気込み100 + 運営への連絡100 ほか。
+  // 日本語は1文字3バイト、暗号化と base64 で約 1.4 倍になっても 8000 文字には届かない。
+  encryptedPii: 8000,
 } as const;
 
 const LABELS: Record<string, string> = {

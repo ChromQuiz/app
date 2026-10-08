@@ -20,16 +20,16 @@ describe('validateEntryInput', () => {
 
   it('上限ちょうどは通り、超えると項目名つきの日本語で断る', () => {
     expect(validateEntryInput({ entryName: 'あ'.repeat(ENTRY_LIMITS.entryName) }, 'x')).toBeNull();
-    expect(validateEntryInput({ entryName: 'あ'.repeat(ENTRY_LIMITS.entryName + 1) }, 'x')).toBe('エントリーネームは40文字以内で入力してください。');
-    expect(validateEntryInput({ affiliation: 'あ'.repeat(61) }, 'x')).toBe('所属教育機関は60文字以内で入力してください。');
-    expect(validateEntryInput({ message: 'あ'.repeat(201) }, 'x')).toBe('意気込みは200文字以内で入力してください。');
-    expect(validateEntryInput({ inquiry: 'あ'.repeat(1001) }, 'x')).toBe('運営への連絡は1000文字以内で入力してください。');
+    expect(validateEntryInput({ entryName: 'あ'.repeat(ENTRY_LIMITS.entryName + 1) }, 'x')).toBe('エントリーネームは20文字以内で入力してください。');
+    expect(validateEntryInput({ affiliation: 'あ'.repeat(21) }, 'x')).toBe('所属教育機関は20文字以内で入力してください。');
+    expect(validateEntryInput({ message: 'あ'.repeat(101) }, 'x')).toBe('意気込みは100文字以内で入力してください。');
+    expect(validateEntryInput({ inquiry: 'あ'.repeat(101) }, 'x')).toBe('運営への連絡は100文字以内で入力してください。');
     expect(validateEntryInput({ grade: 'あ'.repeat(11) }, 'x')).toBe('学年は10文字以内で入力してください。');
   });
 
   it('文字数は、絵文字などの2単位の文字も1文字として数える', () => {
-    expect(validateEntryInput({ entryName: '😀'.repeat(40) }, 'x')).toBeNull();
-    expect(validateEntryInput({ entryName: '😀'.repeat(41) }, 'x')).not.toBeNull();
+    expect(validateEntryInput({ entryName: '😀'.repeat(20) }, 'x')).toBeNull();
+    expect(validateEntryInput({ entryName: '😀'.repeat(21) }, 'x')).not.toBeNull();
   });
 
   it('文字列でない値と、大きすぎる暗号化データは断る', () => {
@@ -38,11 +38,11 @@ describe('validateEntryInput', () => {
     expect(validateEntryInput({}, 'x'.repeat(ENTRY_LIMITS.encryptedPii + 1))).toMatch(/大きすぎます/);
   });
 
-  it('いまのデータの最大（エントリーネーム8・所属6・意気込み14・連絡14）に余裕がある', () => {
-    expect(ENTRY_LIMITS.entryName).toBeGreaterThan(8 * 3);
-    expect(ENTRY_LIMITS.affiliation).toBeGreaterThan(6 * 3);
-    expect(ENTRY_LIMITS.message).toBeGreaterThan(14 * 3);
-    expect(ENTRY_LIMITS.inquiry).toBeGreaterThan(14 * 3);
+  it('いまのデータの最大（エントリーネーム8・所属6・意気込み14・連絡14）が収まる', () => {
+    expect(ENTRY_LIMITS.entryName).toBeGreaterThan(8);
+    expect(ENTRY_LIMITS.affiliation).toBeGreaterThan(6);
+    expect(ENTRY_LIMITS.message).toBeGreaterThan(14);
+    expect(ENTRY_LIMITS.inquiry).toBeGreaterThan(14);
   });
 });
 
@@ -59,15 +59,15 @@ describe('呼び出し元と入力欄', () => {
   });
 
   it('入力欄の maxlength が、サーバーの上限と同じ', () => {
-    const expected = { 'entry-name': 40, affiliation: 60, message: 200, inquiry: 1000 };
+    const expected = { 'entry-name': 20, affiliation: 20, message: 100, inquiry: 100 };
     for (const [file, prefix] of [['entry.html', 'f-'], ['my.html', 'e-']]) {
       const html = read(file);
       for (const [key, max] of Object.entries(expected)) {
         expect(html, `${file} ${prefix}${key}`).toMatch(new RegExp(`id="${prefix}${key}" maxlength="${max}"`));
       }
     }
-    expect(read('admin.html')).toMatch(/id="admin-entry-entry-name" maxlength="40"/);
-    expect(read('admin.html')).toMatch(/id="admin-entry-inquiry" maxlength="1000"/);
+    expect(read('admin.html')).toMatch(/id="admin-entry-entry-name" maxlength="20"/);
+    expect(read('admin.html')).toMatch(/id="admin-entry-inquiry" maxlength="100"/);
   });
 });
 
