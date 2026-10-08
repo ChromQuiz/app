@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="favicon.png?v=4">
+    <link rel="icon" type="image/png" href="/app/favicon.png?v=4">
     <meta name="description" content="CIQ - ページが見つかりません">
     <title>CIQ - 404</title>
+    <!-- どんな深さの住所でも開かれるので、参照は /app/ からの絶対パスにする（相対だと /app/a/b で CSS と JS が読めない） -->
 
-    <link rel="stylesheet" href="css/design_system.css?v=86">
-    <link rel="stylesheet" href="css/pages.css?v=133">
+    <link rel="stylesheet" href="/app/css/design_system.css?v=86">
+    <link rel="stylesheet" href="/app/css/pages.css?v=133">
 
-    <script defer src="js/icons.js?v=8"></script>
-    <script defer src="js/not_found.js?v=2"></script>
+    <script defer src="/app/js/icons.js?v=8"></script>
+    <script defer src="/app/js/not_found.js?v=3"></script>
 </head>
 <body class="page-404">
     <main class="error-container">
@@ -23,7 +24,7 @@
         </p>
         <div class="error-actions">
             <button type="button" class="btn secondary" id="back-button">前のページに戻る</button>
-            <a class="btn ghost" href="help.html">ヘルプ</a>
+            <a class="btn ghost" href="/app/help.html">ヘルプ</a>
         </div>
     </main>
 </body>

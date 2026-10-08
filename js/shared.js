@@ -53,6 +53,22 @@ function formatDateTimeJa(value) {
 }
 
 /**
+ * 日時を「09/28 12:27」の形（日本時間・月/日 時:分）にする。エントリーリストの日時用。
+ */
+function formatShortDateTimeJa(value) {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const parts = Object.fromEntries(
+        new Intl.DateTimeFormat('ja-JP', {
+            timeZone: 'Asia/Tokyo',
+            month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+        }).formatToParts(date).map(part => [part.type, part.value]),
+    );
+    return `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
+}
+
+/**
  * カナの入力を整える: 半角カナは全角に、ひらがなはカタカナに、空白は取り除く。
  * 検証は全角カタカナだけを通すので、見た目が正しくても末尾の空白やひらがなで弾かれるのを防ぐ。
  */

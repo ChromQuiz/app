@@ -110,7 +110,11 @@ const params = new URLSearchParams(location.search);
         const ordered = [...earlyChubu, ...earlyOther, ...late];
         ordered.forEach((e, i) => {
             e._priority = i + 1;
+            // 順位だけで見たときのキャンセル待ち（定員を超える順位）
             e._isWaitlist = capacity > 0 && e._priority > capacity;
+            // 画面に出すのはサーバーが決めた状態。当日受付を済ませた人は、順位が定員を超えていても登録済みのまま残るため、
+            // 順位だけで判定すると、受付を済ませた人をキャンセル待ちに出してしまう。状態が無いときだけ順位で判定する。
+            e._showWaitlist = e.status ? e.status === 'waitlist' : e._isWaitlist;
         });
         return {
             ordered,
@@ -143,15 +147,11 @@ const params = new URLSearchParams(location.search);
             maxEntries,
             windowMs: CHUBU_PRIORITY_WINDOW_MS,
         });
-        const waitlistCount = ordered.filter(e => e._isWaitlist).length;
+        const waitlistCount = ordered.filter(e => e._showWaitlist).length;
 
         const renderRow = (e, isWaitlist) => {
-            const d = new Date(e.timestamp || Date.now());
-            const m = (d.getMonth()+1).toString().padStart(2,'0');
-            const day = d.getDate().toString().padStart(2,'0');
-            const h = d.getHours().toString().padStart(2,'0');
-            const min = d.getMinutes().toString().padStart(2,'0');
-            const timeStr = `${m}/${day} ${h}:${min}`;
+            // 日本時間で表示する（端末の時間帯に依存しない）
+            const timeStr = formatShortDateTimeJa(e.timestamp || Date.now());
             // 学年を非公開にした人は空欄にする(入力フォームの値は「非公開」、古いデータには「非表示」がある)
             const grade = (e.grade === '非公開' || e.grade === '非表示') ? '' : (e.grade || '');
 
@@ -192,21 +192,24 @@ const params = new URLSearchParams(location.search);
             body.appendChild(tr);
         };
 
+        // 境目の線は、キャンセル待ちの最初の行の手前に引く（定員の位置ではなく、実際の状態に合わせる）
+        const firstWaitlistIndex = ordered.findIndex(e => e._showWaitlist);
         ordered.forEach((entry, index) => {
-            if (index === maxEntries && waitlistCount > 0) {
+            if (index === firstWaitlistIndex && waitlistCount > 0) {
                 const capacityNote = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
                 appendDivider(body, 'clock', `ここまで出場圏内${capacityNote} — 以下キャンセル待ち（${waitlistCount}名）`, 'entry-list-divider-warning');
             }
             if (hasPriorityWindow && index === 0 && earlyChubuCount > 0) {
                 appendDivider(body, 'map-pin', '中部地方（開始24時間以内）', 'entry-list-divider-rule');
             }
+            // 先頭の区分には「以降」を付けない（前の区分がないので）
             if (hasPriorityWindow && index === earlyChubuCount && earlyOtherCount > 0) {
-                appendDivider(body, 'map-pin', '以降 中部地方以外（開始24時間以内）', 'entry-list-divider-rule');
+                appendDivider(body, 'map-pin', `${index === 0 ? '' : '以降 '}中部地方以外（開始24時間以内）`, 'entry-list-divider-rule');
             }
             if (hasPriorityWindow && index === earlyChubuCount + earlyOtherCount && lateCount > 0) {
-                appendDivider(body, 'clock', '以降 開始24時間経過後（先着）', 'entry-list-divider-rule');
+                appendDivider(body, 'clock', `${index === 0 ? '' : '以降 '}開始24時間経過後（先着）`, 'entry-list-divider-rule');
             }
-            renderRow(entry, entry._isWaitlist);
+            renderRow(entry, entry._showWaitlist);
         });
 
         document.getElementById('total-count').textContent = ordered.length;
