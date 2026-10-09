@@ -342,83 +342,186 @@
             });
         }
 
+        // 控え画像は、参加者に届くメール(supabase/functions/send-email の entryConfirmation)と同じ見た目・同じ並びにする。
+        function wrapReceiptLines(ctx, text, maxWidth) {
+            const lines = [];
+            let line = '';
+            for (const char of String(text || '')) {
+                if (ctx.measureText(line + char).width > maxWidth && line) {
+                    lines.push(line);
+                    line = char;
+                } else {
+                    line += char;
+                }
+            }
+            if (line) lines.push(line);
+            return lines;
+        }
+
         async function renderAdminEntryReceiptImage(receipt, qrSvg) {
-            const appleTextFont = '"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
-            const appleDisplayFont = '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
+            const textFont = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif';
+            const monoFont = '"SF Mono", SFMono-Regular, Menlo, Consolas, "Courier New", monospace';
             const qrImage = await loadImageFromBlob(new Blob([qrSvg], { type: 'image/svg+xml;charset=utf-8' }));
+            const WIDTH = 900;
+            const CARD_X = 50;
+            const CARD_W = WIDTH - CARD_X * 2;
+            const PAD = 48;
+            const INNER_X = CARD_X + PAD;
+            const INNER_W = CARD_W - PAD * 2;
+            const isWaitlist = receipt.status === 'waitlist';
+            const status = isWaitlist ? 'キャンセル待ち' : '登録済み';
+            const person = `${receipt.familyName || ''} ${receipt.firstName || ''}`.trim();
+            const panelTone = isWaitlist
+                ? { label: '注意', color: '#bf6a02', border: '#f4d7a2', message: '現在はキャンセル待ちです。繰り上がった場合は別途お知らせします。' }
+                : { label: '完了', color: '#248a3d', border: '#b8e8c4', message: 'エントリーを受け付けました。' };
+            const infoMessage = 'この画像には受付二次元コードが含まれます。大会当日まで保存してください。';
+
+            // 高さは中身に合わせて決める(メールと同じ並び)
+            const measure = document.createElement('canvas').getContext('2d');
+            measure.font = `600 22px ${textFont}`;
+            // 文ごとに改行して、行末に数文字だけ残らないようにする
+            const wrapBySentence = (text) => text.split('。').filter(Boolean)
+                .flatMap(sentence => wrapReceiptLines(measure, `${sentence}。`, INNER_W - 48));
+            const panelLines = wrapBySentence(panelTone.message);
+            const infoLines = wrapBySentence(infoMessage);
+            const panelHeight = (message) => 24 + 26 + message.length * 34 + 22;
+
             const canvas = document.createElement('canvas');
-            canvas.width = 900;
-            canvas.height = 1180;
+            canvas.width = WIDTH;
+            let y = 0;
+            const layout = {};
+            y = 235; layout.cardTop = y;
+            y += PAD; layout.personY = y + 26;
+            y += person ? 60 : 0;
+            layout.panelTop = y; y += panelHeight(panelLines) + 24;
+            layout.numberTop = y; y += 150 + 24;
+            layout.detailsTop = y; y += 2 * 66 + 18;
+            layout.noteY = y + 20; y += 44 + 16;
+            layout.qrTop = y; y += 40 + 280 + 24 + 28 + 14 + 24 + 40 + 24;
+            layout.infoTop = y; y += panelHeight(infoLines);
+            y += PAD; layout.cardBottom = y;
+            layout.footerY = y + 62;
+            canvas.height = layout.footerY + 50;
             const ctx = canvas.getContext('2d');
 
             try { await document.fonts.ready; } catch (_) {}
 
-            ctx.fillStyle = '#f5f5f7';
+            ctx.fillStyle = '#f2f2f7';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#1d1d1f';
-            ctx.fillRect(0, 0, canvas.width, 170);
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#ffffff';
-            ctx.font = `800 38px ${appleDisplayFont}`;
-            ctx.fillText('エントリー受付完了', canvas.width / 2, 72);
-            ctx.fillStyle = '#d2d2d7';
-            ctx.font = `600 24px ${appleTextFont}`;
-            ctx.fillText(receipt.projectName, canvas.width / 2, 116);
 
+            // 見出し: 大会名(大)と、メールの種類(小)
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#111113';
+            let titleSize = 56;
+            ctx.font = `800 ${titleSize}px ${textFont}`;
+            while (titleSize > 28 && ctx.measureText(receipt.projectName).width > WIDTH - 100) {
+                titleSize -= 2;
+                ctx.font = `800 ${titleSize}px ${textFont}`;
+            }
+            ctx.fillText(receipt.projectName, WIDTH / 2, 110);
+            ctx.fillStyle = '#5f6067';
+            ctx.font = `600 24px ${textFont}`;
+            ctx.fillText('エントリー受付完了', WIDTH / 2, 165);
+
+            // 白いカード
             ctx.fillStyle = '#ffffff';
-            drawRoundedRect(ctx, 70, 215, 760, 820, 24);
+            drawRoundedRect(ctx, CARD_X, layout.cardTop, CARD_W, layout.cardBottom - layout.cardTop, 34);
             ctx.fill();
-            ctx.strokeStyle = '#e5e5ea';
+            ctx.strokeStyle = '#d9d9df';
             ctx.lineWidth = 2;
             ctx.stroke();
+
+            const drawPanel = (top, lines, tone) => {
+                const height = panelHeight(lines);
+                ctx.fillStyle = '#f8f8fb';
+                drawRoundedRect(ctx, INNER_X, top, INNER_W, height, 24);
+                ctx.fill();
+                ctx.strokeStyle = tone.border;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.textAlign = 'left';
+                ctx.fillStyle = tone.color;
+                ctx.font = `800 18px ${textFont}`;
+                ctx.fillText(tone.label, INNER_X + 24, top + 24 + 18);
+                ctx.fillStyle = '#111113';
+                ctx.font = `600 22px ${textFont}`;
+                lines.forEach((line, index) => ctx.fillText(line, INNER_X + 24, top + 24 + 26 + 24 + index * 34));
+            };
 
             ctx.textAlign = 'left';
-            ctx.fillStyle = '#1d1d1f';
-            ctx.font = `600 24px ${appleTextFont}`;
-            drawReceiptText(ctx, `${receipt.familyName} ${receipt.firstName} 様`, 110, 270, 680, 36);
-
-            ctx.fillStyle = '#f5f5f7';
-            drawRoundedRect(ctx, 110, 315, 680, 150, 16);
-            ctx.fill();
-            ctx.fillStyle = '#6e6e73';
-            ctx.font = `700 22px ${appleTextFont}`;
-            ctx.fillText('受付番号', 145, 370);
-            ctx.fillText('パスワード', 145, 430);
-            ctx.fillStyle = '#1d1d1f';
-            ctx.textAlign = 'right';
-            ctx.font = `800 34px ${appleDisplayFont}`;
-            ctx.fillText(receipt.entryNumber, 750, 374);
-            ctx.fillText(receipt.password, 750, 434);
-
-            if (receipt.status === 'waitlist') {
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#fff7e8';
-                drawRoundedRect(ctx, 110, 490, 680, 62, 14);
-                ctx.fill();
-                ctx.fillStyle = '#bf6a02';
-                ctx.font = `800 22px ${appleTextFont}`;
-                ctx.fillText('現在はキャンセル待ちです', canvas.width / 2, 530);
+            if (person) {
+                ctx.fillStyle = '#111113';
+                ctx.font = `500 26px ${textFont}`;
+                ctx.fillText(`${person} 様`, INNER_X, layout.personY);
             }
+            drawPanel(layout.panelTop, panelLines, panelTone);
 
-            ctx.drawImage(qrImage, 285, 585, 330, 330);
-            ctx.strokeStyle = '#d2d2d7';
-            ctx.lineWidth = 2;
-            drawRoundedRect(ctx, 275, 575, 350, 350, 20);
+            // 受付番号(大きく)
+            ctx.fillStyle = '#f8f8fb';
+            drawRoundedRect(ctx, INNER_X, layout.numberTop, INNER_W, 150, 28);
+            ctx.fill();
+            ctx.strokeStyle = '#d9d9df';
             ctx.stroke();
-
             ctx.textAlign = 'center';
-            ctx.fillStyle = '#1d1d1f';
-            ctx.font = `800 24px ${appleTextFont}`;
-            ctx.fillText('当日受付にはこの二次元コードが必要です', canvas.width / 2, 970);
-            ctx.fillStyle = '#6e6e73';
-            ctx.font = `500 18px ${appleTextFont}`;
-            ctx.fillText('この画像とパスワードを大会当日まで保管してください', canvas.width / 2, 1005);
+            ctx.fillStyle = '#5f6067';
+            ctx.font = `800 18px ${textFont}`;
+            ctx.fillText('受付番号', WIDTH / 2, layout.numberTop + 46);
+            ctx.fillStyle = '#111113';
+            ctx.font = `800 64px ${monoFont}`;
+            ctx.fillText(String(receipt.entryNumber), WIDTH / 2, layout.numberTop + 114);
 
-            ctx.fillStyle = '#f5f5f7';
-            ctx.fillRect(0, 1080, canvas.width, 100);
-            ctx.fillStyle = '#6e6e73';
-            ctx.font = `600 18px ${appleDisplayFont}`;
-            ctx.fillText('CIQ', canvas.width / 2, 1138);
+            // パスワードと状態の表
+            ctx.fillStyle = '#ffffff';
+            drawRoundedRect(ctx, INNER_X, layout.detailsTop, INNER_W, 2 * 66, 24);
+            ctx.fill();
+            ctx.strokeStyle = '#d9d9df';
+            ctx.stroke();
+            [['パスワード', receipt.password], ['状態', status]].forEach(([label, value], index) => {
+                const rowY = layout.detailsTop + index * 66;
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#5f6067';
+                ctx.font = `700 20px ${textFont}`;
+                ctx.fillText(label, INNER_X + 24, rowY + 42);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#111113';
+                ctx.font = `700 24px ${monoFont}`;
+                ctx.fillText(String(value), INNER_X + INNER_W - 24, rowY + 42);
+                if (index === 0) {
+                    ctx.strokeStyle = '#d9d9df';
+                    ctx.beginPath();
+                    ctx.moveTo(INNER_X, rowY + 66);
+                    ctx.lineTo(INNER_X + INNER_W, rowY + 66);
+                    ctx.stroke();
+                }
+            });
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#5f6067';
+            ctx.font = `400 19px ${textFont}`;
+            ctx.fillText('パスワードはマイエントリー、編集、キャンセルなどに使用します。', INNER_X, layout.noteY);
+
+            // 二次元コード
+            const qrCardH = 40 + 280 + 24 + 28 + 14 + 24 + 40;
+            ctx.fillStyle = '#ffffff';
+            drawRoundedRect(ctx, INNER_X, layout.qrTop, INNER_W, qrCardH, 30);
+            ctx.fill();
+            ctx.strokeStyle = '#d9d9df';
+            ctx.stroke();
+            ctx.drawImage(qrImage, (WIDTH - 280) / 2, layout.qrTop + 40, 280, 280);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#111113';
+            ctx.font = `800 22px ${textFont}`;
+            ctx.fillText('当日受付用二次元コード', WIDTH / 2, layout.qrTop + 40 + 280 + 24 + 22);
+            ctx.fillStyle = '#5f6067';
+            ctx.font = `400 19px ${textFont}`;
+            ctx.fillText('当日受付で提示してください。', WIDTH / 2, layout.qrTop + 40 + 280 + 24 + 22 + 14 + 22);
+
+            drawPanel(layout.infoTop, infoLines, { label: '確認', color: '#5f6067', border: '#d9d9df' });
+
+            // フッター
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#8a8b93';
+            ctx.font = `400 18px ${textFont}`;
+            ctx.fillText('Powered by CIQ', WIDTH / 2, layout.footerY);
 
             return new Promise((resolve, reject) => {
                 canvas.toBlob((blob) => {
