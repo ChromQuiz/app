@@ -3869,9 +3869,15 @@ body.page-my .my-danger-section > .btn {
 
 .save-overlay {
   background: var(--material-modal);
+  /* 背景を明るい半透明にしたので、文字も白ではなく通常の文字色にする(白のままだと見えない) */
+  color: var(--ink);
   border: 1px solid var(--material-line);
   border-radius: var(--r-overlay);
   box-shadow: var(--material-shadow);
+}
+
+.save-overlay-title {
+  color: var(--ink);
 }
 
 .judge-main {
