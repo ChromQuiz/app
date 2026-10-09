@@ -645,8 +645,10 @@
 - [x] **MAIL-10 メール会社の失敗** — アドレス不正(400)は「送信できません」、その他は502「運営にお問い合わせください」。 *(2026-10-08 tests/entry_flow_functions.test.mjs で確認（アドレス不正は 400、それ以外は 502 の汎用の文言、記録は failed）)*
 - [x] **MAIL-11 配信の実機確認** — Gmail、iPhone のメール、Outlook などでの表示(ダークモード、画像のブロック、ボタンのリンク、二次元コード画像の表示)。
   - 2026-10-09 確認(利用者が実機・実アプリで確認): 現在の形式のメールが、Apple・Gmail・Yahoo・Outlook のいずれでも問題なく表示される。
-- [ ] **MAIL-12 迷惑メール** — Brevo の送信元ドメインの認証(SPF/DKIM)と、受信箱に入るか。
+- [x] **MAIL-12 迷惑メール** — Brevo の送信元ドメインの認証(SPF/DKIM)と、受信箱に入るか。
   - 2026-10-09 利用者の経験: Google などはほぼ受信トレイに入る。Apple はものによって迷惑メールに入ることがあった。SPF/DKIM の合否は未確認(送信元ドメインの確認待ち)。
+  - 2026-10-09 確認(Gmail の詳細表示と DNS): 送信元は Brevo の共有ドメイン(From は `ciq.noreply@<番号>.brevosend.com`、返信先は Gmail)。Gmail の「署名元」は `brevosend.com`(DKIM で署名されている)、送信元サーバーは `gw.d.sender-sib.com`、通信は TLS。DNS は、`sender-sib.com` に Brevo を許可する SPF、`brevosend.com` に SPF と DMARC(`p=reject`)が設定されている。Gmail は受信トレイに入る。
+  - 限界: 自分のドメインの認証ではなく、Brevo と共有のドメインとレピュテーションに頼っている。Apple のメールでは、ものによって迷惑メールに入ることがある(利用者の経験)。確実に受信トレイへ入れたいなら、自分のドメインを用意して Brevo で送信ドメイン認証(SPF/DKIM/DMARC)をするのが改善策(費用は主にドメイン代)。
 
 ---
 
