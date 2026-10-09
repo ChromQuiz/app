@@ -735,6 +735,11 @@ function initTablist(container) {
     };
     tabs.forEach(syncTab);
 
+    // Safari はボタンをクリックしてもフォーカスしない。クリックしたタブにフォーカスを移して、そのまま矢印キーで切り替えられるようにする。
+    tabs.forEach((tab) => tab.addEventListener('click', () => {
+        if (document.activeElement !== tab) tab.focus({ preventScroll: true });
+    }));
+
     tablist.addEventListener('keydown', (e) => {
         const current = document.activeElement;
         const idx = tabs.indexOf(current);
