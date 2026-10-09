@@ -1196,3 +1196,12 @@ Notes   : 補足・再構成の断り・要確認事項
 - Evidence: 本番のデータベースで、完了後に票を変えると (a) 全員一致になっても確定が作られず要確認にも出ない (b) 確定済みの答案の票が割れても確定が古いまま、を再現（元に戻す形）。適用後は `supabase/tests/db_behavior.sql` で「採点を完了した問題の判定は変えられない」「完了していない別の問題なら付けられる」を確認（120件すべて ok）。
 - Rollback: 直前の定義（`202610050001_score_checked_in_entries_only.sql` の `set_score_vote`）で `create or replace` し直す。
 - Notes: 完了後の間違いは、管理者が `resolve_score_conflict`（要確認）で決める。完了していない枠は、採点ボードの「枠を解放」で票ごと消して再採点できる。
+
+## 大会を作れるアカウントの制限（2026-10-09）
+
+- Status: 適用済み（本番）。`supabase/migrations/202610090002_project_creator_allowlist.sql`
+- 背景: 大会の作成が「Google にログインした人なら誰でも」できた。作成ページを見つけた人が、運営の Brevo の送信枠と Supabase の無料枠を使えてしまう。
+- 内容: `public.project_creators`（許可するメールの一覧。RLS 有効・anon/authenticated には全権限を剥奪。SQL でだけ操作）。`can_create_project()` は、Google でログインし（`app_metadata.provider = google`）、メール確認済み（`user_metadata.email_verified = true`）で、メールが一覧にある場合だけ true。`create_project_with_owner` が最初に確認する。`projects` への直接の INSERT（RLS ポリシー `projects_insert_owner_candidate` と INSERT 権限）は閉じた。許可したメールアドレスは、リポジトリには書かず、本番のデータベースにだけ入れた（運営の2アカウント）。
+- Evidence: データベースの挙動スイート DB-11（128件すべて ok）。許可の一覧のメールは、Google ログインで確認済みの `provider=google` / `email_verified=true` のアカウント。
+- Rollback: 以前の `create_project_with_owner`（`can_create_project` の確認なし）で `create or replace` し直し、`create policy projects_insert_owner_candidate on public.projects for insert with check (auth.uid() = created_by)` と `grant insert on public.projects to authenticated` で戻す。
+- Notes: 許可の追加・削除は SQL（feature_inventory の IDX-09 に書式）。許可のあるアカウントで作れなくなったら、JWT の claims(`app_metadata.provider`, `user_metadata.email_verified`)を確認する。

@@ -569,6 +569,13 @@ const CIQSupabaseAPI = {
         return data.privateKeyJwk;
     },
 
+    // この Google アカウントが、大会を作れるか(サーバーの許可の一覧で判定する。画面の表示を決めるためだけに使う。作成そのものは、サーバーが改めて断る)
+    async canCreateProject() {
+        const { data, error } = await this.client().rpc('can_create_project');
+        if (error) throw error;
+        return data === true;
+    },
+
     async createProjectWithOwner(payload) {
         const { data, error } = await this.client()
             .rpc('create_project_with_owner', {
@@ -581,6 +588,7 @@ const CIQSupabaseAPI = {
             .single();
         if (error) {
             if (error.code === '23505') throw new Error(`プロジェクト "${payload.projectId}" は既に存在します。別の回数を指定してください。`);
+            if (String(error.message || '').includes('作成できません')) throw new Error('このアカウントでは大会を作成できません。');
             throw error;
         }
         return data;

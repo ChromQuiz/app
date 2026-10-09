@@ -15,7 +15,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
   <script defer src="js/supabase_config.js?v=2"></script>
   <script defer src="js/supabase_client.js?v=2"></script>
-  <script defer src="js/supabase_api.js?v=50"></script>
+  <script defer src="js/supabase_api.js?v=51"></script>
   <script defer src="js/crypto.js"></script>
   <script defer src="js/icons.js?v=9"></script>
   <script defer src="js/ui.js?v=29"></script>
@@ -55,6 +55,9 @@
       <input type="number" id="create-edition" placeholder="13" min="1" max="999" inputmode="numeric" aria-describedby="create-edition-note" />
       <p class="field-note" id="create-edition-note">第13回なら 13。</p>
       <button class="btn u-full-width mt-md" id="create-btn">プロジェクトを作成</button>
+      <p class="auth-note" id="create-denied" hidden>
+        このアカウントでは、大会を作成できません。大会に参加するには、運営から共有された招待リンクを開いてください。
+      </p>
     </section>
 
     <section class="auth-section" id="section-success" hidden>
@@ -73,7 +76,7 @@
     <a href="#" class="auth-link u-hidden" id="index-join-link">ログインに戻る</a>
     <a href="help.html" class="auth-link">ヘルプ</a>
   </nav>
-  <script defer src="js/index.js?v=26"></script>
+  <script defer src="js/index.js?v=28"></script>
 </body>
 
 </html>
