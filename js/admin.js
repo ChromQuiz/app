@@ -1,7 +1,7 @@
 
         // showAdminToast は shared.js の showToast に委譲
-        function showAdminToast(msg, type = 'error') {
-            showToast(msg, type);
+        function showAdminToast(msg, type = 'error', duration) {
+            showToast(msg, type, duration);
         }
         // showConfirm は shared.js で定義済み
 
@@ -63,7 +63,7 @@
             if (!window.CV) await loadAdminScriptOnce('js/cv.js');
             if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
             if (typeof window.generatePDF !== 'function' || typeof window.loadAnswers !== 'function') {
-                await loadAdminScriptOnce('js/admin_prep.js?v=31');
+                await loadAdminScriptOnce('js/admin_prep.js?v=32');
             }
         }
 

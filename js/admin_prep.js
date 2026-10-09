@@ -321,7 +321,8 @@
                 window._entriesRaw = Object.fromEntries(entries.map(entry => [entry.id, normalizeSupabaseEntry(entry)]));
                 window.setAdminEntriesCount?.(entries.length);
 
-                const seenEntryNumbers = new Set();
+                const seenEntryNumbers = new Map();   // 受付番号 → 最初に見つかったページ
+                const skippedPages = [];              // 読み取れず、飛ばしたページ(残りは保存する)
                 const uploadFailures = [];
                 const answerPageRecords = [];
                 const UPLOAD_CONCURRENCY = 8;
@@ -427,16 +428,25 @@
 
                     const transform = calcPerspectiveTransform(scanConfig.tombo.map(r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })), detectedResult.points);
                     const entryNumber = readEntryNumber(scanConfig.markCells.map(cell => transformRegion(cell, transform)));
+                    // 1ページの不備で全ページをやり直しにしない。飛ばして残りを保存し、最後に一覧で知らせる。
+                    const skipPage = (reason) => {
+                        skippedPages.push({ page: i, reason });
+                        page.cleanup?.();
+                    };
                     if (!Number.isInteger(entryNumber) || entryNumber <= 0) {
-                        throw new Error(`ページ${i}：受付番号を読み取れませんでした`);
+                        skipPage('受付番号を読み取れませんでした');
+                        continue;
+                    }
+                    if (!entryByNumber.has(Number(entryNumber))) {
+                        skipPage(`受付番号 ${padNum(entryNumber)} の参加者が見つかりません`);
+                        continue;
                     }
                     if (seenEntryNumbers.has(entryNumber)) {
-                        throw new Error(`ページ${i}：受付番号 ${padNum(entryNumber)} が重複しています`);
+                        // どちらが正しいか分からないので、あとのページを飛ばし、最初のページは保存したまま知らせる。
+                        skipPage(`受付番号 ${padNum(entryNumber)} が p${seenEntryNumbers.get(entryNumber)} と重複しています(p${seenEntryNumbers.get(entryNumber)} は保存済み。どちらが正しいか確認してください)`);
+                        continue;
                     }
-                    seenEntryNumbers.add(entryNumber);
-                    if (!entryByNumber.has(Number(entryNumber))) {
-                        throw new Error(`ページ${i}：受付番号 ${padNum(entryNumber)} の参加者が見つかりません。`);
-                    }
+                    seenEntryNumbers.set(entryNumber, i);
                     // セルのクロップ座標を計算（画像は保存しない — 採点画面でオンデマンドクロップ）
                     const cellRegions = {};
                     for (let q = 0; q < (scanConfig.questionCount || 100); q++) {
@@ -472,6 +482,11 @@
                     tomboErrorPages: scanAnswers.filter(answer => answer.tomboError).map(answer => answer.page),
                 });
 
+                if (!scanAnswers.length) {
+                    const detail = skippedPages.slice(0, 3).map(item => `p${item.page}: ${item.reason}`).join(' / ');
+                    throw new Error(`保存できるページがありませんでした${detail ? `（${detail}）` : ''}`);
+                }
+
                 overlayTitle.textContent = 'サーバーへ保存中…';
                 overlayText.textContent = '保存完了を確認中';
                 const entryNumberValidation = CIQUploadValidation.validateDetectedEntryNumbers(
@@ -503,12 +518,17 @@
                 overlayText.textContent = '完了しました。';
                 logPerf('answerUploadComplete', perfStats, { uploadFailures: uploadFailures.length });
                 setTimeout(() => { overlay.classList.remove('is-visible-flex'); }, 1000);
+                const skippedDetail = skippedPages.slice(0, 3).map(item => `p${item.page}: ${item.reason}`).join(' / ')
+                    + (skippedPages.length > 3 ? ` ほか${skippedPages.length - 3}ページ` : '');
                 if (uploadFailures.length) {
                     const detail = uploadFailures
                         .slice(0, 3)
                         .map(f => `p${f.page}: ${f.message}`)
                         .join(' / ');
                     showAdminToast(`${uploadFailures.length}件を保存できませんでした（詳細：${detail}）`, 'error');
+                } else if (skippedPages.length) {
+                    const saved = scanAnswers.length - uploadFailures.length;
+                    showAdminToast(`${saved}件の答案を保存しました。${skippedPages.length}ページは飛ばしました（${skippedDetail}）。そのページだけ撮り直して、もう一度読み込んでください。`, 'warning', 12000);
                 } else {
                     showAdminToast(`${scanAnswers.length}件の答案を保存しました。`, 'success');
                 }
