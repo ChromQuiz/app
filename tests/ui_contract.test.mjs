@@ -325,6 +325,7 @@ describe('design-system contracts', () => {
       '.offline-banner',
       '.online-banner',
       '.menu-panel',
+      '.notif-panel',
       '.confirm-dialog',
       '.kbd-modal',
       '.ciq-select-menu',

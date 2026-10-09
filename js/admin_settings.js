@@ -727,11 +727,9 @@
         // 平文トークンは発行直後の応答にしか存在しない(DBには HMAC のみ保存)。
         // そのため一覧では URL を再表示できず、必要なら新しく発行する運用にしている。
 
+        // 招待リンクの操作の結果は、ほかの操作と同じトースト(と通知センター)で伝える。画面内に別の表示を出さない。
         function setInviteStatus(message, type = '') {
-            const box = document.getElementById('invite-status');
-            if (!box) return;
-            if (message) setPageMessage(box, message, type || 'info');
-            else clearPageMessage(box);
+            if (message) showAdminToast(message, type || 'info');
         }
 
         function inviteUrlFor(token) {

@@ -10,6 +10,8 @@
         // ============================
         const auth = requireAuth({ requireAdmin: true });
         if (!auth) throw new Error('auth');
+        // 運営画面では、通知(トースト)を通知センターに控える
+        window.CIQ_NOTIFICATION_CENTER = true;
         const { projectId } = auth;
         let adminScanCount = null;
 
@@ -185,6 +187,8 @@
             // ARIA tablist を初期化（キーボード操作 + aria 同期）
             if (typeof initTablist === 'function') initTablist('#admin-tabs');
 
+            setupNotificationCenter();
+
             // 画面に見えているのは上のフェーズの並び(.phase-quick-nav)。下の .tab-btn は非表示でフォーカスできないので、
             // 矢印キー・Home・End の切り替えは、見えているほうに付ける(切り替わったタブにフォーカスも移す)。
             const quickNav = document.querySelector('.phase-quick-nav');
@@ -208,6 +212,102 @@
                 buttons[next].focus();
                 buttons[next].click();
             });
+        }
+
+        // ---- 通知センター(右上のベル) ----
+        function formatNotificationTime(at) {
+            const diff = Math.max(0, Date.now() - at);
+            if (diff < 60 * 1000) return 'たった今';
+            if (diff < 60 * 60 * 1000) return `${Math.floor(diff / 60000)}分前`;
+            const d = new Date(at);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function setupNotificationCenter() {
+            const bell = document.getElementById('notif-bell');
+            const badge = document.getElementById('notif-badge');
+            const panel = document.getElementById('notif-panel');
+            const list = document.getElementById('notif-list');
+            const empty = document.getElementById('notif-empty');
+            const clearBtn = document.getElementById('notif-clear');
+            if (!bell || !badge || !panel || !list || !empty || !clearBtn || !window.CIQNotifications) return;
+
+            const isOpen = () => !panel.hidden;
+            // 開いたときの既読の位置。開いている間は、これより新しい通知に「未読」の印を付けておく(開いた瞬間に既読にしても、印は残す)
+            let highlightAfter = 0;
+
+            function renderBadge() {
+                const unread = CIQNotifications.unreadCount();
+                badge.hidden = unread === 0 || isOpen();
+                badge.textContent = unread > 99 ? '99+' : String(unread);
+                bell.setAttribute('aria-label', unread > 0 ? `通知センターを開く(未読${unread}件)` : '通知センターを開く');
+            }
+
+            function renderList() {
+                const { items } = CIQNotifications.state();
+                list.textContent = '';
+                empty.hidden = items.length > 0;
+                clearBtn.hidden = items.length === 0;
+                items.forEach((item) => {
+                    const li = document.createElement('li');
+                    li.className = `notif-item notif-${item.type}${item.at > highlightAfter ? ' is-unread' : ''}`;
+                    const iconName = TOAST_ICONS[item.type];
+                    if (iconName) li.appendChild(createIcon(iconName));
+                    const text = document.createElement('span');
+                    text.className = 'notif-text';
+                    text.textContent = item.message;
+                    const time = document.createElement('time');
+                    time.className = 'notif-time';
+                    time.textContent = formatNotificationTime(item.at);
+                    li.append(text, time);
+                    list.appendChild(li);
+                });
+            }
+
+            function openPanel() {
+                highlightAfter = CIQNotifications.state().readAt;
+                renderList();           // 未読の印を付けたまま見せる
+                panel.hidden = false;
+                bell.setAttribute('aria-expanded', 'true');
+                CIQNotifications.markAllRead();
+                renderBadge();
+            }
+
+            function closePanel() {
+                if (!isOpen()) return;
+                panel.hidden = true;
+                bell.setAttribute('aria-expanded', 'false');
+                renderBadge();
+            }
+
+            bell.addEventListener('click', (event) => {
+                event.stopPropagation();
+                if (isOpen()) {
+                    closePanel();
+                } else {
+                    openPanel();
+                }
+            });
+            clearBtn.addEventListener('click', () => CIQNotifications.clear());
+            panel.addEventListener('click', (event) => event.stopPropagation());
+            document.addEventListener('click', closePanel);
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && isOpen()) {
+                    closePanel();
+                    bell.focus({ preventScroll: true });
+                }
+            });
+
+            // 開いている間に新しい通知が来たら、一覧に足して、そのまま既読にする(開いている=見えている)
+            CIQNotifications.subscribe(() => {
+                if (isOpen()) {
+                    renderList();
+                    if (CIQNotifications.unreadCount() > 0) CIQNotifications.markAllRead();   // 既読にしても、また通知が飛ぶ。未読があるときだけ
+                }
+                renderBadge();
+            });
+            renderBadge();
         }
 
         function setupPublicLinks() {
