@@ -1189,3 +1189,10 @@ Notes   : 補足・再構成の断り・要確認事項
 - 各 commit ハッシュ・migration 名・現在の DB/デプロイ状態が一次証拠。疑義時はそれらを照合する。
 - 更新方針: 新たなセキュリティ作業を行った際は、本文書の該当セクション（フェーズ記録 or バックログ）を
   同一 commit 内で更新し、DB とリポジトリの記録を一致させる。
+
+## 採点完了後の判定変更の禁止（2026-10-09）
+
+- Status: 適用済み（本番）。`supabase/migrations/202610090001_block_vote_change_after_complete.sql`
+- Evidence: 本番のデータベースで、完了後に票を変えると (a) 全員一致になっても確定が作られず要確認にも出ない (b) 確定済みの答案の票が割れても確定が古いまま、を再現（元に戻す形）。適用後は `supabase/tests/db_behavior.sql` で「採点を完了した問題の判定は変えられない」「完了していない別の問題なら付けられる」を確認（120件すべて ok）。
+- Rollback: 直前の定義（`202610050001_score_checked_in_entries_only.sql` の `set_score_vote`）で `create or replace` し直す。
+- Notes: 完了後の間違いは、管理者が `resolve_score_conflict`（要確認）で決める。完了していない枠は、採点ボードの「枠を解放」で票ごと消して再採点できる。

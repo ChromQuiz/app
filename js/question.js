@@ -519,6 +519,7 @@ async function init() {
         const joinMs = roundMs(performance.now() - stepStartedAt);
         currentMemberId = joined.scorer_member_id;
         isCompleted = Boolean(joined.completed_at);
+        if (isCompleted) showToast(COMPLETED_NOTICE, 'info', 6000);
         const project = await projectPromise;
         totalQuestions = Number(project?.question_count || totalQuestions);
         requiredScorers = Number(project?.required_scorers || requiredScorers);
@@ -686,7 +687,14 @@ function updateProgressText(done, total) {
     progress.className = `counter ${total > 0 && done === total ? 'all-clear' : 'has-conflicts'}`;
 }
 
+const COMPLETED_NOTICE = 'この問題は採点を完了しているため、判定は変更できません。間違いに気づいたときは、管理者に「要確認」で最終判定を決めてもらってください。';
+
 async function mark(entryId, result) {
+    // 完了後に変えると確定が追従しないので、サーバーでも断っている。ここでは、押したときに理由を伝える。
+    if (isCompleted) {
+        showToast(COMPLETED_NOTICE, 'warning', 6000);
+        return;
+    }
     pendingWrites[entryId] = result;
     myScores[entryId] = result;
     renderGrid();
