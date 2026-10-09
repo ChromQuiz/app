@@ -97,3 +97,12 @@ describe('フォーカス枠が切られない', () => {
     expect(ui).toContain('tab.focus({ preventScroll: true })');
   });
 });
+
+describe('運営画面のフェーズ切り替え(矢印キー)', () => {
+  it('画面に見えている .phase-quick-nav に、矢印・Home・End の切り替えを付ける(下の .tab-btn は非表示でフォーカスできない)', () => {
+    const admin = readFileSync(new URL('../js/admin.js', import.meta.url), 'utf8');
+    expect(admin).toContain("document.querySelector('.phase-quick-nav')");
+    for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End']) expect(admin).toContain(`'${key}'`);
+    expect(admin).toContain('buttons[next].focus();');
+  });
+});
