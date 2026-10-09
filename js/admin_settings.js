@@ -62,6 +62,25 @@
         };
 
 
+        // 問題数の欄に数字を直接入れたときも、ボタンと同じ流れ(確認→保存)にする。
+        // これが無いと、入力しても何も起きず、欄の数字だけが変わって、実際の問題数は元のままになる。
+        document.getElementById('question-count')?.addEventListener('change', async (event) => {
+            if (!event.isTrusted) return;   // adjustNumberInput が送る change(ボタンの操作)は、そちらで処理済み
+            const input = event.currentTarget;
+            const typed = parseInt(input.value, 10);
+            const min = parseInt(input.min, 10);
+            const max = parseInt(input.max, 10);
+            const revert = () => { input.value = totalQuestions; };
+            if (!Number.isInteger(typed) || typed < min || typed > max || typed % 10 !== 0) {
+                showAdminToast(`問題数は${min}以上${max}以下の10の倍数で指定してください。`);
+                revert();
+                return;
+            }
+            if (typed === totalQuestions) return;
+            await window.adjustNumberInput('question-count', 0);
+            if (totalQuestions !== typed) revert();   // 取りやめ・保存の失敗のときは、実際の問題数に戻す
+        });
+
         // ============================
         // 設定更新処理
         // ============================
