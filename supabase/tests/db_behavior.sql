@@ -44,12 +44,29 @@ end $$;
 grant execute on function pg_temp.affected(text) to public;
 
 -- その人としてログインした状態にする（reset role で戻す）
+-- Google でログインし、メールが確認済みの人(本番の Google ログインと同じ中身の claims)
 create function pg_temp.as_user(p_id uuid) returns void language plpgsql as $$
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_id, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object(
+    'sub', p_id, 'role', 'authenticated',
+    'email', (select email from auth.users where id = p_id),
+    'app_metadata', json_build_object('provider', 'google'),
+    'user_metadata', json_build_object('email_verified', 'true'))::text, true);
   perform set_config('role', 'authenticated', true);
 end $$;
 grant execute on function pg_temp.as_user(uuid) to public;
+
+-- Google 以外・メール未確認など、claims の中身を変えて入る(大会を作れる人の判定を確かめる用)
+create function pg_temp.as_user_claims(p_id uuid, p_provider text, p_verified text) returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', json_build_object(
+    'sub', p_id, 'role', 'authenticated',
+    'email', (select email from auth.users where id = p_id),
+    'app_metadata', json_build_object('provider', p_provider),
+    'user_metadata', json_build_object('email_verified', p_verified))::text, true);
+  perform set_config('role', 'authenticated', true);
+end $$;
+grant execute on function pg_temp.as_user_claims(uuid, text, text) to public;
 
 create function pg_temp.as_anon() returns void language plpgsql as $$
 begin
@@ -70,7 +87,34 @@ insert into auth.users (id, email, aud, role) values
   ('a0000000-0000-4000-8000-000000000007', 'x@example.invalid', 'authenticated', 'authenticated');
 
 -- ===== DB-11 create_project_with_owner =====
+-- 大会を作れるのは、project_creators に載っている人だけ(この取引の中だけで、O を載せる)
+insert into public.project_creators(email, note) values ('o@example.invalid', 'テスト');
+
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000007');  -- 載っていない人 X
+select pg_temp.chk('DB-11 許可されていない人は、大会を作れない',
+  pg_temp.err($$select public.create_project_with_owner('zz-x', 'x', '{"kty":"RSA"}'::jsonb, 'enc', 'X')$$) like '%作成できません%',
+  pg_temp.err($$select public.create_project_with_owner('zz-x', 'x', '{"kty":"RSA"}'::jsonb, 'enc', 'X')$$));
+select pg_temp.chk('DB-11 …can_create_project も false', public.can_create_project() = false);
+select pg_temp.chk('DB-11 …projects に直接行を足すこともできない',
+  pg_temp.err($$insert into public.projects(id, name, rsa_public_key, rsa_private_key_encrypted, created_by) values ('zz-x2', 'x', '{}'::jsonb, 'enc', 'a0000000-0000-4000-8000-000000000007')$$) <> 'OK',
+  pg_temp.err($$insert into public.projects(id, name, rsa_public_key, rsa_private_key_encrypted, created_by) values ('zz-x2', 'x', '{}'::jsonb, 'enc', 'a0000000-0000-4000-8000-000000000007')$$));
+select pg_temp.chk('DB-11 …許可の一覧は、読めない・書けない',
+  pg_temp.err($$select * from public.project_creators$$) <> 'OK'
+  and pg_temp.err($$insert into public.project_creators(email) values ('x@example.invalid')$$) <> 'OK');
+reset role;
+
+select pg_temp.as_user_claims('a0000000-0000-4000-8000-000000000001', 'email', 'true');  -- 載っているメールだが、Google ではない
+select pg_temp.chk('DB-11 載っているメールでも、Google 以外のログインは作れない', public.can_create_project() = false);
+reset role;
+select pg_temp.as_user_claims('a0000000-0000-4000-8000-000000000001', 'google', 'false');  -- Google だが、メールが未確認
+select pg_temp.chk('DB-11 載っているメールでも、メールが未確認なら作れない', public.can_create_project() = false);
+reset role;
+select pg_temp.as_anon();
+select pg_temp.chk('DB-11 未ログインは can_create_project を呼べない', pg_temp.err($$select public.can_create_project()$$) <> 'OK');
+reset role;
+
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000001');
+select pg_temp.chk('DB-11 許可された人は、can_create_project が true', public.can_create_project() = true);
 select public.create_project_with_owner('zz-t', 'ZZ Test', '{"kty":"RSA"}'::jsonb, 'enc', 'Owner');
 select pg_temp.chk('DB-11 大会を作ると、所有者が登録される',
   (select count(*) from public.project_members where project_id = 'zz-t' and role = 'owner' and user_id = 'a0000000-0000-4000-8000-000000000001' and status = 'active') = 1);

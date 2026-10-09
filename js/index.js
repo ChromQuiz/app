@@ -201,15 +201,52 @@ function renderSupabaseAuth(sessionData) {
     renderCreateAuthState();
 }
 
+// 大会を作れるアカウントか(サーバーの許可の一覧で判定)。null=確認中、true=作れる、false=作れない。
+// 画面の出し分けのためだけ。作成の許可は、サーバーが作成のたびに確認する。
+let creatorAllowed = null;
+let creatorAllowedFor = '';
+
+async function refreshCreatorAllowed() {
+    const userId = supabaseSession?.user?.id || '';
+    if (!userId) {
+        creatorAllowed = null;
+        creatorAllowedFor = '';
+        return;
+    }
+    if (creatorAllowedFor === userId) return;
+    creatorAllowedFor = userId;
+    creatorAllowed = null;
+    try {
+        creatorAllowed = await CIQSupabaseAPI.canCreateProject();
+    } catch (e) {
+        console.warn('大会を作れるか確認できませんでした:', e);
+        creatorAllowed = false;   // 確認できないときは、作れない側に倒す(作成はサーバーでも断られる)
+    }
+    renderCreateAuthState();
+}
+
 function renderCreateAuthState() {
     if (!useSupabaseAuth()) return;
     const createBtn = document.getElementById('create-btn');
     const email = supabaseSession?.user?.email || '';
+    if (email) refreshCreatorAllowed();
 
     const createSection = document.getElementById('section-create');
     if (createSection) createSection.hidden = currentTab !== 'create' || !email;
+    // 許可のないアカウントには、入力欄とボタンを出さず、理由と次の一手(招待リンク)を出す
+    const denied = Boolean(email) && creatorAllowed === false;
+    const edition = document.getElementById('create-edition');
+    const editionLabel = document.querySelector('label[for="create-edition"]');
+    const editionNote = document.getElementById('create-edition-note');
+    [edition, editionLabel, editionNote, createBtn].forEach((el) => { if (el) el.hidden = denied; });
+    const deniedNote = document.getElementById('create-denied');
+    if (deniedNote) deniedNote.hidden = !denied;
+    if (denied && currentTab === 'create') {
+        const lede = document.getElementById('index-mode-lede');
+        if (lede) lede.textContent = '大会を作成できるのは、許可されたアカウントだけです。';
+    }
     if (createBtn) {
-        createBtn.disabled = !email;
+        createBtn.disabled = !email || creatorAllowed !== true;
         setButtonContent(createBtn, '作成', email ? 'plus' : '');
     }
 }
@@ -328,6 +365,10 @@ async function createProject() {
 
     if (!canCreateProject()) {
         showError('先にGoogleアカウントでログインしてください。');
+        return;
+    }
+    if (creatorAllowed === false) {
+        showError('このアカウントでは、大会を作成できません。');
         return;
     }
     if (!edition) {
