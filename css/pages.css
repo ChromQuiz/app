@@ -2532,6 +2532,13 @@ body.page-admin .danger-zone {
   text-decoration-color: var(--ink-3);
 }
 
+/* 取り消し線は「誰の行か」を示す列(番号・名前・所属など)だけにする。状態・通知のバッジや操作ボタンには引かない */
+.member-row-canceled td.cell-status,
+.member-row-removed td.cell-status {
+  color: var(--ink);
+  text-decoration: none;
+}
+
 .member-action-group {
   display: flex;
   gap: var(--sp-2);

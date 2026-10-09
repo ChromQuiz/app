@@ -108,3 +108,14 @@ describe('運営画面のフェーズ切り替え(矢印キー)', () => {
     expect(admin).toContain('button.focus({ preventScroll: true })');
   });
 });
+
+describe('取り消し線の範囲', () => {
+  it('キャンセル・外し済みの行でも、状態・通知・操作の列(バッジやボタン)には取り消し線を引かない', () => {
+    const css = readFileSync(new URL('../css/pages.css', import.meta.url), 'utf8');
+    expect(css).toMatch(/\.member-row-canceled td\.cell-status,\s*\.member-row-removed td\.cell-status \{[^}]*text-decoration:\s*none;/);
+    const js = readFileSync(new URL('../js/admin_settings.js', import.meta.url), 'utf8');
+    expect(js).toContain("statusTd.classList.add('cell-status');");
+    expect(js).toContain("noticeTd.classList.add('cell-status');");
+    expect(js).toContain("actionTd.classList.add('cell-status');");
+  });
+});
