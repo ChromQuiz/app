@@ -123,13 +123,16 @@
             const tr = document.createElement('tr');
             if (member.status === 'removed') tr.className = 'member-row-removed';
 
-            [member.display_name || member.invited_email || '-', roleLabel, statusLabel].forEach((text) => {
+            [member.display_name || member.invited_email || '-', roleLabel, statusLabel].forEach((text, index) => {
                 const td = document.createElement('td');
                 td.textContent = text;
+                // 取り消し線は名前・権限だけ。状態(外し済み)と操作には引かない
+                if (index === 2) td.classList.add('cell-status');
                 tr.appendChild(td);
             });
 
             const actionTd = document.createElement('td');
+            actionTd.classList.add('cell-status');
             const actionGroup = document.createElement('div');
             actionGroup.className = 'member-action-group';
             if (member.status === 'removed') {
@@ -1602,6 +1605,7 @@
             appendAdminEntryCell(row, inquiry || '-');
 
             const statusTd = appendAdminEntryCell(row, document.createDocumentFragment());
+            statusTd.classList.add('cell-status');
             if (entry.status === 'canceled') {
                 statusTd.appendChild(createBadge('badge danger', 'xmark', 'キャンセル'));
             } else if (entry.status === 'waitlist') {
@@ -1622,6 +1626,7 @@
             }
 
             const noticeTd = appendAdminEntryCell(row, document.createDocumentFragment());
+            noticeTd.classList.add('cell-status');
             const noticeState = entry.waitlist_promotion_notice;
             if (noticeState === 'pending' || noticeState === 'sending') {
                 noticeTd.appendChild(createBadge('badge', 'clock', '繰り上げ通知送信待ち', {
