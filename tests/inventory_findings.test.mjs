@@ -253,3 +253,14 @@ describe('FND-17: 画面の文言に半角の括弧・コロンを混ぜない',
     }
   });
 });
+
+describe('問題数の欄に直接入力したとき', () => {
+  it('ボタンと同じ流れ(確認→保存)にし、取りやめ・不正な値・失敗のときは実際の問題数へ戻す', () => {
+    const src = read('js/admin_settings.js');
+    const block = src.slice(src.indexOf("document.getElementById('question-count')?.addEventListener('change'"));
+    expect(block).toContain('if (!event.isTrusted) return;');
+    expect(block).toContain("await window.adjustNumberInput('question-count', 0);");
+    expect(block).toContain('if (totalQuestions !== typed) revert();');
+    expect(block).toMatch(/typed % 10 !== 0/);
+  });
+});
