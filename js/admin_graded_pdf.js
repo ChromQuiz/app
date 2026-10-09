@@ -82,13 +82,24 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0);
 
-                    // Keep A4 constants above for PDF page sizing; stored regions are already pixel coordinates.
+                    // 解答欄の座標は、読み取った時点のページ幅(pageWidth)の画素で保存されている。
+                    // 保存された画像はそれより小さく縮めてあるので、画像の幅に合わせて座標を拡大・縮小する
+                    // (採点画面の切り出し cropImageRegion と同じ。これを忘れると、○×が大きくずれる)。
+                    const sourceWidth = Number(page?.cells?.pageWidth || 0);
+                    const scale = sourceWidth > 0 ? img.width / sourceWidth : 1;
+                    const scaleRegion = (region) => ({
+                        x: region.x * scale,
+                        y: region.y * scale,
+                        w: region.w * scale,
+                        h: region.h * scale,
+                    });
 
                     // ○/× マーク描画（半透明）
                     const result = entryResults[en];
                     for (let q = 1; q <= totalQuestions; q++) {
-                        const region = pageRegions[`q${q}`];
-                        if (!region) continue;
+                        const stored = pageRegions[`q${q}`];
+                        if (!stored) continue;
+                        const region = scaleRegion(stored);
                         const rx = region.x;
                         const ry = region.y;
                         const rw = region.w;
@@ -131,7 +142,8 @@
                     ctx.globalAlpha = 0.9;
 
                     // 最後の問題セルの下
-                    const lastRegion = pageRegions[`q${totalQuestions}`];
+                    const lastStored = pageRegions[`q${totalQuestions}`];
+                    const lastRegion = lastStored ? scaleRegion(lastStored) : null;
                     const scoreY = lastRegion
                         ? lastRegion.y + lastRegion.h + fontSize * 1.5
                         : canvas.height * 0.88;
