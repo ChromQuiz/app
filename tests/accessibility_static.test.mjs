@@ -75,3 +75,13 @@ describe('色の読みやすさ（ライト）', () => {
     expect(pages).toMatch(/\.checkin-result-idle \{[^}]*color: var\(--ink-2\)/);
   });
 });
+
+describe('保存オーバーレイの文字色', () => {
+  it('背景が明るい半透明なので、文字を白のままにしない', () => {
+    const pages = readFileSync(new URL('../css/pages.css', import.meta.url), 'utf8');
+    const block = pages.match(/\.save-overlay \{[^}]*\}/)?.[0] || '';
+    expect(block).toContain('var(--material-modal)');
+    expect(block).toMatch(/color:\s*var\(--ink\)/);
+    expect(pages).toMatch(/\.save-overlay-title \{\s*color:\s*var\(--ink\);/);
+  });
+});
