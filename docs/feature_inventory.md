@@ -816,8 +816,10 @@
 
 ## M. 運用
 
-- [ ] **OPS-01 デプロイ** — フロントは GitHub Pages(main へのマージで反映)。Edge Function は手動(`supabase functions deploy`、`--no-verify-jwt`)。変更した関数を忘れずに配置する。
+- [x] **OPS-01 デプロイ** — フロントは GitHub Pages(main へのマージで反映)。Edge Function は手動(`supabase functions deploy`、`--no-verify-jwt`)。変更した関数を忘れずに配置する。
+  - 2026-10-09 確認(`supabase functions list` の更新時刻と、各関数が読み込むファイル(関数本体と `_shared`)の最後のコミット時刻を比べた): 14個の関数すべてで、配置の時刻が、最後のコードの変更より新しい。ただし時刻の比較で、中身の一致までは確かめていない。
 - [ ] **OPS-02 マイグレーション** — 新しい変更は新しい番号のファイルで。適用済みのファイルは書き換えない(コメント以外)。
+  - 2026-10-09 調査: 適用済みのマイグレーションを後から書き換えた履歴が3件ある(2026-07-12 のハッシュの基盤、2026-07-17 のメンバー管理の修正、2026-10-03 に `notify pgrst, 'reload schema'` を1行足した)。最近の1件を除き、7月のものは、作成の数日後に中身を足している。10月以降の新しい変更は、すべて新しい番号のファイルで追加している(例: 202610050001〜、202610080001、202610090001)。ルールは守れているが、古い3件は、厳密には「書き換えない」の例外。
 - [x] **OPS-03 シークレット** — `CIQ_EMAIL_SIGNING_SECRET`、`CIQ_PARTICIPANT_HASH_PEPPER`、`CIQ_RATE_LIMIT_PEPPER`、`CIQ_ALLOWED_ORIGINS`、`CIQ_TURNSTILE_HOSTNAMES`、`CIQ_EMAIL_PROVIDER`、メールのAPIキー、Turnstile のシークレット。
   - 2026-10-08 確認: 本番に必要なシークレットがすべて存在(値は見ていない): CIQ_EMAIL_SIGNING_SECRET / PARTICIPANT_HASH_PEPPER / RATE_LIMIT_PEPPER / ALLOWED_ORIGINS / TURNSTILE_HOSTNAMES / EMAIL_PROVIDER / BREVO_* / TURNSTILE_SECRET_KEY、ほか CRON_SECRET / SITE_URL / PROJECT_KEY_ENCRYPTION_SECRET。
 - [ ] **OPS-04 Brevo** — 承認済みIPの制限は無効にしてある(Edge Function の送信元IPが固定でないため)。1日300通の無料枠。エントリーが集中する日は足りるか。
@@ -828,7 +830,8 @@
 - [ ] **OPS-07 バックアップ・復旧** — データベースのバックアップ(無料プランの範囲)と、リセットの取り返しのつかなさ。
 - [x] **OPS-08 鍵の入れ替え** — 署名鍵を更新すると、発行済みの二次元コードと参加者トークンがすべて失効する。手順は `docs/security-migration-status.md` の付録A。
   - 2026-10-08 確認: 手順は docs/security-hardening-plan.md 付録A に記載済み。実際の鍵更新はしていない(本番では実行しない)。
-- [ ] **OPS-09 プロジェクト鍵の紛失** — 秘密鍵を失うと氏名・メールが復号できなくなる。サーバーの保管庫(`project-key`)にも保管される。
+- [x] **OPS-09 プロジェクト鍵の紛失** — 秘密鍵を失うと氏名・メールが復号できなくなる。サーバーの保管庫(`project-key`)にも保管される。
+  - 2026-10-09 確認(本番のデータベース): 保管庫 `project_private_keys` に `ciq1` の暗号化された秘密鍵がある(更新は今日)。サーバーの保管庫は、シークレット `PROJECT_KEY_ENCRYPTION_SECRET` で暗号化されている。残るリスク: 保管庫と、その暗号化のシークレットが、同じ Supabase プロジェクトにあるため、プロジェクトごと失うと鍵も失う。大会の前に、秘密鍵を、プロジェクトの外(自分で管理する安全な場所)にも控えておくと安全。
 
 ---
 
