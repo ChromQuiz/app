@@ -188,6 +188,12 @@
             // 画面に見えているのは上のフェーズの並び(.phase-quick-nav)。下の .tab-btn は非表示でフォーカスできないので、
             // 矢印キー・Home・End の切り替えは、見えているほうに付ける(切り替わったタブにフォーカスも移す)。
             const quickNav = document.querySelector('.phase-quick-nav');
+            // Safari はボタンをクリックしてもフォーカスしない。クリックしたタブにフォーカスを移し、そのまま矢印キーで動かせるようにする。
+            quickNav?.querySelectorAll('.phase-quick-btn').forEach((button) => {
+                button.addEventListener('click', () => {
+                    if (document.activeElement !== button) button.focus({ preventScroll: true });
+                });
+            });
             quickNav?.addEventListener('keydown', (event) => {
                 const buttons = Array.from(quickNav.querySelectorAll('.phase-quick-btn'));
                 const index = buttons.indexOf(document.activeElement);

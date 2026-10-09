@@ -104,5 +104,7 @@ describe('運営画面のフェーズ切り替え(矢印キー)', () => {
     expect(admin).toContain("document.querySelector('.phase-quick-nav')");
     for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End']) expect(admin).toContain(`'${key}'`);
     expect(admin).toContain('buttons[next].focus();');
+    // Safari はクリックでフォーカスしないので、クリックしたら自分でフォーカスを移す
+    expect(admin).toContain('button.focus({ preventScroll: true })');
   });
 });
