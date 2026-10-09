@@ -88,3 +88,14 @@ describe('エントリーリスト（LST-09）', () => {
     expect(src).toMatch(/formatShortDateTimeJa\(e\.timestamp/);
   });
 });
+
+describe('運営の参加者追加: メールの全角', () => {
+  it('ブラウザの検証より前に、全角を半角へ直す', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('../js/admin_settings.js', import.meta.url), 'utf8');
+    const normalizeAt = src.indexOf('emailInput.value = normalizeEmailInput(emailInput.value)');
+    const reportAt = src.indexOf('form.reportValidity()');
+    expect(normalizeAt).toBeGreaterThan(-1);
+    expect(normalizeAt).toBeLessThan(reportAt);
+  });
+});
