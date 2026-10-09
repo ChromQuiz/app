@@ -238,8 +238,14 @@
             const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ciq_result.csv'; a.click();
         }
 
+        // しきい値(「◯人以下をハイライト」)。0 は有効(単独正解・全滅だけを強調したくない場合など)。空や不正な値のときだけ既定の5。
+        function readAnalyticsThreshold() {
+            const value = parseInt(document.getElementById('analytics-threshold').value, 10);
+            return Number.isFinite(value) && value >= 0 ? value : 5;
+        }
+
         async function getAnalyticsData() {
-            const threshold = parseInt(document.getElementById('analytics-threshold').value) || 5;
+            const threshold = readAnalyticsThreshold();
             const masterData = await loadEntryMaster();
             const tp = scoringEntryNumbers.length || 1, qStats = [];
             for (let q = 1; q <= totalQuestions; q++) {
@@ -271,7 +277,8 @@
                 return;
             }
             const qs = await getAnalyticsData();
-            const hash = qs.map(s => `${s.q}:${s.correctCount}`).join(',');
+            // しきい値が変わると、ハイライトや「少数正解」・正解者の表示が変わるので、再描画の判定に含める
+            const hash = `${readAnalyticsThreshold()}|` + qs.map(s => `${s.q}:${s.correctCount}:${s.type}:${s.names}`).join(',');
             if (hash === _lastAnalyticsHash) return;
             _lastAnalyticsHash = hash;
             tbody.textContent = '';
