@@ -4530,21 +4530,6 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 /* ============================================================
    judge.html — 採点中の枠(途中でやめた人の枠を解放する)
    ============================================================ */
-.slot-panel {
-  margin-bottom: 18px;
-  padding: 12px 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-overlay);
-  background: var(--surface);
-}
-
-.slot-panel-summary {
-  cursor: pointer;
-  font-size: var(--fs-14);
-  font-weight: 600;
-  color: var(--ink);
-}
-
 .slot-list {
   display: grid;
   gap: var(--sp-2);
@@ -4570,6 +4555,29 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 
 .slot-release-btn {
   flex: none;
+}
+
+/* 未完了の枠がある問題のカードの右上の「…」。カードの中身(問題番号・状態)の邪魔にならない小ささ */
+.q-slot-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.q-slot-btn:hover {
+  background: var(--surface-3);
+  color: var(--ink);
 }
 
 .slot-panel-note {

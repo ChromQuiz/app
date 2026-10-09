@@ -197,64 +197,128 @@ function updateGrid(rows) {
 
     updateResumeHero(mineResumeQ || availableQ, mineResumeQ, hasAnyMine);
     updateJudgeSummary({ openCount, inprogressCount, doneCount });
-    renderSlotPanel(rows);
+    latestSlotRows = rows || [];
+    syncSlotButtons(latestSlotRows);
 }
 
 // ---- 採点中の枠の解放 ----
 // 途中でやめた人がいても、その問題の枠は占有されたままで、他の人が入れず、確定も進まない。
 // メンバーなら誰でも、まだ完了していない枠(自分の枠も他の人の枠も)を解放できる。
-let slotPanelSignature = '';
-let slotPanelOpenedOnce = false;
+// 枠が多くても邪魔にならないよう、一覧はボードに置かず、「未完了の枠がある問題のカード」の「…」から、その問題の分だけ開く。
+let latestSlotRows = [];
 
 function slotOwnerLabel(memberId) {
     if (memberId && memberId === currentMemberId) return 'あなた';
     return memberNameMap[memberId] || '採点者';
 }
 
-function renderSlotPanel(rows) {
-    const panel = document.getElementById('slot-panel');
-    const list = document.getElementById('slot-list');
-    const summary = document.getElementById('slot-panel-summary');
-    if (!panel || !list || !summary) return;
+function openSlotsOf(rows, questionNumber) {
+    return (rows || [])
+        .filter(row => Number(row.question_number) === questionNumber && !row.completed_at)
+        .sort((a, b) => String(a.scorer_member_id).localeCompare(String(b.scorer_member_id)));
+}
 
-    const openSlots = (rows || [])
-        .filter(row => !row.completed_at)
-        .sort((a, b) => Number(a.question_number) - Number(b.question_number)
-            || String(a.scorer_member_id).localeCompare(String(b.scorer_member_id)));
-
-    // 3秒ごとの更新で、押そうとしているボタンが作り直されないよう、内容が変わったときだけ描き直す
-    const signature = openSlots.map(row => `${row.question_number}:${row.scorer_member_id}`).join(',');
-    if (signature === slotPanelSignature) return;
-    slotPanelSignature = signature;
-
-    if (!openSlots.length) {
-        panel.classList.add('u-hidden');
-        list.textContent = '';
-        return;
+// 未完了の枠がある問題のカードにだけ「…」を付ける(3秒ごとの更新で作り直さない)
+function syncSlotButtons(rows) {
+    for (let q = 1; q <= totalQuestions; q++) {
+        const card = document.getElementById(`qcard-${q}`);
+        if (!card) continue;
+        const open = openSlotsOf(rows, q);
+        let button = card.querySelector('.q-slot-btn');
+        if (!open.length) {
+            button?.remove();
+            continue;
+        }
+        const label = `${q}問の採点枠(${open.length}件)を見る`;
+        if (!button) {
+            button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'q-slot-btn';
+            button.appendChild(createIcon('ellipsis'));
+            // カード自体のクリック・キー操作(問題に入る)に伝えない
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                openSlotDialog(q, button);
+            });
+            button.addEventListener('keydown', (event) => event.stopPropagation());
+            card.appendChild(button);
+        }
+        button.setAttribute('aria-label', label);
+        button.title = label;
     }
-    panel.classList.remove('u-hidden');
-    summary.textContent = `採点中の枠 ${openSlots.length}件`;
-    // 少ないときは最初から開いておく。そのあと、開閉は利用者の操作に任せる
-    if (!slotPanelOpenedOnce) {
-        panel.open = openSlots.length <= 6;
-        slotPanelOpenedOnce = true;
-    }
+}
 
-    list.textContent = '';
-    openSlots.forEach((row) => {
+function openSlotDialog(questionNumber, returnFocus) {
+    const slots = openSlotsOf(latestSlotRows, questionNumber);
+    if (!slots.length) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog slot-dialog';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-label', `${questionNumber}問の採点枠`);
+    dialog.tabIndex = -1;
+
+    const title = document.createElement('div');
+    title.className = 'confirm-message';
+    title.textContent = `第${questionNumber}問の採点枠`;
+    const note = document.createElement('p');
+    note.className = 'slot-panel-note';
+    note.textContent = '採点を途中でやめた人の枠は、解放できます。解放すると、その人のこの問題での判定は消え、ほかの人が入れるようになります。';
+    const list = document.createElement('ul');
+    list.className = 'slot-list';
+
+    const close = () => {
+        overlay.remove();
+        document.removeEventListener('keydown', onKeydown, true);
+        if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
+    };
+    const onKeydown = (event) => {
+        if (event.key === 'Escape') {
+            event.stopPropagation();
+            close();
+        }
+    };
+
+    slots.forEach((row) => {
         const li = document.createElement('li');
         li.className = 'slot-row';
         const text = document.createElement('span');
         text.className = 'slot-row-text';
-        text.textContent = `第${row.question_number}問 · ${slotOwnerLabel(row.scorer_member_id)}`;
+        text.textContent = `${slotOwnerLabel(row.scorer_member_id)}(採点中)`;
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'btn secondary slot-release-btn';
         button.textContent = '枠を解放';
-        button.addEventListener('click', () => releaseSlot(row, button));
+        button.addEventListener('click', () => {
+            // 解放の確認ダイアログを重ねるので、先にこの一覧を閉じる
+            close();
+            releaseSlot(row, button);
+        });
         li.append(text, button);
         list.appendChild(li);
     });
+
+    const actions = document.createElement('div');
+    actions.className = 'confirm-actions';
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn secondary';
+    closeBtn.textContent = '閉じる';
+    closeBtn.addEventListener('click', close);
+    actions.appendChild(closeBtn);
+
+    dialog.append(title, note, list, actions);
+    overlay.appendChild(dialog);
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) close();
+    });
+    document.addEventListener('keydown', onKeydown, true);
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.classList.add('is-visible'), 0);
+    dialog.focus();
 }
 
 async function releaseSlot(row, button) {
@@ -270,12 +334,10 @@ async function releaseSlot(row, button) {
     try {
         await CIQSupabaseAPI.releaseQuestionScorer(projectId, q, row.scorer_member_id);
         showToast(`第${q}問の枠を解放しました。`, 'success');
-        slotPanelSignature = '';   // 次の更新で必ず描き直す
         await refreshGrid();
     } catch (e) {
         button.disabled = false;
         showToast(e.message || '枠を解放できませんでした。時間をおいて再度お試しください。', 'error');
-        slotPanelSignature = '';
         refreshGrid();
     }
 }
