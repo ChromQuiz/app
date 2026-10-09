@@ -1205,3 +1205,12 @@ Notes   : 補足・再構成の断り・要確認事項
 - Evidence: データベースの挙動スイート DB-11（128件すべて ok）。許可の一覧のメールは、Google ログインで確認済みの `provider=google` / `email_verified=true` のアカウント。
 - Rollback: 以前の `create_project_with_owner`（`can_create_project` の確認なし）で `create or replace` し直し、`create policy projects_insert_owner_candidate on public.projects for insert with check (auth.uid() = created_by)` と `grant insert on public.projects to authenticated` で戻す。
 - Notes: 許可の追加・削除は SQL（feature_inventory の IDX-09 に書式）。許可のあるアカウントで作れなくなったら、JWT の claims(`app_metadata.provider`, `user_metadata.email_verified`)を確認する。
+
+## 画面からの強い権限（TRUNCATE ほか）の剥奪（2026-10-09）
+
+- Status: 適用済み（本番）。`supabase/migrations/202610090003_revoke_unneeded_table_privileges.sql`
+- 背景: Supabase は新しいテーブルに、anon・authenticated へ TRUNCATE・REFERENCES・TRIGGER（と MAINTAIN）まで付ける。公開スキーマの12テーブル（ビュー2つ含む）に付いていた。アプリは使わない。RLS は TRUNCATE に効かない。PostgREST 経由では実行できず、悪用はできないが、残す理由がない。
+- 内容: 既存の全テーブルから4つの権限を剥奪。今後 `postgres` が作るテーブルの既定の権限からも、anon・authenticated を外した。
+- Evidence: 適用後、該当の権限が付いた表は0件。データベースの挙動スイート DB-25（129件すべて ok）。公開用ビュー（`public_project_settings`、`public_entry_list`）は、匿名で今までどおり読める（200）。
+- Rollback: `grant truncate, references, trigger, maintain on all tables in schema public to anon, authenticated;` と、`alter default privileges for role postgres in schema public grant truncate, references, trigger, maintain on tables to anon, authenticated;`（戻す理由は、通常ない）。
+- Notes: **今後の新しいテーブルには、anon・authenticated の権限が、自動では付かない**（既定の権限を外したため）。新しいテーブルを作るマイグレーションでは、必要な権限（select / insert / update / delete）を、明示的に `grant` すること。RLS と合わせて、必要な最小限だけを付ける。

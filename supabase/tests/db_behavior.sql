@@ -548,6 +548,13 @@ select pg_temp.chk('DB-14 エントリー・答案・模範解答・採点（枠
 select pg_temp.chk('DB-14 公開用の一覧も空になる', (select count(*) from public.public_entry_list where project_id='zz-t') = 0);
 select pg_temp.chk('DB-14 監査ログに project_data_reset が残る', exists (select 1 from public.audit_logs where project_id='zz-t' and action='project_data_reset'));
 
+-- ===== DB-25 画面(anon / authenticated)に、使わない強い権限を付けない =====
+select pg_temp.chk('DB-25 anon / authenticated に、TRUNCATE・REFERENCES・TRIGGER が付いた表がない',
+  not exists (select 1 from information_schema.role_table_grants
+    where table_schema = 'public' and grantee in ('anon', 'authenticated') and privilege_type in ('TRUNCATE', 'REFERENCES', 'TRIGGER')),
+  (select string_agg(grantee || ':' || privilege_type || ':' || table_name, ',') from information_schema.role_table_grants
+    where table_schema = 'public' and grantee in ('anon', 'authenticated') and privilege_type in ('TRUNCATE', 'REFERENCES', 'TRIGGER')));
+
 select name, ok, detail from tr;
 rollback;
 
