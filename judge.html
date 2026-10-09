@@ -18,7 +18,7 @@
     <script defer src="js/ui.js?v=28"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=88">
-    <link rel="stylesheet" href="css/pages.css?v=135">
+    <link rel="stylesheet" href="css/pages.css?v=136">
 </head>
 
 <body class="page-judge">
@@ -100,18 +100,11 @@
         <!-- 状況サマリー(1行・控えめ) -->
         <p class="judge-summary" id="judge-summary" role="status" aria-live="polite"></p>
 
-        <!-- 採点中の枠(途中でやめた人の枠を解放する) -->
-        <details class="slot-panel u-hidden" id="slot-panel">
-            <summary class="slot-panel-summary" id="slot-panel-summary">採点中の枠</summary>
-            <ul class="slot-list" id="slot-list"></ul>
-            <p class="slot-panel-note">採点を途中でやめた人の枠は、ここから解放できます。解放すると、その人のその問題での判定は消え、ほかの人が入れるようになります。採点を完了した枠は解放できません。</p>
-        </details>
-
         <!-- 問題ボード -->
         <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
     </main>
 
-    <script defer src="js/judge.js?v=13"></script>
+    <script defer src="js/judge.js?v=14"></script>
 </body>
 
 </html>

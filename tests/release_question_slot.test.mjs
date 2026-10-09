@@ -46,9 +46,18 @@ describe('採点ボードの「採点中の枠」(画面)', () => {
   const judge = read('js/judge.js');
   const html = read('judge.html');
 
-  it('パネルがある(完了していない枠だけを並べる)', () => {
-    expect(html).toContain('id="slot-panel"');
-    expect(judge).toMatch(/\.filter\(row => !row\.completed_at\)/);
+  it('ボードに一覧を置かず、未完了の枠がある問題のカードの「…」から、その問題の分だけ開く', () => {
+    expect(html).not.toContain('id="slot-panel"');
+    expect(judge).toMatch(/!row\.completed_at/);
+    expect(judge).toContain("button.className = 'q-slot-btn';");
+    expect(judge).toContain('function openSlotDialog(questionNumber, returnFocus)');
+    expect(judge).toContain('event.stopPropagation();');   // 「…」を押しても、問題に入らない
+  });
+
+  it('一覧は Escape・背景のクリック・「閉じる」で閉じ、解放の確認を重ねる前に閉じる', () => {
+    expect(judge).toContain("event.key === 'Escape'");
+    expect(judge).toContain('if (event.target === overlay) close();');
+    expect(judge).toMatch(/close\(\);\s*releaseSlot\(row, button\);/);
   });
 
   it('解放の前に確認し、「判定はすべて消える」と伝える', () => {
@@ -61,8 +70,9 @@ describe('採点ボードの「採点中の枠」(画面)', () => {
     expect(judge).toMatch(/memberNameMap\[memberId\]/);
   });
 
-  it('3秒ごとの更新で、押そうとしているボタンが作り直されない(内容が変わったときだけ描く)', () => {
-    expect(judge).toMatch(/if \(signature === slotPanelSignature\) return;/);
+  it('3秒ごとの更新で、「…」が作り直されない(なければ作り、枠が無くなったら消す)', () => {
+    expect(judge).toMatch(/let button = card\.querySelector\('\.q-slot-btn'\);\s*if \(!open\.length\) \{\s*button\?\.remove\(\);/);
+    expect(judge).toMatch(/if \(!button\) \{/);
   });
 
   it('解放の API を呼ぶ', () => {
