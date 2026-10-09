@@ -85,3 +85,15 @@ describe('保存オーバーレイの文字色', () => {
     expect(pages).toMatch(/\.save-overlay-title \{\s*color:\s*var\(--ink\);/);
   });
 });
+
+describe('フォーカス枠が切られない', () => {
+  it('メニュー項目のフォーカス枠は内側に描く(overflow:hidden のセクションに切られるため)', () => {
+    const css = readFileSync(new URL('../css/design_system.css', import.meta.url), 'utf8');
+    expect(css).toMatch(/\.menu-item:focus-visible,\s*\.menu-panel-close:focus-visible \{\s*outline-offset:\s*calc\(var\(--focus-width\) \* -1\);/);
+  });
+
+  it('タブをクリックしたら、そのタブにフォーカスを移す(Safari はクリックでフォーカスしない)', () => {
+    const ui = readFileSync(new URL('../js/ui.js', import.meta.url), 'utf8');
+    expect(ui).toContain('tab.focus({ preventScroll: true })');
+  });
+});

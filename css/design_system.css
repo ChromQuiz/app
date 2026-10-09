@@ -5487,3 +5487,9 @@ tbody td {
 .menu-footer .menu-item:not(.u-hidden) ~ .menu-item:not(.u-hidden) {
   border-top-color: var(--line);
 }
+
+/* メニューの項目: 外側のフォーカス枠は、角丸+overflow:hidden のセクションに切られて一部しか見えない。枠を内側に描く。 */
+.menu-item:focus-visible,
+.menu-panel-close:focus-visible {
+  outline-offset: calc(var(--focus-width) * -1);
+}
