@@ -330,6 +330,19 @@ select pg_temp.chk('DB-08 …あとで受付しても、その問題の確定は
 update public.entries set checked_in = false where id = pg_temp.eid('E4');
 select pg_temp.chk('DB-08 確定は履歴（score_events）に残る', exists (select 1 from public.score_events where project_id='zz-t' and event_type='finalized'));
 
+-- 完了したあとは、判定を変えられない(変えると確定が追従しない)
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000004');  -- S2（問題1を完了済み）
+select pg_temp.chk('DB-07 採点を完了した問題の判定は、変えられない',
+  pg_temp.err($$select * from public.set_score_vote('zz-t', 1, pg_temp.eid('E3'), 'correct')$$) like '%完了した問題の判定は変更できません%',
+  pg_temp.err($$select * from public.set_score_vote('zz-t', 1, pg_temp.eid('E3'), 'correct')$$));
+reset role;
+select pg_temp.chk('DB-07 …票は元のまま（E3 の S2 は不正解）',
+  (select result from public.score_votes where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E3') and scorer_member_id = pg_temp.mid('S2')) = 'wrong');
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000004');
+select pg_temp.chk('DB-07 …完了していない別の問題なら、判定を付けられる',
+  pg_temp.err($$select * from public.set_score_vote('zz-t', 3, pg_temp.eid('E2'), 'correct')$$) = 'OK');
+reset role;
+
 -- ===== DB-09 list_score_conflicts / DB-10 resolve_score_conflict =====
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1（管理者でない）
 select pg_temp.chk('DB-09 要確認の一覧は、管理者でないと何も返らない', (select count(*) from public.list_score_conflicts('zz-t')) = 0);
