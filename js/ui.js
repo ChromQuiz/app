@@ -409,7 +409,56 @@ const TOAST_ICONS = {
     info: 'circle-info',
 };
 
+// ---- 通知センター(運営画面) ----
+// 画面に出した通知(トースト)を、あとから見返せるように控える。運営画面だけで有効(admin.js が CIQ_NOTIFICATION_CENTER を立てる)。
+// 控えは、そのタブの中だけ(sessionStorage)。最新100件まで。氏名・メールなどは通知の文に入れない前提。
+const CIQNotifications = {
+    KEY: 'ciq.notifications.v1',
+    MAX: 100,
+    listeners: new Set(),
+    state() {
+        try {
+            const parsed = JSON.parse(sessionStorage.getItem(this.KEY) || 'null');
+            if (parsed && Array.isArray(parsed.items)) return parsed;
+        } catch (_) { /* 保存できない環境では、控えなしで動く */ }
+        return { items: [], readAt: 0 };
+    },
+    save(state) {
+        try { sessionStorage.setItem(this.KEY, JSON.stringify(state)); } catch (_) { /* noop */ }
+        this.listeners.forEach((listener) => listener());
+    },
+    add(message, type) {
+        const text = String(message || '').trim();
+        if (!text) return;
+        const state = this.state();
+        state.items.unshift({ message: text, type: type || 'info', at: Date.now() });
+        state.items = state.items.slice(0, this.MAX);
+        this.save(state);
+    },
+    unreadCount() {
+        const state = this.state();
+        return state.items.filter((item) => item.at > state.readAt).length;
+    },
+    markAllRead() {
+        const state = this.state();
+        state.readAt = Date.now();
+        this.save(state);
+    },
+    clear() {
+        const state = this.state();
+        state.items = [];
+        state.readAt = Date.now();
+        this.save(state);
+    },
+    subscribe(listener) {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
+    },
+};
+window.CIQNotifications = CIQNotifications;
+
 function showToast(msg, type = 'info', duration = 3000) {
+    if (window.CIQ_NOTIFICATION_CENTER === true) CIQNotifications.add(msg, type);
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');

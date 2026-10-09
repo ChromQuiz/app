@@ -4655,3 +4655,164 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     margin-right: 0;
   }
 }
+
+
+/* ============================================================
+   通知センター(運営画面の右上のベル)
+   ============================================================ */
+.notif-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--material-line);
+  border-radius: 999px;
+  background: var(--material-modal);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.notif-bell:hover {
+  background: var(--surface-3);
+}
+
+.notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--bad-600);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.notif-badge[hidden] {
+  display: none;
+}
+
+.notif-panel {
+  position: fixed;
+  top: calc(var(--appbar-h, 56px) + env(safe-area-inset-top) + 6px);
+  right: 12px;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(70vh, 560px);
+  border: 1px solid var(--material-line);
+  border-radius: var(--r-overlay);
+  background: var(--material-modal);
+  backdrop-filter: var(--material-blur);
+  box-shadow: var(--material-shadow);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.notif-panel[hidden] {
+  display: none;
+}
+
+.notif-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.notif-panel-title {
+  font-size: var(--fs-15);
+  font-weight: 700;
+}
+
+.notif-clear {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notif-clear:hover {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+
+.notif-clear[hidden] {
+  display: none;
+}
+
+.notif-list {
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.notif-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+.notif-item:last-child {
+  border-bottom: 0;
+}
+
+.notif-item.is-unread {
+  background: color-mix(in srgb, var(--accent-soft) 60%, transparent);
+}
+
+.notif-item.notif-error [data-ciq-icon],
+.notif-item.notif-error svg {
+  color: var(--bad-600);
+}
+
+.notif-item.notif-success svg {
+  color: var(--ok-600);
+}
+
+.notif-item.notif-warning svg {
+  color: var(--warn-600);
+}
+
+.notif-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.notif-time {
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  white-space: nowrap;
+}
+
+.notif-empty {
+  margin: 0;
+  padding: var(--sp-5) var(--sp-4);
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  text-align: center;
+}
+
+.notif-empty[hidden] {
+  display: none;
+}
