@@ -498,6 +498,9 @@
         async function submitAdminEntryForm(event) {
             event?.preventDefault();
             const form = document.getElementById('admin-entry-form');
+            // ブラウザの検証は全角の文字を弾くので、その前に半角へ直す(参加者のエントリー画面と同じ)。
+            const emailInput = document.getElementById('admin-entry-email');
+            if (emailInput) emailInput.value = normalizeEmailInput(emailInput.value);
             if (form && !form.reportValidity()) return;
             const values = readAdminEntryForm();
             const validationMessage = validateAdminEntryForm(values);
@@ -1588,5 +1591,8 @@
         }
 
         document.getElementById('admin-entry-form')?.addEventListener('submit', submitAdminEntryForm);
+        document.getElementById('admin-entry-email')?.addEventListener('change', (event) => {
+            event.target.value = normalizeEmailInput(event.target.value);
+        });
 
         init();
