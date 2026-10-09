@@ -184,6 +184,24 @@
 
             // ARIA tablist を初期化（キーボード操作 + aria 同期）
             if (typeof initTablist === 'function') initTablist('#admin-tabs');
+
+            // 画面に見えているのは上のフェーズの並び(.phase-quick-nav)。下の .tab-btn は非表示でフォーカスできないので、
+            // 矢印キー・Home・End の切り替えは、見えているほうに付ける(切り替わったタブにフォーカスも移す)。
+            const quickNav = document.querySelector('.phase-quick-nav');
+            quickNav?.addEventListener('keydown', (event) => {
+                const buttons = Array.from(quickNav.querySelectorAll('.phase-quick-btn'));
+                const index = buttons.indexOf(document.activeElement);
+                if (index === -1) return;
+                let next = null;
+                if (event.key === 'ArrowRight') next = (index + 1) % buttons.length;
+                else if (event.key === 'ArrowLeft') next = (index - 1 + buttons.length) % buttons.length;
+                else if (event.key === 'Home') next = 0;
+                else if (event.key === 'End') next = buttons.length - 1;
+                if (next === null) return;
+                event.preventDefault();
+                buttons[next].focus();
+                buttons[next].click();
+            });
         }
 
         function setupPublicLinks() {
