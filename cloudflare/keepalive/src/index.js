@@ -9,6 +9,7 @@
 
 const MAX_ATTEMPTS = 2;
 const PROMOTION_CRON = '*/5 * * * *';
+const ANSWER_CELL_CRON = '* * * * *';
 
 async function pingSupabase(env) {
     const url = `${env.SUPABASE_URL}${env.KEEPALIVE_PATH}`;
@@ -75,10 +76,39 @@ async function runPromotionNotices(env) {
     }
 }
 
+// 解答欄の画像（問題ごとの小さな画像）の作りかけを、サーバーに進めてもらう。
+// 取り込みのあとに運営画面を閉じても、1分おきにここが続きを進める。作る用紙が無ければ、1回で終わる。
+// 1回の実行で呼べる回数に上限があるので、4 本 × 最大 5 回までにする。
+async function runAnswerCells(env) {
+    if (!env.CIQ_CRON_SECRET) return;
+    const call = async () => {
+        for (let i = 0; i < 5; i += 1) {
+            try {
+                const response = await fetch(`${env.SUPABASE_URL}/functions/v1/generate-answer-cells`, {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
+                        apikey: env.SUPABASE_PUBLISHABLE_KEY,
+                        'x-ciq-cron-secret': env.CIQ_CRON_SECRET,
+                    },
+                    body: '{}',
+                });
+                const result = await response.json().catch(() => null);
+                if (!response.ok || !result?.pages) return;
+            } catch (error) {
+                console.error(`answer cells failed: ${error.message}`);
+                return;
+            }
+        }
+    };
+    await Promise.all([call(), call(), call(), call()]);
+}
+
 export default {
     async scheduled(event, env, ctx) {
-        // 5 分おきの cron は繰り上げ通知、それ以外は keepalive。
+        // 5 分おきは繰り上げ通知、1 分おきは解答欄画像の作りかけ、それ以外は keepalive。
         if (event.cron === PROMOTION_CRON) ctx.waitUntil(runPromotionNotices(env));
+        else if (event.cron === ANSWER_CELL_CRON) ctx.waitUntil(runAnswerCells(env));
         else ctx.waitUntil(runKeepalive(env));
     },
 

@@ -1214,3 +1214,13 @@ Notes   : 補足・再構成の断り・要確認事項
 - Evidence: 適用後、該当の権限が付いた表は0件。データベースの挙動スイート DB-25（129件すべて ok）。公開用ビュー（`public_project_settings`、`public_entry_list`）は、匿名で今までどおり読める（200）。
 - Rollback: `grant truncate, references, trigger, maintain on all tables in schema public to anon, authenticated;` と、`alter default privileges for role postgres in schema public grant truncate, references, trigger, maintain on tables to anon, authenticated;`（戻す理由は、通常ない）。
 - Notes: **今後の新しいテーブルには、anon・authenticated の権限が、自動では付かない**（既定の権限を外したため）。新しいテーブルを作るマイグレーションでは、必要な権限（select / insert / update / delete）を、明示的に `grant` すること。RLS と合わせて、必要な最小限だけを付ける。
+
+## 解答欄画像のサーバー生成（2026-10-10）
+
+- Status: マイグレーションは適用済み（本番）。Edge Function `generate-answer-cells` と Cloudflare Worker の1分 cron は、**デプロイ待ち**（利用者が実行する）。`supabase/migrations/202610100001_claim_answer_cell_pages.sql`
+- 背景: 解答欄の画像（問題ごとの小さな画像）は、運営画面を開いたブラウザだけが作れた。取り込み直後に画面を閉じると作りかけで止まり、採点画面は用紙全体（約130KB × 人数）を取って切り出すため、1問目の表示に約10秒かかった。
+- 内容: 受け取り用の関数 `claim_answer_cell_pages(project, limit)`（security definer、**service_role だけが実行可**。anon / authenticated / public から剥奪）。未作成の用紙を、`for update skip locked` で最大10件「作成中」にして返す（3分以上「作成中」のものは取り直し、「失敗」は30分取り直さない）。Edge Function が用紙を読み、jpeg-js で切り出して `answer-cells`（非公開のまま）へ保存する。
+- 呼べる人: 定期実行・サーバー内の処理（`x-ciq-cron-secret` が `CIQ_CRON_SECRET` と一致）か、その大会の active な owner / admin。画像バケットの書き込み権限（owner / admin のみ）は変えていない。サーバーが service role で書く。
+- Evidence: 本番で、受け取り用の関数を元に戻す形で確認（2件受け取り、すべて「作成中」、続けて呼んでも同じ用紙を返さない、anon / authenticated は実行不可、service_role は実行可）。画像の切り出し・状態の更新は `tests/answer_cells_server.test.mjs`。Edge Function 自体の動作（jpeg-js の読み書き）は、デプロイ後に本番で確認する。
+- Rollback: 関数の呼び出し（`js/admin_prep.js` の `requestServerCellGeneration`、`js/admin.js`、Worker の cron）を外せば、従来どおりブラウザが作る。DB は `drop function public.claim_answer_cell_pages(text, integer);`。
+- Notes: 用紙は、サーバーで読める JPEG で保存するようにした（WebP はサーバー側で読めない）。それ以前に WebP で保存した用紙は、サーバーでは「失敗」になり、ブラウザの切り出しにフォールバックする。デプロイ: `npx supabase functions deploy generate-answer-cells --project-ref pyzdlkwumhreepgkrcyb --no-verify-jwt`、Worker は `cloudflare/keepalive` で `npx wrangler deploy`。

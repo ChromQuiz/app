@@ -1414,6 +1414,35 @@ const CIQSupabaseAPI = {
             || text.includes('row-level security');
     },
 
+    // サーバー(Edge Function)に、解答欄画像の作成を進めてもらう。画面を閉じても、定期実行が続きを進める。
+    // 作る用紙が無くなる（pages が 0）か、失敗するまで、concurrency 本で呼び続ける。
+    async requestServerCellGeneration(projectId, { concurrency = 4 } = {}) {
+        if (!projectId) return { ok: false, pages: 0, error: new Error('Missing project') };
+        let stop = false;
+        let pages = 0;
+        let failure = null;
+        const loop = async () => {
+            while (!stop) {
+                let result;
+                try {
+                    result = await this.invokeAuthedFunction('generate-answer-cells', { projectId });
+                } catch (error) {
+                    failure = failure || error;
+                    stop = true;
+                    return;
+                }
+                pages += Number(result?.pages || 0);
+                if (!result?.pages) {
+                    stop = true;
+                    return;
+                }
+            }
+        };
+        await Promise.all(Array.from({ length: concurrency }, loop));
+        this.invalidateProjectAnswerCache(projectId);
+        return { ok: !failure, pages, error: failure };
+    },
+
     enqueueAnswerCellGeneration(projectId, pages) {
         if (!projectId || this._answerCellWriteDenied) return;
         const candidates = (pages || [])
