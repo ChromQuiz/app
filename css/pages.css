@@ -3532,6 +3532,8 @@ body.page-404 {
   font-size: var(--fs-14);
   color: var(--ink-2);
   margin-bottom: var(--sp-6);
+  /* 見出しは中央、複数行の本文は左揃え（最終行だけ中央に寄らないように） */
+  text-align: left;
 }
 
 .error-actions {
