@@ -12,14 +12,25 @@ function cacheImage(key, value) {
     return value;
 }
 
+// 計測用：取得・デコード・書き出しの合計ミリ秒（問題画面の perf ログに出す）
+const timings = { fetchMs: 0, decodeMs: 0, encodeMs: 0, pageCacheHits: 0 };
+
 async function loadImageBitmap(url) {
     const cached = imageCache.get(url);
-    if (cached) return cached;
+    if (cached) {
+        timings.pageCacheHits++;
+        return cached;
+    }
 
+    const fetchStartedAt = performance.now();
     const response = await fetch(url, { credentials: 'omit' });
     if (!response.ok) throw new Error('Image fetch failed');
     const blob = await response.blob();
-    return cacheImage(url, await createImageBitmap(blob));
+    timings.fetchMs += performance.now() - fetchStartedAt;
+    const decodeStartedAt = performance.now();
+    const bitmap = await createImageBitmap(blob);
+    timings.decodeMs += performance.now() - decodeStartedAt;
+    return cacheImage(url, bitmap);
 }
 
 async function cropImage({ imageUrl, region, sourceWidth, quality }) {
@@ -36,17 +47,21 @@ async function cropImage({ imageUrl, region, sourceWidth, quality }) {
 
     const canvas = new OffscreenCanvas(width, height);
     canvas.getContext('2d').drawImage(image, x, y, width, height, 0, 0, width, height);
+    const encodeStartedAt = performance.now();
     const webp = await canvas.convertToBlob({ type: 'image/webp', quality });
-    if (webp.type === 'image/webp') return webp;
     // Safari は WebP を書き出せず PNG になる。PNG は数倍重いので JPEG で書き直す
-    return canvas.convertToBlob({ type: 'image/jpeg', quality: Math.min(0.9, quality + 0.25) });
+    const result = webp.type === 'image/webp'
+        ? webp
+        : await canvas.convertToBlob({ type: 'image/jpeg', quality: Math.min(0.9, quality + 0.25) });
+    timings.encodeMs += performance.now() - encodeStartedAt;
+    return result;
 }
 
 self.addEventListener('message', async (event) => {
     const { id, payload } = event.data || {};
     try {
         const blob = await cropImage(payload);
-        self.postMessage({ id, ok: true, blob });
+        self.postMessage({ id, ok: true, blob, timings: { ...timings } });
     } catch (error) {
         self.postMessage({ id, ok: false, error: error?.message || String(error) });
     }
