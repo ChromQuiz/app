@@ -60,7 +60,7 @@ describe('利用者に見える文言では「二次元コード」を使う', (
 });
 
 describe('言い回しの統一(2026-10-10)', () => {
-  const pages = ['admin.html', 'judge.html', 'index.html', 'entry.html', 'my.html', 'join.html', 'checkin.html', 'conflict.html', 'question.html', 'entry_list.html', 'terms.html'];
+  const pages = ['help.html', 'admin.html', 'judge.html', 'index.html', 'entry.html', 'my.html', 'join.html', 'checkin.html', 'conflict.html', 'question.html', 'entry_list.html', 'terms.html'];
   const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
   it('利用者に見える文言では、「プロジェクト」ではなく「大会」を使う(ヘルプ以外のページ)', () => {

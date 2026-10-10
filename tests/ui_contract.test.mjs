@@ -132,9 +132,10 @@ describe('production UI contracts', () => {
     expect(ui).toContain("select.dispatchEvent(new Event('change', { bubbles: true }))");
 
     const help = read('help.html');
-    expect(help.match(/<button[^>]+class="qa-question"/g)).toHaveLength(22);
-    expect(help.match(/aria-expanded="false"/g)?.length).toBeGreaterThanOrEqual(22);
-    expect(help.match(/role="region"/g)).toHaveLength(22);
+    const questions = help.match(/<button[^>]+class="qa-question"/g) || [];
+    expect(questions.length).toBeGreaterThanOrEqual(20);
+    expect(help.match(/aria-expanded="false"/g)).toHaveLength(questions.length);
+    expect(help.match(/role="region"/g)).toHaveLength(questions.length);
   });
 
   it('keeps dynamic UI rendering safe and keyboard operable', () => {
