@@ -125,9 +125,15 @@ describe('折り返す文章は中央揃えにしない', () => {
   const block = (selector) => css.match(new RegExp(`${selector.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')} \\\\{[^}]*\\\\}`))?.[0] || '';
 
   it('2行以上になる文章(メールの案内の箱・確認ダイアログ・空/エラーの説明)は左揃え', () => {
-    for (const selector of ['.entry-mail-notice', '.confirm-message', '.confirm-title', '.empty-state-hint', '.error-state-detail']) {
+    for (const selector of ['.confirm-message', '.confirm-title', '.empty-state-hint', '.error-state-detail']) {
       expect(css, selector).toMatch(new RegExp(`${selector.replace('.', '\\.')}[^{]*\\{[^}]*text-align:\\s*left`));
     }
+  });
+
+  it('案内の箱: 見出し(アイコン + 見出し)は中央、本文はアイコンの下も含めて箱の幅いっぱいに左揃え(本文の左に余白を作らない)', () => {
+    expect(css).toMatch(/\.entry-mail-notice \{[^}]*flex-wrap:\s*wrap;[^}]*justify-content:\s*center;/);
+    expect(css).toMatch(/\.entry-mail-notice-content \{\s*display:\s*contents;/);
+    expect(css).toMatch(/\.entry-mail-notice p \{[^}]*flex:\s*0 0 100%;[^}]*text-align:\s*left;/);
   });
 
   it('案内の箱のアイコンは、見出しの1行目と同じ高さの枠の中で、縦中央に置く', () => {

@@ -2081,10 +2081,14 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 /* .notice — 読み飛ばされると困る案内のみ。1画面に1つを上限とする */
 .notice,
 .entry-mail-notice {
+  /* 見出し(アイコン + 見出し)は中央、本文は、アイコンの下も含めて、箱の幅いっぱいに左揃えで置く */
   display: flex;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   text-align: left;
-  gap: var(--sp-3);
+  column-gap: var(--sp-2);
+  row-gap: var(--sp-2);
   padding: var(--sp-4);
   background: var(--tint-neutral);
   border-radius: var(--r-surface);
@@ -2102,9 +2106,13 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   color: var(--ink-2);
 }
 
-.notice-content,
-.entry-mail-notice-content {
+.notice-content {
   min-width: 0;
+}
+
+/* 見出しと本文を、箱の直下に並べて、本文だけが次の行(箱の幅いっぱい)に来るようにする */
+.entry-mail-notice-content {
+  display: contents;
 }
 
 .notice strong,
@@ -2115,6 +2123,16 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   font-size: var(--fs-14);
   font-weight: 600;
   line-height: 1.4;
+}
+
+.entry-mail-notice strong {
+  margin-bottom: 0;
+}
+
+.entry-mail-notice p {
+  flex: 0 0 100%;
+  text-align: left;
+  text-wrap: pretty;   /* 最終行に1〜2文字だけが残らないようにする(対応するブラウザで) */
 }
 
 .notice p,
