@@ -786,11 +786,11 @@ const CIQSupabaseAPI = {
         };
     },
 
-    normalizeCellsForSave(cells, pageWidth) {
+    normalizeCellsForSave(cells, pageWidth, cellGeneration = null) {
         return {
             regions: cells || {},
             pageWidth: pageWidth || null,
-            cellGeneration: this.createEmptyCellGeneration('not_started'),
+            cellGeneration: cellGeneration || this.createEmptyCellGeneration('not_started'),
         };
     },
 
@@ -884,7 +884,7 @@ const CIQSupabaseAPI = {
                 project_id: projectId,
                 entry_id: record.entryId,
                 storage_path: record.storagePath,
-                cells: this.normalizeCellsForSave(record.cells, record.pageWidth),
+                cells: this.normalizeCellsForSave(record.cells, record.pageWidth, record.cellGeneration),
             }));
         if (!rows.length) return [];
 

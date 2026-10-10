@@ -213,6 +213,9 @@
         let scanConfig = null, scanAnswers = [];
         const ANSWER_PAGE_IMAGE_MAX_WIDTH = 840;
         const ANSWER_PAGE_IMAGE_QUALITY = 0.18;
+        // 取り込み中に、先頭の何問ぶんの解答欄画像を作っておくか（採点は1問目から始まるため）
+        const EARLY_CELL_QUESTIONS = 10;
+        const EARLY_CELL_QUALITY = 0.64;
 
         function canvasToBlob(canvas, type = 'image/webp', quality = ANSWER_PAGE_IMAGE_QUALITY) {
             const encode = (mime, q) => new Promise((resolve, reject) => {
@@ -227,6 +230,35 @@
                     ? blob
                     : encode('image/jpeg', Math.min(0.9, quality + 0.25))
             ));
+        }
+
+        // 保存する用紙画像（sourceCanvas）から、先頭の数問ぶんの解答欄画像を切り出す。
+        // 座標は取り込み時の用紙幅(sourceWidth)基準なので、保存画像の幅との比で換算する（採点画面の切り出しと同じ式）。
+        async function cropEarlyCells(sourceCanvas, cellRegions, sourceWidth, questionCount) {
+            const cells = [];
+            const scale = sourceWidth ? sourceCanvas.width / sourceWidth : 1;
+            const count = Math.min(EARLY_CELL_QUESTIONS, questionCount);
+            for (let q = 1; q <= count; q++) {
+                const region = cellRegions[`q${q}`];
+                if (!region) continue;
+                try {
+                    const x = Math.max(0, Math.round(region.x * scale));
+                    const y = Math.max(0, Math.round(region.y * scale));
+                    const w = Math.max(1, Math.round(region.w * scale));
+                    const h = Math.max(1, Math.round(region.h * scale));
+                    const cell = document.createElement('canvas');
+                    cell.width = Math.min(w, Math.max(1, sourceCanvas.width - x));
+                    cell.height = Math.min(h, Math.max(1, sourceCanvas.height - y));
+                    cell.getContext('2d').drawImage(sourceCanvas, x, y, cell.width, cell.height, 0, 0, cell.width, cell.height);
+                    const blob = await canvasToBlob(cell, 'image/webp', EARLY_CELL_QUALITY);
+                    cell.width = 0;
+                    cell.height = 0;
+                    cells.push({ questionNumber: q, blob });
+                } catch (_) {
+                    // 作れなかった問題は、あとから裏で作る
+                }
+            }
+            return cells;
         }
 
         function clearPdfFileSelection(fileInput) {
@@ -360,12 +392,24 @@
                             addMs(perfStats, 'uploadMs', uploadStartedAt);
                             uploadedEntryNumbers.add(answer.entryNumber);
                             uploadedPagePaths.add(storagePath);
+                            const earlyQuestions = {};
+                            for (const early of answer.earlyCells || []) {
+                                try {
+                                    await CIQSupabaseAPI.uploadAnswerCellBlob(projectId, answer.entryNumber, early.questionNumber, early.blob, false);
+                                    earlyQuestions[`q${early.questionNumber}`] = 'ready';
+                                } catch (_) {
+                                    // 保存できなかった問題は、あとから裏で作る
+                                }
+                            }
                             answerPageRecords.push({
                                 entryId: knownEntry.id,
                                 entryNumber: answer.entryNumber,
                                 storagePath,
                                 cells: answer.cellRegions,
                                 pageWidth: answer.pageWidth,
+                                cellGeneration: Object.keys(earlyQuestions).length
+                                    ? CIQSupabaseAPI.buildCellGenerationPatch(earlyQuestions, 0)
+                                    : null,
                             });
                         } catch (e) {
                             console.error(`Entry ${answer.entryNumber} upload error:`, e);
@@ -382,6 +426,7 @@
                             });
                         } finally {
                             answer.pageImage = null;
+                            answer.earlyCells = null;
                             uploadedCount++;
                             updateUploadProgress();
                         }
@@ -461,6 +506,7 @@
                     }
                     // 採点画面ではページ全体を取得してセルを切り出すため、保存時点で転送量を抑える。
                     let pageBlob;
+                    let earlyCells = [];
                     stepStartedAt = performance.now();
                     if (workCanvas.width > ANSWER_PAGE_IMAGE_MAX_WIDTH) {
                         const ratio = ANSWER_PAGE_IMAGE_MAX_WIDTH / workCanvas.width;
@@ -468,15 +514,17 @@
                         sc.width = ANSWER_PAGE_IMAGE_MAX_WIDTH; sc.height = Math.round(workCanvas.height * ratio);
                         sc.getContext('2d').drawImage(workCanvas, 0, 0, sc.width, sc.height);
                         pageBlob = await canvasToBlob(sc);
+                        earlyCells = await cropEarlyCells(sc, cellRegions, workCanvas.width, scanConfig.questionCount || 100);
                         sc.width = 0;
                         sc.height = 0;
                     } else {
                         pageBlob = await canvasToBlob(workCanvas);
+                        earlyCells = await cropEarlyCells(workCanvas, cellRegions, workCanvas.width, scanConfig.questionCount || 100);
                     }
                     addMs(perfStats, 'imageEncodeMs', stepStartedAt);
                     perfStats.pages++;
                     perfStats.bytes += pageBlob?.size || 0;
-                    const answer = { page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageBlob, pageWidth: workCanvas.width };
+                    const answer = { page: i, entryNumber, cellRegions, tomboError: detectedResult.error, pageImage: pageBlob, pageWidth: workCanvas.width, earlyCells };
                     scanAnswers.push({ page: i, entryNumber, tomboError: detectedResult.error });
                     await enqueueUpload(answer);
                     page.cleanup?.();
