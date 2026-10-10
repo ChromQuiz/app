@@ -355,6 +355,7 @@ body.page-question .header-center {
   font-size: var(--fs-24) !important;
   font-weight: 600;
   text-align: center;
+  text-wrap: balance;   /* 2行に折り返すときも、行の長さをそろえる(最終行だけ短く残さない) */
   min-height: 56px;
   padding-inline: 0;
   border-radius: var(--r-md);
@@ -1271,6 +1272,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   .page-entry-list .entry-list-message-row td,
   .page-entry-list .entry-list-divider td {
     text-align: center;
+    text-wrap: balance;
     padding: var(--sp-2);
   }
 
