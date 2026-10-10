@@ -63,7 +63,7 @@ if (auth) {
                 console.warn('Check-in stats failed:', e);
             });
         } catch (e) {
-            setScanMessage(e.message || '受付画面を開始できませんでした。');
+            setScanMessage(describeError(e, '受付画面を開始できませんでした。'));
         }
     }
 
@@ -187,7 +187,7 @@ if (auth) {
         if (err?.name === 'NotAllowedError') return 'カメラの使用が許可されていません。ブラウザのサイト設定でカメラを許可してください。';
         if (err?.name === 'NotFoundError') return '利用できるカメラが見つかりません。';
         if (err?.name === 'NotReadableError') return 'カメラを開始できません。他のアプリが使用している可能性があります。';
-        return `カメラを起動できませんでした（詳細：${err?.message || err}）`;
+        return `カメラを起動できませんでした。（詳細：${errorDetail(err)}）`;
     }
 
     function setScanMessage(message) {
@@ -269,7 +269,7 @@ if (auth) {
             // 前回のコードは忘れない。エラーのコード（他の大会のもの・期限切れなど）が映ったままだと、
             // 毎フレームサーバーに問い合わせ続け、「見つからない」の回数制限（会場の同じ回線で共有）に達して、全端末の受付が止まる。
             // コードが画面から外れたら（scanFrame）、次のコードを受け付ける。
-            showResultUI('error', 'xmark', 'エラーが発生しました', err.message, '', '');
+            showResultUI('error', 'xmark', 'エラーが発生しました', describeError(err), '', '');
         }
         processing = false;
     }

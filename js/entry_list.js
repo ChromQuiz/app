@@ -186,7 +186,7 @@ const params = new URLSearchParams(location.search);
             const messageTd = document.createElement('td');
             messageTd.className = 'entry-list-message-cell';
             messageTd.dataset.label = '意気込み';
-            messageTd.textContent = e.message || '';
+            messageTd.textContent = errorDetail(e, '');
 
             tr.append(numberTd, timeTd, nameTd, affiliationTd, gradeTd, messageTd);
             body.appendChild(tr);
@@ -245,8 +245,7 @@ const params = new URLSearchParams(location.search);
         document.getElementById('total-count').textContent = '-';
         const body = document.getElementById('list-body');
         body.textContent = '';
-        const detail = error?.message ? `（${error.message}）` : '';
-        appendTableMessage(body, `参加者一覧を読み込めませんでした。時間をおいて再読み込みしてください。${detail}`);
+        appendTableMessage(body, `参加者一覧を読み込めませんでした。時間をおいて再読み込みしてください。（詳細：${errorDetail(error)}）`);
     }
 
     init();

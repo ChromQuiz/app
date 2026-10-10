@@ -92,7 +92,7 @@ async function showPreview(projectId, entryNum) {
             setPreviewMessage(pc, 'ページ画像が保存されていません。管理画面から答案を再読み込みしてください。');
         }
     } catch (e) {
-        setPreviewMessage(pc, `ページ画像を読み込めませんでした（詳細：${e.message}）`);
+        setPreviewMessage(pc, `ページ画像を読み込めませんでした。（詳細：${errorDetail(e)}）`);
     }
 }
 
@@ -408,6 +408,59 @@ const TOAST_ICONS = {
     warning: 'triangle-exclamation',
     info: 'circle-info',
 };
+
+// ---- エラーの文言 ----
+// サーバー(データベース・外部サービス)のエラーは、英語のことがある。画面には、日本語にして出す。
+// 日本語の文はそのまま。英語で、対応が無いものは、呼び出し側の fallback(なければ汎用の文)にして、元の文は console に残す。
+const GENERIC_ERROR_MESSAGE = '予期しないエラーが起きました。時間をおいて、もう一度お試しください。';
+const ERROR_MESSAGES = [
+    [/Failed to fetch|Load failed|NetworkError|network request failed/i, '通信できませんでした。接続を確認してください'],
+    [/JWT expired|invalid JWT|refresh_token|Invalid Refresh Token/i, 'ログインの有効期限が切れました。もう一度ログインしてください'],
+    [/Authentication required/i, 'ログインが必要です'],
+    [/Forbidden|permission denied|not authorized|row-level security/i, 'この操作を行う権限がありません'],
+    [/Project not found/i, '大会が見つかりません'],
+    [/Entry not found/i, 'エントリーが見つかりません'],
+    [/Member not found/i, 'メンバーが見つかりません'],
+    [/Member was removed/i, 'このメンバーは外されています'],
+    [/Invalid result/i, '判定の値が正しくありません'],
+    [/Entry period has not started/i, 'エントリー受付は、まだ開始されていません'],
+    [/Entry period has ended/i, 'エントリー受付は終了しました'],
+    [/Entry is closed/i, 'エントリーは、受付停止中です'],
+    [/Entry already checked in/i, 'すでに受付済みです'],
+    [/Checked-in entry cannot be canceled/i, '受付済みの参加者は、キャンセルできません'],
+    [/Question is full/i, 'この問題は、採点者が満員です'],
+    [/Invalid role/i, '権限の指定が正しくありません'],
+    [/Cannot (demote|remove) last owner/i, '最後の所有者は、変更も外すこともできません'],
+    [/Cannot remove yourself/i, '自分自身は外せません'],
+    [/Cannot change your own role/i, '自分自身の権限は変えられません'],
+    [/Invalid project id/i, '大会IDの形式が正しくありません'],
+    [/Project name is required/i, '大会名を入力してください'],
+    [/Owner display name is required/i, '表示名を入力してください'],
+    [/Invite (not found|revoked|expired|exhausted)|Invalid invite|Invalid scorer code/i, '招待リンクが無効です。運営に新しい招待リンクを依頼してください'],
+    [/Missing participant hash/i, '認証の情報が不足しています。もう一度お試しください'],
+    [/duplicate key|23505/i, 'すでに登録されています'],
+];
+
+// 文末の「。」を付けない形(「（詳細：…）」の中に入れる用)
+function errorDetail(error, fallback = '') {
+    const raw = String(error?.message ?? error ?? '').trim();
+    const strip = (text) => String(text || '').replace(/[。.]+$/, '');
+    if (!raw) return strip(fallback || GENERIC_ERROR_MESSAGE);
+    for (const [pattern, text] of ERROR_MESSAGES) {
+        if (pattern.test(raw)) return strip(text);
+    }
+    if (/[぀-ヿ一-鿿]/.test(raw)) return strip(raw);
+    console.warn('日本語にできなかったエラー:', raw);
+    return strip(fallback || GENERIC_ERROR_MESSAGE);
+}
+
+// 1文として出す形(文末に「。」を付ける)
+function describeError(error, fallback = '') {
+    const detail = errorDetail(error, fallback);
+    return /[。！？…）]$/.test(detail) ? detail : `${detail}。`;
+}
+window.errorDetail = errorDetail;
+window.describeError = describeError;
 
 // ---- 通知センター(運営画面) ----
 // 画面に出した通知(トースト)を、あとから見返せるように控える。運営画面だけで有効(admin.js が CIQ_NOTIFICATION_CENTER を立てる)。

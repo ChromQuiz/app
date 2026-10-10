@@ -337,7 +337,7 @@ async function releaseSlot(row, button) {
         await refreshGrid();
     } catch (e) {
         button.disabled = false;
-        showToast(e.message || '枠を解放できませんでした。時間をおいて再度お試しください。', 'error');
+        showToast(describeError(e, '枠を解放できませんでした。時間をおいて再度お試しください。'), 'error');
         refreshGrid();
     }
 }
@@ -383,5 +383,5 @@ function enterQ(q) {
 setupJudgeEvents();
 initializeApp().catch(error => {
     console.error(error);
-    showToast(error.message || '問題一覧を読み込めませんでした。', 'error');
+    showToast(describeError(error, '問題一覧を読み込めませんでした。'), 'error');
 });

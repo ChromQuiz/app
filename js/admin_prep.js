@@ -125,7 +125,7 @@
                 showAdminToast("問題数とレイアウトを保存しました。", "success");
                 return true;
             } catch (err) {
-                showAdminToast('問題数を保存できませんでした（詳細：' + err.message + '）');
+                showAdminToast('問題数を保存できませんでした。（詳細：' + errorDetail(err) + '）');
                 return false;
             }
         }
@@ -201,7 +201,7 @@
                 doc.save(`answer_sheet_${sheetType}${qCount}q.pdf`);
                 showAdminToast("PDFのダウンロードが完了しました。", "success");
             } catch (err) {
-                showAdminToast('解答用紙のPDFを作成できませんでした（詳細：' + err.message + '）');
+                showAdminToast('解答用紙のPDFを作成できませんでした。（詳細：' + errorDetail(err) + '）');
             }
         }
 
@@ -367,12 +367,12 @@
                                 page: answer.page,
                                 entryNumber: answer.entryNumber,
                                 code: e.code || null,
-                                message: e.message || String(e),
+                                message: errorDetail(e),
                             });
                             uploadFailures.push({
                                 entryNumber: answer.entryNumber,
                                 page: answer.page,
-                                message: e.message || String(e),
+                                message: errorDetail(e),
                             });
                         } finally {
                             answer.pageImage = null;
@@ -525,7 +525,7 @@
                         .slice(0, 3)
                         .map(f => `p${f.page}: ${f.message}`)
                         .join(' / ');
-                    showAdminToast(`${uploadFailures.length}件を保存できませんでした（詳細：${detail}）`, 'error');
+                    showAdminToast(`${uploadFailures.length}件を保存できませんでした。（詳細：${detail}）`, 'error');
                 } else if (skippedPages.length) {
                     const saved = scanAnswers.length - uploadFailures.length;
                     showAdminToast(`${saved}件の答案を保存しました。${skippedPages.length}ページは飛ばしました（${skippedDetail}）。そのページだけ撮り直して、もう一度読み込んでください。`, 'warning', 12000);
@@ -538,7 +538,7 @@
                 await rollbackUploadedAnswers(uploadedEntryNumbers);
                 await CIQSupabaseAPI.deleteAnswerPageStoragePaths(Array.from(uploadedPagePaths)).catch(() => {});
                 console.error(e); overlay.classList.remove('is-visible-flex');
-                showAdminToast('処理を完了できませんでした（詳細：' + e.message + '）');
+                showAdminToast('処理を完了できませんでした。（詳細：' + errorDetail(e) + '）');
             } finally {
                 releaseScanAnswerCanvases();
                 workCanvas.width = 0;

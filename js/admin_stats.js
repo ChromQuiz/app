@@ -61,7 +61,7 @@
                 conflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);
             } catch (e) {
                 dataLoaded = false;   // 読み込めなかったときは、出力を許可しない
-                showAdminToast('集計データを読み込めませんでした（詳細：' + e.message + '）');
+                showAdminToast('集計データを読み込めませんでした。（詳細：' + errorDetail(e) + '）');
             }
             const conflictsByQuestion = {};
             conflictRows.forEach(row => { (conflictsByQuestion[row.q] ||= []).push(row); });

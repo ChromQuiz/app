@@ -69,7 +69,7 @@
             show('join-continue-btn');
         } catch (e) {
             // 期限切れ・使用上限・失効はサーバの判定文をそのまま伝える(握りつぶさない)。
-            setStatus(e.message || '参加できませんでした。運営に新しい招待リンクを依頼してください。', 'error');
+            setStatus(describeError(e, '参加できませんでした。運営に新しい招待リンクを依頼してください。'), 'error');
             hide('join-signin-btn');
             hide('join-continue-btn');
         }
@@ -83,7 +83,7 @@
                 await CIQSupabaseAPI.signInWithGoogle();
             } catch (e) {
                 setSigninBusy(false);
-                setStatus('Googleログインを開始できませんでした。時間をおいて再度お試しください。' + (e.message ? `（詳細：${e.message}）` : ''), 'error');
+                setStatus('Googleログインを開始できませんでした。時間をおいて再度お試しください。' + `（詳細：${errorDetail(e)}）`, 'error');
             }
         });
 

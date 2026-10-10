@@ -613,7 +613,7 @@ async function init() {
             });
             return;
         }
-        setAnswerGridMessage(e.message || '採点データを読み込めませんでした', 'triangle-exclamation');
+        setAnswerGridMessage(describeError(e, '採点データを読み込めませんでした'), 'triangle-exclamation');
     }
 }
 
@@ -706,7 +706,7 @@ async function mark(entryId, result) {
         await checkAutoCompletion();
     } catch (e) {
         delete pendingWrites[entryId];
-        showToast('採点を保存できませんでした（詳細：' + e.message + '）', 'error');
+        showToast('採点を保存できませんでした。（詳細：' + errorDetail(e) + '）', 'error');
         await refreshVotes();
     }
 }

@@ -186,7 +186,7 @@ async function authenticate(event) {
         hideEl(el('auth-card'));
         showEl(el('hub'));
     } catch (err) {
-        setMsg('auth-msg', err.message || 'ログインできませんでした。', 'error');
+        setMsg('auth-msg', describeError(err, 'ログインできませんでした。'), 'error');
     } finally {
         setBusy(btn, false, 'ログイン');
     }
@@ -203,7 +203,7 @@ async function loadHub({ silent = false } = {}) {
     } catch (err) {
         // サーバーが認めなかったトークン（期限切れ・エントリーなし）は、残しても使えない。通信の失敗のときは残す。
         if (err?.status === 401 || err?.status === 404) storeSession(null);
-        if (!silent) showAuth(err.message || 'もう一度ログインしてください。');
+        if (!silent) showAuth(describeError(err, 'もう一度ログインしてください。'));
         return false;
     }
 }
@@ -402,7 +402,7 @@ async function verifyAndReset() {
         el('f-password').value = '';
         setMsg('auth-msg', `新しいパスワードを ${doneEmail} に送信しました。メールを確認して、ログインしてください。`, 'success');
     } catch (err) {
-        setMsg('reset-msg', err.message || 'パスワードを再発行できませんでした。時間をおいて再度お試しください。', 'error');
+        setMsg('reset-msg', describeError(err, 'パスワードを再発行できませんでした。時間をおいて再度お試しください。'), 'error');
     } finally {
         btn.disabled = false;
         setResetButton(btn, '認証してパスワードを再発行', 'check-circle');
@@ -533,7 +533,7 @@ async function downloadQr() {
         a.download = `checkin_qr_${String(myEntryData?.entryNumber ?? '').padStart(3, '0')}.png`;
         a.click();
     } catch (e) {
-        showToast(e.message || '二次元コード画像を保存できませんでした。', 'error');
+        showToast(describeError(e, '二次元コード画像を保存できませんでした。'), 'error');
     }
 }
 
@@ -646,7 +646,7 @@ async function saveEdit(event) {
         if (mailSent) showToast('エントリー内容を更新しました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('edit-msg', err.message || '保存できませんでした。時間をおいて再度お試しください。', 'error');
+        setMsg('edit-msg', describeError(err, '保存できませんでした。時間をおいて再度お試しください。'), 'error');
     } finally {
         setBusy(btn, false, '変更を保存する');
     }
@@ -678,7 +678,7 @@ async function markLate() {
         if (mailSent) showToast('遅刻の連絡を受け付けました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('late-msg', err.message || '遅刻の連絡を送信できませんでした。時間をおいて再度お試しください。', 'error');
+        setMsg('late-msg', describeError(err, '遅刻の連絡を送信できませんでした。時間をおいて再度お試しください。'), 'error');
     } finally {
         setBusy(btn, false, '遅刻を連絡する');
     }
@@ -713,7 +713,7 @@ async function cancelEntry() {
         if (mailSent) showToast('エントリーをキャンセルしました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('cancel-msg', err.message || 'キャンセルできませんでした。時間をおいて再度お試しください。', 'error');
+        setMsg('cancel-msg', describeError(err, 'キャンセルできませんでした。時間をおいて再度お試しください。'), 'error');
     } finally {
         setBusy(btn, false, 'エントリーをキャンセルする');
     }
@@ -734,7 +734,7 @@ async function viewResult() {
         hideEl(btn);
     } catch (e) {
         // サーバーの理由(成績照会の対象外・期間外など)は日本語で返るので、そのまま見せる
-        setMsg('result-msg', e.message || '成績を取得できませんでした。時間をおいて再度お試しください。', 'error');
+        setMsg('result-msg', describeError(e, '成績を取得できませんでした。時間をおいて再度お試しください。'), 'error');
     } finally {
         setBusy(btn, false, '成績を表示する');
     }
