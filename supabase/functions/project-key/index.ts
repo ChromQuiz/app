@@ -12,7 +12,7 @@ Deno.serve(withCors(async (req) => {
     const body = await req.json();
     const action = String(body.action || '');
     const projectId = String(body.projectId || '');
-    if (!projectId) return jsonResponse({ error: 'プロジェクト情報が見つかりません。ページを再読み込みして、もう一度お試しください。' }, 400);
+    if (!projectId) return jsonResponse({ error: '大会の情報が見つかりません。ページを再読み込みして、もう一度お試しください。' }, 400);
 
     const supabase = createServiceClient();
     const member = await requireAdminMember(supabase, projectId, token);
@@ -41,7 +41,7 @@ Deno.serve(withCors(async (req) => {
         .eq('project_id', projectId)
         .single();
       if (error || !data?.encrypted_private_key) {
-        return jsonResponse({ error: 'このプロジェクトの鍵は保存されていません。' }, 404);
+        return jsonResponse({ error: 'この大会の鍵は保存されていません。' }, 404);
       }
       const privateKeyJwk = await unwrapPrivateKey(data.encrypted_private_key);
       return jsonResponse({ ok: true, privateKeyJwk });
@@ -50,7 +50,7 @@ Deno.serve(withCors(async (req) => {
     return jsonResponse({ error: '不明な操作です。' }, 400);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (message === 'Forbidden') return jsonResponse({ error: 'このプロジェクトの鍵を扱う権限がありません。' }, 403);
+    if (message === 'Forbidden') return jsonResponse({ error: 'この大会の鍵を扱う権限がありません。' }, 403);
     if (message.includes('Authentication')) return jsonResponse({ error: 'Googleログインが必要です。' }, 401);
     return serverErrorResponse(error, 'project-key');
   }

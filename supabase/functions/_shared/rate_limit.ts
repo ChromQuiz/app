@@ -14,7 +14,7 @@ import { hmacHex, signingSecret } from './signing.ts';
 
 export class RateLimitError extends Error {
   status: number;
-  constructor(message = 'リクエストが多すぎます。時間をおいて再度お試しください。') {
+  constructor(message = 'リクエストが多すぎます。時間をおいてもう一度お試しください。') {
     super(message);
     this.name = 'RateLimitError';
     this.status = 429;
@@ -139,6 +139,6 @@ export async function enforceProjectDailyEmailCap(
     return; // fail-open
   }
   if (priorCount >= cap) {
-    throw new RateLimitError('本日のメール送信上限に達しました。時間をおいて再度お試しください。');
+    throw new RateLimitError('本日のメール送信上限に達しました。時間をおいてもう一度お試しください。');
   }
 }

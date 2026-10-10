@@ -19,10 +19,10 @@ const E1 = '11111111-1111-4111-8111-111111111111';
 const E2 = '22222222-2222-4222-8222-222222222222';
 
 const STAFF = [
-  { name: 'create-scorer-invite', body: { projectId: PROJECT }, rpc: { create_scorer_invite: () => ({ data: { id: 'i1', max_uses: 20, expires_at: '2026-10-20T00:00:00Z', created_at: '2026-10-13T00:00:00Z' }, error: null }) }, missing: { projectId: undefined }, missingMsg: 'プロジェクト情報が見つかりません。' },
+  { name: 'create-scorer-invite', body: { projectId: PROJECT }, rpc: { create_scorer_invite: () => ({ data: { id: 'i1', max_uses: 20, expires_at: '2026-10-20T00:00:00Z', created_at: '2026-10-13T00:00:00Z' }, error: null }) }, missing: { projectId: undefined }, missingMsg: '大会の情報が見つかりません。' },
   { name: 'admin-entry-qr', body: { projectId: PROJECT, entryId: E1 }, mocks: QR_MOCK, missing: { entryId: undefined }, missingMsg: '二次元コードの取得に必要な情報が不足しています。' },
   { name: 'admin-create-entry', body: { projectId: PROJECT, encryptedPii: 'x', emailHash: hex('a'), disclosurePasswordHash: hex('b'), publicProfile: { entryName: 'やま' } }, rpc: { create_entry_atomic: () => ({ data: { entry_id: 'e9', entry_number: 9, status: 'registered' }, error: null }) }, missing: { encryptedPii: undefined }, missingMsg: '代理エントリーの作成に必要な情報が不足しています。' },
-  { name: 'project-key', body: { action: 'fetch', projectId: PROJECT }, missing: { projectId: undefined }, missingMsg: 'プロジェクト情報が見つかりません。' },
+  { name: 'project-key', body: { action: 'fetch', projectId: PROJECT }, missing: { projectId: undefined }, missingMsg: '大会の情報が見つかりません。' },
 ];
 
 async function staff(spec, extra = {}) {
@@ -68,7 +68,7 @@ describe.each(STAFF)('管理者向け: $name', (spec) => {
     }
     const r = await call(spec.body, { token: 'tok-admin' });
     if (r.status === 500) {
-      expect(r.json.error).toBe('サーバーで問題が発生しました。時間をおいて再度お試しください。');
+      expect(r.json.error).toBe('サーバーで問題が発生しました。時間をおいてもう一度お試しください。');
       expect(r.json.ref).toMatch(/^[0-9a-f]{8}$/);
       expect(JSON.stringify(r.json)).not.toMatch(/SECRET_INTERNAL_DETAIL/);
     } else {
@@ -112,7 +112,7 @@ describe('project-key（秘密鍵の保管）', () => {
     const call = await loadFunction('project-key', { db });
     const nf = await call({ action: 'fetch', projectId: PROJECT }, { token: 'tok-admin' });
     expect(nf.status).toBe(404);
-    expect(nf.json.error).toBe('このプロジェクトの鍵は保存されていません。');
+    expect(nf.json.error).toBe('この大会の鍵は保存されていません。');
     expect((await call({ action: 'store', projectId: PROJECT }, { token: 'tok-admin' })).status).toBe(400);
     expect((await call({ action: 'nope', projectId: PROJECT }, { token: 'tok-admin' })).status).toBe(400);
   });

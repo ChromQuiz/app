@@ -27,7 +27,7 @@ Deno.serve(withCors(async (req) => {
     }
     // 入力ハッシュの形式検証(クライアント SHA-256 hex)。クライアント送信の v2 値は読まない=無視。
     if (!isClientHash(emailHash) || !isClientHash(disclosurePasswordHash)) {
-      return jsonResponse({ error: 'エントリー情報の形式が正しくありません。入力内容を確認して再度お試しください。' }, 400);
+      return jsonResponse({ error: 'エントリー情報の形式が正しくありません。入力内容を確認してもう一度お試しください。' }, 400);
     }
 
     // CAPTCHA(Turnstile)を登録の最初のゲートにする(V2/V12)。クライアント成功状態は信用せずサーバ検証。
@@ -108,11 +108,11 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof TurnstileConfigError) {
       console.error('[create-entry] turnstile secret is not configured');
-      return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいて再度お試しください。' }, error.status);
+      return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいてもう一度お試しください。' }, error.status);
     }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[create-entry] participant hash configuration unavailable');
-      return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいて再度お試しください。' }, 503);
+      return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
     }
     return serverErrorResponse(error, 'create-entry');
   }

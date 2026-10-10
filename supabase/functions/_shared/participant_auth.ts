@@ -21,7 +21,7 @@ export { ParticipantHashConfigError };
 
 // pepper 設定障害時に参加者へ返す固定の公開文言(内部情報は含めない)。
 export const PARTICIPANT_CONFIG_ERROR_MESSAGE =
-  'ただいま参加者認証を利用できません。時間をおいて再度お試しください。';
+  'ただいま参加者認証を利用できません。時間をおいてもう一度お試しください。';
 
 // クライアント SHA-256(hex) の形式検証: 64文字・小文字16進・前後空白なし。
 const CLIENT_HASH_RE = /^[0-9a-f]{64}$/;
@@ -136,7 +136,7 @@ export async function enforceAuthRateLimit(
     .gte('created_at', since);
   if (error) throw error;
   if ((count || 0) >= limit) {
-    throw new ParticipantAuthError('試行回数が上限に達しました。時間をおいて再度お試しください。', 429);
+    throw new ParticipantAuthError('試行回数が上限に達しました。時間をおいてもう一度お試しください。', 429);
   }
 }
 

@@ -604,7 +604,7 @@
 
         function validateAdminEntryForm(values) {
             if (!isValidEmailAddress(values.email)) {
-                return '正しいメールアドレスを入力してください。全角の文字や空白が入っていないかご確認ください。';
+                return '正しいメールアドレスを入力してください。全角の文字や空白が入っていないか確認してください。';
             }
             if (!/^[ァ-ヴー]+$/.test(values.familyNameKana) || !/^[ァ-ヴー]+$/.test(values.firstNameKana)) {
                 return 'カナは全角カタカナで入力してください。';
@@ -1699,23 +1699,23 @@
 
         async function resetProject() {
             if (!(await showConfirm(
-                'プロジェクト内の全データ（エントリー・答案・模範解答・採点結果）をリセットしますか？\n\n' +
+                'この大会の全データ（エントリー・答案・模範解答・採点結果）をリセットしますか？\n\n' +
                 'この操作は取り消せません。\n' +
-                'プロジェクトの設定（大会名・期間・参加規約・メンバー・招待リンク・暗号鍵など）は維持されます。',
+                '大会の設定（大会名・期間・参加規約・メンバー・招待リンク・暗号鍵など）は維持されます。',
                 'リセットする'
             ))) return;
 
             // 2段階確認
             if (!(await showConfirm(
-                `プロジェクト「${projectId}」を本当にリセットしますか？\nすべてのエントリー・答案・模範解答・採点結果が失われます。`,
+                `大会「${projectId}」を本当にリセットしますか？\nすべてのエントリー・答案・模範解答・採点結果が失われます。`,
                 'リセットを確定'
             ))) return;
 
             try {
-                showAdminToast('プロジェクトをリセットしています…', 'info', 10000);
+                showAdminToast('大会をリセットしています…', 'info', 10000);
 
                 await CIQSupabaseAPI.resetProjectData(projectId);
-                showAdminToast('プロジェクトをリセットしました。ページを再読み込みします。', 'success', 3000);
+                showAdminToast('大会をリセットしました。ページを再読み込みします。', 'success', 3000);
                 setTimeout(() => { location.reload(); }, 2000);
             } catch (e) {
                 console.error('リセットエラー:', e);

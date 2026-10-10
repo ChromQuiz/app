@@ -40,7 +40,7 @@ Deno.serve(withCors(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const projectId = String(body?.projectId || '').trim();
-    if (!projectId) return jsonResponse({ error: 'プロジェクト情報が見つかりません。' }, 400);
+    if (!projectId) return jsonResponse({ error: '大会の情報が見つかりません。' }, 400);
 
     // 上限人数のみクライアント指定可（RPC 側でも 1..500 にクランプする）。
     const maxUses = Number(body?.maxUses);

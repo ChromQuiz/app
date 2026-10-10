@@ -71,5 +71,5 @@ export function withCors(handler: (req: Request) => Promise<Response> | Response
 export function serverErrorResponse(error: unknown, context: string) {
   const ref = crypto.randomUUID().slice(0, 8);
   console.error(`[${context}] ref=${ref}`, error instanceof Error ? (error.stack || error.message) : String(error));
-  return jsonResponse({ error: 'サーバーで問題が発生しました。時間をおいて再度お試しください。', ref }, 500);
+  return jsonResponse({ error: 'サーバーで問題が発生しました。時間をおいてもう一度お試しください。', ref }, 500);
 }

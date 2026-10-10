@@ -53,7 +53,7 @@ Deno.serve(withCors(async (req) => {
       .select('name, entry_open, period_start, period_end, disclosure_enabled, disclosure_period_start, disclosure_period_end')
       .eq('id', projectId)
       .single();
-    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
+    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLを確認してください。' }, 404);
 
     const entryId = String(entry.id);
     const status = String(entry.status || '');
@@ -109,7 +109,7 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof SigningConfigError) {
       console.error('[my-entry] signing secret is not configured');
-      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
     }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[my-entry] participant hash pepper is not configured');

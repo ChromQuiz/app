@@ -166,7 +166,7 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
     const message = error instanceof Error ? error.message : String(error);
     if (message === 'Forbidden') {
-      return jsonResponse({ error: 'このプロジェクトの当日受付を操作する権限がありません。Googleアカウントとプロジェクトを確認してください。' }, 403);
+      return jsonResponse({ error: 'この大会の当日受付を操作する権限がありません。Googleアカウントとプロジェクトを確認してください。' }, 403);
     }
     if (message === 'Authentication required') {
       return jsonResponse({ error: 'Googleログインが必要です。' }, 401);

@@ -79,7 +79,7 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof SigningConfigError) {
       console.error('[cancel-entry] signing secret is not configured');
-      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
     }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[cancel-entry] participant hash pepper is not configured');

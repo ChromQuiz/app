@@ -77,7 +77,7 @@ describe('my-entry（MY-02〜05、API-01、API-05、API-07）', () => {
     for (let i = 0; i < 10; i += 1) db.tables.participant_auth_events.push({ project_id: PROJECT, email_hash: email, success: false, created_at: new Date().toISOString() });
     const r = await call(creds);
     expect(r.status).toBe(429);
-    expect(r.json.error).toBe('試行回数が上限に達しました。時間をおいて再度お試しください。');
+    expect(r.json.error).toBe('試行回数が上限に達しました。時間をおいてもう一度お試しください。');
   });
 
   it('IP 単位の回数制限（参加者認証）に達したら 429。制限の記録が壊れていても通す（失敗時は通す）', async () => {
@@ -126,7 +126,7 @@ describe('my-entry（MY-02〜05、API-01、API-05、API-07）', () => {
       const broken = await loadFunction('my-entry', { db: createFakeDb({ projects: [project()], entries: [] }), env, mocks: QR_MOCK });
       const r = await broken(creds);
       expect(r.status, JSON.stringify(env)).toBe(503);
-      expect(r.json.error).toBe('ただいま参加者認証を利用できません。時間をおいて再度お試しください。');
+      expect(r.json.error).toBe('ただいま参加者認証を利用できません。時間をおいてもう一度お試しください。');
     }
   });
 

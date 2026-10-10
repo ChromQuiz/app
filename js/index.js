@@ -316,7 +316,7 @@ async function renderProjectList() {
         clearProjectList();
         // 消えると、空の一覧だけが残って理由も次の行動も分からなくなるので、消さずに残す
         projectListLoadFailed = true;
-        showError('プロジェクトを読み込めませんでした。時間をおいて、ページを再読み込みしてください。', true);
+        showError('参加している大会を読み込めませんでした。時間をおいて、ページを再読み込みしてください。', true);
         console.error(e);
     }
 }
@@ -418,7 +418,7 @@ async function createProject() {
 
         await renderProjectList();
     } catch (e) {
-        showError('プロジェクトを作成できませんでした。（詳細：' + errorDetail(e) + '）');
+        showError('大会を作成できませんでした。（詳細：' + errorDetail(e) + '）');
         btn.disabled = false;
         renderCreateAuthState();
     }

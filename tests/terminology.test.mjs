@@ -5,7 +5,7 @@
 // (jsQR / QRCode / processQR / npm:qrcode など)。
 
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -56,5 +56,31 @@ describe('利用者に見える文言では「二次元コード」を使う', (
     expect(qr).toMatch(/import QRCode from 'npm:qrcode@/);
     const token = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr_token.ts'), 'utf8');
     expect(token).toMatch(/export async function issueQrToken/);
+  });
+});
+
+describe('言い回しの統一(2026-10-10)', () => {
+  const pages = ['admin.html', 'judge.html', 'index.html', 'entry.html', 'my.html', 'join.html', 'checkin.html', 'conflict.html', 'question.html', 'entry_list.html', 'terms.html'];
+  const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+
+  it('利用者に見える文言では、「プロジェクト」ではなく「大会」を使う(ヘルプ以外のページ)', () => {
+    for (const page of pages) {
+      const visible = read(page).replace(/<!--[\s\S]*?-->/g, '');
+      expect(visible, page).not.toContain('プロジェクト');
+    }
+  });
+
+  it('「再度」「ご確認ください」ではなく、「もう一度」「確認してください」にそろえる(画面・サーバーの文言)', () => {
+    const targets = [
+      ...readdirSync(new URL('../js', import.meta.url)).filter(n => n.endsWith('.js') && n !== 'icons.js').map(n => `js/${n}`),
+      ...readdirSync(new URL('../supabase/functions', import.meta.url), { withFileTypes: true }).filter(d => d.isDirectory() && d.name !== '_shared').map(d => `supabase/functions/${d.name}/index.ts`),
+      'supabase/functions/_shared/email_address.ts',
+    ];
+    for (const file of targets) {
+      let source;
+      try { source = read(file); } catch (_) { continue; }
+      expect(source, file).not.toContain('再度お試しください');
+      expect(source, file).not.toContain('ご確認ください');
+    }
   });
 });

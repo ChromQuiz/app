@@ -51,7 +51,7 @@ const CIQEmail = (() => {
     function requireSendSuccess(result, type) {
         if (result?.success) return true;
         const detail = result?.error || result?.reason;
-        throw new Error(detail ? `メールを送信できませんでした。${detail}` : 'メールを送信できませんでした。時間をおいて再度お試しください。');
+        throw new Error(detail ? `メールを送信できませんでした。${detail}` : 'メールを送信できませんでした。時間をおいてもう一度お試しください。');
     }
 
     async function sendEntryConfirmation(to, { projectName, entryNumber, password, uuid, familyName, firstName, status, entryListUrl, qrData, senderName }) {

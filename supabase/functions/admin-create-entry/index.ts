@@ -62,7 +62,7 @@ Deno.serve(withCors(async (req) => {
     }
     // 入力ハッシュの形式検証(クライアント SHA-256 hex)。クライアント送信の v2 値は読まない=無視。
     if (!isClientHash(emailHash) || !isClientHash(disclosurePasswordHash)) {
-      return jsonResponse({ error: 'エントリー情報の形式が正しくありません。入力内容を確認して再度お試しください。' }, 400);
+      return jsonResponse({ error: 'エントリー情報の形式が正しくありません。入力内容を確認してもう一度お試しください。' }, 400);
     }
 
     const supabase = createServiceClient();
@@ -109,14 +109,14 @@ Deno.serve(withCors(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (message === 'Forbidden') {
-      return jsonResponse({ error: 'このプロジェクトに参加者を追加する権限がありません。' }, 403);
+      return jsonResponse({ error: 'この大会に参加者を追加する権限がありません。' }, 403);
     }
     if (message === 'Authentication required') {
       return jsonResponse({ error: 'Googleログインが必要です。' }, 401);
     }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[admin-create-entry] participant hash configuration unavailable');
-      return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいて再度お試しください。' }, 503);
+      return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
     }
     return serverErrorResponse(error, 'admin-create-entry');
   }

@@ -337,7 +337,7 @@ async function releaseSlot(row, button) {
         await refreshGrid();
     } catch (e) {
         button.disabled = false;
-        showToast(describeError(e, '枠を解放できませんでした。時間をおいて再度お試しください。'), 'error');
+        showToast(describeError(e, '枠を解放できませんでした。時間をおいてもう一度お試しください。'), 'error');
         refreshGrid();
     }
 }

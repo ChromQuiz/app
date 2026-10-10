@@ -40,7 +40,7 @@ Deno.serve(withCors(async (req) => {
       .select('entry_open, period_start, period_end')
       .eq('id', projectId)
       .single();
-    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
+    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLを確認してください。' }, 404);
     if (isEntryWindowOpen(project)) {
       return jsonResponse({ error: 'エントリーの受付中は、遅刻の連絡はできません。受付が終わってからお試しください。' }, 409);
     }
@@ -87,7 +87,7 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof SigningConfigError) {
       console.error('[mark-late] signing secret is not configured');
-      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
     }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[mark-late] participant hash pepper is not configured');
