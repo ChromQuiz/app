@@ -65,7 +65,7 @@
             if (!window.CV) await loadAdminScriptOnce('js/cv.js');
             if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
             if (typeof window.generatePDF !== 'function' || typeof window.loadAnswers !== 'function') {
-                await loadAdminScriptOnce('js/admin_prep.js?v=35');
+                await loadAdminScriptOnce('js/admin_prep.js?v=36');
             }
         }
 
@@ -785,6 +785,8 @@
             if (typeof bindEmailSettingsAutosave === 'function') bindEmailSettingsAutosave();
 
             await initSupabaseAdmin();
+            // 作りかけの解答欄画像があれば、サーバーに続きを進めてもらう（権限がなければ何も起きない）
+            CIQSupabaseAPI.requestServerCellGeneration(projectId).catch(() => {});
             const hash = location.hash.replace('#', '');
             if (hash && document.getElementById(hash)) {
                 switchTab(hash);

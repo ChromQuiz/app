@@ -28,6 +28,7 @@ Functions in `supabase/functions/` handle public or privileged flows that should
 - `disclose-result`
 - `my-entry`
 - `send-email`
+- `generate-answer-cells`
 
 Shared helpers are in `supabase/functions/_shared/`.
 

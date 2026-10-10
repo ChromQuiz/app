@@ -213,6 +213,8 @@
         let scanConfig = null, scanAnswers = [];
         const ANSWER_PAGE_IMAGE_MAX_WIDTH = 840;
         const ANSWER_PAGE_IMAGE_QUALITY = 0.18;
+        // 用紙は、サーバーが読める JPEG で保存する（WebP はサーバー側で読めない）
+        const ANSWER_PAGE_JPEG_QUALITY = 0.45;
         // 取り込み中に、先頭の何問ぶんの解答欄画像を作っておくか（採点は1問目から始まるため）
         const EARLY_CELL_QUESTIONS = 10;
         const EARLY_CELL_QUALITY = 0.64;
@@ -513,12 +515,12 @@
                         const sc = document.createElement('canvas');
                         sc.width = ANSWER_PAGE_IMAGE_MAX_WIDTH; sc.height = Math.round(workCanvas.height * ratio);
                         sc.getContext('2d').drawImage(workCanvas, 0, 0, sc.width, sc.height);
-                        pageBlob = await canvasToBlob(sc);
+                        pageBlob = await canvasToBlob(sc, 'image/jpeg', ANSWER_PAGE_JPEG_QUALITY);
                         earlyCells = await cropEarlyCells(sc, cellRegions, workCanvas.width, scanConfig.questionCount || 100);
                         sc.width = 0;
                         sc.height = 0;
                     } else {
-                        pageBlob = await canvasToBlob(workCanvas);
+                        pageBlob = await canvasToBlob(workCanvas, 'image/jpeg', ANSWER_PAGE_JPEG_QUALITY);
                         earlyCells = await cropEarlyCells(workCanvas, cellRegions, workCanvas.width, scanConfig.questionCount || 100);
                     }
                     addMs(perfStats, 'imageEncodeMs', stepStartedAt);
@@ -566,7 +568,10 @@
                     const metadataStartedAt = performance.now();
                     await CIQSupabaseAPI.upsertAnswerPages(projectId, answerPageRecords);
                     addMs(perfStats, 'uploadMs', metadataStartedAt);
-                    CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, answerPageRecords);
+                    // サーバーに作ってもらう。使えなかったときだけ、このブラウザで作る。
+                    CIQSupabaseAPI.requestServerCellGeneration(projectId).then((generated) => {
+                        if (!generated.ok) CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, answerPageRecords);
+                    });
                 }
 
                 overlayText.textContent = '完了しました。';

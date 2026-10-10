@@ -6,7 +6,8 @@ compatibility_date = "2026-09-02"
 # 7 日の停止猶予に対して 14 回投げるので、数回失敗しても止まらない。
 [triggers]
 # 5 分おきの cron は繰り上げ通知の取りこぼしを拾う（src/index.js の PROMOTION_CRON と同じ値にする）。
-crons = ["0 3,15 * * *", "*/5 * * * *"]
+# 1 分おきの cron は、解答欄画像の作りかけをサーバーに進めてもらう（src/index.js の ANSWER_CELL_CRON と同じ値にする）。
+crons = ["0 3,15 * * *", "*/5 * * * *", "* * * * *"]
 
 # ここに置く 2 値は js/supabase_config.js でクライアントに配信済みの公開値。
 # 秘密ではないので Secret ではなく vars でよい（service_role キーは絶対に置かない）。
