@@ -115,7 +115,7 @@ Deno.serve(withCors(async (req) => {
       const verifiedId = await verifyQrToken(scanned);
       if (!verifiedId) {
         return jsonResponse({
-          error: 'この二次元コードは使用できません。マイエントリーで最新の二次元コードを表示するか、運営にお申し出ください。',
+          error: 'この二次元コードは使用できません。マイエントリーで最新の二次元コードを表示するか、運営に伝えてください。',
         }, 400);
       }
 
