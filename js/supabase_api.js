@@ -135,7 +135,7 @@ const CIQSupabaseAPI = {
             return null;
         }
         try {
-            const worker = new Worker('js/image_crop_worker.js');
+            const worker = new Worker('js/image_crop_worker.js?v=2');
             worker.addEventListener('message', (event) => {
                 const { id, ok, blob, error, timings } = event.data || {};
                 const request = this._cropWorkerRequests.get(id);
