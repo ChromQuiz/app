@@ -86,6 +86,25 @@ describe('作る問題の選び方と、状態の更新', () => {
   });
 });
 
+describe('途中経過の保存（止められても、ここまでの分は残す）', () => {
+  it('失敗の理由を、状態に残せる', () => {
+    expect(nextGeneration(['q1'], null, { q1: 'failed' }, 't', 'boom').lastError).toBe('boom');
+    expect(nextGeneration(['q1'], null, { q1: 'ready' }).lastError).toBe(null);
+  });
+
+  it('一定の枚数ごとに途中経過を保存し、更新の失敗は握りつぶさず理由に残す', () => {
+    const src = read('supabase/functions/generate-answer-cells/index.ts');
+    expect(src).toMatch(/CHECKPOINT_EVERY/);
+    expect(src).toMatch(/await save\(false\)/);
+    expect(src).toMatch(/await save\(true\)/);
+    expect(src).toMatch(/if \(error\) lastError = errorText\(error\)/);
+  });
+
+  it('「作成中」は1分で取り直せる', () => {
+    expect(read('supabase/migrations/202610100002_shorten_answer_cell_lease.sql')).toMatch(/interval '1 minute'/);
+  });
+});
+
 describe('関数の入口と権限', () => {
   const src = read('supabase/functions/generate-answer-cells/index.ts');
 

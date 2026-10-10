@@ -34,13 +34,34 @@ type ClaimedPage = {
   cells: { regions?: Record<string, Region | null>; pageWidth?: number | null; cellGeneration?: Record<string, unknown> } | null;
 };
 
+// 途中経過を保存する間隔（枚数）。関数が途中で止められても、ここまでの分は「できた」と残る。
+const CHECKPOINT_EVERY = 12;
+
+function errorText(error: unknown): string {
+  return (error instanceof Error ? error.message : String((error as { message?: string })?.message ?? error)).slice(0, 200);
+}
+
 async function processPage(supabase: Supabase, page: ClaimedPage): Promise<{ made: number; failed: number }> {
+  const baseCells = (page.cells || {}) as Record<string, unknown>;
   const regions = page.cells?.regions || {};
   const generation = (page.cells?.cellGeneration || null) as Record<string, unknown> | null;
   const allKeys = Object.keys(regions).filter((key) => regions[key]);
   const targets = pendingQuestionKeys(regions, generation as never);
 
   const results: Record<string, 'ready' | 'failed'> = {};
+  let lastError: string | null = null;
+
+  // 途中経過の保存。「作成中」の開始時刻も更新して、他の呼び出しに取られないようにする。
+  const save = async (final: boolean) => {
+    const next = nextGeneration(allKeys, generation as never, results, new Date().toISOString(), lastError);
+    const stored = final ? next : { ...next, status: 'processing' as const, startedAt: new Date().toISOString() };
+    const { error } = await supabase
+      .from('answer_pages')
+      .update({ cells: { ...baseCells, cellGeneration: stored } })
+      .eq('id', page.id);
+    if (error) lastError = errorText(error);
+  };
+
   if (targets.length) {
     try {
       const { data: blob, error } = await supabase.storage.from('answer-pages').download(page.storage_path);
@@ -49,8 +70,10 @@ async function processPage(supabase: Supabase, page: ClaimedPage): Promise<{ mad
       const image = { data: decoded.data as Uint8Array, width: decoded.width, height: decoded.height };
       const sourceWidth = Number(page.cells?.pageWidth || 0) || null;
 
+      let sinceCheckpoint = 0;
       for (let i = 0; i < targets.length; i += UPLOAD_CONCURRENCY) {
-        await Promise.all(targets.slice(i, i + UPLOAD_CONCURRENCY).map(async (key) => {
+        const batch = targets.slice(i, i + UPLOAD_CONCURRENCY);
+        await Promise.all(batch.map(async (key) => {
           try {
             const cell = cropRgba(image, regions[key] as Region, sourceWidth);
             const encoded = jpeg.encode({ data: cell.data, width: cell.width, height: cell.height }, CELL_JPEG_QUALITY);
@@ -60,25 +83,25 @@ async function processPage(supabase: Supabase, page: ClaimedPage): Promise<{ mad
               .upload(path, new Uint8Array(encoded.data), { contentType: 'image/jpeg', upsert: true });
             if (uploadError) throw uploadError;
             results[key] = 'ready';
-          } catch (_) {
+          } catch (cellError) {
             results[key] = 'failed';
+            lastError = errorText(cellError);
           }
         }));
+        sinceCheckpoint += batch.length;
+        if (sinceCheckpoint >= CHECKPOINT_EVERY && i + UPLOAD_CONCURRENCY < targets.length) {
+          sinceCheckpoint = 0;
+          await save(false);
+        }
       }
-    } catch (_) {
+    } catch (pageError) {
       // 用紙を読めなかった（形式が違う・壊れている）。全問を失敗として記録し、あとで取り直す。
+      lastError = errorText(pageError);
       for (const key of targets) results[key] = 'failed';
     }
   }
 
-  // 作っている間にブラウザが印を付けている場合があるので、最新を読み直して重ねる。
-  const { data: latest } = await supabase.from('answer_pages').select('cells').eq('id', page.id).single();
-  const cells = (latest?.cells || page.cells || {}) as Record<string, unknown>;
-  const next = nextGeneration(allKeys, cells.cellGeneration as never, results);
-  await supabase
-    .from('answer_pages')
-    .update({ cells: { ...cells, cellGeneration: next } })
-    .eq('id', page.id);
+  await save(true);
 
   const made = Object.values(results).filter((value) => value === 'ready').length;
   return { made, failed: Object.values(results).length - made };
