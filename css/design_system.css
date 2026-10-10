@@ -960,6 +960,7 @@ svg[width="24"][stroke="currentColor"] {
 }
 
 .result-desc {
+  text-wrap: balance;
   font-size: var(--fs-14);
   color: var(--ink-2);
   margin-bottom: var(--sp-6);
@@ -2082,6 +2083,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .entry-mail-notice {
   display: flex;
   align-items: flex-start;
+  text-align: left;
   gap: var(--sp-3);
   padding: var(--sp-4);
   background: var(--tint-neutral);
@@ -2093,10 +2095,10 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .notice > [data-icon],
 .entry-mail-notice > [data-icon] {
   flex: 0 0 auto;
-  width: 1.1em;
-  height: 1.1em;
-  /* 見出し(14px・行高1.4)の1行目の中心にアイコンの中心を合わせる値 */
-  margin-top: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  /* 見出し(14px・行高1.4)の1行目と同じ高さの枠の中に、アイコンを縦中央で置く */
+  height: calc(var(--fs-14) * 1.4);
   color: var(--ink-2);
 }
 
@@ -2198,6 +2200,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .empty-state-hint {
+  text-align: left;
   font-size: var(--fs-14);
   color: var(--ink-2);
   max-width: 40ch;
@@ -2233,6 +2236,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .error-state-detail {
+  text-align: left;
   font-size: var(--fs-14);
   line-height: 1.65;
   color: var(--ink-2);
@@ -4586,14 +4590,14 @@ select:focus {
   font-size: var(--fs-18);
   font-weight: 700;
   color: var(--ink);
-  text-align: center;
+  text-align: left;
 }
 
 .confirm-message {
   font-size: var(--fs-16);
   font-weight: 500;
   color: var(--ink-2);
-  text-align: center;
+  text-align: left;
   line-height: 1.55;
 }
 
