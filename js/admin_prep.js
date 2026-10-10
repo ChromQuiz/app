@@ -215,12 +215,18 @@
         const ANSWER_PAGE_IMAGE_QUALITY = 0.18;
 
         function canvasToBlob(canvas, type = 'image/webp', quality = ANSWER_PAGE_IMAGE_QUALITY) {
-            return new Promise((resolve, reject) => {
+            const encode = (mime, q) => new Promise((resolve, reject) => {
                 canvas.toBlob((blob) => {
                     if (blob) resolve(blob);
                     else reject(new Error('画像を圧縮できませんでした。'));
-                }, type, quality);
+                }, mime, q);
             });
+            // Safari は WebP を書き出せず PNG になる。PNG は数倍重いので JPEG で書き直す
+            return encode(type, quality).then((blob) => (
+                blob.type === type || type !== 'image/webp'
+                    ? blob
+                    : encode('image/jpeg', Math.min(0.9, quality + 0.25))
+            ));
         }
 
         function clearPdfFileSelection(fileInput) {

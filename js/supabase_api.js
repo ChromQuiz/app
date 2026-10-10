@@ -1262,15 +1262,21 @@ const CIQSupabaseAPI = {
     },
 
     canvasToBlob(canvas, type = 'image/webp', quality = 0.64) {
-        return new Promise((resolve, reject) => {
+        const encode = (mime, q) => new Promise((resolve, reject) => {
             canvas.toBlob((blob) => {
                 if (!blob) {
                     reject(new Error('Image encode failed'));
                     return;
                 }
                 resolve(blob);
-            }, type, quality);
+            }, mime, q);
         });
+        // Safari は WebP を書き出せず PNG になる。PNG は数倍重いので JPEG で書き直す
+        return encode(type, quality).then((blob) => (
+            blob.type === type || type !== 'image/webp'
+                ? blob
+                : encode('image/jpeg', Math.min(0.9, quality + 0.25))
+        ));
     },
 
     async cropImageRegionBlobOnMainThread(imageUrl, region, sourceWidth, quality = 0.64) {

@@ -36,7 +36,10 @@ async function cropImage({ imageUrl, region, sourceWidth, quality }) {
 
     const canvas = new OffscreenCanvas(width, height);
     canvas.getContext('2d').drawImage(image, x, y, width, height, 0, 0, width, height);
-    return canvas.convertToBlob({ type: 'image/webp', quality });
+    const webp = await canvas.convertToBlob({ type: 'image/webp', quality });
+    if (webp.type === 'image/webp') return webp;
+    // Safari は WebP を書き出せず PNG になる。PNG は数倍重いので JPEG で書き直す
+    return canvas.convertToBlob({ type: 'image/jpeg', quality: Math.min(0.9, quality + 0.25) });
 }
 
 self.addEventListener('message', async (event) => {
