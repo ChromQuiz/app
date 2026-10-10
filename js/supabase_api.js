@@ -36,6 +36,10 @@ const CIQSupabaseAPI = {
         cropWorkerSuccesses: 0,
         cropWorkerFallbacks: 0,
         cropMainThreadCrops: 0,
+        workerFetchMs: 0,
+        workerDecodeMs: 0,
+        workerEncodeMs: 0,
+        workerPageCacheHits: 0,
     },
     _answerCellUrlLookupEnabled: true,
     _answerCellVersion: 'answer-cell-v1',
@@ -112,6 +116,10 @@ const CIQSupabaseAPI = {
             cropWorkerSuccesses: current.cropWorkerSuccesses - (previous.cropWorkerSuccesses || 0),
             cropWorkerFallbacks: current.cropWorkerFallbacks - (previous.cropWorkerFallbacks || 0),
             cropMainThreadCrops: current.cropMainThreadCrops - (previous.cropMainThreadCrops || 0),
+            workerFetchMs: current.workerFetchMs - (previous.workerFetchMs || 0),
+            workerDecodeMs: current.workerDecodeMs - (previous.workerDecodeMs || 0),
+            workerEncodeMs: current.workerEncodeMs - (previous.workerEncodeMs || 0),
+            workerPageCacheHits: current.workerPageCacheHits - (previous.workerPageCacheHits || 0),
             cropUrlCacheSize: current.cropUrlCacheSize,
             cropPromiseCacheSize: current.cropPromiseCacheSize,
             pageImageCacheSize: current.pageImageCacheSize,
@@ -129,9 +137,16 @@ const CIQSupabaseAPI = {
         try {
             const worker = new Worker('js/image_crop_worker.js');
             worker.addEventListener('message', (event) => {
-                const { id, ok, blob, error } = event.data || {};
+                const { id, ok, blob, error, timings } = event.data || {};
                 const request = this._cropWorkerRequests.get(id);
                 if (!request) return;
+                if (timings) {
+                    // ワーカー側の合計値（累計）。差分は takeImagePerfStats が取る
+                    this._imagePerfStats.workerFetchMs = Math.round(timings.fetchMs);
+                    this._imagePerfStats.workerDecodeMs = Math.round(timings.decodeMs);
+                    this._imagePerfStats.workerEncodeMs = Math.round(timings.encodeMs);
+                    this._imagePerfStats.workerPageCacheHits = timings.pageCacheHits;
+                }
                 this._cropWorkerRequests.delete(id);
                 if (ok && blob) {
                     request.resolve(blob);

@@ -20,12 +20,17 @@ let conflictRefreshTimer = null;
 let conflictRefreshPromise = null;
 let shouldResetConflictSelection = true;
 
+// limit 本を常に動かす（遅い1本に、同じまとまりの残りが待たされない）
 async function runLimited(items, limit, task) {
-    const results = [];
-    for (let i = 0; i < items.length; i += limit) {
-        const batch = items.slice(i, i + limit);
-        results.push(...await Promise.all(batch.map(task)));
-    }
+    const results = new Array(items.length);
+    let next = 0;
+    const worker = async () => {
+        while (next < items.length) {
+            const index = next++;
+            results[index] = await task(items[index]);
+        }
+    };
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
     return results;
 }
 
