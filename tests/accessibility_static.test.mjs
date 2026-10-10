@@ -140,3 +140,28 @@ describe('折り返す文章は中央揃えにしない', () => {
     expect(css).toMatch(/\.entry-mail-notice > \[data-icon\] \{[^}]*align-items:\s*center;[^}]*height:\s*calc\(var\(--fs-14\) \* 1\.4\)/);
   });
 });
+
+describe('折り返しの見え方(見出しは中央・本文は左、アイコンつきの文は先頭に置く、日本語の折り返し)', () => {
+  const css = readFileSync(new URL('../css/design_system.css', import.meta.url), 'utf8');
+  const pages = readFileSync(new URL('../css/pages.css', import.meta.url), 'utf8');
+
+  it('受付停止の説明・読み込み失敗の文・当日受付の結果の文は、左揃えの箱として中央に置く', () => {
+    expect(css).toMatch(/\.page-card\.page-disabled p,\s*\.page-card\.is-disabled p \{[^}]*width:\s*fit-content;[^}]*text-align:\s*left;/);
+    expect(css).toMatch(/\.loading-state \{[^}]*text-align:\s*left;/);
+    expect(css).toMatch(/\.text-muted-center,\s*\.text-muted-loader \{[^}]*width:\s*fit-content;[^}]*text-align:\s*left;/);
+    expect(pages).toMatch(/#result \.name \{[^}]*width:\s*fit-content;[^}]*text-align:\s*left;/);
+  });
+
+  it('アイコンつきのメッセージは、アイコンを文の先頭に置き、折り返した行は左端から始める(字下げしない)', () => {
+    const group = css.match(/\.page-msg\.is-visible,[^{]*\{[^}]*\}/)?.[0] || '';
+    expect(group).toContain('display: block;');
+    expect(css).toMatch(/\.csv-status > svg\[data-lucide\] \{[^}]*vertical-align:\s*-0\.2em;/);
+  });
+
+  it('日本語の折り返し: 禁則を厳しめに、文節で折る、最終行に少数の文字だけを残さない、見出しは行の長さをそろえる', () => {
+    expect(css).toMatch(/line-break:\s*strict;/);
+    expect(css).toMatch(/word-break:\s*auto-phrase;/);
+    expect(css).toMatch(/text-wrap:\s*pretty;/);
+    expect(css).toMatch(/\.confirm-title \{\s*text-wrap:\s*balance;/);
+  });
+});

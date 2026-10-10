@@ -280,6 +280,28 @@ body {
   background: var(--canvas);
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "palt";
+  /* 日本語の折り返し: 「ー」「っ」などを行頭に置かない(禁則を厳しめに)。文節の途中で切れにくくする(対応するブラウザで) */
+  line-break: strict;
+  word-break: auto-phrase;
+}
+
+/* 文章は、最終行に1〜2文字だけ残さない。見出しは、行の長さをそろえて折り返す(対応するブラウザで) */
+p,
+li,
+dd,
+.page-msg,
+.confirm-message,
+.toast-message {
+  text-wrap: pretty;
+}
+
+h1,
+h2,
+h3,
+h4,
+.result-title,
+.confirm-title {
+  text-wrap: balance;
 }
 
 h1,
@@ -931,6 +953,15 @@ svg[width="24"][stroke="currentColor"] {
   background: none;
   border: 0;
   padding: var(--sp-10) var(--sp-2);
+}
+
+/* 説明文は、左揃えの箱として、中央に置く(見出しと絵は中央) */
+.page-card.page-disabled p,
+.page-card.is-disabled p {
+  width: fit-content;
+  max-width: min(34em, 100%);
+  margin-inline: auto;
+  text-align: left;
 }
 
 .page-card.page-disabled [data-icon],
@@ -1986,8 +2017,6 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .waitlist-result-note,
 .csv-status {
   display: none;
-  align-items: flex-start;
-  gap: var(--sp-2);
   margin-top: var(--sp-3);
   padding: 0;
   border: 0;
@@ -2006,7 +2035,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .page-msg.is-visible,
 .page-msg:not(:empty),
 .status-msg-box:not(:empty) {
-  display: flex;
+  /* アイコンは文の先頭に置いて、折り返した行は、アイコンの下も含めて、左端から始める */
+  display: block;
 }
 
 .page-msg [data-icon],
@@ -2023,10 +2053,10 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .entry-verified-box > svg[data-lucide],
 .waitlist-result-note > svg[data-lucide],
 .csv-status > svg[data-lucide] {
-  flex: 0 0 auto;
   width: 1.05em;
   height: 1.05em;
-  margin-top: 0.28em;
+  margin-right: var(--sp-2);
+  vertical-align: -0.2em;
   display: inline-flex;
   color: var(--msg-mark, var(--ink-3));
 }
@@ -2187,6 +2217,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: left;
   gap: var(--sp-2);
   padding: var(--sp-8) var(--sp-4);
   color: var(--ink-2);
@@ -4053,7 +4084,11 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .text-muted-center,
 .text-muted-loader {
-  text-align: center;
+  /* 文章は左揃え。短い文のときも、箱ごと中央に置く */
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  text-align: left;
   color: var(--ink-2);
   font-size: var(--fs-14);
   padding: var(--sp-5);

@@ -3019,7 +3019,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   min-height: min(48vh, 420px);
   align-self: center;
   justify-self: stretch;
-  text-align: center;
+  text-align: left;
 }
 
 .grid-message .ciq-symbol {
@@ -3327,6 +3327,10 @@ body.page-checkin .right-col {
 }
 
 #result .name {
+  /* 参加者の名前は短く、エラーの文は長い。文は左揃えの箱として、中央に置く(見出しは中央のまま) */
+  width: fit-content;
+  max-width: 100%;
+  text-align: left;
   font-size: var(--fs-21);
   font-weight: 600;
 }
