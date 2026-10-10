@@ -110,6 +110,13 @@ describe('途中経過の保存（止められても、ここまでの分は残�
     expect(migration).toMatch(/jsonb_set\(coalesce\(cells, '\{\}'::jsonb\), '\{cellGeneration\}'/);
   });
 
+  it('全員の前のほうの問題を先にそろえる（1回に作る枚数を絞り、作成済みが少ない用紙から取る）', () => {
+    const src = read('supabase/functions/generate-answer-cells/index.ts');
+    expect(src).toMatch(/MAX_CELLS_PER_PAGE_CALL = \d+/);
+    expect(src).toMatch(/\.slice\(0, MAX_CELLS_PER_PAGE_CALL\)/);
+    expect(read('supabase/migrations/202610100004_claim_least_progress_first.sql')).toMatch(/order by \(\s*select count\(\*\) from jsonb_each_text/);
+  });
+
   it('「作成中」は1分で取り直せる', () => {
     expect(read('supabase/migrations/202610100002_shorten_answer_cell_lease.sql')).toMatch(/interval '1 minute'/);
   });

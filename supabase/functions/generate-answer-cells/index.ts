@@ -19,6 +19,8 @@ import {
 } from '../_shared/answer_cells.ts';
 
 const PAGES_PER_CALL = 2;
+// 1回の呼び出しで、1人あたり作る枚数。全員の前のほうの問題を先にそろえるため、作りきらずに手放す。
+const MAX_CELLS_PER_PAGE_CALL = 20;
 const UPLOAD_CONCURRENCY = 6;
 const CELL_JPEG_QUALITY = 80;
 const TIME_BUDGET_MS = 20_000;
@@ -45,7 +47,7 @@ async function processPage(supabase: Supabase, page: ClaimedPage): Promise<{ mad
   const regions = page.cells?.regions || {};
   const generation = (page.cells?.cellGeneration || null) as Record<string, unknown> | null;
   const allKeys = Object.keys(regions).filter((key) => regions[key]);
-  const targets = pendingQuestionKeys(regions, generation as never);
+  const targets = pendingQuestionKeys(regions, generation as never).slice(0, MAX_CELLS_PER_PAGE_CALL);
 
   const results: Record<string, 'ready' | 'failed'> = {};
   let lastError: string | null = null;
