@@ -158,9 +158,9 @@ describe('折り返しの見え方(見出しは中央・本文は左、アイコ
     expect(css).toMatch(/\.csv-status > svg\[data-lucide\] \{[^}]*vertical-align:\s*-0\.2em;/);
   });
 
-  it('日本語の折り返し: 禁則を厳しめに、文節で折る、最終行に少数の文字だけを残さない、見出しは行の長さをそろえる', () => {
+  it('日本語の折り返し: 禁則を厳しめに、最終行に少数の文字だけを残さない、見出しは行の長さをそろえる。文節で折る設定は使わない(右端がガタガタになる)', () => {
     expect(css).toMatch(/line-break:\s*strict;/);
-    expect(css).toMatch(/word-break:\s*auto-phrase;/);
+    expect(css).not.toMatch(/word-break:\s*auto-phrase/);
     expect(css).toMatch(/text-wrap:\s*pretty;/);
     expect(css).toMatch(/\.confirm-title \{\s*text-wrap:\s*balance;/);
   });
