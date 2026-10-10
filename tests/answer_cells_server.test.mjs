@@ -100,6 +100,16 @@ describe('途中経過の保存（止められても、ここまでの分は残�
     expect(src).toMatch(/if \(error\) lastError = errorText\(error\)/);
   });
 
+  it('作成状況は、service_role だけが呼べる関数で書く（テーブルを直接書かない）', () => {
+    const src = read('supabase/functions/generate-answer-cells/index.ts');
+    expect(src).toMatch(/rpc\('save_answer_cell_progress'/);
+    expect(src).not.toMatch(/from\('answer_pages'\)/);
+    const migration = read('supabase/migrations/202610100003_save_answer_cell_progress.sql');
+    expect(migration).toMatch(/revoke all on function public\.save_answer_cell_progress\(uuid, jsonb\) from public, anon, authenticated/);
+    expect(migration).toMatch(/grant execute on function public\.save_answer_cell_progress\(uuid, jsonb\) to service_role/);
+    expect(migration).toMatch(/jsonb_set\(coalesce\(cells, '\{\}'::jsonb\), '\{cellGeneration\}'/);
+  });
+
   it('「作成中」は1分で取り直せる', () => {
     expect(read('supabase/migrations/202610100002_shorten_answer_cell_lease.sql')).toMatch(/interval '1 minute'/);
   });

@@ -55,5 +55,6 @@
   "202610090002_project_creator_allowlist.sql": "43cc80fff7e9b4747f0b7fc3a1af574b682f8cbee7a53e8767443039d9d691aa",
   "202610090003_revoke_unneeded_table_privileges.sql": "c361e650ae2973a737ff088f70128d7a037ff62c3c13052e63935f627098ddea",
   "202610100001_claim_answer_cell_pages.sql": "42d96f0908f5291896daf17d6a4ac003825e9cccebb68c1fb9475ad27f902790",
-  "202610100002_shorten_answer_cell_lease.sql": "6d7faf5bf81fe12004fd4f024c9a5a1c3ee0a0edfe11db3f86e1250fd6d694bc"
+  "202610100002_shorten_answer_cell_lease.sql": "6d7faf5bf81fe12004fd4f024c9a5a1c3ee0a0edfe11db3f86e1250fd6d694bc",
+  "202610100003_save_answer_cell_progress.sql": "32a99dfb92b4b240f7dcf2aa7da5ad70e3669ae9914eff8000fc6beddbfc5aac"
 }

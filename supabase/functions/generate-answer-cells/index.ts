@@ -42,7 +42,6 @@ function errorText(error: unknown): string {
 }
 
 async function processPage(supabase: Supabase, page: ClaimedPage): Promise<{ made: number; failed: number }> {
-  const baseCells = (page.cells || {}) as Record<string, unknown>;
   const regions = page.cells?.regions || {};
   const generation = (page.cells?.cellGeneration || null) as Record<string, unknown> | null;
   const allKeys = Object.keys(regions).filter((key) => regions[key]);
@@ -55,10 +54,8 @@ async function processPage(supabase: Supabase, page: ClaimedPage): Promise<{ mad
   const save = async (final: boolean) => {
     const next = nextGeneration(allKeys, generation as never, results, new Date().toISOString(), lastError);
     const stored = final ? next : { ...next, status: 'processing' as const, startedAt: new Date().toISOString() };
-    const { error } = await supabase
-      .from('answer_pages')
-      .update({ cells: { ...baseCells, cellGeneration: stored } })
-      .eq('id', page.id);
+    // service_role は answer_pages を直接書けない。cellGeneration だけを書き換える関数を通す。
+    const { error } = await supabase.rpc('save_answer_cell_progress', { p_page_id: page.id, p_generation: stored });
     if (error) lastError = errorText(error);
   };
 
@@ -148,14 +145,7 @@ Deno.serve(withCors(async (req) => {
       failed += result.failed;
     }
 
-    let remainingQuery = supabase
-      .from('answer_pages')
-      .select('id', { count: 'exact', head: true })
-      .neq('cells->cellGeneration->>status', 'complete');
-    if (scopeProjectId) remainingQuery = remainingQuery.eq('project_id', scopeProjectId);
-    const { count: remaining } = await remainingQuery;
-
-    return jsonResponse({ ok: true, version: ANSWER_CELL_VERSION, pages, made, failed, remaining: remaining ?? null });
+    return jsonResponse({ ok: true, version: ANSWER_CELL_VERSION, pages, made, failed });
   } catch (error) {
     return serverErrorResponse(error, 'generate-answer-cells');
   }
