@@ -1224,3 +1224,10 @@ Notes   : 補足・再構成の断り・要確認事項
 - Evidence: 本番で、受け取り用の関数を元に戻す形で確認（2件受け取り、すべて「作成中」、続けて呼んでも同じ用紙を返さない、anon / authenticated は実行不可、service_role は実行可）。画像の切り出し・状態の更新は `tests/answer_cells_server.test.mjs`。Edge Function 自体の動作（jpeg-js の読み書き）は、デプロイ後に本番で確認する。
 - Rollback: 関数の呼び出し（`js/admin_prep.js` の `requestServerCellGeneration`、`js/admin.js`、Worker の cron）を外せば、従来どおりブラウザが作る。DB は `drop function public.claim_answer_cell_pages(text, integer);`。
 - Notes: 用紙は、サーバーで読める JPEG で保存するようにした（WebP はサーバー側で読めない）。それ以前に WebP で保存した用紙は、サーバーでは「失敗」になり、ブラウザの切り出しにフォールバックする。デプロイ: `npx supabase functions deploy generate-answer-cells --project-ref pyzdlkwumhreepgkrcyb --no-verify-jwt`、Worker は `cloudflare/keepalive` で `npx wrangler deploy`。
+
+### 補足（2026-10-10）: 作成状況の保存は関数を通す
+
+- `supabase/migrations/202610100002_shorten_answer_cell_lease.sql`: 「作成中」を取り直すまでの時間を3分から1分に縮めた（適用済み）。
+- `supabase/migrations/202610100003_save_answer_cell_progress.sql`: `save_answer_cell_progress(page_id, generation)`（security definer、service_role だけが実行可。適用済み）。
+- 理由: **service_role は `answer_pages` に直接の select / update の権限を持たない**。最初の版は、画像を保存しても作成済みの印を書けず、全員が先頭10問のまま進まなかった。テーブルに権限を足さず、`cells` の `cellGeneration` だけを書き換える関数を通す（regions と pageWidth は触らない）。
+- Notes: Edge Function から `answer_pages` を直接読み書きしない。必要なら、同じように関数を通す。
