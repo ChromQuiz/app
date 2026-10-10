@@ -132,7 +132,7 @@ async function init() {
         await refreshData();
         startConflictRefreshTimer();
     } catch (e) {
-        setConflictGridMessage(e.message || '要確認データを読み込めませんでした', { icon: 'triangle-exclamation' });
+        setConflictGridMessage(describeError(e, '要確認データを読み込めませんでした'), { icon: 'triangle-exclamation' });
         const counter = document.getElementById('counter');
         counter.textContent = '読み込み失敗';
         counter.className = 'counter has-conflicts';
@@ -419,7 +419,7 @@ function scoreSelectedConflict(result) {
     // 後から進めると選択が判定済みのカードへ戻ってしまう。
     advanceConflictSelection();
     setFinal(conflict.q, conflict.entryId, result)
-        .catch(err => showToast(err.message, 'error'));
+        .catch(err => showToast(describeError(err, '最終判定を保存できませんでした。'), 'error'));
 }
 
 function attachConflictImageErrorFallback(image, conflict) {
@@ -689,7 +689,7 @@ document.addEventListener('visibilitychange', () => {
         stopConflictRefreshTimer();
         return;
     }
-    refreshData().catch(err => showToast(err.message, 'error'));
+    refreshData().catch(err => showToast(describeError(err, '要確認データを読み込めませんでした。'), 'error'));
     startConflictRefreshTimer();
 });
 

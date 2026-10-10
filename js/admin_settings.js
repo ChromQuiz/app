@@ -56,7 +56,7 @@
                 } catch (e) {
                     console.error('問題数の同期失敗:', e);
                     input.value = previous;   // 保存できなかったので表示を元に戻す
-                    showAdminToast('問題数を保存できませんでした（詳細：' + e.message + '）');
+                    showAdminToast('問題数を保存できませんでした。（詳細：' + errorDetail(e) + '）');
                 }
             }
         };
@@ -582,7 +582,7 @@
                 }
                 setAdminEntryReceiptStatus('二次元コード入り控え画像を生成しました。', 'success');
             } catch (e) {
-                setAdminEntryReceiptStatus(e.message || '二次元コード入り控え画像を生成できませんでした。', 'error');
+                setAdminEntryReceiptStatus(describeError(e, '二次元コード入り控え画像を生成できませんでした。'), 'error');
             }
         }
 
@@ -695,7 +695,7 @@
                 updateAdminOverview();
                 showAdminToast('参加者を追加しました。', 'success');
             } catch (e) {
-                setAdminEntryStatus(e.message || '参加者を追加できませんでした。', 'error');
+                setAdminEntryStatus(describeError(e, '参加者を追加できませんでした。'), 'error');
             } finally {
                 setAdminEntrySubmitting(false);
             }
@@ -717,7 +717,7 @@
                 tbody.textContent = '';
                 members.forEach(member => appendProjectMemberRow(tbody, member, currentUserId));
             } catch (e) {
-                setMemberTableMessage(tbody, `読み込めませんでした（詳細：${e.message}）`, 'td-loading-error');
+                setMemberTableMessage(tbody, `読み込めませんでした。（詳細：${errorDetail(e)}）`, 'td-loading-error');
             } finally {
                 projectMembersLoading = false;
             }
@@ -796,7 +796,7 @@
                 setInviteStatus('招待リンクを無効化しました。', 'success');
                 await loadScorerInvites();
             } catch (e) {
-                setInviteStatus('招待リンクを無効化できませんでした（詳細：' + (e.message || '') + '）', 'error');
+                setInviteStatus('招待リンクを無効化できませんでした。（詳細：' + errorDetail(e) + '）', 'error');
                 if (button) button.disabled = false;
             }
         }
@@ -821,7 +821,7 @@
                 setInviteStatus('招待リンクを発行しました。この場でコピーしてください（再表示できません）。', 'success');
                 await loadScorerInvites();
             } catch (e) {
-                setInviteStatus('招待リンクを発行できませんでした（詳細：' + (e.message || '') + '）', 'error');
+                setInviteStatus('招待リンクを発行できませんでした。（詳細：' + errorDetail(e) + '）', 'error');
             } finally {
                 if (button) button.disabled = false;
             }
@@ -856,7 +856,7 @@
                 showAdminToast('権限を更新しました。', 'success');
                 await loadProjectMembers();
             } catch (e) {
-                showAdminToast(e.message || '権限を更新できませんでした。', 'error');
+                showAdminToast(describeError(e, '権限を更新できませんでした。'), 'error');
             }
         }
 
@@ -868,7 +868,7 @@
                 showAdminToast('メンバーを外しました。', 'success');
                 await loadProjectMembers();
             } catch (e) {
-                showAdminToast(e.message || 'メンバーを外せませんでした。', 'error');
+                showAdminToast(describeError(e, 'メンバーを外せませんでした。'), 'error');
             }
         }
 
@@ -878,7 +878,7 @@
                 showAdminToast('メンバーを復帰しました。', 'success');
                 await loadProjectMembers();
             } catch (e) {
-                showAdminToast(e.message || 'メンバーを復帰できませんでした。', 'error');
+                showAdminToast(describeError(e, 'メンバーを復帰できませんでした。'), 'error');
             }
         }
 
@@ -912,7 +912,7 @@
                         await updateEmailSettings();
                     } catch (e) {
                         input.checked = previous;
-                        showAdminToast(e.message || 'メール設定を更新できませんでした。', 'error');
+                        showAdminToast(describeError(e, 'メール設定を更新できませんでした。'), 'error');
                     } finally {
                         ids.forEach((targetId) => {
                             const target = document.getElementById(targetId);
@@ -1543,7 +1543,7 @@
                     }).catch(e => console.warn('復号鍵の後追い読み込みをスキップ:', e));
                 }
             } catch (e) {
-                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。${e.message ? `（詳細：${e.message}）` : ''}`, 'td-loading-error');
+                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。（詳細：${errorDetail(e)}）`, 'td-loading-error');
             }
         }
 
@@ -1719,7 +1719,7 @@
                 setTimeout(() => { location.reload(); }, 2000);
             } catch (e) {
                 console.error('リセットエラー:', e);
-                showAdminToast('リセットできませんでした（詳細：' + e.message + '）', 'error');
+                showAdminToast('リセットできませんでした。（詳細：' + errorDetail(e) + '）', 'error');
             }
         }
 

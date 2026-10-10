@@ -343,7 +343,7 @@ async function signInWithSupabaseGoogle() {
         storeAuthIntent(currentTab);
         await CIQSupabaseAPI.signInWithGoogle();
     } catch (e) {
-        showError('Googleログインを開始できませんでした（詳細：' + e.message + '）');
+        showError('Googleログインを開始できませんでした。（詳細：' + errorDetail(e) + '）');
     }
 }
 
@@ -353,7 +353,7 @@ async function signOutSupabase() {
         clearAuthIntent();
         session.clear();
     } catch (e) {
-        showError('Googleアカウントからログアウトできませんでした（詳細：' + e.message + '）');
+        showError('Googleアカウントからログアウトできませんでした。（詳細：' + errorDetail(e) + '）');
     }
 }
 
@@ -418,7 +418,7 @@ async function createProject() {
 
         await renderProjectList();
     } catch (e) {
-        showError('プロジェクトを作成できませんでした（詳細：' + e.message + '）');
+        showError('プロジェクトを作成できませんでした。（詳細：' + errorDetail(e) + '）');
         btn.disabled = false;
         renderCreateAuthState();
     }
@@ -470,7 +470,7 @@ async function initSupabaseAuth() {
             renderSupabaseAuth(sessionData);
         });
     } catch (e) {
-        showError('Googleログイン状態を確認できませんでした（詳細：' + e.message + '）');
+        showError('Googleログイン状態を確認できませんでした。（詳細：' + errorDetail(e) + '）');
     }
 }
 

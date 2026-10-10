@@ -221,7 +221,7 @@ describe('FND-09: 答案が保存済みのとき、問題数の変更は確認�
   it('保存に失敗したら画面に出して、表示を元に戻す', () => {
     const src = read('js/admin_settings.js');
     expect(src).toMatch(/input\.value = previous;/);
-    expect(src).toMatch(/問題数を保存できませんでした（詳細：/);
+    expect(src).toMatch(/問題数を保存できませんでした。（詳細：/);
   });
 });
 
