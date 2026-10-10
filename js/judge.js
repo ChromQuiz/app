@@ -110,7 +110,22 @@ async function initializeApp() {
 
     renderQuestionCards();
     await refreshGrid();
-    setInterval(refreshGrid, 3000);
+    startGridRefresh();
+    document.addEventListener('visibilitychange', () => {
+        // 画面を閉じている間は取りにいかない。戻ったらすぐ最新にする
+        if (document.hidden) stopGridRefresh();
+        else { refreshGrid(); startGridRefresh(); }
+    });
+}
+
+let gridRefreshTimer = null;
+function startGridRefresh() {
+    if (gridRefreshTimer || document.hidden) return;
+    gridRefreshTimer = setInterval(refreshGrid, 3000);
+}
+function stopGridRefresh() {
+    clearInterval(gridRefreshTimer);
+    gridRefreshTimer = null;
 }
 
 function renderQuestionCards() {
@@ -157,8 +172,15 @@ function updateGrid(rows) {
     let inprogressCount = 0;
     let doneCount = 0;
 
+    const rowsByQuestion = new Map();
+    for (const row of rows) {
+        const n = Number(row.question_number);
+        if (!rowsByQuestion.has(n)) rowsByQuestion.set(n, []);
+        rowsByQuestion.get(n).push(row);
+    }
+
     for (let q = 1; q <= totalQuestions; q++) {
-        const qRows = rows.filter(row => Number(row.question_number) === q);
+        const qRows = rowsByQuestion.get(q) || [];
         const scorerIds = qRows.map(row => row.scorer_member_id);
         const completedIds = qRows.filter(row => row.completed_at).map(row => row.scorer_member_id);
         const isMine = currentMemberId && scorerIds.includes(currentMemberId);
