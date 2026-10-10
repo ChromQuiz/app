@@ -15,6 +15,8 @@ export type CellGeneration = {
   generatedAt: string | null;
   failedAt: string | null;
   questions: Record<string, string>;
+  /** 最後に起きた失敗の理由（原因を後から調べるため。個人情報は入れない）。 */
+  lastError?: string | null;
 };
 
 export function questionNumberOf(key: string): number {
@@ -66,6 +68,7 @@ export function nextGeneration(
   previous: Partial<CellGeneration> | null | undefined,
   results: Record<string, 'ready' | 'failed'>,
   now = new Date().toISOString(),
+  lastError: string | null = null,
 ): CellGeneration {
   const sameVersion = previous?.version === ANSWER_CELL_VERSION;
   const questions: Record<string, string> = { ...(sameVersion ? (previous?.questions || {}) : {}), ...results };
@@ -81,5 +84,6 @@ export function nextGeneration(
     generatedAt: status === 'complete' ? now : null,
     failedAt: failedCount ? now : null,
     questions,
+    lastError,
   };
 }

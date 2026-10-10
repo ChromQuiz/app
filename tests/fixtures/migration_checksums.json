@@ -54,5 +54,6 @@
   "202610090001_block_vote_change_after_complete.sql": "6773a7b6b0771c3114dca52a6213c8050c39522383a9ae3259fa83b970d19362",
   "202610090002_project_creator_allowlist.sql": "43cc80fff7e9b4747f0b7fc3a1af574b682f8cbee7a53e8767443039d9d691aa",
   "202610090003_revoke_unneeded_table_privileges.sql": "c361e650ae2973a737ff088f70128d7a037ff62c3c13052e63935f627098ddea",
-  "202610100001_claim_answer_cell_pages.sql": "42d96f0908f5291896daf17d6a4ac003825e9cccebb68c1fb9475ad27f902790"
+  "202610100001_claim_answer_cell_pages.sql": "42d96f0908f5291896daf17d6a4ac003825e9cccebb68c1fb9475ad27f902790",
+  "202610100002_shorten_answer_cell_lease.sql": "6d7faf5bf81fe12004fd4f024c9a5a1c3ee0a0edfe11db3f86e1250fd6d694bc"
 }
