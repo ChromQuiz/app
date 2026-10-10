@@ -281,7 +281,7 @@ body {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "palt";
   /* 日本語の折り返し: 「ー」「っ」などを行頭に置かない(禁則を厳しめに)。
-     文節で折る設定(word-break: auto-phrase)は使わない。行の長さがばらついて、右端がガタガタになるため。 */
+     文節で折る設定は使わない。行の長さがばらついて、右端がガタガタになるため。 */
   line-break: strict;
 }
 
