@@ -40,6 +40,8 @@ const CIQSupabaseAPI = {
     _answerCellUrlLookupEnabled: true,
     _answerCellVersion: 'answer-cell-v1',
     _answerCellProcessingStaleMs: 10 * 60 * 1000,
+    // 書き込み権限がない人（採点者）の画面では、解答欄画像の生成を一度失敗したらそれ以降は試さない
+    _answerCellWriteDenied: false,
     _answerCellQueue: [],
     _answerCellRunningKeys: new Set(),
     _answerCellQueuedKeys: new Set(),
@@ -947,6 +949,7 @@ const CIQSupabaseAPI = {
     },
 
     async markAnswerCellFailed(projectId, entryId, questionNumber) {
+        if (this._answerCellWriteDenied) return;
         try {
             await this.updateAnswerCellGeneration(projectId, entryId, {
                 version: this._answerCellVersion,
@@ -955,6 +958,7 @@ const CIQSupabaseAPI = {
                 questions: { [`q${questionNumber}`]: 'failed' },
             });
         } catch (error) {
+            if (this.isAnswerCellWriteDenied(error)) return;
             console.warn('Answer cell failure mark skipped:', error);
         }
     },
@@ -1381,8 +1385,16 @@ const CIQSupabaseAPI = {
         return hasMissingQuestion;
     },
 
+    isAnswerCellWriteDenied(error) {
+        const text = `${error?.message || ''} ${error?.error || ''}`.toLowerCase();
+        return error?.code === 'PGRST116'
+            || error?.code === '42501'
+            || Number(error?.statusCode || error?.status) === 403
+            || text.includes('row-level security');
+    },
+
     enqueueAnswerCellGeneration(projectId, pages) {
-        if (!projectId) return;
+        if (!projectId || this._answerCellWriteDenied) return;
         const candidates = (pages || [])
             .map((page) => {
                 const rawCells = page.cells || null;
@@ -1451,6 +1463,11 @@ const CIQSupabaseAPI = {
     },
 
     async processAnswerCellQueue() {
+        if (this._answerCellWriteDenied) {
+            this._answerCellQueue.length = 0;
+            this._answerCellQueuedKeys.clear();
+            return;
+        }
         const next = this._answerCellQueue.shift();
         if (!next) return;
         this._answerCellQueuedKeys.delete(next.key);
@@ -1484,8 +1501,13 @@ const CIQSupabaseAPI = {
             failedAt: null,
             questions: versionMismatch ? {} : existingGeneration.questions,
         }).catch(error => {
+            if (this.isAnswerCellWriteDenied(error)) {
+                this._answerCellWriteDenied = true;
+                return;
+            }
             console.warn('Answer cell generation status update skipped:', error);
         });
+        if (this._answerCellWriteDenied) return;
 
         const pageUrls = await this.getAnswerPageUrls(projectId, [{
             key: String(page.entryId),
@@ -1499,6 +1521,7 @@ const CIQSupabaseAPI = {
         const totalQuestions = page.partialCellGeneration ? 0 : questionKeys.length;
         for (let i = 0; i < targets.length; i += 2) {
             const batch = targets.slice(i, i + 2);
+            if (this._answerCellWriteDenied) return;
             await Promise.all(batch.map(async (key) => {
                 const questionNumber = Number(String(key).replace(/^q/, ''));
                 try {
@@ -1506,12 +1529,17 @@ const CIQSupabaseAPI = {
                     await this.uploadAnswerCellBlob(projectId, page.entryNumber, questionNumber, blob, false);
                     questions[key] = 'ready';
                 } catch (error) {
+                    if (this.isAnswerCellWriteDenied(error)) {
+                        this._answerCellWriteDenied = true;
+                        return;
+                    }
                     console.warn('Answer cell generation failed:', { entryNumber: page.entryNumber, questionNumber, error });
                     questions[key] = 'failed';
                 }
             }));
         }
 
+        if (this._answerCellWriteDenied) return;
         const patch = this.buildCellGenerationPatch(questions, totalQuestions, { startedAt });
         await this.updateAnswerCellGeneration(projectId, page.entryId, patch).catch(error => {
             console.warn('Answer cell generation final status skipped:', error);
