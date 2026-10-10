@@ -67,7 +67,7 @@ describe('create-entry（ENT-34、API-03、API-05、API-06）', () => {
     const noSecret = await make(rpcOk, { ...TS_ENV, TURNSTILE_SECRET_KEY: '' });
     const r = await noSecret.call(await bodyFor());
     expect(r.status).toBe(503);
-    expect(r.json.error).toBe('ただいま登録を受け付けられません。時間をおいて再度お試しください。');
+    expect(r.json.error).toBe('ただいま登録を受け付けられません。時間をおいてもう一度お試しください。');
   });
 
   it('API-06 Cloudflare に届かない（ネットワーク障害・5xx）ときは、通さずに止める', async () => {
@@ -102,7 +102,7 @@ describe('create-entry（ENT-34、API-03、API-05、API-06）', () => {
     expect(missing.json.error).toBe('エントリー情報が不足しています。入力内容を確認してもう一度送信してください。');
     const bad = await call(await bodyFor({ emailHash: 'XYZ' }));
     expect(bad.status).toBe(400);
-    expect(bad.json.error).toBe('エントリー情報の形式が正しくありません。入力内容を確認して再度お試しください。');
+    expect(bad.json.error).toBe('エントリー情報の形式が正しくありません。入力内容を確認してもう一度お試しください。');
   });
 
   it('入力が長すぎれば 400（項目名つき）。登録は行わない', async () => {
@@ -131,7 +131,7 @@ describe('create-entry（ENT-34、API-03、API-05、API-06）', () => {
     const boom = await make({ create_entry_atomic: () => ({ data: null, error: { message: 'SECRET_DB_DETAIL' } }) });
     const r = await boom.call(await bodyFor());
     expect(r.status).toBe(500);
-    expect(r.json.error).toBe('サーバーで問題が発生しました。時間をおいて再度お試しください。');
+    expect(r.json.error).toBe('サーバーで問題が発生しました。時間をおいてもう一度お試しください。');
     expect(JSON.stringify(r.json)).not.toContain('SECRET_DB_DETAIL');
   });
 
@@ -239,7 +239,7 @@ describe('send-email: 認証コード（ENT-12〜15、API-03、API-05、API-06�
     const daily = await make({ rpc: { rate_limit_hit: (a) => ({ data: a.p_bucket === 'email_daily' ? 1000 : 0, error: null }) } });
     const r = await send(daily.call);
     expect(r.status).toBe(429);
-    expect(r.json.error).toBe('本日のメール送信上限に達しました。時間をおいて再度お試しください。');
+    expect(r.json.error).toBe('本日のメール送信上限に達しました。時間をおいてもう一度お試しください。');
     const failOpen = await make({ rpc: { rate_limit_hit: () => ({ data: null, error: { message: 'down' } }) } });
     expect((await send(failOpen.call)).status).toBe(200);
   });
@@ -253,10 +253,10 @@ describe('send-email: 認証コード（ENT-12〜15、API-03、API-05、API-06�
     };
     const bad = await run('Brevo send failed: 400 {"message":"email is not valid"}');
     expect(bad.r.status).toBe(400);
-    expect(bad.r.json.error).toBe('このメールアドレスには送信できません。メールアドレスをご確認ください。');
+    expect(bad.r.json.error).toBe('このメールアドレスには送信できません。メールアドレスを確認してください。');
     const down = await run('Brevo send failed: 503 upstream');
     expect(down.r.status).toBe(502);
-    expect(down.r.json.error).toMatch(/メールを送信できませんでした。時間をおいて再度お試しください/);
+    expect(down.r.json.error).toMatch(/メールを送信できませんでした。時間をおいてもう一度お試しください/);
     expect(down.db.tables.email_events[0].status).toBe('failed');
     expect(JSON.stringify(down.r.json)).not.toContain('upstream');
   });

@@ -247,7 +247,7 @@ const CIQSupabaseAPI = {
             return await fetch(url, init);
         } catch (cause) {
             console.error(cause);
-            const error = new Error('サーバーに接続できませんでした。通信状況をご確認のうえ、もう一度お試しください。');
+            const error = new Error('サーバーに接続できませんでした。通信状況を確認して、もう一度お試しください。');
             error.status = 0;
             throw error;
         }
@@ -266,7 +266,7 @@ const CIQSupabaseAPI = {
         });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
-            const error = new Error(data?.error || '処理を完了できませんでした。時間をおいて再度お試しください。');
+            const error = new Error(data?.error || '処理を完了できませんでした。時間をおいてもう一度お試しください。');
             error.status = res.status;
             error.functionName = name;
             throw error;
@@ -289,7 +289,7 @@ const CIQSupabaseAPI = {
         });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
-            const error = new Error(data?.error || '処理を完了できませんでした。時間をおいて再度お試しください。');
+            const error = new Error(data?.error || '処理を完了できませんでした。時間をおいてもう一度お試しください。');
             error.status = res.status;
             error.functionName = name;
             throw error;
@@ -399,7 +399,7 @@ const CIQSupabaseAPI = {
 
     async createEntry(payload) {
         const data = await this.invokePublicFunction('create-entry', payload);
-        if (!data?.ok) throw new Error(data?.error || 'エントリーを完了できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || 'エントリーを完了できませんでした。時間をおいてもう一度お試しください。');
         return data.entry;
     },
 
@@ -412,7 +412,7 @@ const CIQSupabaseAPI = {
             if (error.status !== 401 && !message.includes('Googleログイン')) throw error;
             data = await this.invokePublicFunction('create-entry', payload);
         }
-        if (!data?.ok) throw new Error(data?.error || 'エントリーを完了できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || 'エントリーを完了できませんでした。時間をおいてもう一度お試しください。');
         return data.entry;
     },
 
@@ -427,7 +427,7 @@ const CIQSupabaseAPI = {
             ? { ...payload, token: String(payload.token) }
             : payload;
         const data = await this.invokePublicFunction('cancel-entry', normalizedPayload);
-        if (!data?.ok) throw new Error(data?.error || 'キャンセルできませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || 'キャンセルできませんでした。時間をおいてもう一度お試しください。');
         return data;
     },
 
@@ -436,26 +436,26 @@ const CIQSupabaseAPI = {
             ? { ...payload, token: String(payload.token) }
             : payload;
         const data = await this.invokePublicFunction('disclose-result', normalizedPayload);
-        if (!data?.ok) throw new Error(data?.error || '成績を取得できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || '成績を取得できませんでした。時間をおいてもう一度お試しください。');
         return data;
     },
 
     async editEntry(payload) {
         const data = await this.invokePublicFunction('edit-entry', payload);
-        if (!data?.ok) throw new Error(data?.error || 'エントリー内容を更新できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || 'エントリー内容を更新できませんでした。時間をおいてもう一度お試しください。');
         return data;
     },
 
     async markLate(payload) {
         const data = await this.invokePublicFunction('mark-late', payload);
-        if (!data?.ok) throw new Error(data?.error || '遅刻の連絡を送信できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || '遅刻の連絡を送信できませんでした。時間をおいてもう一度お試しください。');
         return data;
     },
 
     // マイエントリー(my.html): 認証 + サマリー + 二次元コード + セッショントークン
     async myEntry(payload) {
         const data = await this.invokePublicFunction('my-entry', payload);
-        if (!data?.ok) throw new Error(data?.error || 'エントリー情報を取得できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || 'エントリー情報を取得できませんでした。時間をおいてもう一度お試しください。');
         return data;
     },
 
@@ -475,7 +475,7 @@ const CIQSupabaseAPI = {
             projectId,
             qr,
         });
-        if (!data?.ok) throw new Error(data?.error || '受付できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || '受付できませんでした。時間をおいてもう一度お試しください。');
         return data;
     },
 
@@ -487,7 +487,7 @@ const CIQSupabaseAPI = {
             projectId,
             entryNumber,
         });
-        if (!data?.ok) throw new Error(data?.error || '照会できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || '照会できませんでした。時間をおいてもう一度お試しください。');
         return data.entry;
     },
 
@@ -499,7 +499,7 @@ const CIQSupabaseAPI = {
             entryNumber,
             confirmedEntryId,
         });
-        if (!data?.ok) throw new Error(data?.error || '受付できませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || '受付できませんでした。時間をおいてもう一度お試しください。');
         return data;
     },
 
@@ -511,7 +511,7 @@ const CIQSupabaseAPI = {
             entryNumber,
             confirmedEntryId,
         });
-        if (!data?.ok) throw new Error(data?.error || '受付を取り消せませんでした。時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || '受付を取り消せませんでした。時間をおいてもう一度お試しください。');
         return data;
     },
 
@@ -527,7 +527,7 @@ const CIQSupabaseAPI = {
     // 招待リンクを引き換えて採点者として参加する。
     async redeemScorerInvite(token) {
         const data = await this.invokeAuthedFunction('redeem-scorer-invite', { token });
-        if (!data?.ok) throw new Error(data?.error || '参加できませんでした。運営に新しい招待リンクを依頼するか、時間をおいて再度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || '参加できませんでした。運営に新しい招待リンクを依頼するか、時間をおいてもう一度お試しください。');
         return data;
     },
 
@@ -556,7 +556,7 @@ const CIQSupabaseAPI = {
             projectId,
             privateKeyJwk,
         });
-        if (!data?.ok) throw new Error(data?.error || 'プロジェクトの鍵を保存できませんでした。');
+        if (!data?.ok) throw new Error(data?.error || '大会の鍵を保存できませんでした。');
         return data;
     },
 
@@ -565,7 +565,7 @@ const CIQSupabaseAPI = {
             action: 'fetch',
             projectId,
         });
-        if (!data?.ok || !data.privateKeyJwk) throw new Error(data?.error || 'プロジェクトの鍵を取得できませんでした。');
+        if (!data?.ok || !data.privateKeyJwk) throw new Error(data?.error || '大会の鍵を取得できませんでした。');
         return data.privateKeyJwk;
     },
 
@@ -587,7 +587,7 @@ const CIQSupabaseAPI = {
             })
             .single();
         if (error) {
-            if (error.code === '23505') throw new Error(`プロジェクト "${payload.projectId}" は既に存在します。別の回数を指定してください。`);
+            if (error.code === '23505') throw new Error(`大会 "${payload.projectId}" は既に存在します。別の回数を指定してください。`);
             if (String(error.message || '').includes('作成できません')) throw new Error('このアカウントでは大会を作成できません。');
             throw error;
         }

@@ -123,7 +123,7 @@ describe('IDX-11 一覧の読み込み失敗', () => {
   const js = read('js/index.js');
 
   it('失敗の表示は消さずに残し、次の行動を書く。読み込めたら消す', () => {
-    expect(js).toMatch(/showError\('プロジェクトを読み込めませんでした。時間をおいて、ページを再読み込みしてください。', true\)/);
+    expect(js).toMatch(/showError\('参加している大会を読み込めませんでした。時間をおいて、ページを再読み込みしてください。', true\)/);
     expect(js).toMatch(/if \(projectListLoadFailed\) \{\s*projectListLoadFailed = false;\s*clearPageMessage/);
     // 0件で早く抜ける前に消す（0件でも「読み込めた」）
     expect(js.indexOf('projectListLoadFailed = false')).toBeLessThan(js.indexOf('if (projects.length === 0)'));
@@ -132,7 +132,7 @@ describe('IDX-11 一覧の読み込み失敗', () => {
 
 describe('JOIN 採点者の参加の文言', () => {
   it('想定外のときの文言にも、次の行動を書く', () => {
-    expect(read('js/supabase_api.js')).toMatch(/参加できませんでした。運営に新しい招待リンクを依頼するか、時間をおいて再度お試しください。/);
+    expect(read('js/supabase_api.js')).toMatch(/参加できませんでした。運営に新しい招待リンクを依頼するか、時間をおいてもう一度お試しください。/);
   });
 
   it('サーバーが返す使えない理由は、日本語で運営への連絡を案内する', () => {

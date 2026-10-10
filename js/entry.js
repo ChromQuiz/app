@@ -242,7 +242,7 @@ async function resendVerification() {
     CIQTurnstile.reset('turnstile-verify');
 
     if (!result || !result.success) {
-        showVerifyMsg(result?.error || '認証コードを再送信できませんでした。時間をおいて再度お試しください。', 'error');
+        showVerifyMsg(result?.error || '認証コードを再送信できませんでした。時間をおいてもう一度お試しください。', 'error');
         resendBtn.disabled = false;
         setEntryButton(resendBtn, '再送信', 'rotate-right');
         return;
@@ -267,7 +267,7 @@ async function sendVerification() {
         return;
     }
     if (!isValidEmailAddress(email)) {
-        showVerifyMsg('正しいメールアドレスを入力してください。全角の文字や空白が入っていないかご確認ください。', 'error');
+        showVerifyMsg('正しいメールアドレスを入力してください。全角の文字や空白が入っていないか確認してください。', 'error');
         return;
     }
 
@@ -283,7 +283,7 @@ async function sendVerification() {
     CIQTurnstile.reset('turnstile-verify');
 
     if (!result || !result.success) {
-        showVerifyMsg(result?.error || '認証コードを送信できませんでした。メールアドレスをご確認のうえ、時間をおいて再度お試しください。', 'error');
+        showVerifyMsg(result?.error || '認証コードを送信できませんでした。メールアドレスを確認して、時間をおいてもう一度お試しください。', 'error');
         btn.disabled = false;
         setEntryButton(btn, '認証コードを送信', 'paper-plane');
         return;
@@ -321,7 +321,7 @@ async function verifyEmailCode() {
     const result = await CIQEmail.verifyCode(email, code, verifySignature, verifyExpiresAt, projectId);
     if (!result.verified || !result.emailVerifiedToken) {
         clearEmailVerification();
-        showVerifyMsg('認証コードが正しくないか、有効期限が切れています。入力内容をご確認いただくか、認証コードを再送信してください。', 'error');
+        showVerifyMsg('認証コードが正しくないか、有効期限が切れています。入力し直すか、認証コードを再送信してください。', 'error');
         btn.disabled = false;
         setEntryButton(btn, '認証する', 'check-circle');
         return;
@@ -340,7 +340,7 @@ async function verifyEmailCode() {
     document.getElementById('verified-email').textContent = email;
 
     sessionTimer = setTimeout(() => {
-        returnToEmailVerification('セッションの有効期限が切れました。再度メール認証を行ってください。');
+        returnToEmailVerification('セッションの有効期限が切れました。もう一度メール認証を行ってください。');
     }, SESSION_TIMEOUT);
 }
 
@@ -426,7 +426,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
         return;
     }
     if (!isValidEmailAddress(email)) {
-        showStatus('正しいメールアドレスを入力してください。全角の文字や空白が入っていないかご確認ください。', 'error');
+        showStatus('正しいメールアドレスを入力してください。全角の文字や空白が入っていないか確認してください。', 'error');
         return;
     }
 
@@ -505,7 +505,7 @@ document.getElementById('entry-form').addEventListener('submit', async (e) => {
             returnToEmailVerification(err.message);
             return;
         }
-        showStatus(known ? err.message : 'エントリーを送信できませんでした。時間をおいて再度お試しください。', 'error');
+        showStatus(known ? err.message : 'エントリーを送信できませんでした。時間をおいてもう一度お試しください。', 'error');
     }
 });
 
@@ -598,7 +598,7 @@ async function init() {
     } catch (e) {
         // 参加者向けの画面なので、内部のエラー文は出さずコンソールにだけ残す。
         console.error(e);
-        showDisabled('大会情報を読み込めませんでした', '時間をおいて再度お試しください。');
+        showDisabled('大会情報を読み込めませんでした', '時間をおいてもう一度お試しください。');
     }
 }
 

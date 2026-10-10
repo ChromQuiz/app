@@ -395,7 +395,7 @@ function verificationEmail(projectNameValue: string, code: string, purpose = 'en
     html: shell('認証コード', projectNameValue, `
       <p class="ciq-mail-copy" style="margin:0;text-align:left;color:${MAIL.text};">${lead}</p>
       ${numberCard('認証コード', code)}
-      <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダもご確認ください。心当たりがない場合は、このメールを破棄してください。</p>
+      <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。心当たりがない場合は、このメールを破棄してください。</p>
     `),
     text: [
       lead,
@@ -619,7 +619,7 @@ Deno.serve(withCors(async (req) => {
     // 画面側(normalizeEmailInput)と同じく NFKC で全角を半角に直してから検証・ハッシュする
     const normalizedEmail = String(to).normalize('NFKC').trim().toLowerCase();
     if (!isValidEmailAddress(normalizedEmail)) {
-      return jsonResponse({ error: 'メールアドレスの形式が正しくありません。全角の文字や空白が入っていないかご確認ください。' }, 400);
+      return jsonResponse({ error: 'メールアドレスの形式が正しくありません。全角の文字や空白が入っていないか確認してください。' }, 400);
     }
     // 宛先所有確認(assertEntryRecipient)は生の sha256 を入力にする(内部で pepper 化して v2 と照合)。
     const recipientHash = await sha256Hex(normalizedEmail);
@@ -704,7 +704,7 @@ Deno.serve(withCors(async (req) => {
         return jsonResponse({ error: tokenError }, 401);
       }
       const supabase = createServiceClient();
-      await enforceIpRateLimit(supabase, { bucket: 'participant_auth', ip: clientIp(req), projectId: effectiveProjectId, message: '操作の回数が上限に達しました。時間をおいて再度お試しください。' });
+      await enforceIpRateLimit(supabase, { bucket: 'participant_auth', ip: clientIp(req), projectId: effectiveProjectId, message: '操作の回数が上限に達しました。時間をおいてもう一度お試しください。' });
       const project = await getProjectForMail(supabase, effectiveProjectId);
 
       const password = generatePassword();
@@ -795,11 +795,11 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof TurnstileConfigError) {
       console.error('[send-email] turnstile secret is not configured');
-      return jsonResponse({ error: 'ただいまメールを送信できません。時間をおいて再度お試しください。' }, error.status);
+      return jsonResponse({ error: 'ただいまメールを送信できません。時間をおいてもう一度お試しください。' }, error.status);
     }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Too many email requests')) {
-      return jsonResponse({ error: 'メールの送信回数が上限に達しました。時間をおいて再度お試しください。' }, 429);
+      return jsonResponse({ error: 'メールの送信回数が上限に達しました。時間をおいてもう一度お試しください。' }, 429);
     }
     // 受付状態は参加者が取れる行動(待つ・運営に確認する)が違うため、汎用 500 に丸めずに伝える。
     if (message.includes('Entry is closed')) {
@@ -812,7 +812,7 @@ Deno.serve(withCors(async (req) => {
       return jsonResponse({ error: 'エントリーの受付は終了しました。' }, 409);
     }
     if (message.includes('Project not found')) {
-      return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
+      return jsonResponse({ error: '大会が見つかりません。URLを確認してください。' }, 404);
     }
     if (message.includes('Missing entry verification fields')) {
       return jsonResponse({ error: 'メール送信に必要なエントリー確認情報が不足しています。ページを再読み込みしてからもう一度お試しください。' }, 400);
@@ -826,9 +826,9 @@ Deno.serve(withCors(async (req) => {
     if (message.startsWith('Brevo send failed') || message.startsWith('SES send failed')) {
       console.error(`[send-email] provider rejected the message: ${message.slice(0, 120)}`);
       if (/ 400 /.test(message) && /not valid|invalid/i.test(message)) {
-        return jsonResponse({ error: 'このメールアドレスには送信できません。メールアドレスをご確認ください。' }, 400);
+        return jsonResponse({ error: 'このメールアドレスには送信できません。メールアドレスを確認してください。' }, 400);
       }
-      return jsonResponse({ error: 'メールを送信できませんでした。時間をおいて再度お試しください。解決しない場合は運営にお問い合わせください。' }, 502);
+      return jsonResponse({ error: 'メールを送信できませんでした。時間をおいてもう一度お試しください。解決しない場合は運営にお問い合わせください。' }, 502);
     }
     return serverErrorResponse(error, 'send-email');
   }

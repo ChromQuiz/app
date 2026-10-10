@@ -191,7 +191,7 @@ describe('MAIL-08 宛先の確認 / MAIL-09 制限 / 記録', () => {
     for (let i = 0; i < 10; i += 1) db.tables.email_events.push({ id: `p${i}`, recipient_hash: logHash, template: 'entry_edited', status: 'sent', created_at: now });
     const r = await send(call, 'entry_edited', {});
     expect(r.status).toBe(429);
-    expect(r.json.error).toBe('メールの送信回数が上限に達しました。時間をおいて再度お試しください。');
+    expect(r.json.error).toBe('メールの送信回数が上限に達しました。時間をおいてもう一度お試しください。');
     expect(sent.length).toBe(0);
     // 別の種類は数えない
     expect((await send(call, 'late_notice', {})).status).toBe(200);

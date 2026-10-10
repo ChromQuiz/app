@@ -19,7 +19,7 @@ describe('送信（js/entry.js）', () => {
   });
 
   it('29分のリセットも、同じ「本人確認に戻る」処理を使う', () => {
-    expect(entry).toMatch(/returnToEmailVerification\('セッションの有効期限が切れました。再度メール認証を行ってください。'\)/);
+    expect(entry).toMatch(/returnToEmailVerification\('セッションの有効期限が切れました。もう一度メール認証を行ってください。'\)/);
   });
 
   it('確認メールを送れなかったことを、完了画面で伝える（パスワードはこのメールにしか載らない）', () => {
@@ -30,7 +30,7 @@ describe('送信（js/entry.js）', () => {
 
   it('失敗したら Turnstile をリセットし、ボタンを戻す。内部の例外は汎用の文言にする', () => {
     expect(entry).toMatch(/CIQTurnstile\.reset\('turnstile-entry'\);\s*btn\.disabled = false;/);
-    expect(entry).toMatch(/エントリーを送信できませんでした。時間をおいて再度お試しください。/);
+    expect(entry).toMatch(/エントリーを送信できませんでした。時間をおいてもう一度お試しください。/);
   });
 });
 

@@ -393,7 +393,7 @@ function requireAuth(opts = {}) {
         document.body.textContent = '';
         const message = document.createElement('div');
         message.className = 'auth-redirect';
-        message.textContent = '管理者としてプロジェクトに入室してください。3秒後にトップページへ戻ります。';
+        message.textContent = '管理者として大会に入室してください。3秒後にトップページへ戻ります。';
         document.body.appendChild(message);
         setTimeout(() => location.href = 'index.html', 3000);
         return null;

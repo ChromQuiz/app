@@ -47,7 +47,7 @@
             setStatus(INVALID_LINK_MESSAGE, 'error');
             return;
         }
-        setStatus('参加処理を行っています。');
+        setStatus('参加しています…');
         try {
             const result = await CIQSupabaseAPI.redeemScorerInvite(t);
             try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* noop */ }
@@ -83,7 +83,7 @@
                 await CIQSupabaseAPI.signInWithGoogle();
             } catch (e) {
                 setSigninBusy(false);
-                setStatus('Googleログインを開始できませんでした。時間をおいて再度お試しください。' + `（詳細：${errorDetail(e)}）`, 'error');
+                setStatus('Googleログインを開始できませんでした。時間をおいてもう一度お試しください。' + `（詳細：${errorDetail(e)}）`, 'error');
             }
         });
 
@@ -92,7 +92,7 @@
             return;
         }
         if (!window.CIQSupabaseAPI?.isEnabled?.()) {
-            setStatus('サーバーに接続できません。時間をおいて再度お試しください。', 'error');
+            setStatus('サーバーに接続できません。時間をおいてもう一度お試しください。', 'error');
             return;
         }
 

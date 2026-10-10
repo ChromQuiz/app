@@ -47,7 +47,7 @@ Deno.serve(withCors(async (req) => {
       .select('id, disclosure_enabled, disclosure_period_start, disclosure_period_end, question_count')
       .eq('id', projectId)
       .single();
-    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLをご確認ください。' }, 404);
+    if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLを確認してください。' }, 404);
     if (!project.disclosure_enabled) return jsonResponse({ error: '成績照会は現在利用できません。' }, 403);
     const now = Date.now();
     if (project.disclosure_period_start && new Date(project.disclosure_period_start).getTime() > now) {
@@ -130,7 +130,7 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof SigningConfigError) {
       console.error('[disclose-result] signing secret is not configured');
-      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいて再度お試しください。' }, 503);
+      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
     }
     return serverErrorResponse(error, 'disclose-result');
   }

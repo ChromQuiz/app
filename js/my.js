@@ -341,7 +341,7 @@ async function sendResetCode(isResend) {
     input.value = email;
     if (!email) { setMsg('reset-msg', 'メールアドレスを入力してください。', 'error'); return; }
     if (!isValidEmailAddress(email)) {
-        setMsg('reset-msg', '正しいメールアドレスを入力してください。全角の文字や空白が入っていないかご確認ください。', 'error');
+        setMsg('reset-msg', '正しいメールアドレスを入力してください。全角の文字や空白が入っていないか確認してください。', 'error');
         return;
     }
     const btn = el(isResend ? 'reset-resend-btn' : 'reset-send-btn');
@@ -356,7 +356,7 @@ async function sendResetCode(isResend) {
     CIQTurnstile.reset('turnstile-reset');
 
     if (!result || !result.success) {
-        setMsg('reset-msg', result?.error || '認証コードを送信できませんでした。時間をおいて再度お試しください。', 'error');
+        setMsg('reset-msg', result?.error || '認証コードを送信できませんでした。時間をおいてもう一度お試しください。', 'error');
         btn.disabled = false;
         if (isResend) setResetButton(btn, '再送信', 'rotate-right');
         else setResetButton(btn, '認証コードを送信', 'paper-plane');
@@ -384,7 +384,7 @@ async function verifyAndReset() {
     try {
         const verified = await CIQEmail.verifyCode(resetEmail, code, resetSignature, resetExpiresAt, projectId);
         if (!verified.verified) {
-            setMsg('reset-msg', '認証コードが正しくないか、有効期限が切れています。入力内容をご確認ください。', 'error');
+            setMsg('reset-msg', '認証コードが正しくないか、有効期限が切れています。入力内容を確認してください。', 'error');
             setResetCode('');
             focusResetBox(0);
             return;
@@ -392,7 +392,7 @@ async function verifyAndReset() {
         const name = projectSettings?.projectName || projectId;
         const sent = await CIQEmail.resetPassword(resetEmail, name, name + ' 実行委員会', verified.emailVerifiedToken, projectId);
         if (!sent.success) {
-            setMsg('reset-msg', sent.error || 'パスワードを再発行できませんでした。時間をおいて再度お試しください。', 'error');
+            setMsg('reset-msg', sent.error || 'パスワードを再発行できませんでした。時間をおいてもう一度お試しください。', 'error');
             return;
         }
         // 新しいパスワードは画面に出さない。エントリー時と同じく、メールで届ける。
@@ -402,7 +402,7 @@ async function verifyAndReset() {
         el('f-password').value = '';
         setMsg('auth-msg', `新しいパスワードを ${doneEmail} に送信しました。メールを確認して、ログインしてください。`, 'success');
     } catch (err) {
-        setMsg('reset-msg', describeError(err, 'パスワードを再発行できませんでした。時間をおいて再度お試しください。'), 'error');
+        setMsg('reset-msg', describeError(err, 'パスワードを再発行できませんでした。時間をおいてもう一度お試しください。'), 'error');
     } finally {
         btn.disabled = false;
         setResetButton(btn, '認証してパスワードを再発行', 'check-circle');
@@ -646,7 +646,7 @@ async function saveEdit(event) {
         if (mailSent) showToast('エントリー内容を更新しました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('edit-msg', describeError(err, '保存できませんでした。時間をおいて再度お試しください。'), 'error');
+        setMsg('edit-msg', describeError(err, '保存できませんでした。時間をおいてもう一度お試しください。'), 'error');
     } finally {
         setBusy(btn, false, '変更を保存する');
     }
@@ -678,7 +678,7 @@ async function markLate() {
         if (mailSent) showToast('遅刻の連絡を受け付けました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('late-msg', describeError(err, '遅刻の連絡を送信できませんでした。時間をおいて再度お試しください。'), 'error');
+        setMsg('late-msg', describeError(err, '遅刻の連絡を送信できませんでした。時間をおいてもう一度お試しください。'), 'error');
     } finally {
         setBusy(btn, false, '遅刻を連絡する');
     }
@@ -713,7 +713,7 @@ async function cancelEntry() {
         if (mailSent) showToast('エントリーをキャンセルしました。', 'success');
         await loadHub();
     } catch (err) {
-        setMsg('cancel-msg', describeError(err, 'キャンセルできませんでした。時間をおいて再度お試しください。'), 'error');
+        setMsg('cancel-msg', describeError(err, 'キャンセルできませんでした。時間をおいてもう一度お試しください。'), 'error');
     } finally {
         setBusy(btn, false, 'エントリーをキャンセルする');
     }
@@ -734,7 +734,7 @@ async function viewResult() {
         hideEl(btn);
     } catch (e) {
         // サーバーの理由(成績照会の対象外・期間外など)は日本語で返るので、そのまま見せる
-        setMsg('result-msg', describeError(e, '成績を取得できませんでした。時間をおいて再度お試しください。'), 'error');
+        setMsg('result-msg', describeError(e, '成績を取得できませんでした。時間をおいてもう一度お試しください。'), 'error');
     } finally {
         setBusy(btn, false, '成績を表示する');
     }

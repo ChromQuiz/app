@@ -49,7 +49,7 @@ Deno.serve(withCors(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (message === 'Forbidden') {
-      return jsonResponse({ error: 'このプロジェクトの二次元コードを取得する権限がありません。' }, 403);
+      return jsonResponse({ error: 'この大会の二次元コードを取得する権限がありません。' }, 403);
     }
     if (message === 'Authentication required') {
       return jsonResponse({ error: 'Googleログインが必要です。' }, 401);

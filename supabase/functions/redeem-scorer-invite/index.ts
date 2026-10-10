@@ -85,7 +85,7 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
     if (error instanceof SigningConfigError) {
       console.error('[redeem-scorer-invite] signing secret is not configured');
-      return jsonResponse({ error: '現在ご参加いただけません。時間をおいて再度お試しください。' }, 503);
+      return jsonResponse({ error: '現在ご参加いただけません。時間をおいてもう一度お試しください。' }, 503);
     }
     return serverErrorResponse(error, 'redeem-scorer-invite');
   }
