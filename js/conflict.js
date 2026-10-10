@@ -4,12 +4,6 @@ const auth = requireAuth({ requireAdmin: true });
 if (!auth) throw new Error('auth');
 const { projectId } = auth;
 
-let project = null;
-let answerPages = [];
-let modelAnswers = {};
-let scoreVotes = [];
-let finalResults = [];
-let questionScorers = [];
 let serverConflictRows = null;
 let currentConflicts = [];
 let selectedIndex = 0;
@@ -22,7 +16,6 @@ const CONFLICT_IMAGE_CROP_CONCURRENCY = 12;
 const BACKGROUND_CONFLICT_IMAGE_BATCH = 24;
 let conflictBackgroundPreloadToken = 0;
 let lastConflictRenderSignature = '';
-let scoreConflictRpcAvailable = true;
 let conflictRefreshTimer = null;
 let conflictRefreshPromise = null;
 let shouldResetConflictSelection = true;
@@ -83,7 +76,7 @@ function getConflictGridColumnCount(grid) {
 function getMedianConflictAspect(conflicts) {
     const aspects = conflicts
         .map(conflict => {
-            const region = conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`] || null;
+            const region = conflict.cellRegion || null;
             const width = Number(region?.w || 0);
             const height = Number(region?.h || 0);
             return width > 0 && height > 0 ? height / width : 0;
@@ -148,7 +141,10 @@ async function init() {
 
 function startConflictRefreshTimer() {
     if (conflictRefreshTimer || document.hidden) return;
-    conflictRefreshTimer = setInterval(refreshData, 5000);
+    conflictRefreshTimer = setInterval(() => {
+        // 一時的な失敗は、いま出ている一覧のままにして、次の更新で取り直す
+        refreshData().catch((error) => console.warn('要確認の更新に失敗:', error));
+    }, 5000);
 }
 
 function stopConflictRefreshTimer() {
@@ -165,148 +161,24 @@ async function refreshData() {
     return conflictRefreshPromise;
 }
 
+// 要確認の一覧は、サーバー(list_score_conflicts)の定義だけで決める。取得できなかったときに、
+// 画面側で別の計算に切り替えない(受付済みの人だけを数えるなど、サーバーの定義とずれるため)。
 async function refreshDataInternal() {
     const startedAt = performance.now();
-    if (scoreConflictRpcAvailable) {
-        try {
-            serverConflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);
-            const dataMs = Math.round(performance.now() - startedAt);
-            const renderStartedAt = performance.now();
-            await render();
-            logPerf('conflictRefresh', {
-                conflicts: currentConflicts.length,
-                dataMs,
-                renderMs: Math.round(performance.now() - renderStartedAt),
-                totalMs: Math.round(performance.now() - startedAt),
-                source: 'rpc',
-            });
-            return;
-        } catch (error) {
-            scoreConflictRpcAvailable = false;
-            serverConflictRows = null;
-            console.warn('Score conflict RPC unavailable; falling back to client calculation.', error);
-        }
-    }
-
-    const [
-        projectRow,
-        pages,
-        modelRows,
-        votes,
-        finals,
-        scorers,
-    ] = await Promise.all([
-        project ? Promise.resolve(project) : CIQSupabaseAPI.getProject(projectId),
-        CIQSupabaseAPI.listAnswerPages(projectId),
-        CIQSupabaseAPI.listModelAnswers(projectId),
-        CIQSupabaseAPI.listScoreVotes(projectId),
-        CIQSupabaseAPI.listFinalResults(projectId),
-        CIQSupabaseAPI.listQuestionScorers(projectId),
-    ]);
+    serverConflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);
     const dataMs = Math.round(performance.now() - startedAt);
-
-    project = projectRow;
-    answerPages = pages;
-    scoreVotes = votes;
-    finalResults = finals;
-    questionScorers = scorers;
-    modelAnswers = {};
-    for (const row of modelRows) {
-        modelAnswers[row.question_number] = { answer: row.answer || '', altAnswers: row.altAnswers || [] };
-    }
-
     const renderStartedAt = performance.now();
     await render();
     logPerf('conflictRefresh', {
-        pages: answerPages.length,
-        votes: scoreVotes.length,
         conflicts: currentConflicts.length,
         dataMs,
         renderMs: Math.round(performance.now() - renderStartedAt),
         totalMs: Math.round(performance.now() - startedAt),
-        source: 'client',
     });
 }
 
-function getEntryMeta(page) {
-    const entry = page.entries || {};
-    const entryNumber = Number(entry.entry_number || 0);
-    return {
-        entryId: page.entry_id,
-        entryNumber,
-        displayName: `No.${String(entryNumber).padStart(3, '0')}`,
-        affiliation: entry.affiliation || '',
-        grade: entry.grade || '',
-        storagePath: page.storage_path || '',
-        cellRegions: page.cells?.regions || {},
-        pageWidth: Number(page.cells?.pageWidth || 0) || null,
-        cellGeneration: page.cells?.cellGeneration || null,
-    };
-}
-
 function buildConflicts() {
-    if (serverConflictRows) return serverConflictRows;
-
-    const conflicts = [];
-    const required = Number(project?.required_scorers || 3);
-    const totalQuestions = Number(project?.question_count || 100);
-    const completedByQuestion = new Map();
-    const pagesMeta = answerPages
-        .map(getEntryMeta)
-        .filter(meta => meta.entryId && meta.entryNumber);
-    const votesByQuestionEntry = new Map();
-    const finalsByQuestionEntry = new Map();
-
-    for (const scorer of questionScorers) {
-        if (!scorer.completed_at) continue;
-        const q = Number(scorer.question_number);
-        completedByQuestion.set(q, (completedByQuestion.get(q) || 0) + 1);
-    }
-
-    for (const vote of scoreVotes) {
-        const q = Number(vote.question_number);
-        const key = `${q}:${vote.entry_id}`;
-        const list = votesByQuestionEntry.get(key) || [];
-        list.push(vote);
-        votesByQuestionEntry.set(key, list);
-    }
-
-    for (const finalResult of finalResults) {
-        const q = Number(finalResult.question_number);
-        finalsByQuestionEntry.set(`${q}:${finalResult.entry_id}`, finalResult);
-    }
-
-    for (let q = 1; q <= totalQuestions; q++) {
-        if ((completedByQuestion.get(q) || 0) < required) continue;
-
-        for (const meta of pagesMeta) {
-            const key = `${q}:${meta.entryId}`;
-            const votes = votesByQuestionEntry.get(key) || [];
-            let corrects = 0;
-            let wrongs = 0;
-            for (const vote of votes) {
-                if (vote.result === 'correct') corrects++;
-                if (vote.result === 'wrong') wrongs++;
-            }
-            const finalResult = finalsByQuestionEntry.get(key);
-
-            if (corrects >= required || wrongs >= required) continue;
-            conflicts.push({
-                q,
-                ...meta,
-                cellStatus: CIQSupabaseAPI.getCellStatus({ cellGeneration: meta.cellGeneration }, q),
-                cellPath: CIQSupabaseAPI.getCellStatus({ cellGeneration: meta.cellGeneration }, q)
-                    ? CIQSupabaseAPI.getAnswerCellPath(projectId, meta.entryNumber, q)
-                    : null,
-                cellGenerationVersion: meta.cellGeneration?.version || null,
-                votes,
-                finalResult: finalResult?.result || null,
-                modelAltAnswers: modelAnswers[q]?.altAnswers || [],
-            });
-        }
-    }
-
-    return conflicts.sort((a, b) => a.q - b.q || a.entryNumber - b.entryNumber);
+    return serverConflictRows || [];
 }
 
 function getMissingConflictImageRequests(conflicts) {
@@ -317,7 +189,7 @@ function getMissingConflictImageRequests(conflicts) {
             questionNumber: conflict.q,
             entryId: conflict.entryId,
             storagePath: conflict.storagePath,
-            cellRegion: conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`] || null,
+            cellRegion: conflict.cellRegion || null,
             pageWidth: conflict.pageWidth,
             cellStatus: conflict.cellStatus || null,
             cellPath: conflict.cellPath || null,
@@ -337,7 +209,7 @@ function getConflictRenderSignature(conflicts) {
             conflict.entryNumber,
             conflict.finalResult || '',
             (conflict.modelAltAnswers || []).join('/'),
-            conflict.modelAnswer || modelAnswers[conflict.q] || '',
+            conflict.modelAnswer || '',
             votes,
         ].join(':');
     }).join('|');
@@ -474,9 +346,8 @@ function createConflictCard(conflict, idx) {
     // cellUrlCache の状態: undefined=未取得 / null=取得中 / ''=取得済みで画像なし / 文字列=URL。
     // null を「取得済み」と数えると、取得中のカードに「画像がありません」と出てしまう。
     const isResolved = typeof cellUrl === 'string';
-    const modelRecord = modelAnswers[conflict.q];
-    const modelAnswer = conflict.modelAnswer || modelRecord?.answer || '';
-    const modelAlts = conflict.modelAltAnswers?.length ? conflict.modelAltAnswers : (modelRecord?.altAnswers || []);
+    const modelAnswer = conflict.modelAnswer || '';
+    const modelAlts = conflict.modelAltAnswers || [];
 
     const card = document.createElement('div');
     card.className = `answer-card conflict-card ${conflict.finalResult ? 'resolved ' + conflict.finalResult : ''} ${idx === selectedIndex ? 'selected' : ''}`;
@@ -500,7 +371,7 @@ function createConflictCard(conflict, idx) {
         const icon = createIcon('clock');
         expired.append(icon, isResolved ? ' 画像がありません' : ' 画像を読み込み中');
         card.appendChild(expired);
-        if (!isResolved && conflict.storagePath && (conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`])) {
+        if (!isResolved && conflict.storagePath && conflict.cellRegion) {
             observeConflictImage(card, conflict);
         }
     }
@@ -600,7 +471,7 @@ function queueConflictImage(conflict) {
         entryNumber: conflict.entryNumber,
         questionNumber: conflict.q,
         storagePath: conflict.storagePath,
-        cellRegion: conflict.cellRegion || conflict.cellRegions?.[`q${conflict.q}`] || null,
+        cellRegion: conflict.cellRegion || null,
         pageWidth: conflict.pageWidth,
         cellStatus: conflict.cellStatus || null,
         cellPath: conflict.cellPath || null,
@@ -721,30 +592,13 @@ function scheduleBackgroundConflictImages(conflicts, startIndex) {
 // (以前は書き込み完了まで何も変わらず、そのうえ全件再取得していた)
 function applyLocalFinalResult(q, entryId, result) {
     const questionNumber = Number(q);
-    if (serverConflictRows) {
-        const row = serverConflictRows.find(item => (
-            Number(item.q) === questionNumber && item.entryId === entryId
-        ));
-        if (!row) return () => {};
-        const previous = row.finalResult;
-        row.finalResult = result;
-        return () => { row.finalResult = previous; };
-    }
-
-    const index = finalResults.findIndex(item => (
-        Number(item.question_number) === questionNumber && item.entry_id === entryId
+    const row = (serverConflictRows || []).find(item => (
+        Number(item.q) === questionNumber && item.entryId === entryId
     ));
-    if (index >= 0) {
-        const previous = finalResults[index];
-        finalResults[index] = { ...previous, result };
-        return () => { finalResults[index] = previous; };
-    }
-    finalResults.push({ question_number: questionNumber, entry_id: entryId, result });
-    return () => {
-        finalResults = finalResults.filter(item => !(
-            Number(item.question_number) === questionNumber && item.entry_id === entryId
-        ));
-    };
+    if (!row) return () => {};
+    const previous = row.finalResult;
+    row.finalResult = result;
+    return () => { row.finalResult = previous; };
 }
 
 async function setFinal(q, entryId, result) {

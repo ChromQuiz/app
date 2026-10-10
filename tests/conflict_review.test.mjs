@@ -121,3 +121,20 @@ describe('判定の挙動が採点ページと揃っている', () => {
     expect(conflictSrc).not.toMatch(/setFinal\([^)]*\)\.then\(/);
   });
 });
+
+describe('要確認の一覧は、サーバーの定義だけで決める', () => {
+  it('取得できなかったときに、画面側で別の計算に切り替えない', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('../js/conflict.js', import.meta.url), 'utf8');
+    expect(src).not.toContain('scoreConflictRpcAvailable');
+    expect(src).not.toContain('falling back to client calculation');
+    expect(src).not.toMatch(/listScoreVotes|listFinalResults|listQuestionScorers|listAnswerPages|listModelAnswers/);
+    expect(src).toContain('serverConflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);');
+  });
+
+  it('自動更新の一時的な失敗は、いまの一覧を残して、次の更新で取り直す', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('../js/conflict.js', import.meta.url), 'utf8');
+    expect(src).toContain("refreshData().catch((error) => console.warn('要確認の更新に失敗:', error));");
+  });
+});
