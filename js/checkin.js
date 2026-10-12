@@ -67,13 +67,23 @@ if (auth) {
         }
     }
 
+    // 受付状況(済・未・計)は、参加者に見せない。運営だけが開く設定の中に出す
     async function loadStats() {
         const stats = await CIQSupabaseAPI.getCheckInStats(projectId);
-        document.getElementById('stat-total').textContent = stats.total || 0;
-        document.getElementById('stat-checked').textContent = stats.checked || 0;
-        document.getElementById('stat-remaining').textContent = stats.remaining || 0;
-        document.getElementById('stats-bar').classList.remove('u-hidden');
+        document.getElementById('checkin-tally').textContent = `済 ${stats.checked || 0}　未 ${stats.remaining || 0}　計 ${stats.total || 0}`;
     }
+
+    // ---- 運営だけが使う設定(右上の歯車) ----
+    const settings = document.getElementById('checkin-settings');
+    document.getElementById('checkin-settings-btn').addEventListener('click', () => {
+        settings.showModal();
+        loadStats().catch(() => {});
+    });
+    document.getElementById('checkin-settings-close').addEventListener('click', () => settings.close());
+    document.getElementById('checkin-camera-restart').addEventListener('click', async () => {
+        stopCamera();
+        await startCamera();
+    });
 
     async function startCamera() {
         if (cameraStartPromise) return cameraStartPromise;
@@ -131,6 +141,7 @@ if (auth) {
 
     async function attachCameraStream(stream) {
         cameraStream = stream;
+        setCameraState('使用中');
         video.autoplay = true;
         video.muted = true;
         video.playsInline = true;
@@ -180,6 +191,7 @@ if (auth) {
         scanFrameId = 0;
         cameraStream?.getTracks?.().forEach((track) => track.stop());
         cameraStream = null;
+        setCameraState('停止中');
         if (video.srcObject) video.srcObject = null;
     }
 
@@ -190,7 +202,13 @@ if (auth) {
         return `カメラを起動できませんでした。（詳細：${errorDetail(err)}）`;
     }
 
+    function setCameraState(text) {
+        const state = document.getElementById('checkin-camera-state');
+        if (state) state.textContent = text;
+    }
+
     function setScanMessage(message) {
+        setCameraState(message);
         scanningText.textContent = '';
         scanningText.append(makeIcon('triangle-exclamation'), ` ${message}`);
     }

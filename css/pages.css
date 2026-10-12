@@ -5424,7 +5424,7 @@ body.page-reader {
 }
 
 /* リーダーの設定(運営だけが使う。右上の歯車から開く) */
-.reader-settings {
+.checkin-settings {
   /* 全体の margin: 0 が、モーダルの中央寄せ(margin: auto)を打ち消すので、戻す */
   margin: auto;
   width: min(480px, calc(100vw - 32px));
@@ -5435,48 +5435,48 @@ body.page-reader {
   color: var(--ink);
 }
 
-.reader-settings::backdrop {
+.checkin-settings::backdrop {
   background: rgba(0, 0, 0, 0.5);
 }
 
-.reader-settings > h2 {
+.checkin-settings > h2 {
   margin-bottom: var(--block-gap);
   font-size: var(--text-heading);
   font-weight: 700;
 }
 
-.reader-settings-actions {
+.checkin-settings-actions {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--block-gap);
 }
 
-.reader-conn {
+.checkin-conn {
   display: grid;
   gap: var(--block-gap);
   margin: 0;
 }
 
-.reader-conn-row {
+.checkin-conn-row {
   display: grid;
   grid-template-columns: minmax(8em, auto) 1fr;
   align-items: baseline;
   gap: var(--sp-1) var(--sp-4);
 }
 
-.reader-conn-row dt {
+.checkin-conn-row dt {
   font-size: var(--text-small);
   font-weight: 600;
   color: var(--ink-2);
 }
 
-.reader-conn-row dd {
+.checkin-conn-row dd {
   margin: 0;
   font-size: var(--text-body);
   color: var(--ink);
 }
 
-.reader-conn-actions {
+.checkin-conn-actions {
   grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
@@ -5484,7 +5484,7 @@ body.page-reader {
   gap: var(--sp-3);
 }
 
-.reader-baud {
+.checkin-baud {
   display: inline-flex;
   white-space: nowrap;
   align-items: center;
@@ -5493,7 +5493,7 @@ body.page-reader {
   color: var(--ink-2);
 }
 
-.reader-conn-note {
+.checkin-conn-note {
   margin-top: var(--block-gap);
   font-size: var(--text-small);
   color: var(--ink-2);
@@ -5618,12 +5618,13 @@ body.page-reader {
 .checkin-result.is-neutral { --mark-bg: var(--surface-2); --mark-fg: var(--ink-2); }
 
 .checkin-result-title {
-  font-size: var(--text-title);
+  font-size: var(--text-numeral);
   font-weight: 700;
   color: var(--ink);
 }
 
-/* 受付番号は、離れた所からも読めるよう、大きく(役割の最大の大きさの2倍) */
+/* 受付番号は、離れた所からも読めるよう、大きく(役割の最大の大きさの1.75倍)。上の見出し・下の所属との差が開きすぎないよう、
+   見出し(numeral)・番号の見出しと所属(title)も、小さくしすぎない */
 .checkin-result-numberwrap {
   display: grid;
   gap: var(--sp-1);
@@ -5631,12 +5632,13 @@ body.page-reader {
 }
 
 .checkin-result-label {
-  font-size: var(--text-body);
+  font-size: var(--text-title);
+  font-weight: 600;
   color: var(--ink-2);
 }
 
 .checkin-result-number {
-  font-size: 2em;
+  font-size: 1.75em;
   font-family: var(--font-display);
   font-weight: 700;
   line-height: 1;
@@ -5646,7 +5648,8 @@ body.page-reader {
 }
 
 .checkin-result-detail {
-  font-size: var(--text-body);
+  font-size: var(--text-title);
+  font-weight: 600;
   color: var(--ink-2);
 }
 
