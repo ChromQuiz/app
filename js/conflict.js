@@ -336,7 +336,8 @@ async function render() {
         counter.textContent = `全${conflictList.length}件 確定済み`;
         counter.className = 'counter all-clear';
     } else {
-        counter.textContent = `${unresolvedCount} / ${conflictList.length}件`;
+        // 採点ページと同じく、済んだ件数 / 全件(確定した数)。残りの数ではない
+        counter.textContent = `${conflictList.length - unresolvedCount} / ${conflictList.length}件`;
         counter.className = 'counter has-conflicts';
     }
     document.getElementById('override-section').hidden = overrideList.length === 0;
