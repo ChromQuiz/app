@@ -5455,3 +5455,24 @@ body.page-question .answer-badge {
     display: none;
   }
 }
+
+/* 採点状況の3つの数字（総問題数・完了・要確認）は、スマホでも横に3つ並べる。縦に積むと長くなる。 */
+@media (max-width: 640px) {
+  body.page-admin .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-2);
+  }
+
+  body.page-admin .stat-card {
+    padding: 12px 8px;
+  }
+
+  body.page-admin .stat-num {
+    font-size: var(--fs-26);
+  }
+
+  body.page-admin .stat-label {
+    font-size: var(--fs-12);
+    white-space: nowrap;
+  }
+}
