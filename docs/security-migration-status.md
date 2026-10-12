@@ -1284,7 +1284,7 @@ Notes   : 補足・再構成の断り・要確認事項
 
 ## 1000件をこえる表の読み取り（2026-10-13）
 
-- Status: 画面は、公開後に有効。Edge Function `disclose-result` は、**デプロイ待ち**（利用者が実行する）。DB の変更なし。
+- Status: 画面は、公開後に有効。Edge Function `disclose-result` は、デプロイ済み（2026-10-13、利用者が実行。`_shared/select_all.ts` も上がった）。DB の変更なし。
 - 背景: サーバー（PostgREST）は、1回に最大1000件しか返さない。確定結果は、100問 × 100人超で1万件をこえる。管理者の画面（アナリティクス、CSV、採点済みPDF）と、成績照会が、1回で取っていたため、後ろの問題が黙って欠け、正答数・点数・順位が誤って出ていた（アナリティクスの10問目以降が「未確定」、9問目の正答数が低い、で気づいた）。
 - 内容: `listScoreVotes` / `listFinalResults`（`js/supabase_api.js`）と、`disclose-result`（`_shared/select_all.ts`）を、1000件ずつ取り直して、全部そろえる形にした。偽のDB（テスト用）も、1000件の上限を再現する。
 - Evidence: 確定結果1230件（1000件超）で成績照会が全問を数える Vitest。画面での確認は未実施。
