@@ -742,7 +742,7 @@ async function viewResult() {
 
 function renderResult(disc) {
     showEl(el('result-view'));
-    el('result-name').textContent = [`受付番号 ${String(disc.entryNumber ?? '').padStart(3, '0')}`, disc.affiliation, disc.grade].filter(Boolean).join(' · ');
+    setInlineParts(el('result-name'), [`受付番号 ${String(disc.entryNumber ?? '').padStart(3, '0')}`, disc.affiliation, disc.grade]);
     el('result-rank').textContent = disc.rank || '';
     el('result-score').textContent = disc.score;
 

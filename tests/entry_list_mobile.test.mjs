@@ -18,13 +18,14 @@ describe('エントリーリスト', () => {
   });
 
   it('スマホでは、所属と学年を1行にまとめた欄を使う（広い画面では出さない）', () => {
-    expect(js).toMatch(/metaTd\.textContent = \[e\.affiliation \|\| '', grade\]\.filter\(Boolean\)\.join\(' · '\)/);
+    expect(js).toMatch(/setInlineParts\(metaTd, \[e\.affiliation \|\| '', grade\]\)/);
     expect(css).toMatch(/\.entry-list-meta-cell \{\s*display: none;/);
     expect(css).toMatch(/"num name time"\s*"\.   meta meta"\s*"\.   msg  msg "/);
   });
 
-  it('区切りの見出しは、意味の単位ごとに折り返す', () => {
-    expect(js).toMatch(/appendDivider\(body, 'clock', \[`ここまで出場圏内\$\{capacityNote\}`, `— 以下キャンセル待ち/);
-    expect(css).toMatch(/\.entry-list-divider-part \{\s*display: inline-block;/);
+  it('区切りは、見出し・補足・人数を別々の要素に置く（記号でつながない）', () => {
+    expect(js).toMatch(/appendDivider\(body, 'map-pin', '中部地方', 'entry-list-divider-rule', '開始24時間以内'\)/);
+    expect(js).toMatch(/appendDivider\(body, 'clock', 'キャンセル待ち', 'entry-list-divider-warning', '', `\$\{waitlistCount\}名`\)/);
+    expect(css).toMatch(/\.entry-list-divider-note \{\s*display: block;/);
   });
 });

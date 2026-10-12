@@ -19,10 +19,10 @@
     <script defer src="js/supabase_client.js?v=2"></script>
     <script defer src="js/supabase_api.js?v=58"></script>
     <script defer src="js/icons.js?v=9"></script>
-    <script defer src="js/ui.js?v=33"></script>
+    <script defer src="js/ui.js?v=34"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=94">
-    <link rel="stylesheet" href="css/pages.css?v=155">
+    <link rel="stylesheet" href="css/pages.css?v=157">
 </head>
 <body class="page-wrapper page-entry-list">
     <div class="page-container full" role="main">
@@ -33,9 +33,16 @@
         </div>
 
         <div id="content-area" class="u-hidden">
-            <p class="entry-list-count" role="status" aria-live="polite">
-                <strong id="total-count">-</strong>名がエントリー<span id="entry-capacity"></span>
-            </p>
+            <div class="entry-list-count" role="status" aria-live="polite">
+                <div class="entry-list-stat">
+                    <span class="entry-list-stat-label">エントリー</span>
+                    <span class="entry-list-stat-value"><strong id="total-count">-</strong>名</span>
+                </div>
+                <div class="entry-list-stat u-hidden" id="capacity-stat">
+                    <span class="entry-list-stat-label">定員</span>
+                    <span class="entry-list-stat-value"><strong id="entry-capacity">-</strong>名</span>
+                </div>
+            </div>
 
             <div class="list-container">
                 <table>
@@ -64,6 +71,6 @@
 
     </div>
 
-    <script defer src="js/entry_list.js?v=21"></script>
+    <script defer src="js/entry_list.js?v=22"></script>
 </body>
 </html>

@@ -193,7 +193,7 @@ const params = new URLSearchParams(location.search);
             // スマホでは、所属と学年を1行にまとめて出す（広い画面では、上の2列を使う）
             const metaTd = document.createElement('td');
             metaTd.className = 'entry-list-meta-cell';
-            metaTd.textContent = [e.affiliation || '', grade].filter(Boolean).join(' · ');
+            setInlineParts(metaTd, [e.affiliation || '', grade]);
 
             tr.append(numberTd, timeTd, nameTd, affiliationTd, gradeTd, metaTd, messageTd);
             body.appendChild(tr);
@@ -203,53 +203,60 @@ const params = new URLSearchParams(location.search);
         const firstWaitlistIndex = ordered.findIndex(e => e._showWaitlist);
         ordered.forEach((entry, index) => {
             if (index === firstWaitlistIndex && waitlistCount > 0) {
-                const capacityNote = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
-                // 折り返すときは、意味の切れ目（「—」の前）で折り返す
-                appendDivider(body, 'clock', [`ここまで出場圏内${capacityNote}`, `— 以下キャンセル待ち ${waitlistCount}名`], 'entry-list-divider-warning');
+                appendDivider(body, 'clock', 'キャンセル待ち', 'entry-list-divider-warning', '', `${waitlistCount}名`);
             }
             if (hasPriorityWindow && index === 0 && earlyChubuCount > 0) {
-                appendDivider(body, 'map-pin', '中部地方 · 開始24時間以内', 'entry-list-divider-rule');
+                appendDivider(body, 'map-pin', '中部地方', 'entry-list-divider-rule', '開始24時間以内');
             }
             // 先頭の区分には「以降」を付けない（前の区分がないので）
             if (hasPriorityWindow && index === earlyChubuCount && earlyOtherCount > 0) {
-                appendDivider(body, 'map-pin', `${index === 0 ? '' : '以降 '}中部地方以外 · 開始24時間以内`, 'entry-list-divider-rule');
+                appendDivider(body, 'map-pin', '中部地方以外', 'entry-list-divider-rule', '開始24時間以内');
             }
             if (hasPriorityWindow && index === earlyChubuCount + earlyOtherCount && lateCount > 0) {
-                appendDivider(body, 'clock', `${index === 0 ? '' : '以降 '}開始24時間以降 · 先着順`, 'entry-list-divider-rule');
+                appendDivider(body, 'clock', '先着順', 'entry-list-divider-rule', '開始24時間以降');
             }
             renderRow(entry, entry._showWaitlist);
         });
 
         document.getElementById('total-count').textContent = ordered.length;
         const capacityEl = document.getElementById('entry-capacity');
-        if (capacityEl) capacityEl.textContent = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
+        if (capacityEl) capacityEl.textContent = maxEntries > 0 ? String(maxEntries) : '';
+        document.getElementById('capacity-stat')?.classList.toggle('u-hidden', !(maxEntries > 0));
     }
 
     function appendTableMessage(body, message) {
         const tr = document.createElement('tr');
         tr.className = 'entry-list-message-row';
         const td = document.createElement('td');
-        td.colSpan = 6;
+        td.colSpan = 7;
         td.className = 'entry-table-message';
         td.textContent = message;
         tr.appendChild(td);
         body.appendChild(tr);
     }
 
-    function appendDivider(body, iconClass, label, toneClass) {
+    // 区切りの見出し。見出し・補足・人数を、記号でつながず、別々の要素として配置する。
+    function appendDivider(body, iconClass, title, toneClass, note = '', count = '') {
         const divider = document.createElement('tr');
         divider.className = `entry-list-divider entry-list-message-row ${toneClass}`;
         const td = document.createElement('td');
-        td.colSpan = 6;
-        const icon = createIcon(iconClass);
-        td.append(icon);
-        // label は文字列か、折り返しの単位ごとの配列。単位の途中では折り返さない
-        (Array.isArray(label) ? label : [label]).forEach((part) => {
-            const span = document.createElement('span');
-            span.className = 'entry-list-divider-part';
-            span.textContent = part;
-            td.appendChild(span);
-        });
+        td.colSpan = 7;
+        const heading = document.createElement('span');
+        heading.className = 'entry-list-divider-title';
+        heading.append(createIcon(iconClass), title);
+        td.appendChild(heading);
+        if (note) {
+            const noteEl = document.createElement('span');
+            noteEl.className = 'entry-list-divider-note';
+            noteEl.textContent = note;
+            td.appendChild(noteEl);
+        }
+        if (count) {
+            const countEl = document.createElement('span');
+            countEl.className = 'entry-list-divider-count';
+            countEl.textContent = count;
+            td.appendChild(countEl);
+        }
         divider.appendChild(td);
         body.appendChild(divider);
     }

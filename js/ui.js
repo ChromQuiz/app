@@ -81,6 +81,25 @@ function bindPreviewGesture(card, open) {
     });
 }
 
+// 並べて見せたい短い情報（所属と学年、件数の内訳など）を、記号でつながず、別々の要素として並べる。
+// 間隔は CSS（.inline-parts の gap）で取る。空の項目は出さない。
+function setInlineParts(el, parts) {
+    if (!el) return;
+    el.textContent = '';
+    el.classList.add('inline-parts');
+    parts.filter((part) => part !== null && part !== undefined && String(part) !== '').forEach((part) => {
+        const span = document.createElement('span');
+        span.className = 'inline-part';
+        if (typeof part === 'object') {
+            if (part.className) span.classList.add(part.className);
+            span.textContent = part.text;
+        } else {
+            span.textContent = String(part);
+        }
+        el.appendChild(span);
+    });
+}
+
 async function showPreview(projectId, entryNum) {
     let overlay = document.getElementById('preview-overlay');
     if (!overlay) {
