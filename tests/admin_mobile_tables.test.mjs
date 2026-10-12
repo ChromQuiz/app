@@ -33,7 +33,7 @@ describe('運営画面', () => {
   it('しきい値の行の文字は、ほかの設定のラベルと同じ大きさ・濃さ。スマホでは見出しの下に入力部品を置く', () => {
     expect(html).toMatch(/<span class="config-row-label">正答数<\/span>/);
     expect(html).toMatch(/<span class="config-row-label">人以下をハイライト<\/span>/);
-    expect(css).toMatch(/\.config-row-label \{\s*font-size: var\(--fs-13\);\s*font-weight: 600;\s*color: var\(--ink-2\);/);
+    expect(css).toMatch(/\.config-row-label \{\s*font-size: var\(--text-small\);\s*font-weight: 600;\s*color: var\(--ink-2\);/);
     expect(css).toMatch(/"label label"\s*"spin  tail"/);
   });
 

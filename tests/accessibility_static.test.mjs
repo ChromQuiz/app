@@ -139,7 +139,7 @@ describe('折り返す文章は中央揃えにしない', () => {
   });
 
   it('案内の箱のアイコンは、見出しの1行目と同じ高さの枠の中で、縦中央に置く', () => {
-    expect(css).toMatch(/\.entry-mail-notice > \[data-icon\] \{[^}]*align-items:\s*center;[^}]*height:\s*calc\(var\(--fs-14\) \* 1\.4\)/);
+    expect(css).toMatch(/\.entry-mail-notice > \[data-icon\] \{[^}]*align-items:\s*center;[^}]*height:\s*calc\(var\(--text-small\) \* 1\.4\)/);
   });
 });
 
