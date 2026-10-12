@@ -8,13 +8,13 @@
 
 import { vi } from 'vitest';
 
-export function createFakeDb(initialTables, { users = {}, rpc = {} } = {}) {
+export function createFakeDb(initialTables, { users = {}, rpc = {}, maxRows = 1000 } = {}) {
   const tables = Object.fromEntries(Object.entries(initialTables).map(([k, rows]) => [k, rows.map((r) => ({ ...r }))]));
   const log = { rpcCalls: [], updates: [], inserts: [] };
   let seq = 0;
 
   function builder(name) {
-    const st = { op: 'select', filters: [], patch: null, rows: null, sel: false, mode: 'many', limit: null };
+    const st = { op: 'select', filters: [], patch: null, rows: null, sel: false, mode: 'many', limit: null, range: null };
     const rows = () => (tables[name] ??= []);
     const matches = (row) => st.filters.every((f) => f(row));
     const api = {
@@ -34,6 +34,7 @@ export function createFakeDb(initialTables, { users = {}, rpc = {} } = {}) {
       gte: (k, v) => { st.filters.push((r) => r[k] >= v); return api; },
       order: () => api,
       limit: (n) => { st.limit = n; return api; },
+      range: (from, to) => { st.range = [from, to]; return api; },
       single: () => { st.mode = 'single'; return api; },
       maybeSingle: () => { st.mode = 'maybe'; return api; },
       then: (resolve, reject) => Promise.resolve().then(exec).then(resolve, reject),
@@ -52,6 +53,9 @@ export function createFakeDb(initialTables, { users = {}, rpc = {} } = {}) {
       if (st.op === 'select') {
         let found = rows().filter(matches);
         if (st.limit != null) found = found.slice(0, st.limit);
+        // 本物のサーバーと同じく、1回に返すのは最大 maxRows 件(Supabase の既定は 1000)。範囲の指定があっても、この上限をこえない。
+        if (st.range) found = found.slice(st.range[0], st.range[1] + 1);
+        if (!st.count && maxRows != null) found = found.slice(0, maxRows);
         return shape(found);
       }
       if (st.op === 'update') {
