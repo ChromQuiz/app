@@ -133,26 +133,27 @@
 
             const actionTd = document.createElement('td');
             actionTd.classList.add('cell-status');
+            actionTd.classList.add('member-action-cell');
             const actionGroup = document.createElement('div');
             actionGroup.className = 'member-action-group';
+            // 押せない操作は出さない（所有者と自分の行には、操作がない）
             if (member.status === 'removed') {
-                appendMemberActionButton(actionGroup, {
-                    label: '復帰',
-                    icon: 'rotate-left',
-                    disabled: isSelf,
-                    onClick: () => restoreProjectMember(member.id),
-                });
-            } else {
+                if (!isSelf) {
+                    appendMemberActionButton(actionGroup, {
+                        label: '復帰',
+                        icon: 'rotate-left',
+                        onClick: () => restoreProjectMember(member.id),
+                    });
+                }
+            } else if (canChange) {
                 appendMemberActionButton(actionGroup, {
                     label: member.role === 'admin' ? '採点者へ' : '管理者へ',
-                    disabled: !canChange,
                     onClick: () => changeProjectMemberRole(member.id, member.role === 'admin' ? 'scorer' : 'admin'),
                 });
                 appendMemberActionButton(actionGroup, {
                     label: '外す',
                     icon: 'user-xmark',
                     variant: 'danger',
-                    disabled: !canChange,
                     onClick: () => removeProjectMember(member.id),
                 });
             }

@@ -4558,7 +4558,8 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 }
 /* 招待の一覧：ボタンがある行もない行も、同じ高さにする */
 #invite-tbody td {
-    height: calc(var(--control-h-sm) + 20px);
+    /* 枠線の分(上下1px)も足して、ボタンのある行と同じ高さにする */
+    height: calc(var(--control-h-sm) + 22px);
     padding-block: 10px;
     vertical-align: middle;
     /* 細い画面で、状態（期限切れなど）が1文字ずつ折り返して、行だけ高くならないように。表は横にスクロールする */
@@ -5255,4 +5256,29 @@ body.page-entry-list .list-container td.inline-parts {
 /* 補足は、見出しの文字の位置にそろえる（アイコンの幅だけ下げる） */
 .entry-list-divider-note {
   padding-left: calc(1em + var(--sp-1));
+}
+
+/* メンバー管理：行の高さを、ボタンの有無で変えない。ボタンは同じ大きさにして、列をそろえる。
+   外したメンバーは、文字を薄くするだけにする（取り消し線は引かない） */
+#project-members-tbody td {
+  /* 枠線の分(上下1px)も足して、ボタンのある行と同じ高さにする */
+  height: calc(var(--control-h-sm) + 22px);
+  padding-block: 10px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.member-action-cell .member-action-group {
+  flex-wrap: nowrap;
+}
+
+.member-action-cell .btn {
+  height: var(--control-h-sm);
+  min-height: var(--control-h-sm);
+  min-width: 6.5em;
+  padding-block: 0;
+}
+
+#project-members-tbody .member-row-removed td {
+  text-decoration: none;
 }

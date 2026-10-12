@@ -26,7 +26,22 @@ describe('採点者招待', () => {
   });
 
   it('一覧の行は、ボタンの有無で高さが変わらない', () => {
-    expect(css).toMatch(/#invite-tbody td \{\s*height: calc\(var\(--control-h-sm\) \+ 20px\);[\s\S]*?white-space: nowrap;/);
+    expect(css).toMatch(/#invite-tbody td \{[\s\S]*?height: calc\(var\(--control-h-sm\) \+ 22px\);[\s\S]*?white-space: nowrap;/);
     expect(css).toMatch(/\.invite-action-cell \.btn \{\s*height: var\(--control-h-sm\);/);
+  });
+});
+
+describe('メンバー管理', () => {
+  const js = read('js/admin_settings.js');
+  const css = read('css/pages.css');
+
+  it('押せない操作は出さない（所有者・自分の行には、ボタンを置かない）', () => {
+    expect(js).toMatch(/\} else if \(canChange\) \{/);
+    expect(js).not.toMatch(/disabled: !canChange/);
+  });
+
+  it('行の高さは、ボタンの有無で変わらない。外したメンバーには取り消し線を引かない', () => {
+    expect(css).toMatch(/#project-members-tbody td \{[\s\S]*?height: calc\(var\(--control-h-sm\) \+ 22px\);/);
+    expect(css).toMatch(/#project-members-tbody \.member-row-removed td \{\s*text-decoration: none;/);
   });
 });
