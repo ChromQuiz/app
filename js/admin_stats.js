@@ -288,6 +288,15 @@
             } return qStats;
         }
         let _lastAnalyticsHash = '';
+        // 状態ごとに、バッジの色を変える(未確定は、要確認と同じ黄色。通常は目立たせない)
+        const ANALYTICS_TYPE_BADGE = {
+            '通常': 'muted',
+            '未確定': 'warning',
+            '少数正解': 'accent',
+            '単独正解': 'success',
+            '全滅': 'danger',
+        };
+
         async function renderAnalytics() {
             const tbody = document.getElementById('analytics-tbody');
             if (!scoringEntryNumbers.length) {
@@ -310,7 +319,7 @@
                 // 状態は、ほかの表と同じく、バッジで見せる（ハイライトする行は、警告の色）
                 const typeTd = appendAnalyticsCell(tr, '', 'analytics-type');
                 const typeBadge = document.createElement('span');
-                typeBadge.className = s.isRare ? 'badge warning' : 'badge muted';
+                typeBadge.className = `badge ${ANALYTICS_TYPE_BADGE[s.type] || 'muted'}`.trim();
                 typeBadge.textContent = s.type;
                 typeTd.appendChild(typeBadge);
                 appendAnalyticsCell(tr, s.names, 'analytics-names');
