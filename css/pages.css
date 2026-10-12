@@ -4516,33 +4516,58 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     .checkin-confirm-actions .btn { flex: 1 1 auto; }
 }
 
-/* 採点者招待リンク(AB-1) */
+/* 採点者招待リンク(AB-1)
+   上限人数・有効期限・権限は、見出しと値の2段で並べる。値の段は、入力欄と同じ高さにして中央にそろえ、
+   見出しの位置と値の位置が、横一列にそろうようにする。発行ボタンは、値の段の下端にそろえる。 */
 .invite-form {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 12px;
+    column-gap: var(--sp-6);
+    row-gap: var(--sp-3);
     margin-bottom: 12px;
 }
 .invite-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     min-width: 0;
 }
 .invite-field label,
 .invite-fixed-label {
+    margin: 0;
     font-size: 13px;
     font-weight: 600;
+    line-height: 1.4;
     color: var(--ink-2);
 }
 .invite-field input {
     max-width: 120px;
+    height: var(--control-h);
+    min-height: var(--control-h);
 }
 .invite-fixed-value {
+    display: flex;
+    align-items: center;
+    min-height: var(--control-h);
     font-size: 15px;
     font-weight: 600;
-    padding: 6px 0;
+}
+.invite-form .btn {
+    min-height: var(--control-h);
+}
+/* 招待の一覧：ボタンがある行もない行も、同じ高さにする */
+#invite-tbody td {
+    height: calc(var(--control-h-sm) + 20px);
+    padding-block: 10px;
+    vertical-align: middle;
+    /* 細い画面で、状態（期限切れなど）が1文字ずつ折り返して、行だけ高くならないように。表は横にスクロールする */
+    white-space: nowrap;
+}
+.invite-action-cell .btn {
+    height: var(--control-h-sm);
+    min-height: var(--control-h-sm);
+    padding-block: 0;
 }
 .invite-new {
     margin: 12px 0;
@@ -4553,7 +4578,10 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     margin-top: 6px;
 }
 @media (max-width: 640px) {
-    .invite-form { flex-direction: column; align-items: stretch; }
+    /* 上限人数と発行ボタンは横いっぱい、有効期限と権限は2列で並べる */
+    .invite-form { display: grid; grid-template-columns: 1fr 1fr; align-items: end; }
+    .invite-form > .invite-field:first-child,
+    .invite-form > .btn { grid-column: 1 / -1; }
     .invite-field input { max-width: none; }
     .invite-form .btn { width: 100%; }
 }
