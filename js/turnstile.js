@@ -30,6 +30,28 @@ const CIQTurnstile = (() => {
         return Boolean(siteKey() && window.turnstile);
     }
 
+    // Turnstile の枠は、幅が約300px未満にならない。細い画面（カードの内側が300px未満）では、はみ出して
+    // 横スクロールになるので、収まる大きさに縮める（拡大率は CSS 変数で渡す。インライン style 属性は使わない）。
+    const WIDGET_MIN_WIDTH = 300;
+    const WIDGET_HEIGHT = 65;
+    const fitObservers = new WeakMap();
+
+    function fitToWidth(el) {
+        const apply = () => {
+            const available = el.clientWidth;
+            const scale = available > 0 ? Math.min(1, available / WIDGET_MIN_WIDTH) : 1;
+            el.classList.toggle('is-scaled', scale < 1);
+            el.style.setProperty('--ts-scale', String(scale));
+            el.style.setProperty('--ts-h', `${Math.ceil(WIDGET_HEIGHT * scale)}px`);
+        };
+        apply();
+        if (typeof ResizeObserver === 'function' && !fitObservers.has(el)) {
+            const observer = new ResizeObserver(apply);
+            observer.observe(el);
+            fitObservers.set(el, observer);
+        }
+    }
+
     /**
      * 指定コンテナに widget を描画する(冪等)。action は Edge 側の検証値と一致させること。
      * 描画できない場合(site key 未設定 / API 未読込)は false を返す。
@@ -48,6 +70,7 @@ const CIQTurnstile = (() => {
             });
             widgets.set(containerId, id);
             el.classList.remove('u-hidden');
+            fitToWidth(el);
             return true;
         } catch (e) {
             console.warn('[turnstile] render failed:', e);
