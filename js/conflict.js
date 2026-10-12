@@ -19,6 +19,8 @@ let lastConflictRenderSignature = '';
 let conflictRefreshTimer = null;
 let conflictRefreshPromise = null;
 let shouldResetConflictSelection = true;
+// 保存が終わっていない判定。question.js の pendingWrites と同じく、再取得の結果に重ねて、色が一瞬戻るのを防ぐ
+const pendingFinals = new Map();
 
 // limit 本を常に動かす（遅い1本に、同じまとまりの残りが待たされない）
 async function runLimited(items, limit, task) {
@@ -171,6 +173,12 @@ async function refreshData() {
 async function refreshDataInternal() {
     const startedAt = performance.now();
     serverConflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);
+    serverConflictRows.forEach((row) => {
+        const key = `${row.q}:${row.entryId}`;
+        if (!pendingFinals.has(key)) return;
+        if (row.finalResult === pendingFinals.get(key)) pendingFinals.delete(key);
+        else row.finalResult = pendingFinals.get(key);
+    });
     const dataMs = Math.round(performance.now() - startedAt);
     const renderStartedAt = performance.now();
     await render();
@@ -613,11 +621,14 @@ function paintConflictResult(q, entryId, finalResult) {
 }
 
 async function setFinal(q, entryId, result) {
+    const key = `${q}:${entryId}`;
     const rollback = applyLocalFinalResult(q, entryId, result);
+    pendingFinals.set(key, result);
     paintConflictResult(q, entryId, result);
     try {
         await CIQSupabaseAPI.resolveScoreConflict(projectId, q, entryId, result);
     } catch (error) {
+        if (pendingFinals.get(key) === result) pendingFinals.delete(key);
         rollback();
         await render();
         throw error;

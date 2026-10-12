@@ -165,4 +165,10 @@ describe('要確認: 判定の並び・即時の色変更', () => {
     const rule = css.match(/\.conflict-review-row \{[^}]*\}/)[0];
     expect(rule).toContain('background: transparent');
   });
+
+  it('保存前の判定を再取得の結果に重ねる(連打しても色が戻らない)', () => {
+    expect(conflictSrc).toContain('pendingFinals');
+    const refresh = sliceFn(conflictSrc, 'refreshDataInternal');
+    expect(refresh).toContain('pendingFinals.get(key)');
+  });
 });
