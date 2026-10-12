@@ -1787,8 +1787,8 @@ body.page-wrapper:has(#terms-card) .page-container {
 
 .answer-card,
 .conflict-card {
-  min-height: 124px;
-  padding: 16px;
+  min-height: 0;
+  padding: 6px;
 }
 
 .preview-overlay {
@@ -2997,7 +2997,7 @@ body.page-conflict .action-bar {
 }
 
 .conflict-card {
-  padding-bottom: 0;
+  padding-bottom: 6px;
 }
 
 /* 解決済みは下部に畳む(order) + 静かに */
@@ -3012,9 +3012,9 @@ body.page-conflict .action-bar {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  min-height: 36px;
-  padding: var(--sp-2);
-  border-top: 1px solid var(--line);
+  min-height: 0;
+  padding: var(--sp-1) var(--sp-1);
+  border-top: 0;
   background: transparent;
   font-size: var(--text-small);
   white-space: nowrap;
@@ -3051,7 +3051,7 @@ body.page-conflict .conflict-section .conflict-grid {
 
 .conflict-card .votes-mini {
   gap: var(--sp-2);
-  padding: var(--sp-1) var(--sp-2) var(--sp-2);
+  padding: 0 var(--sp-1) var(--sp-1);
 }
 
 @media (min-width: 769px) {
@@ -3884,8 +3884,8 @@ body.page-my .my-danger-section > .btn {
 
 .answer-card,
 .conflict-card {
-  min-height: 132px;
-  padding: var(--sp-4);
+  min-height: 0;
+  padding: 6px;
 }
 
 .kbd-hint,
@@ -4188,8 +4188,8 @@ body.page-admin .phase-block > h2 {
 
 .answer-card,
 .conflict-card {
-  min-height: 124px;
-  padding: 16px;
+  min-height: 0;
+  padding: 6px;
 }
 
 body.page-checkin .main-content {
