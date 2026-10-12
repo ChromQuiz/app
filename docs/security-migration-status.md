@@ -1259,3 +1259,8 @@ Notes   : 補足・再構成の断り・要確認事項
 - 画面: 採点ボードの「…」（管理者は全問に出る）に「管理者として開く」。`conflict.html?q=N` で、その問題の確認済みの全員の答案を、要確認と同じカードで並べて、確定を決め直す（`list_question_review`）。要確認の先頭に「管理者が覆したもの」を、見出しと区切り線で分けて並べる。
 - Evidence: データベースの挙動スイート（145件すべて ok、最後に rollback）。画面は、スタブのデータで、両方の表示を確認（実データでの通しは未実施）。
 - Rollback: `drop function public.list_admin_overrides(text);` と、`202610120001` の `reopen_question_scoring` を作り直す。
+
+### 補足（2026-10-12）: 覆した答案を元に戻したとき
+
+- `supabase/migrations/202610120004_restore_auto_kind.sql`（適用済み）: `resolve_score_conflict` は、採点者の判定が一致していて、その結果に決めたとき、`decided_kind = 'auto'` で保存する。覆したあとに元へ戻した答案は、「管理者が覆したもの」の一覧から消える。判定が割れていた答案は、これまでどおり `admin`。
+- Evidence: データベースの挙動スイート（148件すべて ok）。
