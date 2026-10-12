@@ -4963,3 +4963,13 @@ body.page-question .answer-line {
     overflow-wrap: anywhere;
   }
 }
+
+/* メニュー（サイドパネル）：画面が低いとき（小さい端末や、横向き）は、中身を押しつぶさず、パネルをスクロールさせる。
+   縮める指定のままだと、下の項目（大会から退出など）が切れて、押せなくなる。 */
+.menu-panel > * {
+  flex-shrink: 0;
+}
+
+.menu-panel {
+  overscroll-behavior: contain;
+}
