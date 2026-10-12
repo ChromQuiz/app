@@ -309,7 +309,7 @@ function openSlotDialog(questionNumber, returnFocus) {
         li.className = 'slot-row';
         const text = document.createElement('span');
         text.className = 'slot-row-text';
-        text.textContent = `${slotOwnerLabel(row.scorer_member_id)} · 採点中`;
+        setInlineParts(text, [slotOwnerLabel(row.scorer_member_id), { text: '採点中', className: 'slot-row-state' }]);
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'btn secondary slot-release-btn';
@@ -391,8 +391,7 @@ function updateResumeHero(resumeQ, mineResumeQ = 0, hasAnyMine = false) {
 function updateJudgeSummary({ openCount, inprogressCount, doneCount }) {
     const summary = document.getElementById('judge-summary');
     if (!summary) return;
-    summary.textContent =
-        `未着手 ${openCount} · 採点中 ${inprogressCount} · 完了 ${doneCount}`;
+    setInlineParts(summary, [`未着手 ${openCount}`, `採点中 ${inprogressCount}`, `完了 ${doneCount}`]);
 }
 
 function enterQ(q) {

@@ -4974,12 +4974,6 @@ body.page-question .answer-line {
   overscroll-behavior: contain;
 }
 
-/* エントリーリストの区切りの見出しは、意味の単位ごとに折り返す */
-.entry-list-divider-part {
-  display: inline-block;
-  margin-left: 0.25em;
-}
-
 /* 所属・学年をまとめた欄は、スマホだけで使う */
 .entry-list-meta-cell {
   display: none;
@@ -5138,4 +5132,99 @@ body.page-question .answer-line {
     border-radius: var(--r-lg);
     background: var(--surface);
   }
+}
+
+/* ============================================================
+   短い情報を並べるとき（所属と学年、件数の内訳など）は、中黒や括弧でつながず、
+   別々の要素として、余白で区切って並べる（js/ui.js の setInlineParts）。
+   ============================================================ */
+.inline-parts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.9em;
+  row-gap: 2px;
+}
+
+.result-header .inline-parts {
+  justify-content: center;
+}
+
+/* 運営画面の段階タブ：状態と件数は、別々に並べる */
+.phase-desc {
+  display: inline-flex;
+  flex-wrap: wrap;
+  column-gap: 0.75em;
+}
+
+/* 採点枠の一覧：名前と状態を、左右に分けて並べる */
+.slot-row-text.inline-parts {
+  column-gap: var(--sp-3);
+}
+
+.slot-row-state {
+  color: var(--ink-2);
+  font-size: var(--fs-13);
+}
+
+/* エントリーリストの件数：エントリー数と定員を、見出し付きの2つの数字として並べる */
+body.page-entry-list .entry-list-count {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-8);
+  text-align: center;
+}
+
+.entry-list-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.entry-list-stat-label {
+  font-size: var(--fs-13);
+  color: var(--ink-2);
+}
+
+.entry-list-stat-value {
+  font-size: var(--fs-15);
+  color: var(--ink-2);
+}
+
+.entry-list-stat-value strong {
+  margin-right: 2px;
+}
+
+/* エントリーリストの区切り：見出しと補足を2段に、人数は右に置く */
+.entry-list-divider td {
+  text-align: left;
+}
+
+.entry-list-divider-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.entry-list-divider-note {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-12);
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.entry-list-divider-count {
+  float: right;
+  font-variant-numeric: tabular-nums;
+}
+
+body.page-entry-list .list-container td.inline-parts {
+  display: flex;
+}
+
+/* 補足は、見出しの文字の位置にそろえる（アイコンの幅だけ下げる） */
+.entry-list-divider-note {
+  padding-left: calc(1em + var(--sp-1));
 }

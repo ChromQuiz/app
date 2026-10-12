@@ -691,11 +691,11 @@
             function showPending(entry) {
                 pending = entry;
                 nameEl.textContent = `No.${padNum(entry.entryNumber)}`;
-                subEl.textContent = [`受付番号 ${padNum(entry.entryNumber)}`, entrySubText(entry)].filter(Boolean).join(' · ');
+                setInlineParts(subEl, [`受付番号 ${padNum(entry.entryNumber)}`, entry?.affiliation, entry?.grade]);
 
                 const statusLabel = MANUAL_CHECKIN_STATUS_LABEL[entry.status] || entry.status || '';
                 const checkable = entry.status === 'registered' || entry.status === 'late';
-                stateEl.textContent = [entry.checkedIn ? '受付済み' : '未受付', statusLabel].filter(Boolean).join(' · ');
+                setInlineParts(stateEl, [entry.checkedIn ? '受付済み' : '未受付', statusLabel]);
 
                 commitBtn.classList.toggle('u-hidden', Boolean(entry.checkedIn) || !checkable);
                 undoBtn.classList.toggle('u-hidden', !entry.checkedIn);
@@ -703,10 +703,6 @@
                     setPageMessage(statusEl, 'この参加者は受付対象外です。状態を確認してください。', 'warning');
                 }
                 confirmBox.classList.remove('u-hidden');
-            }
-
-            function entrySubText(entry) {
-                return [entry?.affiliation, entry?.grade].filter(Boolean).join(' / ');
             }
 
             async function withBusy(button, run) {
