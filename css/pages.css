@@ -4878,38 +4878,6 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   font-size: 0.92em;
 }
 
-/* 採点画面：スマホでは答案を2列にできる（広い画面は、もともと複数列なので、ボタンを出さない） */
-.grid-density-btn {
-  display: none;
-}
-
-.grid-density-btn[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--surface);
-}
-
-@media (max-width: 640px) {
-  .grid-density-btn {
-    display: inline-flex;
-    margin-right: var(--sp-2);
-  }
-
-  body.page-question .answer-grid.is-compact {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  body.page-question .answer-grid.is-compact .answer-card {
-    min-height: 0;
-    padding: 8px;
-  }
-
-  /* 2列では、選択中のバッジが答案にかぶる。青い枠で、選択中だと分かる */
-  body.page-question .answer-grid.is-compact .answer-card::before {
-    display: none;
-  }
-}
-
 /* 指で押せる範囲を44px 前後にする（見た目の大きさは変えない） */
 @media (pointer: coarse), (max-width: 640px) {
   .notif-bell,
@@ -4929,5 +4897,26 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     content: '';
     position: absolute;
     inset: -7px;
+  }
+}
+
+/* 答案カードの2回タップで、ブラウザが拡大しないようにする（ダブルタップは、答案全体の表示に使う） */
+.answer-card,
+.conflict-card {
+  touch-action: manipulation;
+}
+
+/* 採点画面（スマホ）：模範解答は、問題番号の一段下に置く。横に並べると、長い答えが入りきらない。 */
+@media (max-width: 640px) {
+  body.page-question .ops-focus-bar .header-center {
+    display: grid;
+    justify-items: center;
+    row-gap: 4px;
+  }
+
+  body.page-question .ops-focus-bar .answer-badge {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: center;
   }
 }
