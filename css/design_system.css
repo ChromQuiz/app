@@ -36,7 +36,7 @@
   /* --- 採点の進み具合の色（バー・凡例・内訳の丸で、同じ色を使う） --- */
   --seg-confirmed: var(--ok-600);
   --seg-conflict: var(--warn-600);
-  --seg-inprogress: var(--ink-3);
+  --seg-inprogress: var(--accent);
   --seg-untouched: var(--line-strong);
 
   /* --- Color: monochrome primary CTA (legacy brand aliases retained) --- */
@@ -123,6 +123,10 @@
   --sp-10: 64px;
   --sp-11: 80px;
   --sp-12: 96px;
+
+  /* 運営画面の余白の役割: ブロックの内側の余白 / 見出し・部品どうしの縦の間隔 */
+  --block-pad: var(--sp-5);
+  --block-gap: var(--sp-4);
 
   /* --- Radius: 3 steps, one meaning each. 面の役割でしか変えない --- */
   --r-control: 8px;   /* button / input / select / chip */

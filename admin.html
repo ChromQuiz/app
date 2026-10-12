@@ -19,8 +19,8 @@
     <script defer src="js/icons.js?v=9"></script>
     <script defer src="js/ui.js?v=39"></script>
     <script defer src="js/shared.js?v=7"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=109">
-    <link rel="stylesheet" href="css/pages.css?v=185">
+    <link rel="stylesheet" href="css/design_system.css?v=110">
+    <link rel="stylesheet" href="css/pages.css?v=186">
 </head>
 
 <body class="page-admin">
@@ -274,7 +274,6 @@
                 <div class="tab-content" id="tab-checkin" role="tabpanel" aria-labelledby="tab-checkin-tab" hidden>
                     <div class="phase-block">
                         <h2>受付画面</h2>
-                        <p class="checkin-panel-note">参加者に二次元コードをかざしてもらう画面です。受付卓の端末で開いてください。</p>
                         <div class="phase-actions">
                             <button class="btn" data-nav-target="checkin.html"><span data-icon="qrcode" aria-hidden="true"></span> 受付画面を開く</button>
                         </div>
@@ -285,7 +284,6 @@
                          参加者の目の前にある受付卓の画面に残さないため。サーバ側も owner/admin 限定。 -->
                     <div class="phase-block">
                         <h2>受付番号で手動受付</h2>
-                        <p class="checkin-panel-note">二次元コードが読めない参加者は、受付番号で照会して本人を確認してから受付します。</p>
                         <div class="checkin-manual-panel">
                             <form class="checkin-manual-row" id="manual-checkin-form">
                                 <input type="text" id="manual-checkin-number" inputmode="numeric" pattern="[0-9]*" maxlength="6"
@@ -319,17 +317,14 @@
                     <span class="tab-count" data-tab-count="scan" aria-label="答案数">-</span>
                 </button>
                 <div class="tab-content" id="tab-scan" role="tabpanel" aria-labelledby="tab-scan-tab" hidden>
-                    <div class="phase-block is-wide">
-                        <h2>答案の取り込み</h2>
+                    <div class="phase-block is-wide saved-answers-section">
+                        <h2>答案</h2>
                         <div class="file-upload-zone" id="pdf-upload-zone" data-file-trigger="pdf-file">
                             <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
                             <div class="file-label">答案PDFをアップロード</div>
                             <div class="file-name" id="pdf-file-name"></div>
                             <input type="file" id="pdf-file" accept="application/pdf" aria-label="答案のPDFファイル" />
                         </div>
-                    </div>
-                    <div class="phase-block is-wide saved-answers-section">
-                        <h2>保存済み答案</h2>
                         <div class="saved-answers-actions">
                             <span id="entry-count-badge" class="count-badge">0件</span>
                             <div class="saved-answers-actions-right">
@@ -723,7 +718,7 @@
 
     <script defer src="js/admin.js?v=63"></script>
     <script defer src="js/upload_validation.js?v=4"></script>
-    <script defer src="js/admin_scan.js?v=25"></script>
+    <script defer src="js/admin_scan.js?v=26"></script>
     <script defer src="js/admin_stats.js?v=27"></script>
     <script defer src="js/admin_graded_pdf.js?v=15"></script>
     <script defer src="js/admin_settings.js?v=66"></script>

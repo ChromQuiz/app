@@ -2151,7 +2151,7 @@ body.page-admin .tab-content.active {
 }
 
 body.page-admin .phase-block {
-  padding: 22px;
+  padding: var(--block-pad);
   border: 1px solid var(--line);
   border-radius: var(--r-overlay);
   background: var(--surface);
@@ -2159,11 +2159,11 @@ body.page-admin .phase-block {
 }
 
 body.page-admin .phase-block:first-child {
-  padding-top: 22px;
+  padding-top: var(--block-pad);
 }
 
 body.page-admin .phase-block > h2 {
-  margin-bottom: 16px;
+  margin-bottom: var(--block-gap);
 }
 
 body.page-admin .phase-block > .desc-text,
@@ -2181,8 +2181,6 @@ body.page-admin .admin-manual-footer {
   line-height: 1.45;
 }
 
-body.page-admin .phase-subblock,
-body.page-admin .config-row,
 body.page-admin .file-upload-zone,
 body.page-admin .loading-state,
 body.page-admin .empty-state,
@@ -2193,9 +2191,14 @@ body.page-admin .stat-card {
   background: var(--surface-2);
 }
 
+/* ブロックの中の小見出しのまとまり。枠で囲まず、細い線と余白で分ける(枠の中の枠にしない) */
 body.page-admin .phase-subblock {
-  margin-top: 16px;
-  padding: 18px;
+  margin-top: var(--block-gap);
+  padding: var(--block-gap) 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
 }
 
 body.page-admin .phase-subblock > h3,
@@ -2208,14 +2211,21 @@ body.page-admin .period-heading {
   letter-spacing: -0.012em;
 }
 
+/* トグルや入力の行は、枠で囲まない(メールの通知カードだけは、1枚ずつのカードとして枠を残す) */
 body.page-admin .config-row {
-  min-height: 58px;
-  padding: 14px 16px;
-  gap: 12px;
+  min-height: 0;
+  padding: 0;
+  gap: var(--sp-3);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
-body.page-admin .phase-subblock > .config-row,
 body.page-admin .email-notification-card.config-row {
+  min-height: 58px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-overlay);
   background: var(--surface);
 }
 
@@ -2245,7 +2255,7 @@ body.page-admin .analytics-threshold-row {
 
 body.page-admin .phase-actions,
 body.page-admin .admin-entry-result-actions {
-  margin-top: 14px;
+  margin-top: var(--block-gap);
 }
 
 body.page-admin .public-links {
@@ -2331,7 +2341,7 @@ body.page-admin .phase-block > .stats,
 body.page-admin .phase-block > .email-notification-grid,
 body.page-admin .phase-block > .csv-status,
 body.page-admin .phase-block > .file-upload-zone {
-  margin-top: 14px;
+  margin-top: var(--block-gap);
 }
 
 body.page-admin .admin-entry-result {
@@ -2344,20 +2354,14 @@ body.page-admin .danger-zone {
 }
 
 @media (max-width: 640px) {
-  body.page-admin .phase-block {
-    padding: 18px;
+  html {
+    --block-pad: var(--sp-4);
   }
 
-  body.page-admin .phase-block:first-child {
-    padding-top: 18px;
-  }
-
-  body.page-admin .phase-subblock,
   body.page-admin .admin-entry-result {
-    padding: 16px;
+    padding: var(--sp-4);
   }
 
-  body.page-admin .config-row,
   body.page-admin .link-row,
   body.page-admin .email-notification-card {
     padding-inline: 14px;
@@ -2879,7 +2883,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 
 .stats-bar-seg.confirmed { background: var(--seg-confirmed); color: var(--on-ok); }
 .stats-bar-seg.conflict  { background: var(--seg-conflict); color: var(--on-warn); }
-.stats-bar-seg.inprogress { background: var(--seg-inprogress); color: var(--surface); }
+.stats-bar-seg.inprogress { background: var(--seg-inprogress); color: var(--on-accent); }
 .stats-bar-seg.untouched { background: var(--seg-untouched); color: var(--ink-2); }
 
 .stats-legend {
@@ -4072,7 +4076,7 @@ body.page-admin .phase-block > h2 {
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.018em;
-  margin-bottom: 18px;
+  margin-bottom: var(--block-gap);
 }
 
 .admin-container,
@@ -4306,7 +4310,8 @@ body.page-admin .model-answer-section > p.desc-text {
   margin-bottom: 8px;
 }
 
-body.page-admin .model-answer-section > .file-upload-zone {
+body.page-admin .model-answer-section > .file-upload-zone,
+body.page-admin .saved-answers-section > .file-upload-zone {
   min-height: 116px;
   margin-top: 0;
 }
@@ -4321,7 +4326,8 @@ body.page-admin .saved-answers-actions {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-top: var(--block-gap);
+  margin-bottom: var(--block-gap);
 }
 
 body.page-admin .saved-answers-actions-right {
@@ -4338,6 +4344,7 @@ body.page-admin .saved-answers-section #entry-list {
 }
 
 body.page-admin .saved-answers-section #entry-list .entry-list-grid {
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
