@@ -80,3 +80,39 @@ describe('模範解答の一覧', () => {
     expect(read('css/pages.css')).toMatch(/body\.page-admin \.model-grid \{[^}]*grid-template-columns: repeat\(auto-fill, minmax\(min\(100%, 280px\), 1fr\)\);/);
   });
 });
+
+describe('運営画面の整理（余白の役割・枠の中の枠・答案のブロック）', () => {
+  const html = read('admin.html');
+  const css = read('css/pages.css');
+  const ds = read('css/design_system.css');
+
+  it('余白は、役割（ブロックの内側・見出しや部品の縦の間隔）で決める', () => {
+    expect(ds).toContain('--block-pad: var(--sp-5);');
+    expect(ds).toContain('--block-gap: var(--sp-4);');
+    expect(css).toMatch(/body\.page-admin \.phase-block \{\s*padding: var\(--block-pad\);/);
+    expect(css).toMatch(/body\.page-admin \.phase-block > h2 \{\s*margin-bottom: var\(--block-gap\);/);
+  });
+
+  it('枠の中に枠を作らない（小見出しのまとまり・トグルや入力の行は、枠なし）', () => {
+    expect(css).toMatch(/body\.page-admin \.phase-subblock \{[^}]*border: 0;[^}]*border-top: 1px solid var\(--line\);/);
+    expect(css).toMatch(/body\.page-admin \.config-row \{[^}]*border: 0;[^}]*background: transparent;/);
+  });
+
+  it('答案の取り込みと保存済みの一覧は、模範解答と同じく、同じブロックに入れる', () => {
+    const scan = html.slice(html.indexOf('id="tab-scan" role="tabpanel"'), html.indexOf('<!-- ⑤ 結果 -->'));
+    expect(scan.match(/class="phase-block/g)).toHaveLength(1);
+    expect(scan).toContain('id="pdf-upload-zone"');
+    expect(scan).toContain('id="entry-list"');
+    expect(scan).not.toContain('答案の取り込み');
+  });
+
+  it('採点状況の色は、採点ボードと同じ（採点中は青）', () => {
+    expect(ds).toContain('--seg-inprogress: var(--accent);');
+    expect(css).toContain('.judge-summary .summary-inprogress { --summary-dot: var(--accent); }');
+  });
+
+  it('当日の説明文（画面を開く／手動受付）は置かない', () => {
+    expect(html).not.toContain('受付卓の端末で開いてください');
+    expect(html).not.toContain('本人を確認してから受付します');
+  });
+});
