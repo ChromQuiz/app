@@ -1241,3 +1241,12 @@ Notes   : 補足・再構成の断り・要確認事項
 - Evidence: データベースの挙動スイート DB-26（139件すべて ok、最後に rollback）。Vitest 806件通過。画面は、ブラウザペインでカードの見た目のみ確認（実データでの通し確認は未実施）。
 - Rollback: `drop function public.reopen_question_scoring(text, integer, uuid); drop function public.list_question_review(text, integer);`、`resolve_score_conflict` を `202610090001` 時点の定義へ戻す、`alter table public.final_results drop column decided_kind;`。
 - Notes: 開き直しても `set_score_vote` の「完了後は変更不可」は変わらない（開き直した枠だけが再び変えられる）。確定の条件（受付済みの全員一致のみ自動確定）は変えていない。
+
+## 答案・採点が始まったあとの設定変更の制限（2026-10-12）
+
+- Status: 適用済み（本番）。`supabase/migrations/202610120002_guard_scoring_settings.sql`。Edge Function の変更なし。
+- 背景: 問題数は、読み取り済みの解答欄の位置と結びついている。問題あたりの採点者数は、確定・要確認の判定を決める。どちらも、途中で変えると周辺のデータと食い違うのに、直接の更新で変えられた。
+- 内容: `projects` の更新トリガー。答案が1件でもあれば `question_count` を、採点の枠が1つでもあれば `required_scorers` を、変える更新を断る。変えるときは、危険な操作「答案と採点を消す」（`clear_answers_and_scoring`: owner / admin のみ。答案・枠・判定・確定・履歴を消す。エントリーと模範解答は残る。監査ログ `answers_and_scoring_cleared`）を先に実行する。画面は、問題数の変更を断って、この操作へ案内する。
+- Evidence: データベースの挙動スイート DB-27（146件すべて ok、最後に rollback）。画面は、実際の操作では未確認。
+- Rollback: `drop trigger projects_guard_scoring_settings on public.projects; drop function public.guard_scoring_settings(); drop function public.clear_answers_and_scoring(text);`
+- Notes: 当日受付の取り消しは、この制限の対象外（採点データは残るが、その人は採点・順位・出力から外れる）。

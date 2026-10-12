@@ -1817,6 +1817,21 @@ const CIQSupabaseAPI = {
         return data;
     },
 
+    // 答案と採点を消す(エントリーと模範解答は残す)。保存済みの用紙画像も消す。
+    async clearAnswersAndScoring(projectId) {
+        const pages = await this.listAnswerPages(projectId).catch(() => []);
+        this.invalidateProjectAnswerCache(projectId);
+        await Promise.all((pages || []).map(page => {
+            const entryNumber = Number(page.entries?.entry_number || 0);
+            return entryNumber ? this.deleteAnswerPage(projectId, entryNumber) : Promise.resolve();
+        }));
+        const { data, error } = await this.client()
+            .rpc('clear_answers_and_scoring', { p_project_id: projectId })
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
     async resetProjectData(projectId) {
         const pages = await this.listAnswerPages(projectId).catch(() => []);
         this.invalidateProjectAnswerCache(projectId);

@@ -564,6 +564,43 @@ select pg_temp.chk('DB-24 全部の表で RLS が有効（public スキーマ）
   not exists (select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and not c.relrowsecurity),
   (select string_agg(c.relname, ',') from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and not c.relrowsecurity));
 
+-- ===== DB-27 答案・採点が始まったあとは、問題数と採点者数を変えられない =====
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-27 答案が読み込まれていると、問題数は変えられない',
+  exists (select 1 from public.answer_pages where project_id='zz-t')
+  and pg_temp.err($$update public.projects set question_count = 50 where id='zz-t'$$) like '%問題数は変えられません%',
+  pg_temp.err($$update public.projects set question_count = 50 where id='zz-t'$$));
+reset role;
+insert into public.question_scorers (project_id, question_number, scorer_member_id) values ('zz-t', 1, pg_temp.mid('S1')) on conflict do nothing;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-27 採点の枠があると、採点者数は変えられない',
+  exists (select 1 from public.question_scorers where project_id='zz-t')
+  and pg_temp.err($$update public.projects set required_scorers = 3 where id='zz-t'$$) like '%採点者数は変えられません%',
+  pg_temp.err($$update public.projects set required_scorers = 3 where id='zz-t'$$));
+select pg_temp.chk('DB-27 同じ値のままなら、更新できる', pg_temp.err($$update public.projects set question_count = question_count, required_scorers = required_scorers where id='zz-t'$$) = 'OK');
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1（管理者でない）
+select pg_temp.chk('DB-27 採点者は「答案と採点を消す」を実行できない', pg_temp.err($$select * from public.clear_answers_and_scoring('zz-t')$$) like '%Forbidden%',
+  pg_temp.err($$select * from public.clear_answers_and_scoring('zz-t')$$));
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+create temp table clr as select * from public.clear_answers_and_scoring('zz-t');
+select pg_temp.chk('DB-27 管理者が実行すると、答案・枠・判定・確定・履歴が消え、エントリーは残る',
+  (select answer_pages_deleted from clr) >= 1
+  and (select count(*) from public.answer_pages where project_id='zz-t') = 0
+  and (select count(*) from public.question_scorers where project_id='zz-t') = 0
+  and (select count(*) from public.score_votes where project_id='zz-t') = 0
+  and (select count(*) from public.final_results where project_id='zz-t') = 0
+  and (select count(*) from public.entries where project_id='zz-t') > 0,
+  (select answer_pages_deleted::text from clr));
+select pg_temp.chk('DB-27 …監査ログに残る', exists (select 1 from public.audit_logs where project_id='zz-t' and action='answers_and_scoring_cleared' and actor_member_id = pg_temp.mid('Admin')));
+update public.projects set question_count = 50, required_scorers = 3 where id='zz-t';
+select pg_temp.chk('DB-27 消したあとは、問題数も採点者数も変えられる',
+  (select question_count from public.projects where id='zz-t') = 50
+  and (select required_scorers from public.projects where id='zz-t') = 3);
+reset role;
+
 -- ===== DB-14 reset_project_data（最後に実行）=====
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1
 select pg_temp.chk('DB-14 採点者はリセットできない', pg_temp.err($$select * from public.reset_project_data('zz-t')$$) like '%Forbidden%');

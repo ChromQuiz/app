@@ -14,16 +14,14 @@
             } catch (e) {
                 console.warn('答案の件数を取得できませんでした:', e);
             }
-            const printed = 'すでに解答用紙を印刷している場合は、印刷した用紙の問題数と食い違うと、読み取りの位置が合わなくなります。';
-            if (pageCount === 0) {
-                return showConfirm(
-                    `問題数を ${current} 問から ${nextValue} 問に変えます。${printed}\n\n変更しますか？`,
-                    '変更する',
-                );
+            // 答案が読み込まれたあとは、サーバーが変更を断る(読み取り済みの解答欄の位置が合わなくなるため)。
+            // 先に「答案と採点を消す」(危険な操作)を実行してもらう。
+            if (pageCount !== 0) {
+                showAdminToast('答案が読み込まれているため、問題数は変えられません。変えるには、下の「危険な操作」の「答案と採点を消す」を先に実行してください。', 'error', 8000);
+                return false;
             }
-            const saved = pageCount > 0 ? `${pageCount}件の答案が保存されています。` : '答案が保存されている可能性があります。';
             return showConfirm(
-                `${saved}問題数を ${current} 問から ${nextValue} 問に変えると、読み取り済みの答案の解答欄の位置が合わなくなり、採点を正しく進められなくなります。${printed}\n\n問題数を間違えて入力していた場合など、必要なときだけ変更してください。変更しますか？`,
+                `問題数を ${current} 問から ${nextValue} 問に変えます。すでに解答用紙を印刷している場合は、印刷した用紙の問題数と食い違うと、読み取りの位置が合わなくなります。\n\n変更しますか？`,
                 '変更する',
             );
         };
@@ -1734,6 +1732,24 @@
             const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
             a.download = 'entries.csv'; a.click();
+        }
+
+        async function clearAnswersAndScoring() {
+            if (!(await showConfirm(
+                '読み込んだ答案と、採点（採点の枠・各採点者の判定・確定結果・履歴）を、すべて消しますか？\n\n' +
+                'エントリーと模範解答は残ります。この操作は取り消せません。\n' +
+                '消したあとは、問題数などを変えて、答案を読み込み直せます。',
+                '答案と採点を消す'
+            ))) return;
+            try {
+                showAdminToast('答案と採点を消しています…', 'info', 10000);
+                await CIQSupabaseAPI.clearAnswersAndScoring(projectId);
+                showAdminToast('答案と採点を消しました。ページを再読み込みします。', 'success', 3000);
+                setTimeout(() => { location.reload(); }, 2000);
+            } catch (e) {
+                console.error('答案と採点を消せませんでした:', e);
+                showAdminToast('答案と採点を消せませんでした。（詳細：' + errorDetail(e) + '）', 'error');
+            }
         }
 
         async function resetProject() {
