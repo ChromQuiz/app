@@ -393,15 +393,16 @@ function createConflictCard(conflict, idx) {
         alts.textContent = ` / ${modelAlts.join(' / ')}`;
         model.appendChild(alts);
     }
-    // 採点者の名前は出さない。3人ぶんの判定を、同じ行に並べる
-    const votes = document.createElement('span');
+    // 採点者の名前は出さない。3人ぶんの判定は、模範解答の行とは別の行に並べる(模範解答を削らない)
+    const votes = document.createElement('div');
     votes.className = 'votes-mini';
     conflict.votes.forEach((vote) => {
         const dot = createVoteDot(vote.result);
         if (dot) votes.appendChild(dot);
     });
-    reviewRow.append(model, votes);
+    reviewRow.append(model);
     card.appendChild(reviewRow);
+    if (votes.childNodes.length) card.appendChild(votes);
     return card;
 }
 

@@ -3030,10 +3030,9 @@ body.page-conflict .action-bar {
   font-weight: 600;
 }
 
-.conflict-review-row .votes-mini {
-  flex: none;
-  margin-left: auto;
-  padding: 0;
+.conflict-card .votes-mini {
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2) var(--sp-2);
 }
 
 @media (min-width: 769px) {
