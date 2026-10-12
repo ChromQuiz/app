@@ -15,6 +15,20 @@ function normalizeAltAnswers(value) {
         .filter(Boolean);
 }
 
+// 1回に最大1000件という、サーバーの上限をこえる表を、全部そろえて取る。
+// pageQuery(from, to) は、from〜to 行目(両端を含む)を返す問い合わせ。1000件に満たないページが来たら終わり。
+const SELECT_PAGE_SIZE = 1000;
+async function selectAllRows(pageQuery) {
+    const rows = [];
+    for (let from = 0; ; from += SELECT_PAGE_SIZE) {
+        const { data, error } = await pageQuery(from, from + SELECT_PAGE_SIZE - 1);
+        if (error) throw error;
+        const page = data || [];
+        rows.push(...page);
+        if (page.length < SELECT_PAGE_SIZE) return rows;
+    }
+}
+
 function mapReviewRow(row) {
     const q = Number(row.question_number);
     const entryNumber = Number(row.entry_number);
@@ -1743,22 +1757,24 @@ const CIQSupabaseAPI = {
         };
     },
 
+    // 判定と確定結果は、大会全体で1万件を超える(100問 × 100人超)。サーバーは1回に最大1000件しか返さないので、
+    // 1000件ずつ取り直して、全部そろえる(1回で取ると、後ろの問題が黙って欠ける)。
     async listScoreVotes(projectId) {
-        const { data, error } = await this.client()
+        return selectAllRows((from, to) => this.client()
             .from('score_votes')
             .select('question_number, entry_id, scorer_member_id, result')
-            .eq('project_id', projectId);
-        if (error) throw error;
-        return data || [];
+            .eq('project_id', projectId)
+            .order('question_number').order('entry_id').order('scorer_member_id')
+            .range(from, to));
     },
 
     async listFinalResults(projectId) {
-        const { data, error } = await this.client()
+        return selectAllRows((from, to) => this.client()
             .from('final_results')
             .select('question_number, entry_id, result, decided_by, decided_at')
-            .eq('project_id', projectId);
-        if (error) throw error;
-        return data || [];
+            .eq('project_id', projectId)
+            .order('question_number').order('entry_id')
+            .range(from, to));
     },
 
     async listScoreConflicts(projectId) {

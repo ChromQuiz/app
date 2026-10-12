@@ -1,5 +1,6 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { selectAllRows } from '../_shared/select_all.ts';
 import {
   PARTICIPANT_CONFIG_ERROR_MESSAGE,
   ParticipantAuthError,
@@ -87,12 +88,15 @@ Deno.serve(withCors(async (req) => {
       .order('entry_number', { ascending: true });
     if (entriesError) throw entriesError;
 
-    const { data: allResults, error: allResultsError } = await supabase
+    // 確定結果は、大会全体で1万件を超える。1回で取ると、サーバーの上限(1000件)で後ろの問題が黙って欠け、
+    // 点数と順位が誤って返る。1000件ずつ、全部そろえる。
+    const allResults = await selectAllRows<FinalResultRow>((from, to) => supabase
       .from('final_results')
       .select('entry_id, question_number, result')
       .eq('project_id', projectId)
-      .order('question_number', { ascending: true });
-    if (allResultsError) throw allResultsError;
+      .order('question_number', { ascending: true })
+      .order('entry_id', { ascending: true })
+      .range(from, to));
 
     const resultsByEntry = new Map<string, Map<number, string>>();
     for (const result of (allResults || []) as FinalResultRow[]) {
