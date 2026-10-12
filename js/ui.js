@@ -57,7 +57,6 @@ function createPreviewHeader(titleText, onClose) {
 // 答案カードを素早く2回タップ（ダブルタップ）したら、答案全体を開く。マウスのダブルクリックと同じ。
 // スマホでは、ダブルクリックのイベントが来るかどうかが端末しだいなので、タップの間隔を自分で数える。
 const PREVIEW_DOUBLE_TAP_MS = 350;
-const PREVIEW_HINT_KEY = 'ciq.previewGestureHint';
 
 function bindPreviewGesture(card, open) {
     let lastTapAt = 0;
@@ -80,18 +79,6 @@ function bindPreviewGesture(card, open) {
     card.addEventListener('dblclick', () => {
         if (Date.now() - lastOpenedAt > 700) run();
     });
-}
-
-// 指で操作する端末で、最初に1回だけ、ダブルタップのことを知らせる。
-function hintPreviewGestureOnce() {
-    if (!window.matchMedia?.('(pointer: coarse)').matches) return;
-    try {
-        if (localStorage.getItem(PREVIEW_HINT_KEY)) return;
-        localStorage.setItem(PREVIEW_HINT_KEY, '1');
-    } catch (_) {
-        return;
-    }
-    showToast('答案をダブルタップすると、答案全体を表示します。', 'info', 5000);
 }
 
 async function showPreview(projectId, entryNum) {

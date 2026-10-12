@@ -201,7 +201,6 @@ function setInitialSelectionToFirstUnscored() {
     const firstUnscoredIndex = answerCards.findIndex(card => myScores[card.entryId] === null);
     selectedIndex = firstUnscoredIndex >= 0 ? firstUnscoredIndex : 0;
     hasSetInitialSelection = true;
-    hintPreviewGestureOnce();
 }
 
 function keepSelectedVisibleDuringInitialLayout() {
