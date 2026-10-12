@@ -129,7 +129,7 @@
             // 状態は、ほかの表（参加者一覧・招待）と同じく、バッジで見せる。薄くする行でも、状態は薄くしない
             const memberStateTd = document.createElement('td');
             memberStateTd.classList.add('cell-status');
-            memberStateTd.appendChild(createBadge(member.status === 'removed' ? 'badge muted' : 'badge success', member.status === 'removed' ? 'user-xmark' : 'check', statusLabel));
+            memberStateTd.appendChild(createBadge(member.status === 'removed' ? 'badge muted' : 'badge success', statusLabel));
             tr.appendChild(memberStateTd);
 
             const actionTd = document.createElement('td');
@@ -762,7 +762,6 @@
             const inviteStateTd = document.createElement('td');
             inviteStateTd.appendChild(createBadge(
                 state.className === 'is-active' ? 'badge success' : 'badge muted',
-                state.className === 'is-active' ? 'check' : 'ban',
                 state.label,
             ));
             tr.appendChild(inviteStateTd);
@@ -1613,14 +1612,13 @@
             }
         }
 
-        // 状態はアイコンだけで伝えない(タッチ端末ではツールチップが出ず、読み上げにも出ない)。label を文字でも出す。
-        function createBadge(className, iconClass, title, styles = {}, label = title) {
+        // 状態のバッジは、文字と色だけ(アイコンは付けない。問題アナリティクスなど、ほかのバッジと同じ)。
+        function createBadge(className, title, styles = {}, label = title) {
             const badge = document.createElement('span');
             badge.className = className;
             badge.title = title;
             Object.assign(badge.style, styles);
-            const icon = createIcon(iconClass);
-            badge.append(icon, ` ${label}`);
+            badge.textContent = label;
             return badge;
         }
 
@@ -1671,27 +1669,27 @@
             const statusTd = appendAdminEntryCell(row, document.createDocumentFragment());
             statusTd.classList.add('cell-status');
             if (entry.status === 'canceled') {
-                statusTd.appendChild(createBadge('badge danger', 'xmark', 'キャンセル'));
+                statusTd.appendChild(createBadge('badge danger', 'キャンセル'));
             } else if (entry.status === 'waitlist') {
-                statusTd.appendChild(createBadge('badge warning', 'clock', 'キャンセル待ち'));
+                statusTd.appendChild(createBadge('badge warning', 'キャンセル待ち'));
             } else if (entry.checked_in) {
                 // 遅刻の連絡をした人も、来て受付を済ませたら「受付済み」にする
-                statusTd.appendChild(createBadge('badge success', 'check', '受付済み'));
+                statusTd.appendChild(createBadge('badge success', '受付済み'));
             } else if (entry.status === 'late') {
-                statusTd.appendChild(createBadge('badge warning', 'clock-rotate-left', '遅刻'));
+                statusTd.appendChild(createBadge('badge warning', '遅刻'));
             } else {
-                statusTd.appendChild(createBadge('badge muted', 'clock', '未受付'));
+                statusTd.appendChild(createBadge('badge muted', '未受付'));
             }
 
             const noticeTd = appendAdminEntryCell(row, document.createDocumentFragment());
             noticeTd.classList.add('cell-status');
             const noticeState = entry.waitlist_promotion_notice;
             if (noticeState === 'pending' || noticeState === 'sending') {
-                noticeTd.appendChild(createBadge('badge muted', 'clock', '繰り上げ通知送信待ち', {}, '送信待ち'));
+                noticeTd.appendChild(createBadge('badge muted', '繰り上げ通知送信待ち', {}, '送信待ち'));
             } else if (noticeState === 'sent') {
-                noticeTd.appendChild(createBadge('badge success', 'check', '繰り上げ通知送信済み', {}, '送信済み'));
+                noticeTd.appendChild(createBadge('badge success', '繰り上げ通知送信済み', {}, '送信済み'));
             } else if (noticeState === 'failed') {
-                noticeTd.appendChild(createBadge('badge danger', 'triangle-exclamation', '繰り上げ通知未送信', {}, '未送信'));
+                noticeTd.appendChild(createBadge('badge danger', '繰り上げ通知未送信', {}, '未送信'));
             } else {
                 noticeTd.textContent = '-';
             }
