@@ -180,6 +180,9 @@
   --tint-warn: rgba(191, 106, 2, 0.08);
   --tint-bad: rgba(215, 0, 21, 0.06);
   --tint-accent: rgba(0, 102, 204, 0.06);
+  /* 面の上に置く、操作の塗り（灰色のボタン・役割のバッジ）。白い面の上でも、輪郭が見える濃さにする */
+  --fill-control: rgba(118, 118, 128, 0.16);
+  --fill-control-hover: rgba(118, 118, 128, 0.24);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -246,6 +249,8 @@
     --tint-warn: rgba(255, 159, 10, 0.12);
     --tint-bad: rgba(255, 69, 58, 0.12);
     --tint-accent: rgba(41, 151, 255, 0.12);
+    --fill-control: rgba(118, 118, 128, 0.28);
+    --fill-control-hover: rgba(118, 118, 128, 0.36);
   }
 }
 
@@ -1912,7 +1917,7 @@ tbody tr:hover {
   border-radius: var(--radius-pill);
   font-size: var(--fs-12);
   font-weight: 700;
-  background: var(--surface-2);
+  background: var(--fill-control);
   color: var(--ink-2);
 }
 
@@ -4340,9 +4345,17 @@ a {
 .btn.standard,
 .page-btn.secondary,
 .page-btn.standard {
-  background: color-mix(in srgb, var(--surface) 80%, var(--surface-3));
+  background: var(--fill-control);
   border-color: transparent;
   color: var(--ink);
+}
+
+.btn.secondary:hover,
+.btn.standard:hover,
+.page-btn.secondary:hover,
+.page-btn.standard:hover {
+  background: var(--fill-control-hover);
+  border-color: transparent;
 }
 
 .btn.ghost,
