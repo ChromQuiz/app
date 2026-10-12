@@ -16,6 +16,7 @@ const CONFLICT_IMAGE_CROP_CONCURRENCY = 12;
 const BACKGROUND_CONFLICT_IMAGE_BATCH = 24;
 let conflictBackgroundPreloadToken = 0;
 let lastConflictRenderSignature = '';
+let lastConflictStructureSignature = '';
 let conflictRefreshTimer = null;
 let conflictRefreshPromise = null;
 let shouldResetConflictSelection = true;
@@ -228,6 +229,41 @@ function getConflictRenderSignature(conflicts) {
     }).join('|');
 }
 
+function getConflictStructureSignature(conflicts) {
+    return conflicts.map(conflict => [
+        conflict.q,
+        conflict.entryId,
+        conflict.modelAnswer || '',
+        (conflict.modelAltAnswers || []).join('/'),
+    ].join(':')).join('|');
+}
+
+function createVotesMini(conflict) {
+    const votes = document.createElement('div');
+    votes.className = 'votes-mini';
+    conflict.votes.forEach((vote) => {
+        const dot = createVoteDot(vote.result);
+        if (dot) votes.appendChild(dot);
+    });
+    return votes;
+}
+
+function patchConflictCards(grid) {
+    currentConflicts.forEach((conflict, idx) => {
+        const card = grid.children[idx];
+        if (!card) return;
+        card._ciqConflict = conflict;
+        card.classList.remove('resolved', 'correct', 'wrong');
+        if (conflict.finalResult) card.classList.add('resolved', conflict.finalResult);
+        const oldVotes = card.querySelector('.votes-mini');
+        const newVotes = createVotesMini(conflict);
+        const hasVotes = newVotes.childNodes.length > 0;
+        if (oldVotes && hasVotes) oldVotes.replaceWith(newVotes);
+        else if (oldVotes) oldVotes.remove();
+        else if (hasVotes) card.appendChild(newVotes);
+    });
+}
+
 function updateConflictSelectionClasses() {
     document.querySelectorAll('.conflict-card').forEach((card, i) => {
         const selected = i === selectedIndex;
@@ -274,6 +310,7 @@ async function render() {
     if (currentConflicts.length === 0) {
         setConflictActionsDisabled(true);
         lastConflictRenderSignature = '';
+        lastConflictStructureSignature = '';
         setConflictGridMessage('要確認はありません', {
             className: 'loading-state no-conflict',
             icon: 'circle-check',
@@ -290,9 +327,20 @@ async function render() {
         return;
     }
 
+    // 並びや内容が同じで、判定・確定だけが変わったときは、カードを作り直さずその場で直す。
+    // 作り直すと、全カードの描画と画像の読み直しで数秒止まり、押した色が消えて見える。
+    const structureSignature = getConflictStructureSignature(currentConflicts);
+    if (structureSignature === lastConflictStructureSignature && grid.children.length === currentConflicts.length) {
+        lastConflictRenderSignature = renderSignature;
+        patchConflictCards(grid);
+        updateConflictSelectionClasses();
+        return;
+    }
+
     const initialImageLimit = getInitialConflictImageLimit(currentConflicts);
     const missingImages = getMissingConflictImageRequests(currentConflicts.slice(0, initialImageLimit));
     if (missingImages.length) {
+        lastConflictStructureSignature = '';
         setConflictGridMessage('画像を準備中…', { icon: 'spinner' });
         const imageStatsBefore = CIQSupabaseAPI.takeImagePerfStats();
         const imageStartedAt = performance.now();
@@ -309,6 +357,7 @@ async function render() {
     }
 
     lastConflictRenderSignature = renderSignature;
+    lastConflictStructureSignature = structureSignature;
     grid.textContent = '';
     const fragment = document.createDocumentFragment();
     currentConflicts.forEach((conflict, idx) => {
@@ -402,12 +451,7 @@ function createConflictCard(conflict, idx) {
         model.appendChild(alts);
     }
     // 採点者の名前は出さない。3人ぶんの判定は、模範解答の行とは別の行に並べる(模範解答を削らない)
-    const votes = document.createElement('div');
-    votes.className = 'votes-mini';
-    conflict.votes.forEach((vote) => {
-        const dot = createVoteDot(vote.result);
-        if (dot) votes.appendChild(dot);
-    });
+    const votes = createVotesMini(conflict);
     reviewRow.append(model);
     card.appendChild(reviewRow);
     if (votes.childNodes.length) card.appendChild(votes);

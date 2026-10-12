@@ -171,4 +171,9 @@ describe('要確認: 判定の並び・即時の色変更', () => {
     const refresh = sliceFn(conflictSrc, 'refreshDataInternal');
     expect(refresh).toContain('pendingFinals.get(key)');
   });
+
+  it('判定・確定だけが変わったときは、カードを作り直さずその場で直す', () => {
+    expect(conflictSrc).toContain('patchConflictCards(grid)');
+    expect(conflictSrc).toContain('getConflictStructureSignature');
+  });
 });
