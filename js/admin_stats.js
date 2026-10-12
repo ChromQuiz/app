@@ -39,11 +39,20 @@
         // (遅刻の連絡をしただけの人、キャンセル済み・キャンセル待ちの人は入れない。受付が採点のあとになった人は 0 点になる)
         // どのタブを先に開いたかで人数が変わらないよう、使う前にサーバーから取り直す。
         let scoringEntryNumbers = [];
+        let checkedInWithoutAnswers = [];
         async function refreshScoringEntryNumbers() {
             const rows = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
             if (!window._entriesRaw) {
                 window._entriesRaw = Object.fromEntries(rows.map(entry => [entry.id, normalizeSupabaseEntry(entry)]));
             }
+            const pages = await CIQSupabaseAPI.listAnswerPages(projectId).catch(() => null);
+            const withPages = new Set((pages || []).map(page => page.entry_id));
+            // 答案を読み込めなかったときは、「答案なし」と誤って知らせない
+            checkedInWithoutAnswers = pages === null ? [] : rows
+                .filter(entry => entry.checked_in === true && !withPages.has(entry.id))
+                .map(entry => Number(entry.entry_number))
+                .filter(Number.isFinite)
+                .sort((a, b) => a - b);
             scoringEntryNumbers = rows
                 .filter(entry => entry.checked_in === true)
                 .map(entry => Number(entry.entry_number))
@@ -119,6 +128,15 @@
             });
             
             const csvS = document.getElementById('csv-status'), csvB = document.getElementById('csv-btn');
+            const missingNote = document.getElementById('csv-missing-answers');
+            if (missingNote) {
+                missingNote.hidden = checkedInWithoutAnswers.length === 0;
+                const numbers = checkedInWithoutAnswers.map(n => String(n).padStart(3, '0'));
+                const shown = numbers.slice(0, 10).join('、');
+                missingNote.textContent = numbers.length
+                    ? `受付済みで答案がない人が${numbers.length}人います。出力すると全問0点になります。受付番号：${shown}${numbers.length > 10 ? ' ほか' : ''}`
+                    : '';
+            }
             // CSV出力の可否は表示用の完了カウントではなく、真の全問確定（allConfirmed）で判定
             if (allConfirmed && dataLoaded && totalQuestions > 0) {
                 setCsvStatus(csvS, 'ready', 'circle-check', '全問確定済み — CSV出力できます');

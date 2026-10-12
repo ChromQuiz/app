@@ -3021,7 +3021,7 @@ body.page-conflict .action-bar {
   min-height: 36px;
   padding: var(--sp-2);
   border-top: 1px solid var(--line);
-  background: var(--surface);
+  background: transparent;
   font-size: var(--text-small);
   white-space: nowrap;
   overflow: hidden;
@@ -3036,10 +3036,68 @@ body.page-conflict .action-bar {
   font-weight: 600;
 }
 
-.conflict-review-row .votes-mini {
+.conflict-review-row .decided-kind {
   flex: none;
   margin-left: auto;
-  padding: 0;
+}
+
+.conflict-vote-list {
+  display: grid;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: var(--sp-2);
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: var(--text-small);
+}
+
+.conflict-vote-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.conflict-vote-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+
+.conflict-scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) 0;
+}
+
+.conflict-scope-form,
+.conflict-scope-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.conflict-scope-form label {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-small);
+}
+
+.conflict-scope-form input {
+  width: 72px;
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .conflict-scope {
+    padding-right: calc(var(--sp-3) + env(safe-area-inset-right));
+    padding-left: calc(var(--sp-3) + env(safe-area-inset-left));
+  }
 }
 
 @media (min-width: 769px) {

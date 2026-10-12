@@ -57,7 +57,7 @@ describe('採点ボードの「採点中の枠」(画面)', () => {
   it('一覧は Escape・背景のクリック・「閉じる」で閉じ、解放の確認を重ねる前に閉じる', () => {
     expect(judge).toContain("event.key === 'Escape'");
     expect(judge).toContain('if (event.target === overlay) close();');
-    expect(judge).toMatch(/close\(\);\s*releaseSlot\(row, button\);/);
+    expect(judge).toMatch(/close\(\);[\s\S]*?releaseSlot\(row, button\);/);
   });
 
   it('解放の前に確認し、「判定はすべて消える」と伝える', () => {

@@ -429,6 +429,44 @@ select pg_temp.as_user('a0000000-0000-4000-8000-000000000007');  -- 無関係な
 select pg_temp.chk('DB-10a 大会のメンバーでない人は解放できない', pg_temp.err($$select * from public.release_question_scorer('zz-t', 2, pg_temp.mid('S3'))$$) <> 'OK');
 reset role;
 
+-- ===== DB-26 確定のあとでも直せる（decided_kind・list_question_review・reopen_question_scoring）=====
+reset role;
+select pg_temp.chk('DB-26 全員一致で自動に確定した記録は auto、管理者が決めた記録は admin',
+  (select decided_kind from public.final_results where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E2')) = 'auto'
+  and (select decided_kind from public.final_results where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E3')) = 'admin',
+  (select string_agg(entry_id::text || ':' || decided_kind, ',') from public.final_results where project_id='zz-t' and question_number=1));
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-26 管理者は、1つの問題の、受付済みの全員の答案を、確定済みも含めて取得できる',
+  (select count(*) from public.list_question_review('zz-t', 1)) = 2
+  and exists (select 1 from public.list_question_review('zz-t', 1) r where r.entry_id = pg_temp.eid('E2') and r.final_result = 'correct' and r.decided_kind = 'auto' and jsonb_array_length(r.votes) = 2)
+  and exists (select 1 from public.list_question_review('zz-t', 1) r where r.entry_id = pg_temp.eid('E3') and r.final_result = 'hold' and r.decided_kind = 'admin'),
+  (select string_agg(entry_number::text || ':' || coalesce(final_result, '-') || ':' || coalesce(decided_kind, '-'), ',') from public.list_question_review('zz-t', 1)));
+select pg_temp.chk('DB-26 …当日受付していない人（E4）は含まれない', not exists (select 1 from public.list_question_review('zz-t', 1) r where r.entry_id = pg_temp.eid('E4')));
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1（管理者でない）
+select pg_temp.chk('DB-26 採点者には、全員の答案は返らない', (select count(*) from public.list_question_review('zz-t', 1)) = 0);
+select pg_temp.chk('DB-26 採点者は、完了した枠を開き直せない', pg_temp.err($$select * from public.reopen_question_scoring('zz-t', 1)$$) like '%権限%',
+  pg_temp.err($$select * from public.reopen_question_scoring('zz-t', 1)$$));
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+create temp table ro as select * from public.reopen_question_scoring('zz-t', 1);
+reset role;
+select pg_temp.chk('DB-26 開き直すと、完了した枠（2つ）が未完了になり、自動の確定（E2）だけ消える',
+  (select reopened_slots from ro) = 2 and (select cleared_auto_finals from ro) = 1
+  and not exists (select 1 from public.question_scorers where project_id='zz-t' and question_number=1 and completed_at is not null)
+  and not exists (select 1 from public.final_results where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E2')),
+  (select reopened_slots::text || '/' || cleared_auto_finals::text from ro));
+select pg_temp.chk('DB-26 …管理者が決めた確定（E3）と、採点者の判定は、残る',
+  (select result from public.final_results where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E3')) = 'hold'
+  and (select count(*) from public.score_votes where project_id='zz-t' and question_number=1) = 4);
+select pg_temp.chk('DB-26 …誰が開き直したかが、監査ログに残る', exists (select 1 from public.audit_logs where project_id='zz-t' and action='question_scoring.reopen' and actor_member_id = pg_temp.mid('Admin')));
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000004');  -- S2
+select pg_temp.chk('DB-26 開き直した問題では、採点者が、自分の判定を直せる', pg_temp.err($$select * from public.set_score_vote('zz-t', 1, pg_temp.eid('E3'), 'correct')$$) = 'OK');
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-26 完了した枠がないときは、断る', pg_temp.err($$select * from public.reopen_question_scoring('zz-t', 1)$$) like '%開き直せる枠%');
+reset role;
+
 -- ===== DB-13 招待 =====
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
 select pg_temp.chk('DB-13 採点者は招待を発行できない（サーバー経由のみ）。管理者も直接は呼べない', pg_temp.err($$select * from public.create_scorer_invite('zz-t', repeat('a', 64), 1, 'a0000000-0000-4000-8000-000000000002')$$) <> 'OK');
