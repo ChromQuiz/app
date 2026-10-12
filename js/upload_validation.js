@@ -30,7 +30,7 @@
         if (file.size > maxBytes) {
             return {
                 ok: false,
-                message: `PDFが大きすぎます（${formatBytes(file.size)}）。${formatBytes(maxBytes)}以下にしてください。`,
+                message: `PDFが ${formatBytes(file.size)} あり、大きすぎます。${formatBytes(maxBytes)}以下にしてください。`,
             };
         }
         if (!isPdfName(file.name) || !isPdfType(file.type)) {
@@ -50,7 +50,7 @@
         if (pageCount > maxPages) {
             return {
                 ok: false,
-                message: `PDFのページ数が多すぎます（${pageCount}ページ）。${maxPages}ページ以下に分けて読み込んでください。`,
+                message: `PDFが ${pageCount}ページあり、多すぎます。${maxPages}ページ以下に分けて読み込んでください。`,
             };
         }
         return { ok: true };
@@ -80,7 +80,7 @@
         const first = unique[0];
         const last = unique[unique.length - 1];
         const range = first === last ? padEntryNumber(first) : `${padEntryNumber(first)}〜${padEntryNumber(last)}`;
-        return `${range}（${unique.length}件）`;
+        return `${range}、${unique.length}件`;
     }
 
     function validateDetectedEntryNumbers(detectedNumbers, knownEntryNumbers) {

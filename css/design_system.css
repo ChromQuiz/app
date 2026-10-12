@@ -4597,7 +4597,7 @@ select:focus {
   font-size: var(--fs-12);
   font-weight: 700;
   letter-spacing: -0.006em;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   background: var(--surface-2);
   color: var(--ink-2);
 }
@@ -4632,7 +4632,7 @@ select:focus {
 .badge.muted {
   color: var(--ink-2);
   background: var(--surface-2);
-  border-color: var(--line);
+  border-color: var(--line-strong);
 }
 
 .confirm-overlay {

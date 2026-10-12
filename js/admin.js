@@ -241,7 +241,7 @@
                 const unread = CIQNotifications.unreadCount();
                 badge.hidden = unread === 0 || isOpen();
                 badge.textContent = unread > 99 ? '99+' : String(unread);
-                bell.setAttribute('aria-label', unread > 0 ? `通知センターを開く(未読${unread}件)` : '通知センターを開く');
+                bell.setAttribute('aria-label', unread > 0 ? `通知センターを開く。未読${unread}件` : '通知センターを開く');
             }
 
             function renderList() {
@@ -743,7 +743,7 @@
                         setPageMessage(statusEl, `${name} を受付しました。`, 'success');
                     } else {
                         // 照会のあとに、キャンセル待ち・キャンセル済みに変わっていたとき。受付はされていない。
-                        setPageMessage(statusEl, `${name} は受付対象外です（キャンセル待ちまたはキャンセル済み）。受付していません。状態を確認してください。`, 'warning');
+                        setPageMessage(statusEl, `${name} は、キャンセル待ちかキャンセル済みなので、受付できません。状態を確認してください。`, 'warning');
                     }
                     resetPanel();
                 });

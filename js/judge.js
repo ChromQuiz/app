@@ -251,7 +251,7 @@ function syncSlotButtons(rows) {
             button?.remove();
             continue;
         }
-        const label = `${q}問の採点枠(${open.length}件)を見る`;
+        const label = `${q}問の採点枠${open.length}件を見る`;
         if (!button) {
             button = document.createElement('button');
             button.type = 'button';

@@ -1892,7 +1892,7 @@ body.page-checkin #camera-container {
 }
 
 .q-status.status-open {
-  border-color: var(--line);
+  border-color: var(--line-strong);
   background: var(--surface-2);
   color: var(--ink-2);
 }
@@ -5281,4 +5281,50 @@ body.page-entry-list .list-container td.inline-parts {
 
 #project-members-tbody .member-row-removed td {
   text-decoration: none;
+}
+
+/* ============================================================
+   操作の輪郭は、どのボタンも同じ濃さ（--line-strong）にそろえる
+   ------------------------------------------------------------
+   灰色のボタン（.btn.secondary）は --line-strong の輪郭を持つ。丸いヘッダーのボタン、日時、
+   数の＋－、段階タブの選択中も、同じ濃さにして、並べたときに明るさが合うようにする。
+   押したときは、少し濃く（--ink-3）する。
+   ============================================================ */
+.back-nav-btn,
+.menu-panel-close,
+.dt-trigger,
+.number-spinner-btn {
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.back-nav-btn:hover,
+.menu-panel-close:hover,
+.dt-trigger:hover,
+.number-spinner-btn:hover {
+  box-shadow: inset 0 0 0 1px var(--ink-3);
+}
+
+.menu-panel-close,
+.menu-trigger,
+.notif-bell,
+.phase-quick-btn.active {
+  border-color: var(--line-strong);
+}
+
+.menu-trigger:hover,
+.notif-bell:hover {
+  border-color: var(--ink-3);
+}
+
+/* 模範解答のバッジも、ほかの灰色のバッジと同じ濃さの輪郭にする */
+body.page-question .answer-badge {
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+/* 確認のダイアログ：画面が低くても（横向きのスマホなど）、ボタンが画面の外に出ないようにする。
+   中身が長いときは、ダイアログの中でスクロールする。 */
+.confirm-dialog {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }

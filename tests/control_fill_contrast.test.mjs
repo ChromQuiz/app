@@ -25,3 +25,22 @@ describe('灰色のボタンとバッジの輪郭', () => {
     expect(css).toMatch(/\.menu-role-badge\.admin \{[^}]*border-color: color-mix\(in srgb, var\(--gold-600\) 28%, transparent\);/);
   });
 });
+
+describe('操作の輪郭の濃さ（どのボタンも同じ）', () => {
+  const pages = readFileSync(resolve(import.meta.dirname, '../css/pages.css'), 'utf8');
+
+  it('丸いヘッダーのボタン・日時・数の＋－・段階タブの選択中も、--line-strong の輪郭にそろえる', () => {
+    expect(pages).toMatch(/\.back-nav-btn,\s*\.menu-panel-close,\s*\.dt-trigger,\s*\.number-spinner-btn \{\s*box-shadow: inset 0 0 0 1px var\(--line-strong\);/);
+    expect(pages).toMatch(/\.menu-panel-close,\s*\.menu-trigger,\s*\.notif-bell,\s*\.phase-quick-btn\.active \{\s*border-color: var\(--line-strong\);/);
+  });
+
+  it('灰色のバッジ（未着手・模範解答など）も、同じ濃さの輪郭にする', () => {
+    expect(css).toMatch(/\.badge \{[^}]*border: 1px solid var\(--line-strong\);/);
+    expect(pages).toMatch(/\.q-status\.status-open \{\s*border-color: var\(--line-strong\);/);
+    expect(pages).toMatch(/body\.page-question \.answer-badge \{\s*box-shadow: inset 0 0 0 1px var\(--line-strong\);/);
+  });
+
+  it('確認のダイアログは、低い画面でも、画面の中に収まる（中でスクロールする）', () => {
+    expect(pages).toMatch(/\.confirm-dialog \{\s*max-height: calc\(100dvh - 32px\);\s*overflow-y: auto;/);
+  });
+});
