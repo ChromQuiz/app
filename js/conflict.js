@@ -735,7 +735,12 @@ function selectConflictCard(idx, options = {}) {
     if (idx < 0 || idx >= currentConflicts.length) return;
     selectedIndex = idx;
     updateConflictSelectionClasses();
-    if (options.focus) document.querySelectorAll('.conflict-card')[selectedIndex]?.focus({ preventScroll: true });
+    const cards = document.querySelectorAll('.conflict-card');
+    // 前に選んでいたカードにフォーカスが残ると、青い枠が2枚に出る。選択に合わせてフォーカスも移す。
+    const active = document.activeElement;
+    if (options.focus || (active && active !== cards[selectedIndex] && active.classList?.contains('conflict-card'))) {
+        cards[selectedIndex]?.focus({ preventScroll: true });
+    }
     scrollToSelectedConflict();
 }
 

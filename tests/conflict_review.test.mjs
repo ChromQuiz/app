@@ -200,3 +200,12 @@ describe('管理者として開く・管理者が覆したもの', () => {
     expect(compare).toContain("section === 'override' ? 0 : 1");
   });
 });
+
+describe('選択とフォーカス', () => {
+  it('選択を進めたとき、前のカードにフォーカスを残さない（青い枠が2枚に出ない）', () => {
+    for (const src of [conflictSrc, questionSrc]) {
+      expect(src).toContain('青い枠が2枚に出る');
+      expect(src).toMatch(/active !== cards\[selectedIndex\]/);
+    }
+  });
+});
