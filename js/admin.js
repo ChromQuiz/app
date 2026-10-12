@@ -695,7 +695,7 @@
 
                 const statusLabel = MANUAL_CHECKIN_STATUS_LABEL[entry.status] || entry.status || '';
                 const checkable = entry.status === 'registered' || entry.status === 'late';
-                stateEl.textContent = entry.checkedIn ? `受付済み（${statusLabel}）` : `未受付（${statusLabel}）`;
+                stateEl.textContent = [entry.checkedIn ? '受付済み' : '未受付', statusLabel].filter(Boolean).join(' · ');
 
                 commitBtn.classList.toggle('u-hidden', Boolean(entry.checkedIn) || !checkable);
                 undoBtn.classList.toggle('u-hidden', !entry.checkedIn);

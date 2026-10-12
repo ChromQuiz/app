@@ -200,7 +200,7 @@
                             <div id="max-entries-input-area" class="mt-md mb-zero">
                                 <div class="number-spinner-wrap u-input-compact">
                                     <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="-1" aria-label="1人減らす"><span data-icon="minus" aria-hidden="true"></span></button>
-                                    <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" aria-label="定員（人数）" />
+                                    <input type="number" id="setting-max-entries" min="1" max="9999" value="120" data-action="save-entry-period" aria-label="定員の人数" />
                                     <button type="button" class="number-spinner-btn" data-adjust-input="setting-max-entries" data-adjust-delta="1" aria-label="1人増やす"><span data-icon="plus" aria-hidden="true"></span></button>
                                 </div>
                             </div>
@@ -495,11 +495,11 @@
                             </div>
                             <div class="invite-field">
                                 <span class="invite-fixed-label">有効期限</span>
-                                <span class="invite-fixed-value">7日（固定）</span>
+                                <span class="invite-fixed-value">7日</span>
                             </div>
                             <div class="invite-field">
                                 <span class="invite-fixed-label">権限</span>
-                                <span class="invite-fixed-value">採点者（固定）</span>
+                                <span class="invite-fixed-value">採点者</span>
                             </div>
                             <button type="button" class="btn" id="invite-create-btn">
                                 <span data-icon="arrow-up-right-from-square" aria-hidden="true"></span> 招待リンクを発行
@@ -509,14 +509,14 @@
 
                         <!-- 発行直後のみ表示: 平文トークンは保存されないため再表示できない -->
                         <div class="invite-new u-hidden" id="invite-new">
-                            <label for="invite-new-url">招待リンク（この場でコピーしてください）</label>
+                            <label for="invite-new-url">招待リンク</label>
                             <div class="credential-row">
                                 <input type="text" id="invite-new-url" readonly>
                                 <button type="button" class="btn standard credential-copy-btn" id="invite-copy-btn" aria-label="招待リンクをコピー">
                                     <span data-icon="copy" aria-hidden="true"></span>
                                 </button>
                             </div>
-                            <p class="invite-note">このリンクは再表示できません。閉じた場合は新しく発行してください。</p>
+                            <p class="invite-note">この場でコピーしてください。このリンクは再表示できません。閉じた場合は新しく発行してください。</p>
                         </div>
 
                         <div class="table-container u-table-scroll-md">
@@ -540,7 +540,7 @@
                     <div class="phase-block">
                         <h2>参加規約</h2>
                         <div class="name-input-flex u-stack-stretch">
-                            <textarea id="setting-terms" class="u-min-h-120 mb-md" aria-label="参加規約（Markdown）" placeholder="規約を入力しない場合は空にしてください"></textarea>
+                            <textarea id="setting-terms" class="u-min-h-120 mb-md" aria-label="参加規約" placeholder="規約を入力しない場合は空にしてください"></textarea>
                             <button class="btn secondary" data-action="update-terms"><span data-icon="arrows-rotate" aria-hidden="true"></span> 参加規約を更新</button>
                         </div>
                     </div>
@@ -605,7 +605,7 @@
         <div class="dt-picker-time">
             <span class="time-icon" data-icon="clock" aria-hidden="true"></span>
             <span class="dt-time-label">時刻</span>
-            <input type="text" id="dt-picker-time-input" inputmode="numeric" autocomplete="off" placeholder="00:00" aria-label="時刻（時分4桁）">
+            <input type="text" id="dt-picker-time-input" inputmode="numeric" autocomplete="off" placeholder="00:00" aria-label="時刻を4桁の数字で入力">
         </div>
         <div class="dt-picker-actions">
             <button type="button" class="dt-clear" data-dt-clear><span data-icon="xmark" aria-hidden="true"></span> クリア</button>
@@ -680,7 +680,7 @@
                 <div class="form-group">
                     <label class="required" for="admin-entry-entry-name">エントリーネーム</label>
                     <input type="text" id="admin-entry-entry-name" maxlength="20" required>
-                    <div class="hint">当日の受付および大会後に発行する記録集では、本名（姓名）を使用します。エントリーをもって、この取り扱いに同意したものとします。</div>
+                    <div class="hint">当日の受付および大会後に発行する記録集では、本名を使用します。エントリーをもって、この取り扱いに同意したものとします。</div>
                 </div>
                 <div class="form-group">
                     <label for="admin-entry-public-message">意気込み</label>
@@ -716,11 +716,11 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=57"></script>
+    <script defer src="js/admin.js?v=58"></script>
     <script defer src="js/upload_validation.js?v=4"></script>
     <script defer src="js/admin_scan.js?v=25"></script>
     <script defer src="js/admin_stats.js?v=18"></script>
     <script defer src="js/admin_graded_pdf.js?v=15"></script>
-    <script defer src="js/admin_settings.js?v=60"></script>
+    <script defer src="js/admin_settings.js?v=61"></script>
 </body>
 </html>

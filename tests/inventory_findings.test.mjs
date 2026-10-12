@@ -244,12 +244,12 @@ describe('FND-17: 画面の文言に半角の括弧・コロンを混ぜない',
     expect(offenders).toEqual([]);
   });
 
-  it('入力フォームの項目名が全角の括弧', () => {
+  it('入力フォームの項目名に、括弧書きの補足を付けない（ふりがなは入力時に全角カタカナへ直す）', () => {
     for (const f of ['entry.html', 'my.html']) {
       const html = read(f);
-      expect(html).toContain('姓（全角）');
-      expect(html).toContain('セイ（全角カタカナ）');
-      expect(html).not.toMatch(/姓 \(全角\)/);
+      expect(html).toMatch(/>姓<\/label>/);
+      expect(html).toMatch(/>セイ<\/label>/);
+      expect(html).not.toMatch(/姓（全角）|セイ（全角カタカナ）|姓 \(全角\)/);
     }
   });
 });

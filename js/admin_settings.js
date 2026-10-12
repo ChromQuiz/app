@@ -980,16 +980,16 @@
 
             const now = new Date();
             if (ps && new Date(ps) > now) {
-                el.textContent = '期間外（開始前）';
+                el.textContent = '開始前';
                 el.className = 'status-badge status-warning';
                 setPublicState('開始前', `${formatDtDisplay(ps)} から`);
                 window.updateAdminOverview?.();
                 return;
             }
             if (pe && new Date(pe) < now) {
-                el.textContent = '期間外（終了済）';
+                el.textContent = '終了';
                 el.className = 'status-badge status-warning';
-                setPublicState('終了済', `${formatDtDisplay(pe)} まで`);
+                setPublicState('終了', `${formatDtDisplay(pe)} まで`);
                 window.updateAdminOverview?.();
                 return;
             }
@@ -1064,16 +1064,16 @@
 
             const now = new Date();
             if (ps && new Date(ps) > now) {
-                el.textContent = '期間外（開始前）';
+                el.textContent = '開始前';
                 el.className = 'status-badge status-warning';
                 setPublicState('開始前', `${formatDtDisplay(ps)} から`);
                 window.updateAdminOverview?.();
                 return;
             }
             if (pe && new Date(pe) < now) {
-                el.textContent = '期間外（終了済）';
+                el.textContent = '終了';
                 el.className = 'status-badge status-warning';
-                setPublicState('終了済', `${formatDtDisplay(pe)} まで`);
+                setPublicState('終了', `${formatDtDisplay(pe)} まで`);
                 window.updateAdminOverview?.();
                 return;
             }
