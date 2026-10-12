@@ -758,7 +758,9 @@
                 tr.appendChild(td);
             });
             const actionTd = document.createElement('td');
-            if (!invite.revoked_at) {
+            actionTd.className = 'invite-action-cell';
+            // 無効化できるのは、まだ使える招待だけ（期限切れ・上限到達・無効化済みは、もう使えないので出さない）
+            if (state.className === 'is-active') {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'btn danger';
@@ -818,7 +820,7 @@
                 const field = document.getElementById('invite-new-url');
                 if (field) field.value = url;
                 box?.classList.remove('u-hidden');
-                setInviteStatus('招待リンクを発行しました。この場でコピーしてください（再表示できません）。', 'success');
+                setInviteStatus('招待リンクを発行しました。この場でコピーしてください。再表示できません。', 'success');
                 await loadScorerInvites();
             } catch (e) {
                 setInviteStatus('招待リンクを発行できませんでした。（詳細：' + errorDetail(e) + '）', 'error');
