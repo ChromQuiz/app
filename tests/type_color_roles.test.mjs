@@ -65,7 +65,7 @@ describe('文字の色（トークンだけ）', () => {
 
   it('採点ボードの「続きから採点」と内訳は、枠や面で囲わない', () => {
     const block = (selector) => pages.match(new RegExp(`\\n${selector.replace(/\./g, '\\.')} \\{[^}]*\\}`))?.[0] || '';
-    for (const selector of ['.judge-resume', '.judge-summary']) {
+    for (const selector of ['.judge-toolbar', '.judge-resume', '.judge-summary']) {
       expect(block(selector), selector).not.toMatch(/border|background|box-shadow/);
     }
   });

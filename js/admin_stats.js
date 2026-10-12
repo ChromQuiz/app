@@ -32,6 +32,7 @@
             if (className) td.className = className;
             td.textContent = text;
             row.appendChild(td);
+            return td;
         }
 
         // 順位・CSV・アナリティクス・採点済みPDFが対象にする人は、成績照会と同じ「当日受付を済ませた人」だけ。
@@ -289,7 +290,12 @@
                 appendAnalyticsCell(tr, s.q, 'analytics-q');
                 appendAnalyticsCell(tr, `${s.correctCount}人`, 'analytics-count');
                 appendAnalyticsCell(tr, `${s.rate}%`, 'analytics-rate');
-                appendAnalyticsCell(tr, s.type, 'analytics-type');
+                // 状態は、ほかの表と同じく、バッジで見せる（ハイライトする行は、警告の色）
+                const typeTd = appendAnalyticsCell(tr, '', 'analytics-type');
+                const typeBadge = document.createElement('span');
+                typeBadge.className = s.isRare ? 'badge warning' : 'badge muted';
+                typeBadge.textContent = s.type;
+                typeTd.appendChild(typeBadge);
                 appendAnalyticsCell(tr, s.names, 'analytics-names');
                 tbody.appendChild(tr);
             });

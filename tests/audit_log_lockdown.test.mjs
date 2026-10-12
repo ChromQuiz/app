@@ -31,7 +31,7 @@ describe('202610050004_lock_down_audit_logs', () => {
 
 describe('採点者のメニュー', () => {
   it('「要確認」は管理者にだけ出す（解決できるのは管理者だけ）', () => {
-    expect(read('judge.html')).toMatch(/class="u-hidden menu-item warn" id="admin-menu-conflict"/);
+    expect(read('judge.html')).toMatch(/class="u-hidden menu-item" id="admin-menu-conflict"/);
     const js = read('js/judge.js');
     expect(js).toMatch(/if \(scorerRole === 'admin'\) \{[\s\S]*admin-menu-conflict[\s\S]*\}/);
   });

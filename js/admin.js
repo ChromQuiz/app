@@ -169,7 +169,6 @@
                 'render-analytics': renderAnalytics,
                 'export-analytics-csv': exportAnalyticsCSV,
                 'load-project-members': loadProjectMembers,
-                'update-terms': updateTerms,
                 'reset-project': resetProject,
             };
             document.querySelectorAll('[data-action]').forEach((el) => {
@@ -495,7 +494,9 @@
             }
             updateEntryOpenStatus();
 
-            document.getElementById('setting-terms').value = project.terms || '';
+            const termsArea = document.getElementById('setting-terms');
+            termsArea.value = project.terms || '';
+            termsArea.dataset.saved = (project.terms || '').trim();
             const notifyEdit = document.getElementById('setting-notify-entry-edit');
             const notifyCancel = document.getElementById('setting-notify-entry-cancel');
             const notifyLate = document.getElementById('setting-notify-late-notice');
@@ -720,7 +721,7 @@
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
                 const value = Number(input.value);
-                if (!Number.isFinite(value) || value <= 0) {
+                if (!Number.isInteger(value) || value <= 0) {
                     setPageMessage(statusEl, '受付番号を入力してください。', 'error');
                     return;
                 }
@@ -779,6 +780,7 @@
             setupPublicLinks();
             registerAdminShortcuts();
             if (typeof bindEmailSettingsAutosave === 'function') bindEmailSettingsAutosave();
+            if (typeof bindTermsAutosave === 'function') bindTermsAutosave();
 
             await initSupabaseAdmin();
             // 作りかけの解答欄画像があれば、サーバーに続きを進めてもらう（権限がなければ何も起きない）

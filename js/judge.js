@@ -367,20 +367,16 @@ async function releaseSlot(row, button) {
 // 「続きから採点する」ヒーロー — 入れる最若番の問題へ常に案内する
 function updateResumeHero(resumeQ, mineResumeQ = 0, hasAnyMine = false) {
     const hero = document.getElementById('judge-resume');
-    const desc = document.getElementById('judge-resume-desc');
     const btn = document.getElementById('judge-resume-btn');
-    if (!hero || !desc || !btn) return;
+    if (!hero || !btn) return;
     if (resumeQ > 0) {
-        desc.textContent = mineResumeQ === resumeQ
-            ? `第${resumeQ}問の採点が途中です`
-            : `入れる問題のうち最も若い第${resumeQ}問へ進みます`;
+        // 説明の文は置かず、ボタンに、どの問題から始まるかを書く
         btn.dataset.resumeQ = String(resumeQ);
         btn.disabled = false;
         btn.textContent = '';
-        btn.append(hasAnyMine ? '採点を再開 ' : '採点を開始 ', createIcon('arrow-right'));
+        btn.append(`第${resumeQ}問から${hasAnyMine ? '採点を再開' : '採点を開始'} `, createIcon('arrow-right'));
         hero.classList.remove('u-hidden');
     } else {
-        desc.textContent = '現在入れる問題はありません';
         delete btn.dataset.resumeQ;
         btn.disabled = true;
         btn.textContent = '採点できる問題なし';
