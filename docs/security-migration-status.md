@@ -1267,10 +1267,10 @@ Notes   : 補足・再構成の断り・要確認事項
 
 ## 成績照会は、全問が確定したあとだけ（2026-10-12）
 
-- Status: マイグレーションは適用済み（本番）。`supabase/migrations/202610120005_scoring_confirmation.sql`。Edge Function `disclose-result` は、**デプロイ待ち**（利用者が実行する）。
+- Status: マイグレーションは適用済み（本番）。`supabase/migrations/202610120005_scoring_confirmation.sql`。Edge Function `disclose-result` は、デプロイ済み（2026-10-12、利用者が実行）。
 - 背景: 管理者が成績照会を有効にすれば、確定が済んでいなくても、参加者に点数と順位を返していた。要確認が残っている答案は、確定結果がないため 0 点として数えられ、その順位が参加者に出る（公開した順位は取り消せない）。
 - 内容: `scoring_confirmation(project)`（security definer、**service_role だけが実行可**）。全問の採点が完了していて、要確認（当日受付済みで答案があり、判定が一致せず、確定結果がない答案）が1件も残っていないとき `confirmed = true`。`disclose-result` が、点数と順位を計算する前に呼び、確定前は 409「成績はまだ確定していません。確定したあとに、もう一度お試しください。」を返す。
-- Evidence: データベースの挙動スイート DB-28（152件すべて ok、最後に rollback）。本番の ciq1 で、要確認が146件残る状態は `confirmed = false`、全件を決めた状態（ロールバックする取引の中）は `confirmed = true`。Edge Function は、偽の DB を使った Vitest（確定前は 409 で点数も順位も返さない）。デプロイ後の本物の呼び出しは未確認。
+- Evidence: データベースの挙動スイート DB-28（152件すべて ok、最後に rollback）。本番の ciq1 で、要確認が146件残る状態は `confirmed = false`、全件を決めた状態（ロールバックする取引の中）は `confirmed = true`。Edge Function は、偽の DB を使った Vitest（確定前は 409 で点数も順位も返さない）。デプロイ後の本物の呼び出し（参加者の認証つき）は未確認。
 - Rollback: `disclose-result` の確認を外して再デプロイ。DB は `drop function public.scoring_confirmation(text);`。
 - Notes: 管理者が成績照会を有効にするときの警告（確定前なら、その場で知らせる）は、まだ無い。CSV・採点済み PDF も、出力を断るのはボタンを無効にしているだけで、関数自体は確かめない。
 - デプロイ: `npx supabase functions deploy disclose-result --project-ref pyzdlkwumhreepgkrcyb --no-verify-jwt`
