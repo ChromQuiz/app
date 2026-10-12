@@ -44,11 +44,30 @@ describe('当日受付の結果の表示（カメラの画面とリーダー専�
     }
   });
 
-  it('見た目は1つ: 印の色は状態で決め、背景は塗らず、受付番号は役割の最大の大きさの2倍', () => {
+  it('見た目は1つ: 印の色は状態で決め、背景は塗らず、受付番号は役割の最大の大きさの1.75倍', () => {
     const css = read('css/pages.css');
     expect(css).toMatch(/\.checkin-result\.is-ok \{ --mark-bg: var\(--ok-600\);/);
-    expect(css).toMatch(/\.checkin-result-number \{\s*font-size: 2em;/);
+    expect(css).toMatch(/\.checkin-result-number \{\s*font-size: 1.75em;/);
     expect(css).not.toMatch(/#result\.(success|already|canceled|error)/);
     expect(css).not.toMatch(/\.reader-result/);
+  });
+
+  it('受付番号の上下の文字は、小さくしすぎない（番号との差が開きすぎない）', () => {
+    const css = read('css/pages.css');
+    expect(css).toMatch(/\.checkin-result-title \{\s*font-size: var\(--text-numeral\);/);
+    expect(css).toMatch(/\.checkin-result-label \{\s*font-size: var\(--text-title\);/);
+    expect(css).toMatch(/\.checkin-result-detail \{\s*font-size: var\(--text-title\);/);
+  });
+
+  it('2つの受付画面は、同じ作りのヘッダー（戻る・題・設定の歯車）と設定。受付状況は、参加者に見せず、設定の中', () => {
+    for (const html of ['checkin.html', 'checkin_reader.html']) {
+      const src = read(html);
+      expect(src, html).toMatch(/<dialog class="checkin-settings"/);
+      expect(src, html).toContain('id="checkin-tally"');
+      expect(src, html).not.toContain('id="stats-bar"');
+    }
+    expect(read('checkin.html')).toContain('id="checkin-settings-btn"');
+    expect(read('checkin_reader.html')).toContain('id="reader-settings-btn"');
+    expect(read('js/checkin.js')).toContain("showModal()");
   });
 });

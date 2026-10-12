@@ -20,7 +20,7 @@
     <script defer src="js/ui.js?v=39"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=110">
-    <link rel="stylesheet" href="css/pages.css?v=193">
+    <link rel="stylesheet" href="css/pages.css?v=194">
 
 </head>
 <body class="page-reader">
@@ -53,22 +53,22 @@
         <input type="text" id="reader-input" class="reader-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="none" aria-label="二次元コードリーダーの入力">
     </main>
 
-    <dialog class="reader-settings" id="reader-settings" aria-labelledby="reader-settings-title">
+    <dialog class="checkin-settings" id="reader-settings" aria-labelledby="reader-settings-title">
         <h2 id="reader-settings-title">リーダーの設定</h2>
-        <dl class="reader-conn">
-            <div class="reader-conn-row">
+        <dl class="checkin-conn">
+            <div class="checkin-conn-row">
                 <dt>受付状況</dt>
-                <dd id="reader-tally">-</dd>
+                <dd id="checkin-tally">-</dd>
             </div>
-            <div class="reader-conn-row">
+            <div class="checkin-conn-row">
                 <dt>キーボード入力</dt>
                 <dd id="reader-keyboard-state">待機中</dd>
             </div>
-            <div class="reader-conn-row">
+            <div class="checkin-conn-row">
                 <dt>USBシリアル</dt>
                 <dd id="reader-serial-state">未接続</dd>
-                <div class="reader-conn-actions">
-                    <label class="reader-baud" for="reader-baud">通信速度
+                <div class="checkin-conn-actions">
+                    <label class="checkin-baud" for="reader-baud">通信速度
                         <select id="reader-baud">
                             <option value="9600" selected>9600</option>
                             <option value="19200">19200</option>
@@ -81,8 +81,8 @@
                 </div>
             </div>
         </dl>
-        <p class="reader-conn-note" id="reader-serial-note" hidden>USBシリアルは、Chrome と Edge で使えます。</p>
-        <div class="reader-settings-actions">
+        <p class="checkin-conn-note" id="reader-serial-note" hidden>USBシリアルは、Chrome と Edge で使えます。</p>
+        <div class="checkin-settings-actions">
             <button type="button" class="btn secondary" id="reader-settings-close">閉じる</button>
         </div>
     </dialog>
@@ -90,7 +90,7 @@
     <script defer src="js/qr_reader_input.js?v=1"></script>
     <script defer src="js/qr_serial_reader.js?v=1"></script>
     <script defer src="js/checkin_result_view.js?v=1"></script>
-    <script defer src="js/checkin_reader.js?v=4"></script>
+    <script defer src="js/checkin_reader.js?v=5"></script>
 </body>
 
 </html>

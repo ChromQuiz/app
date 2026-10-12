@@ -49,7 +49,7 @@ if (auth) {
     // 受付状況(済・未・計)は、参加者に見せない。運営だけが開く設定の中に出す
     async function loadStats() {
         const stats = await CIQSupabaseAPI.getCheckInStats(projectId);
-        el('reader-tally').textContent = `済 ${stats.checked || 0}　未 ${stats.remaining || 0}　計 ${stats.total || 0}`;
+        el('checkin-tally').textContent = `済 ${stats.checked || 0}　未 ${stats.remaining || 0}　計 ${stats.total || 0}`;
     }
 
     // ---- 読み取りの入口(2つの経路が、ここへ来る) ----

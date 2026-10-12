@@ -21,10 +21,10 @@
     <script defer src="js/ui.js?v=39"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=110">
-    <link rel="stylesheet" href="css/pages.css?v=193">
+    <link rel="stylesheet" href="css/pages.css?v=194">
 </head>
 <body class="page-checkin">
-    <!-- 集中モードシェル: 戻る + 現在位置 + 受付状況(控えめ) -->
+    <!-- 集中モードシェル: 戻る + 現在位置 + 設定(運営だけが使う。受付状況・カメラ) -->
     <div class="fixed-header ops-focus-bar">
         <div class="header-left">
             <button type="button" class="back-nav-btn icon-only" id="checkin-back-btn" aria-label="戻る" title="戻る"><span data-icon="chevron-left" aria-hidden="true"></span></button>
@@ -33,13 +33,7 @@
             <h1 id="page-title">当日受付</h1>
         </div>
         <div class="header-right">
-            <div class="checkin-tally u-hidden" id="stats-bar" role="status" aria-label="受付状況">
-                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-success" id="stat-checked">-</span> 済</span>
-                <span class="checkin-tally-sep" aria-hidden="true">/</span>
-                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-warning" id="stat-remaining">-</span> 未</span>
-                <span class="checkin-tally-sep" aria-hidden="true">/</span>
-                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-primary" id="stat-total">-</span> 計</span>
-            </div>
+            <button type="button" class="back-nav-btn icon-only" id="checkin-settings-btn" aria-label="受付の設定" title="受付の設定"><span data-icon="gear" aria-hidden="true"></span></button>
         </div>
     </div>
 
@@ -73,7 +67,27 @@
         </div>
     </div>
 
+    <dialog class="checkin-settings" id="checkin-settings" aria-labelledby="checkin-settings-title">
+        <h2 id="checkin-settings-title">受付の設定</h2>
+        <dl class="checkin-conn">
+            <div class="checkin-conn-row">
+                <dt>受付状況</dt>
+                <dd id="checkin-tally">-</dd>
+            </div>
+            <div class="checkin-conn-row">
+                <dt>カメラ</dt>
+                <dd id="checkin-camera-state">起動中</dd>
+                <div class="checkin-conn-actions">
+                    <button type="button" class="btn secondary" id="checkin-camera-restart">カメラを再起動する</button>
+                </div>
+            </div>
+        </dl>
+        <div class="checkin-settings-actions">
+            <button type="button" class="btn secondary" id="checkin-settings-close">閉じる</button>
+        </div>
+    </dialog>
+
     <script defer src="js/checkin_result_view.js?v=1"></script>
-    <script defer src="js/checkin.js?v=24"></script>
+    <script defer src="js/checkin.js?v=25"></script>
 </body>
 </html>
