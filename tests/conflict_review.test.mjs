@@ -239,3 +239,10 @@ describe('カードの画像の角', () => {
     expect(css).toMatch(/\.answer-card,\s*\.conflict-card \{\s*min-height: 0;\s*padding: 6px;/);
   });
 });
+
+describe('選んだカードが隠れない', () => {
+  it('判定のボタンの帯だけでなく、キー操作の案内にも、選んだカードを隠させない', () => {
+    const body = sliceFn(conflictSrc, 'scrollElementIntoReviewViewport');
+    expect(body).toContain("'#conflict-action-bar, .kbd-hint'");
+  });
+});
