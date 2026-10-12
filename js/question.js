@@ -243,10 +243,6 @@ function createAnswerCard(cardData, idx) {
         card.appendChild(expired);
     }
 
-    const entryNum = document.createElement('div');
-    entryNum.className = 'entry-num';
-    entryNum.textContent = cardData.displayName;
-    card.appendChild(entryNum);
     card.addEventListener('click', () => selectCard(idx, { focus: true }));
     card.addEventListener('focus', () => selectCard(idx));
     card.addEventListener('keydown', (event) => {

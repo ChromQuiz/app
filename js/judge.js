@@ -345,13 +345,6 @@ function openSlotDialog(questionNumber, returnFocus) {
     closeBtn.className = 'btn secondary';
     closeBtn.textContent = '閉じる';
     closeBtn.addEventListener('click', close);
-    if (scorerRole === 'admin') {
-        const reviewLink = document.createElement('a');
-        reviewLink.className = 'btn secondary';
-        reviewLink.href = `conflict.html?q=${questionNumber}`;
-        reviewLink.textContent = 'この問題を見直す';
-        actions.appendChild(reviewLink);
-    }
     actions.appendChild(closeBtn);
 
     dialog.append(title, note, list, actions);

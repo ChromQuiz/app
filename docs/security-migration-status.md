@@ -1237,7 +1237,7 @@ Notes   : 補足・再構成の断り・要確認事項
 - Status: 適用済み（本番）。`supabase/migrations/202610120001_final_kind_review_reopen.sql`。Edge Function の変更なし（デプロイ不要）。
 - 背景: 確定のあとに、間違いに気づいても直す手段が乏しかった（完了した枠は解放できず、全員一致の自動確定と管理者の決定は見分けられず、答案のない受付済みの人は黙って0点になる）。
 - 内容: (1) `final_results.decided_kind`（`auto` / `admin`。既存行は `score_events` から `admin` を復元）。`resolve_score_conflict` は `admin` で保存。(2) `list_question_review(project, question)`: 運営だけ。確認済みの受付者全員の、最終結果・決定の種類・各採点者の判定を返す。(3) `reopen_question_scoring(project, question, scorer?)`: 運営だけ。完了した枠の `completed_at` を消し、自動確定の結果だけを消す（管理者が決めた結果と、既存の判定は残る）。監査ログ `question_scoring.reopen`。
-- 画面: 要確認に、採点者ごとの判定（名前つき）と「管理者が決定 / 自動で確定」を出す。判定の色は即時に変える。`conflict.html?q=N` でその問題を見直せる。採点ボードの「…」から、完了した枠の開き直し。結果タブの出力前に、答案のない受付済みの人を知らせる。
+- 画面: 採点ボードの「…」から、完了した枠の開き直し（管理者のみ）。結果タブの出力前に、答案のない受付済みの人を知らせる。要確認には、判定を名前なしで3人ぶん同じ行に並べ、判定直後にカードの色を即時に変える。（問題ごとの見直しモード `conflict.html?q=N` と、要確認での「管理者が決定 / 自動で確定」の表示は、2026-10-12 のうちに取りやめた。`list_question_review` と `decided_kind` は DB に残るが、画面では使っていない）
 - Evidence: データベースの挙動スイート DB-26（139件すべて ok、最後に rollback）。Vitest 806件通過。画面は、ブラウザペインでカードの見た目のみ確認（実データでの通し確認は未実施）。
 - Rollback: `drop function public.reopen_question_scoring(text, integer, uuid); drop function public.list_question_review(text, integer);`、`resolve_score_conflict` を `202610090001` 時点の定義へ戻す、`alter table public.final_results drop column decided_kind;`。
 - Notes: 開き直しても `set_score_vote` の「完了後は変更不可」は変わらない（開き直した枠だけが再び変えられる）。確定の条件（受付済みの全員一致のみ自動確定）は変えていない。
