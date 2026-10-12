@@ -51,8 +51,9 @@ describe('運営画面: 参加者一覧', () => {
 });
 
 describe('問題アナリティクス', () => {
-  it('状態が空の問題には、空のバッジ（丸だけ）を出さない', () => {
+  it('どの問題にも状態を出す（しきい値より正答が多い問題は「通常」）。空のバッジは出さない', () => {
     const js = read('js/admin_stats.js');
-    expect(js).toMatch(/if \(s\.type\) \{\s*const typeBadge/);
+    expect(js).toContain("let type = '通常';");
+    expect(js).not.toContain("type: '', ");
   });
 });
