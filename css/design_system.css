@@ -4622,6 +4622,12 @@ select:focus {
   border-color: color-mix(in srgb, var(--ok-600) 28%, transparent);
 }
 
+.badge.accent {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
 .status-warning,
 .badge.warning {
   color: var(--warn-600);
