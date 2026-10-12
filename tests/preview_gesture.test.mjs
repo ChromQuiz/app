@@ -81,7 +81,7 @@ describe('ダブルタップで答案全体を開く', () => {
     expect(css).toMatch(/\.header-right \{\s*grid-column: 3;\s*grid-row: 1;/);
     expect(css).toMatch(/\.answer-line \{\s*grid-column: 1 \/ -1;\s*grid-row: 2;/);
     // 1段目は普通のヘッダーの高さで、中身は縦の中央（上に詰めない）
-    expect(css).toMatch(/grid-template-rows: minmax\(var\(--appbar-h\), auto\) auto;/);
+    expect(css).toMatch(/grid-template-rows: minmax\(calc\(var\(--appbar-h\) - 2px\), auto\) auto;/);
     // 模範解答と別解は、同じ枠（同じ段）にまとめる
     expect(read('question.html')).toMatch(/<div class="answer-line">\s*<div class="answer-badge"[^>]*>[^<]*<\/div>\s*<div class="answer-alts"/);
   });

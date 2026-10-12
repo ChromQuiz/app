@@ -4918,8 +4918,9 @@ body.page-question .answer-line {
   body.page-question .ops-focus-bar {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    /* 1段目は、普通のヘッダーと同じ高さで、中の部品を縦の中央に置く（上に詰めない） */
-    grid-template-rows: minmax(var(--appbar-h), auto) auto;
+    /* 1段目は、普通のヘッダーの中身と同じ高さ（--appbar-h から上下の枠線 2px を引いた分）にして、
+       中の部品を縦の中央に置く。戻るボタンが、どのページでも、まったく同じ位置になる。 */
+    grid-template-rows: minmax(calc(var(--appbar-h) - 2px), auto) auto;
     align-items: center;
     column-gap: var(--sp-2);
     row-gap: 0;
