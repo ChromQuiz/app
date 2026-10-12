@@ -604,6 +604,20 @@ select pg_temp.chk('DB-27 消したあとは、問題数も採点者数も変え
   and (select required_scorers from public.projects where id='zz-t') = 3);
 reset role;
 
+-- ===== DB-28 成績照会は、全問が確定したあとだけ（scoring_confirmation）=====
+reset role;
+select pg_temp.chk('DB-28 service_role だけが呼べる（anon・authenticated・public は呼べない）',
+  has_function_privilege('service_role', 'public.scoring_confirmation(text)', 'execute')
+  and not has_function_privilege('authenticated', 'public.scoring_confirmation(text)', 'execute')
+  and not has_function_privilege('anon', 'public.scoring_confirmation(text)', 'execute'));
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-28 管理者でも、画面からは呼べない', pg_temp.err($$select * from public.scoring_confirmation('zz-t')$$) <> 'OK');
+reset role;
+select pg_temp.chk('DB-28 採点が終わっていない大会は、確定していない（完了した問題が足りない）',
+  (select confirmed from public.scoring_confirmation('zz-t')) = false
+  and (select completed_questions from public.scoring_confirmation('zz-t')) < (select total_questions from public.scoring_confirmation('zz-t')));
+select pg_temp.chk('DB-28 存在しない大会は、行を返さない（確定とは言わない）', (select count(*) from public.scoring_confirmation('zz-none')) = 0);
+
 -- ===== DB-14 reset_project_data（最後に実行）=====
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1
 select pg_temp.chk('DB-14 採点者はリセットできない', pg_temp.err($$select * from public.reset_project_data('zz-t')$$) like '%Forbidden%');
