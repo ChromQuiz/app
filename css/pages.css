@@ -3030,6 +3030,25 @@ body.page-conflict .action-bar {
   font-weight: 600;
 }
 
+.conflict-section-title {
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+  margin: var(--sp-5) auto 0;
+  font-size: var(--text-heading);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* 管理者が覆したものは、要確認の先頭に、見出しと区切り線で分けて並べる */
+.conflict-section {
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--line);
+}
+
+body.page-conflict .conflict-section .conflict-grid {
+  padding-top: var(--sp-3);
+  padding-bottom: 0;
+}
+
 .conflict-card .votes-mini {
   gap: var(--sp-2);
   padding: var(--sp-1) var(--sp-2) var(--sp-2);

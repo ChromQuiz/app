@@ -1770,17 +1770,25 @@ const CIQSupabaseAPI = {
         return (data || []).map(mapReviewRow);
     },
 
-    // 完了した枠を開き直す。scorerMemberId を省くとその問題の完了済み枠すべて
-    async reopenQuestionScoring(projectId, questionNumber, scorerMemberId = null) {
+    // 1つの問題の、確認済みの全員の答案を、最終結果と各採点者の判定つきで返す(管理者のみ)
+    async listQuestionReview(projectId, questionNumber) {
         const { data, error } = await this.client()
-            .rpc('reopen_question_scoring', {
+            .rpc('list_question_review', {
                 p_project_id: projectId,
                 p_question_number: questionNumber,
-                p_scorer_member_id: scorerMemberId,
-            })
-            .single();
+            });
         if (error) throw error;
-        return data;
+        return (data || []).map(mapReviewRow);
+    },
+
+    // 管理者が、判定が一致していた答案を覆したもの(要確認の先頭に並べる)
+    async listAdminOverrides(projectId) {
+        const { data, error } = await this.client()
+            .rpc('list_admin_overrides', {
+                p_project_id: projectId,
+            });
+        if (error) throw error;
+        return (data || []).map(mapReviewRow);
     },
 
     async listQuestionScoreVotes(projectId, questionNumber) {

@@ -71,7 +71,7 @@ describe('採点ボードの「採点中の枠」(画面)', () => {
   });
 
   it('3秒ごとの更新で、「…」が作り直されない(なければ作り、枠が無くなったら消す)', () => {
-    expect(judge).toMatch(/let button = card\.querySelector\('\.q-slot-btn'\);\s*if \(!open\.length\) \{\s*button\?\.remove\(\);/);
+    expect(judge).toMatch(/let button = card\.querySelector\('\.q-slot-btn'\);\s*if \(!open\.length && scorerRole !== 'admin'\) \{\s*button\?\.remove\(\);/);
     expect(judge).toMatch(/if \(!button\) \{/);
   });
 
