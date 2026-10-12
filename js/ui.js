@@ -6,19 +6,31 @@
 
 // html は常にスクロールバーの場所を空けている(css の `overflow-y: scroll`)。モーダルでスクロールを止めると
 // overflow が hidden になり、エンジンによってはその場所が消えて、画面が横にずれる。
-// 消えるエンジンでだけ、同じ幅の余白を足して、ずれを防ぐ(--scrollbar-comp)。
-function measureScrollbarCompensation() {
+// 止めた直後に、実際に消えた幅を測り、同じ幅の余白を足して、ずれを防ぐ(--scrollbar-comp)。
+// (読み込み時に試し止めして測る方法は、実際のスクロール中のページと結果が違うことがあった)
+(function keepWidthWhileScrollLocked() {
     const root = document.documentElement;
-    const track = window.innerWidth - root.clientWidth;
-    if (track <= 0) return;   // 重ねて表示するスクロールバー(Safari・スマホ)は、場所を取らない
-    const previous = root.style.overflowY;
-    root.style.overflowY = 'hidden';
-    const kept = window.innerWidth - root.clientWidth;
-    root.style.overflowY = previous;
-    root.style.setProperty('--scrollbar-comp', kept >= track ? '0px' : `${track}px`);
-}
-document.addEventListener('DOMContentLoaded', measureScrollbarCompensation);
-window.addEventListener('resize', measureScrollbarCompensation);
+    let unlockedTrack = null;
+    const track = () => window.innerWidth - root.clientWidth;
+    const update = () => {
+        if (!document.body) return;
+        if (document.body.classList.contains('body-scroll-locked')) {
+            if (unlockedTrack === null) return;
+            const lost = Math.max(0, unlockedTrack - track());
+            root.style.setProperty('--scrollbar-comp', `${lost}px`);
+        } else {
+            unlockedTrack = track();
+            root.style.setProperty('--scrollbar-comp', '0px');
+        }
+    };
+    document.addEventListener('DOMContentLoaded', () => {
+        update();
+        new MutationObserver(update).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    });
+    window.addEventListener('resize', () => {
+        if (!document.body.classList.contains('body-scroll-locked')) update();
+    });
+})();
 
 function padNum(n) { return String(n).padStart(3, '0'); }
 
