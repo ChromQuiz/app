@@ -38,12 +38,16 @@ if (auth) {
     let scanFrameId = 0;
     let cameraStartPromise = null;
     const FORGET_AFTER_MS = 800;
+    // ?mode=reader: カメラを使わず、USBの二次元コードリーダー(キーボードとして動くもの)で受付する
+    const readerMode = new URLSearchParams(location.search).get('mode') === 'reader';
+    // リーダー用は、読み取りの案内が、枠の中にある(下の行は、エラーのときだけ使う)
+    const IDLE_TEXT = readerMode ? '' : '二次元コードをカメラにかざしてください';
 
     init();
 
     async function init() {
         try {
-            if (typeof jsQR !== 'function') {
+            if (!readerMode && typeof jsQR !== 'function') {
                 throw new Error('二次元コード読み取りライブラリを読み込めませんでした。ページを再読み込みしてください。');
             }
             if (!window.CIQSupabaseAPI?.isEnabled?.()) {
@@ -53,7 +57,8 @@ if (auth) {
             if (!sessionData?.user) {
                 throw new Error('Googleログインが必要です。');
             }
-            await startCamera();
+            if (readerMode) startReader();
+            else await startCamera();
 
             const project = await CIQSupabaseAPI.getProject(projectId).catch(() => null);
             if (project?.name) {
@@ -222,13 +227,75 @@ if (auth) {
 
     window.addEventListener('pagehide', stopCamera);
     window.addEventListener('pageshow', () => {
+        if (readerMode) return;
         if (document.visibilityState !== 'hidden') startCamera();
     });
     document.addEventListener('visibilitychange', () => {
+        if (readerMode) return;
         // 画面を隠したら（別のアプリ・タブに移ったら）カメラを止める。戻ったら再開する。
         if (document.visibilityState === 'visible') startCamera();
         else stopCamera();
     });
+
+    // ---- リーダー用 ----
+    // リーダーは、読み取った文字を入力欄へ打ち込み、最後に Enter を送る。人の手では打てない速さで届く。
+    // Enter が付かない設定のリーダーでも動くよう、入力が止まって少したったら、そこまでを1つの読み取りとする。
+    const READER_IDLE_SUBMIT_MS = 250;
+    // 読み取りが続いても(かざしたまま)、同じコードは、この間は受け付けない
+    const READER_REPEAT_MS = 3000;
+
+    function startReader() {
+        document.body.classList.add('checkin-reader');
+        document.getElementById('reader-panel').hidden = false;
+        scanningText.textContent = IDLE_TEXT;
+        const input = document.getElementById('reader-input');
+        const state = document.getElementById('reader-state');
+        const reader = window.CIQQrReaderInput;
+        let idleTimer = 0;
+        let lastCode = '';
+        let lastAt = 0;
+
+        const focusInput = () => { if (document.activeElement !== input) input.focus({ preventScroll: true }); };
+        const updateState = () => {
+            state.textContent = document.activeElement === input ? '読み取り待機中' : '画面をクリックすると、読み取りを始めます';
+        };
+        const submit = () => {
+            clearTimeout(idleTimer);
+            const code = reader.normalizeReaderCode(input.value);
+            input.value = '';
+            if (!code || processing) return;
+            const now = performance.now();
+            if (code === lastCode && now - lastAt < READER_REPEAT_MS) return;
+            lastCode = code;
+            lastAt = now;
+            if (!reader.looksLikeCheckInCode(code)) {
+                // 読み間違い(日本語入力・リーダーの設定)は、サーバーに送らない
+                showResultUI('error', 'xmark', '受付の二次元コードとして読めません', '二次元コードを読み直してください。続くときは、リーダーの設定（日本語入力を切る・最後に Enter を付ける）を確認してください。', '', '');
+                return;
+            }
+            processing = true;
+            showLoading();
+            processQR(code);
+        };
+
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.isComposing) {
+                event.preventDefault();
+                submit();
+            }
+        });
+        input.addEventListener('input', () => {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(submit, READER_IDLE_SUBMIT_MS);
+        });
+        // どこを押しても、入力欄に戻す(読み取りが入力欄に届かなくなるのを防ぐ)
+        document.addEventListener('click', focusInput);
+        window.addEventListener('focus', focusInput);
+        input.addEventListener('focus', updateState);
+        input.addEventListener('blur', () => { updateState(); setTimeout(focusInput, 0); });
+        focusInput();
+        updateState();
+    }
 
     function showLoading() {
         if (hideTimer) clearTimeout(hideTimer);
@@ -299,7 +366,7 @@ if (auth) {
             numberEl.textContent = number;
             resultDiv.appendChild(numberEl);
         }
-        scanningText.textContent = '二次元コードをカメラにかざしてください';
+        scanningText.textContent = IDLE_TEXT;
 
         hideTimer = setTimeout(() => {
             resultDiv.classList.remove('is-visible');

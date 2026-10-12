@@ -5481,3 +5481,53 @@ body.page-question .answer-badge {
     width: 100%;
   }
 }
+
+/* ---- 当日受付: リーダー用(?mode=reader)。カメラの場所に、読み取り待機の表示を置く ---- */
+body.checkin-reader #camera-container {
+  display: none;
+}
+
+.reader-panel {
+  flex: 1;
+  min-height: min(58vh, 560px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.reader-panel[hidden] {
+  display: none;
+}
+
+.reader-panel [data-icon] {
+  font-size: var(--text-hero);
+  color: var(--ink-3);
+}
+
+.reader-panel-title {
+  font-size: var(--text-title);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.reader-panel-state {
+  font-size: var(--text-body);
+}
+
+/* リーダーが打ち込む先。見えないが、フォーカスは受ける */
+.reader-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
