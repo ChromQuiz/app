@@ -416,40 +416,16 @@
             };
         }
 
+        // 集計・アナリティクス・CSV・PDF が使うのは、確定で正解になった人だけ。
+        // 問題ごとの受付番号の配列を1回で取る(確定結果や判定の全件は、1万件を超えて遅い)。
         async function refreshSupabaseScoringData() {
-            const [votes, finals, scorers] = await Promise.all([
-                CIQSupabaseAPI.listScoreVotes(projectId),
-                CIQSupabaseAPI.listFinalResults(projectId),
-                CIQSupabaseAPI.listQuestionScorers(projectId),
-            ]);
-            const entries = Object.values(window._entriesRaw || {});
-            const entryNumberById = Object.fromEntries(entries.map(entry => [entry.id, entry.entryNumber || entry.entry_number]));
+            const rows = await CIQSupabaseAPI.listCorrectEntries(projectId);
             const nextScores = {};
-
-            for (const scorer of scorers) {
-                if (!scorer.completed_at) continue;
-                const key = `__completed__q${scorer.question_number}`;
-                if (!nextScores[key]) nextScores[key] = {};
-                nextScores[key][scorer.scorer_member_id] = true;
+            for (const row of rows) {
+                const correct = {};
+                for (const entryNumber of row.entryNumbers) correct[entryNumber] = 'correct';
+                nextScores[`__final__q${row.questionNumber}`] = correct;
             }
-
-            for (const vote of votes) {
-                const entryNumber = entryNumberById[vote.entry_id];
-                if (!entryNumber) continue;
-                if (!nextScores[entryNumber]) nextScores[entryNumber] = {};
-                const qKey = `q${vote.question_number}`;
-                if (!nextScores[entryNumber][qKey]) nextScores[entryNumber][qKey] = {};
-                nextScores[entryNumber][qKey][vote.scorer_member_id] = vote.result;
-            }
-
-            for (const finalResult of finals) {
-                const entryNumber = entryNumberById[finalResult.entry_id];
-                if (!entryNumber) continue;
-                const key = `__final__q${finalResult.question_number}`;
-                if (!nextScores[key]) nextScores[key] = {};
-                nextScores[key][entryNumber] = finalResult.result;
-            }
-
             scoresData = nextScores;
         }
 

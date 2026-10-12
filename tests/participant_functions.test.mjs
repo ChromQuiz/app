@@ -323,6 +323,21 @@ describe('disclose-result（MY-30〜35）', () => {
     expect(r.json).toMatchObject({ score: 3, streaks: [3, 0], rankNumber: 1, rank: '1st' });
   });
 
+  it('確定結果が1000件をこえても、全部をそろえて数える（1回で取ると、後ろの問題が欠けて、点数が低く出る）', async () => {
+    const QUESTIONS = 30;
+    const many = [];
+    // 自分(7番)と、他の受付済みの人 40人。30問すべて正解。合計 41 × 30 = 1230 件 > 1000
+    const others = Array.from({ length: 40 }, (_, i) => ({ id: `other-${i}`, project_id: PROJECT, entry_number: 100 + i, status: 'registered', checked_in: true, affiliation: 'X高', grade: '１年' }));
+    others.forEach((o) => { for (let q = 1; q <= QUESTIONS; q++) many.push(fr(o.id, q, 'correct')); });
+    // 自分の分は、1000件目より後ろに置く(1回で取ると、ここが欠ける)
+    for (let q = 1; q <= QUESTIONS; q++) many.push(fr(IDS.me, q, 'correct'));
+    const { call } = await setup('disclose-result', { entry: { checked_in: true }, proj: { question_count: QUESTIONS }, rpc: confirmed, extra: { entries: entries(others), final_results: many } });
+    const r = await call(creds);
+    expect(many.length).toBeGreaterThan(1000);
+    expect(r.status).toBe(200);
+    expect(r.json.score).toBe(QUESTIONS);
+  });
+
   it('全問が確定していないときは、点数も順位も返さない（409）', async () => {
     const notYet = { scoring_confirmation: () => ({ data: { confirmed: false }, error: null }) };
     const { call } = await setup('disclose-result', { entry: { checked_in: true }, rpc: notYet, extra: { entries: entries(), final_results: results() } });

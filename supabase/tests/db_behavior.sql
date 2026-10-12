@@ -461,6 +461,9 @@ select pg_temp.chk('DB-26 覆した答案を、採点者の判定どおりに戻
   and not exists (select 1 from public.list_admin_overrides('zz-t') r where r.entry_id = pg_temp.eid('E2')));
 select pg_temp.chk('DB-26 …判定が割れていた答案（E3）を決めた記録は、管理者のまま',
   (select decided_kind from public.final_results where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E3')) = 'admin');
+select pg_temp.chk('DB-26 確定で正解の人の受付番号が、問題ごとに返る（E2 は第1問で正解。E3（保留）は入らない）',
+  exists (select 1 from public.list_correct_entries('zz-t') r where r.question_number = 1 and (select entry_number from public.entries where id = pg_temp.eid('E2')) = any(r.entry_numbers))
+  and not exists (select 1 from public.list_correct_entries('zz-t') r where r.question_number = 1 and (select entry_number from public.entries where id = pg_temp.eid('E3')) = any(r.entry_numbers)));
 select * from public.resolve_score_conflict('zz-t', 1, pg_temp.eid('E2'), 'wrong');
 select pg_temp.chk('DB-26 …もう一度覆すと、また一覧に出る', exists (select 1 from public.list_admin_overrides('zz-t') r where r.entry_id = pg_temp.eid('E2') and r.final_result = 'wrong'));
 reset role;
@@ -624,6 +627,12 @@ select pg_temp.chk('DB-28 管理者は、問題ごとの確定の状態（問題
 reset role;
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1（管理者でない）
 select pg_temp.chk('DB-28 採点者には、問題ごとの確定の状態は返らない', (select count(*) from public.list_question_confirmation('zz-t')) = 0);
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-28 管理者は、問題ごとの正解者（問題数ぶんの行）を取得できる', (select count(*) from public.list_correct_entries('zz-t')) = (select question_count from public.projects where id='zz-t'));
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1（管理者でない）
+select pg_temp.chk('DB-28 採点者には、問題ごとの正解者は返らない', (select count(*) from public.list_correct_entries('zz-t')) = 0);
 reset role;
 select pg_temp.chk('DB-28 存在しない大会は、行を返さない（確定とは言わない）', (select count(*) from public.scoring_confirmation('zz-none')) = 0);
 
