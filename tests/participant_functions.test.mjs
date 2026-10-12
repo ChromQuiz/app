@@ -296,6 +296,8 @@ describe('disclose-result（MY-30〜35）', () => {
     ...extra,
   ];
   const fr = (id, q, result) => ({ project_id: PROJECT, entry_id: id, question_number: q, result });
+  // 成績照会は、全問が確定したあとだけ(scoring_confirmation)。確定している前提のテストには、これを渡す
+  const confirmed = { scoring_confirmation: () => ({ data: { confirmed: true }, error: null }) };
   // 自分(7番): ○○×○ → 3点、連答 [2,1]。A: ○○○○ → 4点。B: ○○×○ → 3点で、自分と同順位
   const results = () => [
     ...[1, 2, 4].map((q) => fr(IDS.me, q, 'correct')), fr(IDS.me, 3, 'wrong'),
@@ -305,20 +307,30 @@ describe('disclose-result（MY-30〜35）', () => {
   ];
 
   it('点数・順位・連答が返る。順位は、当日受付を済ませた人の中で付く（受付していない満点の人は入らない）。同点同連答は同順位', async () => {
-    const { call } = await setup('disclose-result', { entry: { checked_in: true }, extra: { entries: entries(), final_results: results() } });
+    const { call } = await setup('disclose-result', { entry: { checked_in: true }, rpc: confirmed, extra: { entries: entries(), final_results: results() } });
     const r = await call(creds);
     expect(r.status).toBe(200);
     expect(r.json).toMatchObject({ ok: true, entryNumber: 7, affiliation: '開成高', grade: '２年', score: 3, streaks: [2, 1], rank: '2nd', rankNumber: 2, totalQuestions: 4 });
   });
 
   it('同点でも連答が長いほうが上位。連答も同じなら同順位', async () => {
-    const { call } = await setup('disclose-result', { entry: { checked_in: true }, extra: { entries: entries(), final_results: [
+    const { call } = await setup('disclose-result', { entry: { checked_in: true }, rpc: confirmed, extra: { entries: entries(), final_results: [
       ...[1, 2, 3].map((q) => fr(IDS.me, q, 'correct')), fr(IDS.me, 4, 'wrong'),           // 3点 [3,0]
       ...[1, 2, 4].map((q) => fr(IDS.a, q, 'correct')), fr(IDS.a, 3, 'wrong'),             // 3点 [2,1]
       ...[1, 2, 4].map((q) => fr(IDS.b, q, 'correct')), fr(IDS.b, 3, 'wrong'),             // 3点 [2,1]
     ] } });
     const r = await call(creds);
     expect(r.json).toMatchObject({ score: 3, streaks: [3, 0], rankNumber: 1, rank: '1st' });
+  });
+
+  it('全問が確定していないときは、点数も順位も返さない（409）', async () => {
+    const notYet = { scoring_confirmation: () => ({ data: { confirmed: false }, error: null }) };
+    const { call } = await setup('disclose-result', { entry: { checked_in: true }, rpc: notYet, extra: { entries: entries(), final_results: results() } });
+    const r = await call(creds);
+    expect(r.status).toBe(409);
+    expect(r.json.error).toBe('成績はまだ確定していません。確定したあとに、もう一度お試しください。');
+    expect(r.json.score).toBeUndefined();
+    expect(r.json.rank).toBeUndefined();
   });
 
   it('当日受付を済ませていない人は 409（対象外）', async () => {

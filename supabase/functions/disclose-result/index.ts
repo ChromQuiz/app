@@ -69,6 +69,16 @@ Deno.serve(withCors(async (req) => {
       return jsonResponse({ error: 'このエントリーは成績照会の対象外です。当日受付を済ませた方が対象です。' }, 409);
     }
 
+    // 全問の採点が完了し、要確認が1件も残っていないときだけ、点数と順位を返す。
+    // 確定前に返すと、確定結果のない答案が 0 点として数えられ、誤った順位が参加者に出てしまう。
+    const { data: confirmation, error: confirmationError } = await supabase
+      .rpc('scoring_confirmation', { p_project_id: projectId })
+      .single();
+    if (confirmationError) throw confirmationError;
+    if (!(confirmation as { confirmed?: boolean } | null)?.confirmed) {
+      return jsonResponse({ error: '成績はまだ確定していません。確定したあとに、もう一度お試しください。' }, 409);
+    }
+
     const { data: entries, error: entriesError } = await supabase
       .from('entries')
       .select('id, entry_number, affiliation, grade')
