@@ -36,4 +36,8 @@ describe('運営画面', () => {
     expect(css).toMatch(/\.config-row-label \{\s*font-size: var\(--fs-13\);\s*font-weight: 600;\s*color: var\(--ink-2\);/);
     expect(css).toMatch(/"label label"\s*"spin  tail"/);
   });
+
+  it('採点状況の3つの数字は、スマホでも横に3つ並べる', () => {
+    expect(css).toMatch(/@media \(max-width: 640px\) \{\s*body\.page-admin \.stats \{\s*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
+  });
 });
