@@ -240,29 +240,18 @@ function openSlotsOf(rows, questionNumber) {
         .sort((a, b) => String(a.scorer_member_id).localeCompare(String(b.scorer_member_id)));
 }
 
-function slotsOfQuestion(rows, questionNumber) {
-    return (rows || [])
-        .filter(row => Number(row.question_number) === questionNumber)
-        .sort((a, b) => String(a.scorer_member_id).localeCompare(String(b.scorer_member_id)));
-}
-
-// 管理者は、完了した枠も開き直せる。それ以外は、未完了の枠だけ
-function manageableSlotsOf(rows, questionNumber) {
-    return scorerRole === 'admin' ? slotsOfQuestion(rows, questionNumber) : openSlotsOf(rows, questionNumber);
-}
-
-// 未完了の枠がある問題のカードにだけ「…」を付ける(3秒ごとの更新で作り直さない)
+// 未完了の枠がある問題のカードに「…」を付ける。管理者は、全問に付く(管理者として開くため)。3秒ごとの更新で作り直さない
 function syncSlotButtons(rows) {
     for (let q = 1; q <= totalQuestions; q++) {
         const card = document.getElementById(`qcard-${q}`);
         if (!card) continue;
-        const open = manageableSlotsOf(rows, q);
+        const open = openSlotsOf(rows, q);
         let button = card.querySelector('.q-slot-btn');
-        if (!open.length) {
+        if (!open.length && scorerRole !== 'admin') {
             button?.remove();
             continue;
         }
-        const label = `${q}問の採点枠${open.length}件を見る`;
+        const label = open.length ? `${q}問の採点枠${open.length}件を見る` : `${q}問を管理者として開く`;
         if (!button) {
             button = document.createElement('button');
             button.type = 'button';
@@ -282,8 +271,8 @@ function syncSlotButtons(rows) {
 }
 
 function openSlotDialog(questionNumber, returnFocus) {
-    const slots = manageableSlotsOf(latestSlotRows, questionNumber);
-    if (!slots.length) return;
+    const slots = openSlotsOf(latestSlotRows, questionNumber);
+    if (!slots.length && scorerRole !== 'admin') return;
 
     const overlay = document.createElement('div');
     overlay.className = 'confirm-overlay';
@@ -291,17 +280,15 @@ function openSlotDialog(questionNumber, returnFocus) {
     dialog.className = 'confirm-dialog slot-dialog';
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('aria-modal', 'true');
-    dialog.setAttribute('aria-label', `${questionNumber}問の採点枠`);
+    dialog.setAttribute('aria-label', `${questionNumber}問`);
     dialog.tabIndex = -1;
 
     const title = document.createElement('div');
     title.className = 'confirm-message';
-    title.textContent = `第${questionNumber}問の採点枠`;
+    title.textContent = `第${questionNumber}問`;
     const note = document.createElement('p');
     note.className = 'slot-panel-note';
-    note.textContent = scorerRole === 'admin'
-        ? '採点を途中でやめた人の枠は、解放できます。解放すると、その人の判定は消え、ほかの人が入れるようになります。完了した枠は、開き直すとその人が判定をやり直せます。'
-        : '採点を途中でやめた人の枠は、解放できます。解放すると、その人のこの問題での判定は消え、ほかの人が入れるようになります。';
+    note.textContent = '採点を途中でやめた人の枠は、解放できます。解放すると、その人のこの問題での判定は消え、ほかの人が入れるようになります。';
     const list = document.createElement('ul');
     list.className = 'slot-list';
 
@@ -322,17 +309,15 @@ function openSlotDialog(questionNumber, returnFocus) {
         li.className = 'slot-row';
         const text = document.createElement('span');
         text.className = 'slot-row-text';
-        const completed = Boolean(row.completed_at);
-        setInlineParts(text, [slotOwnerLabel(row.scorer_member_id), { text: completed ? '完了' : '採点中', className: 'slot-row-state' }]);
+        setInlineParts(text, [slotOwnerLabel(row.scorer_member_id), { text: '採点中', className: 'slot-row-state' }]);
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'btn secondary slot-release-btn';
-        button.textContent = completed ? '開き直す' : '枠を解放';
+        button.textContent = '枠を解放';
         button.addEventListener('click', () => {
-            // 確認ダイアログを重ねるので、先にこの一覧を閉じる
+            // 解放の確認ダイアログを重ねるので、先にこの一覧を閉じる
             close();
-            if (completed) reopenSlot(row);
-            else releaseSlot(row, button);
+            releaseSlot(row, button);
         });
         li.append(text, button);
         list.appendChild(li);
@@ -345,9 +330,19 @@ function openSlotDialog(questionNumber, returnFocus) {
     closeBtn.className = 'btn secondary';
     closeBtn.textContent = '閉じる';
     closeBtn.addEventListener('click', close);
+    if (scorerRole === 'admin') {
+        // 全員の答案を並べて、確定を直接決め直す(要確認と同じカード)
+        const openLink = document.createElement('a');
+        openLink.className = 'btn';
+        openLink.href = `conflict.html?q=${questionNumber}`;
+        openLink.textContent = '管理者として開く';
+        actions.appendChild(openLink);
+    }
     actions.appendChild(closeBtn);
 
-    dialog.append(title, note, list, actions);
+    dialog.append(title);
+    if (slots.length) dialog.append(note, list);
+    dialog.append(actions);
     overlay.appendChild(dialog);
     overlay.addEventListener('click', (event) => {
         if (event.target === overlay) close();
@@ -356,24 +351,6 @@ function openSlotDialog(questionNumber, returnFocus) {
     document.body.appendChild(overlay);
     setTimeout(() => overlay.classList.add('is-visible'), 0);
     dialog.focus();
-}
-
-async function reopenSlot(row) {
-    const q = Number(row.question_number);
-    const owner = slotOwnerLabel(row.scorer_member_id);
-    const subject = owner === 'あなた' ? 'あなた' : `${owner}さん`;
-    const ok = await showConfirm(
-        `第${q}問の、${subject}の完了した枠を開き直します。${subject}は判定を変えられるようになり、全員一致で自動確定していた結果は消えます。管理者が決めた結果は残ります。よろしいですか？`,
-        '開き直す',
-    );
-    if (!ok) return;
-    try {
-        await CIQSupabaseAPI.reopenQuestionScoring(projectId, q, row.scorer_member_id);
-        showToast(`第${q}問の枠を開き直しました。`, 'success');
-        await refreshGrid();
-    } catch (e) {
-        showToast(describeError(e, '枠を開き直せませんでした。時間をおいてもう一度お試しください。'), 'error');
-    }
 }
 
 async function releaseSlot(row, button) {

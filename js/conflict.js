@@ -20,6 +20,11 @@ let lastConflictStructureSignature = '';
 let conflictRefreshTimer = null;
 let conflictRefreshPromise = null;
 let shouldResetConflictSelection = true;
+// ?q=N のとき、その問題の確認済みの全員の答案を並べて、確定を直接決め直す(管理者として開く)
+const reviewQuestion = (() => {
+    const value = Number(new URLSearchParams(location.search).get('q'));
+    return Number.isInteger(value) && value >= 1 ? value : null;
+})();
 // 保存が終わっていない判定。question.js の pendingWrites と同じく、再取得の結果に重ねて、色が一瞬戻るのを防ぐ
 const pendingFinals = new Map();
 
@@ -133,7 +138,15 @@ function setConflictActionsDisabled(disabled) {
     document.getElementById('conflict-wrong-btn')?.toggleAttribute('disabled', disabled);
 }
 
+function setReviewTitle() {
+    if (!reviewQuestion) return;
+    const heading = document.querySelector('.fixed-header h1');
+    const text = heading && Array.from(heading.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+    if (text) text.textContent = ` 第${reviewQuestion}問`;
+}
+
 async function init() {
+    setReviewTitle();
     try {
         selectedIndex = 0;
         shouldResetConflictSelection = true;
@@ -173,7 +186,18 @@ async function refreshData() {
 // 画面側で別の計算に切り替えない(受付済みの人だけを数えるなど、サーバーの定義とずれるため)。
 async function refreshDataInternal() {
     const startedAt = performance.now();
-    serverConflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);
+    if (reviewQuestion) {
+        serverConflictRows = await CIQSupabaseAPI.listQuestionReview(projectId, reviewQuestion);
+    } else {
+        // 要確認(判定が割れたもの)と、管理者が覆したもの(判定は一致していた)は、別々に取る
+        const [conflicts, overrides] = await Promise.all([
+            CIQSupabaseAPI.listScoreConflicts(projectId),
+            CIQSupabaseAPI.listAdminOverrides(projectId),
+        ]);
+        conflicts.forEach(row => { row.section = 'conflict'; });
+        overrides.forEach(row => { row.section = 'override'; });
+        serverConflictRows = overrides.concat(conflicts);
+    }
     serverConflictRows.forEach((row) => {
         const key = `${row.q}:${row.entryId}`;
         if (!pendingFinals.has(key)) return;
@@ -248,9 +272,14 @@ function createVotesMini(conflict) {
     return votes;
 }
 
-function patchConflictCards(grid) {
+function getConflictCards() {
+    return Array.from(document.querySelectorAll('.conflict-card'));
+}
+
+function patchConflictCards() {
+    const cards = getConflictCards();
     currentConflicts.forEach((conflict, idx) => {
-        const card = grid.children[idx];
+        const card = cards[idx];
         if (!card) return;
         card._ciqConflict = conflict;
         card.classList.remove('resolved', 'correct', 'wrong');
@@ -296,22 +325,29 @@ async function render() {
         selectedIndex = Math.max(0, currentConflicts.length - 1);
     }
 
-    const unresolvedCount = currentConflicts.filter(c => !c.finalResult).length;
+    const conflictList = currentConflicts.filter(c => c.section !== 'override');
+    const overrideList = currentConflicts.filter(c => c.section === 'override');
+    const unresolvedCount = conflictList.filter(c => !c.finalResult).length;
     const counter = document.getElementById('counter');
-    if (currentConflicts.length === 0 || unresolvedCount === 0) {
-        counter.textContent = `全${currentConflicts.length}件 確定済み`;
+    if (reviewQuestion) {
+        counter.textContent = `${currentConflicts.length}人`;
+        counter.className = 'counter';
+    } else if (conflictList.length === 0 || unresolvedCount === 0) {
+        counter.textContent = `全${conflictList.length}件 確定済み`;
         counter.className = 'counter all-clear';
     } else {
-        counter.textContent = `${unresolvedCount} / ${currentConflicts.length}件`;
+        counter.textContent = `${unresolvedCount} / ${conflictList.length}件`;
         counter.className = 'counter has-conflicts';
     }
+    document.getElementById('override-section').hidden = overrideList.length === 0;
+    document.getElementById('conflict-section-title').hidden = overrideList.length === 0;
 
     const grid = document.getElementById('conflict-grid');
     if (currentConflicts.length === 0) {
         setConflictActionsDisabled(true);
         lastConflictRenderSignature = '';
         lastConflictStructureSignature = '';
-        setConflictGridMessage('要確認はありません', {
+        setConflictGridMessage(reviewQuestion ? `第${reviewQuestion}問の答案はありません` : '要確認はありません', {
             className: 'loading-state no-conflict',
             icon: 'circle-check',
             iconSize: '48px',
@@ -322,7 +358,7 @@ async function render() {
     setConflictActionsDisabled(false);
 
     const renderSignature = getConflictRenderSignature(currentConflicts);
-    if (renderSignature === lastConflictRenderSignature && grid.children.length === currentConflicts.length) {
+    if (renderSignature === lastConflictRenderSignature && getConflictCards().length === currentConflicts.length) {
         updateConflictSelectionClasses();
         return;
     }
@@ -330,9 +366,9 @@ async function render() {
     // 並びや内容が同じで、判定・確定だけが変わったときは、カードを作り直さずその場で直す。
     // 作り直すと、全カードの描画と画像の読み直しで数秒止まり、押した色が消えて見える。
     const structureSignature = getConflictStructureSignature(currentConflicts);
-    if (structureSignature === lastConflictStructureSignature && grid.children.length === currentConflicts.length) {
+    if (structureSignature === lastConflictStructureSignature && getConflictCards().length === currentConflicts.length) {
         lastConflictRenderSignature = renderSignature;
-        patchConflictCards(grid);
+        patchConflictCards();
         updateConflictSelectionClasses();
         return;
     }
@@ -358,8 +394,11 @@ async function render() {
 
     lastConflictRenderSignature = renderSignature;
     lastConflictStructureSignature = structureSignature;
+    const overrideGrid = document.getElementById('override-grid');
     grid.textContent = '';
+    overrideGrid.textContent = '';
     const fragment = document.createDocumentFragment();
+    const overrideFragment = document.createDocumentFragment();
     currentConflicts.forEach((conflict, idx) => {
         const card = createConflictCard(conflict, idx);
         card.addEventListener('click', () => selectConflictCard(idx, { focus: true }));
@@ -370,9 +409,19 @@ async function render() {
             selectConflictCard(idx, { focus: true });
         });
         bindPreviewGesture(card, () => showPreview(projectId, conflict.entryNumber));
-        fragment.appendChild(card);
+        (conflict.section === 'override' ? overrideFragment : fragment).appendChild(card);
     });
     grid.appendChild(fragment);
+    overrideGrid.appendChild(overrideFragment);
+    if (!conflictList.length) {
+        // 要確認はないが、管理者が覆したものはある
+        setConflictGridMessage('要確認はありません', {
+            className: 'loading-state no-conflict',
+            icon: 'circle-check',
+            iconSize: '48px',
+            iconColor: 'var(--success)',
+        });
+    }
     // 再描画の直前に取得が完了していたカードを拾う(プレースホルダの取り残し防止)。
     updateVisibleConflictImages();
     scheduleBackgroundConflictImages(currentConflicts, initialImageLimit);
@@ -381,7 +430,9 @@ async function render() {
 }
 
 function compareConflictsByQuestionAndEntry(a, b) {
-    return Number(a.q || a.questionNumber || 0) - Number(b.q || b.questionNumber || 0)
+    // 管理者が覆したものを先頭に。それぞれ、問題番号 → 受付番号の順(採点ページと同じ並び)
+    return (a.section === 'override' ? 0 : 1) - (b.section === 'override' ? 0 : 1)
+        || Number(a.q || a.questionNumber || 0) - Number(b.q || b.questionNumber || 0)
         || Number(a.entryNumber || 0) - Number(b.entryNumber || 0);
 }
 

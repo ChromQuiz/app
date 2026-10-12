@@ -1250,3 +1250,12 @@ Notes   : 補足・再構成の断り・要確認事項
 - Evidence: データベースの挙動スイート DB-27（146件すべて ok、最後に rollback）。画面は、実際の操作では未確認。
 - Rollback: `drop trigger projects_guard_scoring_settings on public.projects; drop function public.guard_scoring_settings(); drop function public.clear_answers_and_scoring(text);`
 - Notes: 当日受付の取り消しは、この制限の対象外（採点データは残るが、その人は採点・順位・出力から外れる）。
+
+## 「開き直す」をやめて、管理者が直接、確定を覆す（2026-10-12）
+
+- Status: 適用済み（本番）。`supabase/migrations/202610120003_admin_overrides_drop_reopen.sql`。Edge Function の変更なし。
+- 背景: 3人とも間違えていた問題は、枠を開き直しても、同じ判断を要確認でもう一度しないといけない。判定が割れたものは、要確認で決められる。
+- 内容: `reopen_question_scoring` を削除（`202610120001` で作ったもの）。`list_admin_overrides(project)`: 運営だけ。管理者が決めた確定のうち、採点者の判定は一致していたもの（要確認に出ない答案を、管理者が覆したもの）を返す。確定を直接決め直すには、既存の `resolve_score_conflict`（いつでも、管理者だけ）を使う。
+- 画面: 採点ボードの「…」（管理者は全問に出る）に「管理者として開く」。`conflict.html?q=N` で、その問題の確認済みの全員の答案を、要確認と同じカードで並べて、確定を決め直す（`list_question_review`）。要確認の先頭に「管理者が覆したもの」を、見出しと区切り線で分けて並べる。
+- Evidence: データベースの挙動スイート（145件すべて ok、最後に rollback）。画面は、スタブのデータで、両方の表示を確認（実データでの通しは未実施）。
+- Rollback: `drop function public.list_admin_overrides(text);` と、`202610120001` の `reopen_question_scoring` を作り直す。

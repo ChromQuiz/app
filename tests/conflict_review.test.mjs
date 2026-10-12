@@ -129,7 +129,7 @@ describe('要確認の一覧は、サーバーの定義だけで決める', () =
     expect(src).not.toContain('scoreConflictRpcAvailable');
     expect(src).not.toContain('falling back to client calculation');
     expect(src).not.toMatch(/listScoreVotes|listFinalResults|listQuestionScorers|listAnswerPages|listModelAnswers/);
-    expect(src).toContain('CIQSupabaseAPI.listScoreConflicts(projectId);');
+    expect(src).toContain('CIQSupabaseAPI.listScoreConflicts(projectId),');
   });
 
   it('自動更新の一時的な失敗は、いまの一覧を残して、次の更新で取り直す', async () => {
@@ -173,7 +173,30 @@ describe('要確認: 判定の並び・即時の色変更', () => {
   });
 
   it('判定・確定だけが変わったときは、カードを作り直さずその場で直す', () => {
-    expect(conflictSrc).toContain('patchConflictCards(grid)');
+    expect(conflictSrc).toContain('patchConflictCards();');
     expect(conflictSrc).toContain('getConflictStructureSignature');
+  });
+});
+
+describe('管理者として開く・管理者が覆したもの', () => {
+  const judgeSrc = read('js/judge.js');
+
+  it('採点ボードの「…」に、管理者だけ「管理者として開く」がある。「開き直す」は無い', () => {
+    expect(judgeSrc).toContain("'管理者として開く'");
+    expect(judgeSrc).toContain('conflict.html?q=${questionNumber}');
+    expect(judgeSrc).not.toContain('開き直す');
+    expect(read('js/supabase_api.js')).not.toContain('reopen_question_scoring');
+  });
+
+  it('?q=N で、その問題の確認済みの全員の答案を、要確認と同じカードで出す', () => {
+    expect(conflictSrc).toContain('CIQSupabaseAPI.listQuestionReview(projectId, reviewQuestion)');
+  });
+
+  it('管理者が覆したものを、要確認の先頭に、別の見出しで並べる', () => {
+    expect(conflictSrc).toContain('CIQSupabaseAPI.listAdminOverrides(projectId)');
+    expect(conflictSrc).toContain("row.section = 'override'");
+    expect(read('conflict.html')).toContain('管理者が覆したもの');
+    const compare = sliceFn(conflictSrc, 'compareConflictsByQuestionAndEntry');
+    expect(compare).toContain("section === 'override' ? 0 : 1");
   });
 });
