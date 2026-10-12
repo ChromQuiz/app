@@ -28,7 +28,9 @@ function pageSources() {
 describe('production UI contracts', () => {
   it('keeps centered layouts stable when the page scrollbar appears', () => {
     const css = read('css/design_system.css');
-    expect(css).toMatch(/html\s*\{[\s\S]*?scrollbar-gutter:\s*stable both-edges;/);
+    expect(css).toMatch(/html\s*\{[\s\S]*?scrollbar-gutter:\s*stable;/);
+    expect(css).toMatch(/html\s*\{[\s\S]*?overflow-y:\s*scroll;/);
+    expect(css).toMatch(/html:has\(body\.body-scroll-locked\)\s*\{\s*overflow-y:\s*hidden;/);
   });
 
   it('uses synchronized shared asset versions on all production pages', () => {
