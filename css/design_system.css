@@ -2645,6 +2645,12 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   background: #fff;
 }
 
+/* 画像の角は、カードの角と同心円になるよう、カードの角の丸み − (内側の余白6px + 枠1px) にする */
+.answer-card img,
+.answer-card .img-expired {
+  border-radius: max(0px, calc(var(--r-overlay) - 7px));
+}
+
 .workbench-card.selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 28%, transparent);
