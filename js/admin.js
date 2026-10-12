@@ -754,7 +754,13 @@
             undoBtn?.addEventListener('click', async () => {
                 if (!pending) return;
                 const name = `No.${padNum(pending.entryNumber)}`;
-                const ok = await showConfirm(`${name} の受付を取り消します。よろしいですか？`, '取り消す');
+                // 答案が読み込まれている人は、取り消すと採点・順位・出力から外れる(判定と答案は残る)。
+                const pages = await CIQSupabaseAPI.listAnswerPages(projectId).catch(() => null);
+                const hasAnswer = pages === null || pages.some(page => page.entry_id === pending.id);
+                const effect = hasAnswer
+                    ? `\n\n${name} の答案はすでに読み込まれています。取り消すと、採点・順位・出力の対象から外れます（判定と答案は残り、受付をやり直すと元に戻ります）。`
+                    : '';
+                const ok = await showConfirm(`${name} の受付を取り消します。${effect}\n\nよろしいですか？`, '取り消す');
                 if (!ok) return;
                 clearPageMessage(statusEl);
                 withBusy(undoBtn, async () => {

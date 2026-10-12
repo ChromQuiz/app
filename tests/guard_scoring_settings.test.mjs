@@ -29,3 +29,11 @@ describe('答案・採点が始まったあとの設定変更', () => {
     expect(sql).toMatch(/from public\.question_scorers/);
   });
 });
+
+describe('当日受付の取り消し', () => {
+  it('答案が読み込まれている人は、採点・順位・出力から外れることを確認ダイアログで伝える', () => {
+    const src = read('js/admin.js');
+    expect(src).toContain('採点・順位・出力の対象から外れます');
+    expect(src).toContain('listAnswerPages(projectId)');
+  });
+});
