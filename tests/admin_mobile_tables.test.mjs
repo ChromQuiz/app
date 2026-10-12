@@ -74,3 +74,9 @@ describe('問題アナリティクス: 状態のバッジの色', () => {
     expect(js).toContain('ANALYTICS_TYPE_BADGE[s.type]');
   });
 });
+
+describe('模範解答の一覧', () => {
+  it('1つを広く取る（長い解答が切れて読めなくならない）。狭い画面では1列に収まる', () => {
+    expect(read('css/pages.css')).toMatch(/body\.page-admin \.model-grid \{[^}]*grid-template-columns: repeat\(auto-fill, minmax\(min\(100%, 320px\), 1fr\)\);/);
+  });
+});

@@ -2039,7 +2039,8 @@ body.page-admin .model-answer-section > .desc-text {
 
 body.page-admin .model-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  /* 模範解答は長いものが多い(人名・別名つき)ので、1つを広く取り、切れて読めないものを減らす */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 10px;
   margin-top: 0;
 }
