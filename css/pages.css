@@ -5482,43 +5482,248 @@ body.page-question .answer-badge {
   }
 }
 
-/* ---- 当日受付: リーダー用(?mode=reader)。カメラの場所に、読み取り待機の表示を置く ---- */
-body.checkin-reader #camera-container {
-  display: none;
+/* ============================================================
+   checkin_reader.html — 二次元コードリーダー専用の当日受付
+   中央に結果(受付番号を大きく)。下に、リーダーの接続と直近の受付。
+   ============================================================ */
+body.page-reader {
+  background: var(--canvas);
 }
 
-.reader-panel {
-  flex: 1;
-  min-height: min(58vh, 560px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-3);
+.reader-main {
+  width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--sp-5) var(--sp-4) calc(var(--sp-8) + env(safe-area-inset-bottom));
+  display: grid;
+  gap: var(--sp-5);
+}
+
+.reader-stage {
+  position: relative;
+  min-height: min(52vh, 460px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--surface);
-  color: var(--ink-2);
-  text-align: center;
 }
 
-.reader-panel[hidden] {
+.reader-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-6);
+  text-align: center;
+  color: var(--ink-2);
+}
+
+.reader-idle[hidden] {
   display: none;
 }
 
-.reader-panel [data-icon] {
+.reader-idle [data-icon] {
   font-size: var(--text-hero);
   color: var(--ink-3);
 }
 
-.reader-panel-title {
+.reader-idle-title {
   font-size: var(--text-title);
   font-weight: 600;
   color: var(--ink);
 }
 
-.reader-panel-state {
+.reader-idle-sub {
   font-size: var(--text-body);
+}
+
+/* 結果: 領域いっぱいが、状態の色になる(参加者と担当者の両方が、離れた所から読む) */
+.reader-result {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-6);
+  text-align: center;
+  border: 3px solid transparent;
+  border-radius: var(--r-lg);
+}
+
+.reader-result[hidden] {
+  display: none;
+}
+
+.reader-result-title {
+  font-size: var(--text-title);
+  font-weight: 700;
+}
+
+.reader-result-label {
+  margin-top: var(--sp-3);
+  font-size: var(--text-body);
+  color: var(--ink-2);
+}
+
+.reader-result-number {
+  font-family: var(--font-mono);
+  font-size: var(--text-hero);
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.reader-result-sub {
+  font-size: var(--text-body);
+  color: var(--ink-2);
+}
+
+.reader-result-detail {
+  max-width: 36em;
+  font-size: var(--text-body);
+  text-align: left;
+}
+
+.reader-result.loading {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+
+.reader-result.success {
+  background: color-mix(in srgb, var(--ok-100) 70%, var(--surface));
+  border-color: var(--ok-600);
+  color: var(--ok-600);
+}
+
+.reader-result.already {
+  background: color-mix(in srgb, var(--warn-100) 70%, var(--surface));
+  border-color: var(--warn-600);
+  color: var(--warn-600);
+}
+
+.reader-result.canceled,
+.reader-result.error {
+  background: color-mix(in srgb, var(--bad-100) 70%, var(--surface));
+  border-color: var(--bad-600);
+  color: var(--bad-600);
+}
+
+.reader-result.success .reader-result-number,
+.reader-result.already .reader-result-number,
+.reader-result.canceled .reader-result-number {
+  color: var(--ink);
+}
+
+.reader-result.error .reader-result-detail {
+  color: var(--ink);
+}
+
+.reader-lower {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-5);
+}
+
+.reader-block {
+  padding: var(--block-pad);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.reader-block > h2 {
+  margin-bottom: var(--block-gap);
+  font-size: var(--text-heading);
+  font-weight: 700;
+}
+
+.reader-conn {
+  display: grid;
+  gap: var(--block-gap);
+  margin: 0;
+}
+
+.reader-conn-row {
+  display: grid;
+  grid-template-columns: minmax(8em, auto) 1fr;
+  align-items: baseline;
+  gap: var(--sp-1) var(--sp-4);
+}
+
+.reader-conn-row dt {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.reader-conn-row dd {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--ink);
+}
+
+.reader-conn-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.reader-baud {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--text-small);
+  color: var(--ink-2);
+}
+
+.reader-conn-note {
+  margin-top: var(--block-gap);
+  font-size: var(--text-small);
+  color: var(--ink-2);
+}
+
+.reader-recent {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reader-recent li {
+  display: grid;
+  grid-template-columns: 6em 4em 1fr;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--text-body);
+}
+
+.reader-recent li > time {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.reader-recent-number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.reader-recent li .badge {
+  justify-self: start;
+}
+
+.reader-recent-empty {
+  display: block !important;
+  color: var(--ink-2);
 }
 
 /* リーダーが打ち込む先。見えないが、フォーカスは受ける */
@@ -5530,4 +5735,14 @@ body.checkin-reader #camera-container {
   border: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+@media (max-width: 820px) {
+  .reader-lower {
+    grid-template-columns: 1fr;
+  }
+
+  .reader-main {
+    padding-inline: calc(var(--sp-3) + env(safe-area-inset-left)) calc(var(--sp-3) + env(safe-area-inset-right));
+  }
 }

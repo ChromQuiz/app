@@ -14,7 +14,7 @@ const ROOT = resolve(import.meta.dirname, '..');
 const BARE_QR = /(?<![A-Za-z0-9_])QR(?![A-Za-z0-9_])/;
 
 const FILES = [
-  'admin.html', 'checkin.html', 'entry.html', 'entry_list.html', 'help.html',
+  'admin.html', 'checkin.html', 'checkin_reader.html', 'entry.html', 'entry_list.html', 'help.html',
   'index.html', 'join.html', 'judge.html', 'my.html', 'question.html',
   'conflict.html', 'terms.html', '404.html',
   'js/admin.js', 'js/admin_settings.js', 'js/checkin.js', 'js/entry.js',

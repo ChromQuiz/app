@@ -253,7 +253,7 @@ describe('IP rate limiting is concurrency-safe (V4)', () => {
 
 describe('Content-Security-Policy stays hardened on production pages', () => {
   const PAGES = [
-    '404.html', 'admin.html', 'checkin.html', 'conflict.html', 'entry.html', 'entry_list.html',
+    '404.html', 'admin.html', 'checkin.html', 'checkin_reader.html', 'conflict.html', 'entry.html', 'entry_list.html',
     'help.html', 'index.html', 'judge.html', 'my.html', 'question.html', 'terms.html',
   ];
   for (const page of PAGES) {

@@ -44,29 +44,65 @@ describe('二次元コードリーダーの入力', () => {
   });
 });
 
-describe('リーダー用の受付画面（カメラを使わない）', () => {
-  const js = read('js/checkin.js');
-  const html = read('checkin.html');
+function loadSerialReader() {
+  const src = read('js/qr_serial_reader.js');
+  const module = { exports: {} };
+  return new Function('module', 'exports', 'globalThis', src + '; return module.exports;')(module, module.exports, globalThis);
+}
 
-  it('?mode=reader のとき、カメラを起動せず、読み取りライブラリも要求しない', () => {
-    expect(js).toContain("get('mode') === 'reader'");
-    expect(js).toMatch(/if \(!readerMode && typeof jsQR !== 'function'\)/);
-    expect(js).toMatch(/if \(readerMode\) startReader\(\);\s*else await startCamera\(\);/);
+describe('USBシリアル: 行の分け方', () => {
+  const { splitReaderChunks } = loadSerialReader();
+
+  it('改行(CR・LF・CRLF)で、1つの読み取りに分ける。改行の来ていない残りは、次に持ち越す', () => {
+    expect(splitReaderChunks('', `${CODE}\r\n`)).toEqual({ lines: [CODE], rest: '' });
+    expect(splitReaderChunks('', `${CODE}\r`)).toEqual({ lines: [CODE], rest: '' });
+    expect(splitReaderChunks('', `${CODE}\n${CODE}`)).toEqual({ lines: [CODE], rest: CODE });
   });
 
-  it('リーダー用の入力欄は、署名付きの二次元コードだけを、同じ受付の経路（checkInEntry）へ送る', () => {
-    expect(js).toContain('looksLikeCheckInCode(code)');
-    expect(js).toContain('processQR(code)');
-    expect(js).toMatch(/CIQSupabaseAPI\.checkInEntry\(projectId, qrValue\)/);
+  it('途中で切れて届いても、つなげて1つにする', () => {
+    const first = splitReaderChunks('', CODE.slice(0, 20));
+    expect(first).toEqual({ lines: [], rest: CODE.slice(0, 20) });
+    expect(splitReaderChunks(first.rest, `${CODE.slice(20)}\r\n`)).toEqual({ lines: [CODE], rest: '' });
+  });
+
+  it('空の行は、読み取りにしない', () => {
+    expect(splitReaderChunks('', '\r\n\r\n').lines).toEqual([]);
+  });
+});
+
+describe('リーダー専用の受付画面（checkin_reader.html。カメラの画面とは別）', () => {
+  const html = read('checkin_reader.html');
+  const js = read('js/checkin_reader.js');
+
+  it('カメラの部品を持たない（video・canvas・読み取りライブラリ・カメラ用のスクリプト）', () => {
+    expect(html).not.toMatch(/<video|<canvas|id="camera-container"/);
+    expect(html).not.toMatch(/jsqr/i);
+    expect(html).not.toContain('js/checkin.js');
+    expect(js).not.toMatch(/getUserMedia|jsQR/);
+  });
+
+  it('カメラの受付画面（checkin.html）には、リーダー用の部品を混ぜない', () => {
+    expect(read('checkin.html')).not.toMatch(/reader/);
+    expect(read('js/checkin.js')).not.toMatch(/reader/i);
+  });
+
+  it('署名付きの二次元コードだけを、同じ受付の経路（checkInEntry）へ送る。受付番号で受付する経路はない', () => {
+    expect(js).toContain('CIQSupabaseAPI.checkInEntry(projectId, code)');
+    expect(js).not.toMatch(/checkInEntryByNumber|checkInEntryManually|lookupEntryByNumber/);
     expect(html).not.toMatch(/name="entry-number"/);
   });
 
-  it('同じコードは、続けて受け付けない。読み間違いは、サーバーに送らない', () => {
-    expect(js).toContain('READER_REPEAT_MS');
+  it('形が違う読み取りは、サーバーに送らない。同じコードは、続けて受け付けない', () => {
     expect(js).toMatch(/if \(!reader\.looksLikeCheckInCode\(code\)\) \{[\s\S]*?return;\s*\}/);
+    expect(js).toContain('REPEAT_BLOCK_MS');
   });
 
-  it('運営画面の当日タブから、リーダー用の受付画面を開ける', () => {
-    expect(read('admin.html')).toContain('data-nav-target="checkin.html?mode=reader"');
+  it('キーボード入力とUSBシリアルの2つの入口が、同じ処理（handleCode）へ入る', () => {
+    expect(js).toMatch(/submit = \(\) => \{[\s\S]*?handleCode\(value\);/);
+    expect(js).toContain('onCode: handleCode');
+  });
+
+  it('運営画面の当日タブから、開ける', () => {
+    expect(read('admin.html')).toContain('data-nav-target="checkin_reader.html"');
   });
 });
