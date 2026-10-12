@@ -15,6 +15,31 @@ function normalizeAltAnswers(value) {
         .filter(Boolean);
 }
 
+function mapReviewRow(row) {
+    const q = Number(row.question_number);
+    const entryNumber = Number(row.entry_number);
+    return {
+        q,
+        entryId: row.entry_id,
+        entryNumber,
+        displayName: `No.${String(entryNumber).padStart(3, '0')}`,
+        affiliation: row.affiliation || '',
+        grade: row.grade || '',
+        storagePath: row.storage_path || '',
+        cellRegion: row.cell_region || null,
+        cellRegions: {},
+        pageWidth: Number(row.page_width || 0) || null,
+        cellStatus: row.cell_status || null,
+        cellPath: row.cell_path || null,
+        cellGenerationVersion: row.cell_generation_version || null,
+        modelAnswer: row.model_answer || '',
+        modelAltAnswers: normalizeAltAnswers(row.model_alt_answers),
+        votes: Array.isArray(row.votes) ? row.votes : [],
+        finalResult: row.final_result || null,
+        decidedKind: row.decided_kind || null,
+    };
+}
+
 const CIQSupabaseAPI = {
     _cache: new Map(),
     _imageCache: new Map(),
@@ -1742,29 +1767,31 @@ const CIQSupabaseAPI = {
                 p_project_id: projectId,
             });
         if (error) throw error;
-        return (data || []).map((row) => {
-            const q = Number(row.question_number);
-            const entryNumber = Number(row.entry_number);
-            return {
-                q,
-                entryId: row.entry_id,
-                entryNumber,
-                displayName: `No.${String(entryNumber).padStart(3, '0')}`,
-                affiliation: row.affiliation || '',
-                grade: row.grade || '',
-                storagePath: row.storage_path || '',
-                cellRegion: row.cell_region || null,
-                cellRegions: {},
-                pageWidth: Number(row.page_width || 0) || null,
-                cellStatus: row.cell_status || null,
-                cellPath: row.cell_path || null,
-                cellGenerationVersion: row.cell_generation_version || null,
-                modelAnswer: row.model_answer || '',
-                modelAltAnswers: normalizeAltAnswers(row.model_alt_answers),
-                votes: Array.isArray(row.votes) ? row.votes : [],
-                finalResult: row.final_result || null,
-            };
-        });
+        return (data || []).map(mapReviewRow);
+    },
+
+    // 完了した問題の見直し用。確認済みの全受付者ぶんを、最終結果と各採点者の判定つきで返す(運営のみ)
+    async listQuestionReview(projectId, questionNumber) {
+        const { data, error } = await this.client()
+            .rpc('list_question_review', {
+                p_project_id: projectId,
+                p_question_number: questionNumber,
+            });
+        if (error) throw error;
+        return (data || []).map(mapReviewRow);
+    },
+
+    // 完了した枠を開き直す。scorerMemberId を省くとその問題の完了済み枠すべて
+    async reopenQuestionScoring(projectId, questionNumber, scorerMemberId = null) {
+        const { data, error } = await this.client()
+            .rpc('reopen_question_scoring', {
+                p_project_id: projectId,
+                p_question_number: questionNumber,
+                p_scorer_member_id: scorerMemberId,
+            })
+            .single();
+        if (error) throw error;
+        return data;
     },
 
     async listQuestionScoreVotes(projectId, questionNumber) {

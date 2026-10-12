@@ -19,6 +19,12 @@ let lastConflictRenderSignature = '';
 let conflictRefreshTimer = null;
 let conflictRefreshPromise = null;
 let shouldResetConflictSelection = true;
+let memberNameMap = {};
+// ?q=N のとき、その問題の確認済み受付者を全員出す見直しモード(完了した問題の確定結果を見直す)
+const reviewQuestion = (() => {
+    const value = Number(new URLSearchParams(location.search).get('q'));
+    return Number.isInteger(value) && value >= 1 ? value : null;
+})();
 
 // limit 本を常に動かす（遅い1本に、同じまとまりの残りが待たされない）
 async function runLimited(items, limit, task) {
@@ -130,10 +136,57 @@ function setConflictActionsDisabled(disabled) {
     document.getElementById('conflict-wrong-btn')?.toggleAttribute('disabled', disabled);
 }
 
+function setupReviewScope() {
+    const input = document.getElementById('review-q');
+    const actions = document.getElementById('review-actions');
+    const form = document.getElementById('review-form');
+    if (reviewQuestion) {
+        input.value = String(reviewQuestion);
+        actions.classList.remove('u-hidden');
+    }
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const value = Number(input.value.trim());
+        if (!Number.isInteger(value) || value < 1) {
+            showToast('見直す問題の番号を入力してください。', 'error');
+            return;
+        }
+        location.href = `conflict.html?q=${value}`;
+    });
+    document.getElementById('review-exit-btn')?.addEventListener('click', () => {
+        location.href = 'conflict.html';
+    });
+    document.getElementById('review-reopen-btn')?.addEventListener('click', reopenReviewQuestion);
+}
+
+// 完了した枠を開き直す。自動で確定した結果は消え、管理者が決めた結果は残る。
+async function reopenReviewQuestion() {
+    const ok = await showConfirm(
+        `第${reviewQuestion}問の採点を開き直します。自動で確定した結果は消えて、採点者が判定し直せるようになります。管理者が決めた結果は残ります。よろしいですか？`,
+        '開き直す',
+    );
+    if (!ok) return;
+    const button = document.getElementById('review-reopen-btn');
+    button.disabled = true;
+    try {
+        const result = await CIQSupabaseAPI.reopenQuestionScoring(projectId, reviewQuestion);
+        showToast(`第${reviewQuestion}問を開き直しました。`, 'success');
+        return result;
+    } catch (error) {
+        showToast(describeError(error, '採点を開き直せませんでした。'), 'error');
+    } finally {
+        button.disabled = false;
+        await refreshData().catch(() => {});
+    }
+}
+
 async function init() {
     try {
         selectedIndex = 0;
         shouldResetConflictSelection = true;
+        setupReviewScope();
+        const members = await CIQSupabaseAPI.listProjectMembers(projectId).catch(() => []);
+        memberNameMap = Object.fromEntries((members || []).map(member => [member.id, member.display_name || '採点者']));
         await refreshData();
         startConflictRefreshTimer();
     } catch (e) {
@@ -170,7 +223,9 @@ async function refreshData() {
 // 画面側で別の計算に切り替えない(受付済みの人だけを数えるなど、サーバーの定義とずれるため)。
 async function refreshDataInternal() {
     const startedAt = performance.now();
-    serverConflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);
+    serverConflictRows = reviewQuestion
+        ? await CIQSupabaseAPI.listQuestionReview(projectId, reviewQuestion)
+        : await CIQSupabaseAPI.listScoreConflicts(projectId);
     const dataMs = Math.round(performance.now() - startedAt);
     const renderStartedAt = performance.now();
     await render();
@@ -213,6 +268,7 @@ function getConflictRenderSignature(conflicts) {
             conflict.entryId,
             conflict.entryNumber,
             conflict.finalResult || '',
+            conflict.decidedKind || '',
             (conflict.modelAltAnswers || []).join('/'),
             conflict.modelAnswer || '',
             votes,
@@ -254,7 +310,10 @@ async function render() {
 
     const unresolvedCount = currentConflicts.filter(c => !c.finalResult).length;
     const counter = document.getElementById('counter');
-    if (currentConflicts.length === 0 || unresolvedCount === 0) {
+    if (reviewQuestion) {
+        counter.textContent = `第${reviewQuestion}問 ${currentConflicts.length}人`;
+        counter.className = 'counter';
+    } else if (currentConflicts.length === 0 || unresolvedCount === 0) {
         counter.textContent = `全${currentConflicts.length}件 確定済み`;
         counter.className = 'counter all-clear';
     } else {
@@ -266,7 +325,7 @@ async function render() {
     if (currentConflicts.length === 0) {
         setConflictActionsDisabled(true);
         lastConflictRenderSignature = '';
-        setConflictGridMessage('要確認はありません', {
+        setConflictGridMessage(reviewQuestion ? `第${reviewQuestion}問の答案はありません` : '要確認はありません', {
             className: 'loading-state no-conflict',
             icon: 'circle-check',
             iconSize: '48px',
@@ -345,6 +404,36 @@ function createVoteDot(result) {
     return dot;
 }
 
+function createDecidedKindBadge(conflict) {
+    if (!conflict.finalResult) return null;
+    const badge = document.createElement('span');
+    badge.className = conflict.decidedKind === 'admin' ? 'badge decided-kind' : 'badge muted decided-kind';
+    badge.textContent = conflict.decidedKind === 'admin' ? '管理者が決定' : '自動で確定';
+    return badge;
+}
+
+// 採点者ごとの判定。名前と判定を1行ずつ、揃えて並べる
+function createVoteList(votes) {
+    const rows = (votes || []).filter(vote => vote.result);
+    if (!rows.length) return null;
+    const list = document.createElement('ul');
+    list.className = 'conflict-vote-list';
+    rows
+        .map(vote => ({ vote, name: memberNameMap[vote.scorer_member_id] || '採点者' }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+        .forEach(({ vote, name }) => {
+            const dot = createVoteDot(vote.result);
+            if (!dot) return;
+            const item = document.createElement('li');
+            const label = document.createElement('span');
+            label.className = 'conflict-vote-name';
+            label.textContent = name;
+            item.append(label, dot);
+            list.appendChild(item);
+        });
+    return list.children.length ? list : null;
+}
+
 function createConflictCard(conflict, idx) {
     const cacheKey = `${conflict.entryNumber}:q${conflict.q}`;
     const cellUrl = cellUrlCache[cacheKey];
@@ -398,16 +487,13 @@ function createConflictCard(conflict, idx) {
         alts.textContent = ` / ${modelAlts.join(' / ')}`;
         model.appendChild(alts);
     }
-    const votes = document.createElement('span');
-    votes.className = 'votes-mini';
-    conflict.votes.forEach((vote, index) => {
-        const dot = createVoteDot(vote.result);
-        if (!dot) return;
-        if (index > 0 && votes.childNodes.length) votes.appendChild(document.createTextNode(' '));
-        votes.appendChild(dot);
-    });
-    reviewRow.append(model, votes);
+    reviewRow.append(model);
+    const kind = createDecidedKindBadge(conflict);
+    if (kind) reviewRow.append(kind);
     card.appendChild(reviewRow);
+
+    const voteList = createVoteList(conflict.votes);
+    if (voteList) card.appendChild(voteList);
     return card;
 }
 
@@ -606,13 +692,33 @@ function applyLocalFinalResult(q, entryId, result) {
     return () => { row.finalResult = previous; };
 }
 
+// 判定した瞬間にカードの色だけ手元で変える(全体の再描画や再取得を待たない)
+function paintConflictResult(q, entryId, finalResult, decidedKind) {
+    const index = currentConflicts.findIndex(item => (
+        Number(item.q) === Number(q) && item.entryId === entryId
+    ));
+    const card = index >= 0 ? document.querySelectorAll('.conflict-card')[index] : null;
+    if (!card) return;
+    card.classList.remove('resolved', 'correct', 'wrong');
+    if (finalResult) card.classList.add('resolved', finalResult);
+    card.querySelector('.decided-kind')?.remove();
+    const badge = createDecidedKindBadge({ finalResult, decidedKind });
+    if (badge) card.querySelector('.conflict-review-row')?.appendChild(badge);
+}
+
 async function setFinal(q, entryId, result) {
+    const row = (serverConflictRows || []).find(item => (
+        Number(item.q) === Number(q) && item.entryId === entryId
+    ));
+    const previousKind = row?.decidedKind || null;
     const rollback = applyLocalFinalResult(q, entryId, result);
-    await render();
+    if (row) row.decidedKind = 'admin';
+    paintConflictResult(q, entryId, result, 'admin');
     try {
         await CIQSupabaseAPI.resolveScoreConflict(projectId, q, entryId, result);
     } catch (error) {
         rollback();
+        if (row) row.decidedKind = previousKind;
         await render();
         throw error;
     }

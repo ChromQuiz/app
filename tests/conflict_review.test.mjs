@@ -129,12 +129,46 @@ describe('要確認の一覧は、サーバーの定義だけで決める', () =
     expect(src).not.toContain('scoreConflictRpcAvailable');
     expect(src).not.toContain('falling back to client calculation');
     expect(src).not.toMatch(/listScoreVotes|listFinalResults|listQuestionScorers|listAnswerPages|listModelAnswers/);
-    expect(src).toContain('serverConflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);');
+    expect(src).toContain('CIQSupabaseAPI.listScoreConflicts(projectId)');
+    expect(src).toContain('CIQSupabaseAPI.listQuestionReview(projectId, reviewQuestion)');
   });
 
   it('自動更新の一時的な失敗は、いまの一覧を残して、次の更新で取り直す', async () => {
     const { readFileSync } = await import('node:fs');
     const src = readFileSync(new URL('../js/conflict.js', import.meta.url), 'utf8');
     expect(src).toContain("refreshData().catch((error) => console.warn('要確認の更新に失敗:', error));");
+  });
+});
+
+describe('要確認: 採点者ごとの判定・即時の色変更・見直し', () => {
+  it('各採点者の判定を、名前つきの一覧で出す', () => {
+    expect(conflictSrc).toContain('createVoteList');
+    expect(conflictSrc).toContain('memberNameMap');
+    expect(css).toMatch(/\.conflict-vote-list/);
+  });
+
+  it('判定した瞬間に、再描画や再取得を待たずにカードの色を変える', () => {
+    const body = sliceFn(conflictSrc, 'setFinal');
+    expect(body).toContain('paintConflictResult(');
+    const paintAt = body.indexOf('paintConflictResult(');
+    const rpcAt = body.indexOf('resolveScoreConflict(');
+    expect(paintAt).toBeGreaterThan(-1);
+    expect(paintAt).toBeLessThan(rpcAt);
+    expect(body.slice(0, rpcAt)).not.toContain('await render()');
+  });
+
+  it('模範解答の行は、カードの色を隠さない(背景を塗らない)', () => {
+    const rule = css.match(/\.conflict-review-row \{[^}]*\}/)[0];
+    expect(rule).toContain('background: transparent');
+  });
+
+  it('管理者が決めた結果と自動の結果を区別して出す', () => {
+    expect(conflictSrc).toContain("'管理者が決定'");
+    expect(conflictSrc).toContain("'自動で確定'");
+  });
+
+  it('?q= で、その問題の確認済み受付者を全員出す見直しモードに入る', () => {
+    expect(conflictSrc).toContain("URLSearchParams");
+    expect(conflictSrc).toContain('reopenQuestionScoring(projectId, reviewQuestion)');
   });
 });

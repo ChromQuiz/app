@@ -18,13 +18,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=2"></script>
     <script defer src="js/supabase_client.js?v=2"></script>
-    <script defer src="js/supabase_api.js?v=59"></script>
+    <script defer src="js/supabase_api.js?v=60"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=9"></script>
     <script defer src="js/ui.js?v=35"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=101">
-    <link rel="stylesheet" href="css/pages.css?v=175">
+    <link rel="stylesheet" href="css/pages.css?v=176">
 </head>
 
 <body class="page-conflict">
@@ -37,6 +37,18 @@
         </div>
         <div class="header-right">
             <div class="counter has-conflicts" id="counter" role="status" aria-live="polite" aria-label="要確認件数"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中…</div>
+        </div>
+    </div>
+
+    <div class="conflict-scope" id="conflict-scope">
+        <form class="conflict-scope-form" id="review-form">
+            <label for="review-q">問題を見直す</label>
+            <input type="text" id="review-q" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="見直す問題の番号">
+            <button class="btn secondary" type="submit">開く</button>
+        </form>
+        <div class="conflict-scope-actions u-hidden" id="review-actions">
+            <button class="btn secondary" type="button" id="review-reopen-btn">この問題の採点を開き直す</button>
+            <button class="btn ghost" type="button" id="review-exit-btn">要確認に戻る</button>
         </div>
     </div>
 
@@ -57,7 +69,7 @@
 
 
 
-    <script defer src="js/conflict.js?v=54"></script>
+    <script defer src="js/conflict.js?v=55"></script>
 </body>
 
 </html>
