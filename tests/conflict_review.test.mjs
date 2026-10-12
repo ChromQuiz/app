@@ -225,3 +225,9 @@ describe('選択中のリング', () => {
     expect(rule).toContain('0 0 0 2px var(--canvas), 0 0 0 5px var(--accent)');
   });
 });
+
+describe('要確認の件数', () => {
+  it('採点ページと同じく、確定した件数 / 全件で出す（残りの数ではない）', () => {
+    expect(conflictSrc).toContain('`${conflictList.length - unresolvedCount} / ${conflictList.length}件`');
+  });
+});
