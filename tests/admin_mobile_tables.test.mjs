@@ -116,3 +116,15 @@ describe('運営画面の整理（余白の役割・枠の中の枠・答案の�
     expect(html).not.toContain('本人を確認してから受付します');
   });
 });
+
+describe('状態のバッジ', () => {
+  it('文字と色だけ（アイコンは付けない）。どの表も同じ', () => {
+    const js = read('js/admin_settings.js');
+    const fn = js.slice(js.indexOf('function createBadge('), js.indexOf('function appendAdminEntryCell'));
+    expect(fn).not.toContain('createIcon');
+    expect(js).not.toMatch(/createBadge\('badge [a-z]+', '(?:check|clock|xmark|ban|user-xmark|clock-rotate-left|triangle-exclamation)'/);
+    const stats = read('js/admin_stats.js');
+    const badge = stats.slice(stats.indexOf('const typeBadge'), stats.indexOf('typeTd.appendChild(typeBadge)'));
+    expect(badge).not.toContain('Icon');
+  });
+});

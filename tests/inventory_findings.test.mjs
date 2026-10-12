@@ -199,7 +199,7 @@ describe('FND-12: 終了日時は開始日時より後', () => {
 describe('FND-10: 遅刻の連絡をした人も、受付したら「受付済み」と表示する', () => {
   it('受付済みの判定が、遅刻の判定より前にある', () => {
     const src = read('js/admin_settings.js');
-    const block = src.slice(src.indexOf("createBadge('badge danger', 'xmark', 'キャンセル')"));
+    const block = src.slice(src.indexOf("createBadge('badge danger', 'キャンセル')"));
     expect(block.indexOf("entry.checked_in")).toBeGreaterThan(-1);
     expect(block.indexOf("entry.checked_in")).toBeLessThan(block.indexOf("entry.status === 'late'"));
   });
