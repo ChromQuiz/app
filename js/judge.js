@@ -336,6 +336,8 @@ function openSlotDialog(questionNumber, returnFocus) {
         openLink.className = 'btn';
         openLink.href = `conflict.html?q=${questionNumber}`;
         openLink.textContent = '管理者として開く';
+        // 戻るボタンで戻ったとき(ページの復元)に、一覧が開いたまま残らないよう、移る前に閉じる
+        openLink.addEventListener('click', close);
         actions.appendChild(openLink);
     }
     actions.appendChild(closeBtn);

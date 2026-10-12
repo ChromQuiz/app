@@ -80,3 +80,9 @@ describe('採点ボードの「採点中の枠」(画面)', () => {
     expect(read('js/supabase_api.js')).toMatch(/\.rpc\('release_question_scorer'/);
   });
 });
+
+describe('採点ボード: 管理者として開く', () => {
+  it('移る前に一覧を閉じる（戻るボタンで戻ったとき、一覧が開いたまま残らない）', () => {
+    expect(read('js/judge.js')).toMatch(/openLink\.addEventListener\('click', close\);/);
+  });
+});
