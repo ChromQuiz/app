@@ -230,3 +230,23 @@ body.page-auth (grid: 1fr / auto, 地色は --canvas-flat)
 - Allowed page-specific exceptions include: index/login composition, admin phase layout, entry list responsive layout, terms Markdown article layout, check-in camera/result workflow, answer-prep PDF tooling, and one-off spacing overrides around shared components.
 - If a page-specific class starts looking reusable across two pages, promote it to `css/design_system.css` before adding a second definition.
 - Page-specific overrides must use design tokens and must not introduce new colors, shadows, gradients, radii, or button/message variants.
+
+
+## 追補（2026-10-12）
+
+### ボタンの幅は2種類だけ
+- **内容の幅**（PC）: ボタンは、文字とアイコンに合わせた幅。広い画面で横いっぱいに広げない。
+- **横いっぱい**（スマホ、画面幅 640px 以下）: 操作の行（`.phase-actions`）に置いたボタンは、横いっぱいに広がる。2つ以上並ぶときは、横に等分する。
+- ボタンは、必ず操作の行（`.phase-actions` など）に入れる。ブロックの直下に、ぽつんと置かない（置くと、スマホで広がらない）。
+
+### 状態は、どの表でもバッジで見せる
+- 参加者一覧・メンバー・招待・問題アナリティクスの「状態」は、すべて `.badge`（`success` / `warning` / `danger` / `muted`）。文字だけにしない。
+- 色は、成功＝緑、注意＝オレンジ、失敗＝赤、使えない・待ち＝灰色。灰色のバッジも、輪郭の線を持つ。
+
+### 色の値（ライト・ダーク）
+- 状態の色（ok / warn / bad / gold / accent）は、文字・バー・丸・バッジで、同じ値（`-600`）を使う。明るい色を面に、暗い色を文字に、と分けない。
+- ダークは、真っ黒・真っ白・蛍光色を避ける。背景は `#111113`、文字は `#e8e8ed`、状態の色は彩度を落とした値（緑 `#5cb87a`、オレンジ `#d9a05a`、赤 `#e58078`、青 `#6aaef2`）。
+
+### 言葉：運営と管理者
+- **運営**は、大会を動かす側の全員（所有者・管理者・採点者）。参加者から見た「運営への連絡」は、運営。
+- 招待リンクを発行できるのは管理者（所有者を含む）だけ。ただし、採点者に向けた文では、リンクの出どころ（運営・管理者）を書かない（「招待リンクを開いてください」）。

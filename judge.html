@@ -15,13 +15,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=2"></script>
     <script defer src="js/supabase_client.js?v=2"></script>
-    <script defer src="js/supabase_api.js?v=58"></script>
+    <script defer src="js/supabase_api.js?v=59"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=9"></script>
-    <script defer src="js/ui.js?v=34"></script>
+    <script defer src="js/ui.js?v=35"></script>
     <script defer src="js/shared.js?v=7"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=99">
-    <link rel="stylesheet" href="css/pages.css?v=173">
+    <link rel="stylesheet" href="css/design_system.css?v=100">
+    <link rel="stylesheet" href="css/pages.css?v=175">
 </head>
 
 <body class="page-judge">
@@ -54,7 +54,7 @@
             <button class="u-hidden menu-item" id="admin-menu-home" data-nav-target="admin.html">
                 <span data-icon="gauge" aria-hidden="true"></span> 運営ホーム
             </button>
-            <button class="u-hidden menu-item warn" id="admin-menu-conflict" data-nav-target="conflict.html">
+            <button class="u-hidden menu-item" id="admin-menu-conflict" data-nav-target="conflict.html">
                 <span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認
             </button>
             <button class="menu-item" data-nav-target="checkin.html">
@@ -89,25 +89,21 @@
     </div>
 
     <main class="judge-main">
-        <!-- 続きから: 採点者の「次の一手」 -->
-        <section class="judge-resume u-hidden" id="judge-resume" aria-label="採点の再開">
-            <div class="judge-resume-text">
-                <div class="judge-resume-title">続きから採点する</div>
-                <div class="judge-resume-desc" id="judge-resume-desc"></div>
-            </div>
-            <button type="button" class="btn" id="judge-resume-btn">
-                採点を再開 <span data-icon="arrow-right" aria-hidden="true"></span>
-            </button>
-        </section>
-
-        <!-- 状況サマリー(1行・控えめ) -->
-        <p class="judge-summary" id="judge-summary" role="status" aria-live="polite"></p>
+        <!-- 状況の内訳(左)と、続きから採点するボタン(右)。同じ段に置く -->
+        <div class="judge-toolbar">
+            <p class="judge-summary" id="judge-summary" role="status" aria-live="polite"></p>
+            <section class="judge-resume u-hidden" id="judge-resume" aria-label="採点の再開">
+                <button type="button" class="btn" id="judge-resume-btn">
+                    採点を再開 <span data-icon="arrow-right" aria-hidden="true"></span>
+                </button>
+            </section>
+        </div>
 
         <!-- 問題ボード -->
         <div class="q-grid" id="q-grid" role="grid" aria-label="問題一覧"></div>
     </main>
 
-    <script defer src="js/judge.js?v=20"></script>
+    <script defer src="js/judge.js?v=21"></script>
 </body>
 
 </html>

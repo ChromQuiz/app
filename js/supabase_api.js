@@ -544,7 +544,7 @@ const CIQSupabaseAPI = {
     // 招待リンクを引き換えて採点者として参加する。
     async redeemScorerInvite(token) {
         const data = await this.invokeAuthedFunction('redeem-scorer-invite', { token });
-        if (!data?.ok) throw new Error(data?.error || '参加できませんでした。運営に新しい招待リンクを依頼するか、時間をおいてもう一度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || '参加できませんでした。新しい招待リンクをもらうか、時間をおいてもう一度お試しください。');
         return data;
     },
 

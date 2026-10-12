@@ -482,7 +482,7 @@ const ERROR_MESSAGES = [
     [/Invalid project id/i, '大会IDの形式が正しくありません'],
     [/Project name is required/i, '大会名を入力してください'],
     [/Owner display name is required/i, '表示名を入力してください'],
-    [/Invite (not found|revoked|expired|exhausted)|Invalid invite|Invalid scorer code/i, '招待リンクが無効です。運営に新しい招待リンクを依頼してください'],
+    [/Invite (not found|revoked|expired|exhausted)|Invalid invite|Invalid scorer code/i, '招待リンクが無効です。新しい招待リンクをもらってください'],
     [/Missing participant hash/i, '認証の情報が不足しています。もう一度お試しください'],
     [/duplicate key|23505/i, 'すでに登録されています'],
 ];

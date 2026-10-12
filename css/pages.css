@@ -2183,7 +2183,6 @@ body.page-admin .admin-manual-footer {
 body.page-admin .phase-subblock,
 body.page-admin .config-row,
 body.page-admin .file-upload-zone,
-body.page-admin .csv-status,
 body.page-admin .loading-state,
 body.page-admin .empty-state,
 body.page-admin .admin-entry-result,
@@ -2306,7 +2305,6 @@ body.page-admin .stats-legend {
   gap: 12px;
 }
 
-body.page-admin .csv-status,
 body.page-admin .loading-state,
 body.page-admin .empty-state {
   padding: 14px 16px;
@@ -5370,8 +5368,6 @@ body.page-question .answer-badge {
   #analytics-tbody .analytics-type {
     grid-area: type;
     justify-self: end;
-    font-size: var(--text-small);
-    color: var(--ink-2);
   }
 
   #analytics-tbody .analytics-names {
@@ -5413,7 +5409,7 @@ body.page-question .answer-badge {
    どちらも、枠や面で囲わない。ページの上に、そのまま置く。
    内訳の丸の色は、問題カードの状態の色（未着手・採点中・完了）と同じ。
    ============================================================ */
-.judge-resume {
+.judge-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5422,22 +5418,15 @@ body.page-question .answer-badge {
   margin-bottom: var(--sp-5);
 }
 
-.judge-resume-title {
-  font-size: var(--text-heading);
-  font-weight: 600;
-}
-
-.judge-resume-desc {
-  margin-top: 2px;
-  font-size: var(--text-small);
-  color: var(--ink-2);
+.judge-resume {
+  display: flex;
 }
 
 .judge-summary {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-2) var(--sp-5);
-  margin-bottom: var(--sp-4);
+  margin: 0;
   font-size: var(--text-small);
   font-weight: 600;
   color: var(--ink);
@@ -5461,3 +5450,11 @@ body.page-question .answer-badge {
 .judge-summary .summary-open { --summary-dot: var(--line-strong); }
 .judge-summary .summary-inprogress { --summary-dot: var(--accent); }
 .judge-summary .summary-done { --summary-dot: var(--ok-600); }
+
+/* スマホでは、「続きから採点」のボタンを、横いっぱいにする（ほかの操作の行と同じ） */
+@media (max-width: 640px) {
+  .judge-resume,
+  .judge-resume .btn {
+    width: 100%;
+  }
+}

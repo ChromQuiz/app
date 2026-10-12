@@ -123,13 +123,16 @@
             const tr = document.createElement('tr');
             if (member.status === 'removed') tr.className = 'member-row-removed';
 
-            [member.display_name || member.invited_email || '-', roleLabel, statusLabel].forEach((text, index) => {
+            [member.display_name || member.invited_email || '-', roleLabel].forEach((text) => {
                 const td = document.createElement('td');
                 td.textContent = text;
-                // 取り消し線は名前・権限だけ。状態(外し済み)と操作には引かない
-                if (index === 2) td.classList.add('cell-status');
                 tr.appendChild(td);
             });
+            // 状態は、ほかの表（参加者一覧・招待）と同じく、バッジで見せる。薄くする行でも、状態は薄くしない
+            const memberStateTd = document.createElement('td');
+            memberStateTd.classList.add('cell-status');
+            memberStateTd.appendChild(createBadge(member.status === 'removed' ? 'badge muted' : 'badge success', member.status === 'removed' ? 'user-xmark' : 'check', statusLabel));
+            tr.appendChild(memberStateTd);
 
             const actionTd = document.createElement('td');
             actionTd.classList.add('cell-status');
@@ -751,13 +754,20 @@
                 new Date(invite.created_at).toLocaleString('ja-JP'),
                 `${invite.use_count} / ${invite.max_uses}`,
                 new Date(invite.expires_at).toLocaleString('ja-JP'),
-                state.label,
             ];
             cells.forEach((text) => {
                 const td = document.createElement('td');
                 td.textContent = text;
                 tr.appendChild(td);
             });
+            // 状態は、ほかの表と同じく、バッジで見せる（使える招待だけ緑、使えない招待は灰色）
+            const inviteStateTd = document.createElement('td');
+            inviteStateTd.appendChild(createBadge(
+                state.className === 'is-active' ? 'badge success' : 'badge muted',
+                state.className === 'is-active' ? 'check' : 'ban',
+                state.label,
+            ));
+            tr.appendChild(inviteStateTd);
             const actionTd = document.createElement('td');
             actionTd.className = 'invite-action-cell';
             // 無効化できるのは、まだ使える招待だけ（期限切れ・上限到達・無効化済みは、もう使えないので出さない）
@@ -808,8 +818,8 @@
             const button = document.getElementById('invite-create-btn');
             const maxInput = document.getElementById('invite-max-uses');
             const maxUses = Number(maxInput?.value);
-            if (!Number.isFinite(maxUses) || maxUses < 1) {
-                setInviteStatus('上限人数を1以上で入力してください。', 'error');
+            if (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 500) {
+                setInviteStatus('上限人数を、1以上500以下の整数で入力してください。', 'error');
                 return;
             }
             if (button) button.disabled = true;
@@ -888,7 +898,42 @@
         async function updateTerms() {
             const termsText = document.getElementById('setting-terms').value.trim();
             await CIQSupabaseAPI.updateProject(projectId, { terms: termsText || null });
-            showAdminToast('参加規約を更新しました。', 'success');
+            showAdminToast('参加規約を保存しました。', 'success');
+        }
+
+        // 参加規約は、書き換えたら、そのまま保存する（更新ボタンは置かない）。
+        // 入力が止まって1.5秒たったとき、欄から離れたとき、貼り付けたときに、変わっていれば保存する。
+        const TERMS_AUTOSAVE_MS = 1500;
+        function bindTermsAutosave() {
+            const area = document.getElementById('setting-terms');
+            if (!area || area.dataset.autosaveBound === 'true') return;
+            area.dataset.autosaveBound = 'true';
+            let timer = 0;
+            let saving = false;
+            // 最後に保存した（または読み込んだ）内容は、area.dataset.saved に置く（admin.js が読み込み時に入れる）
+            const dirty = () => area.value.trim() !== (area.dataset.saved ?? area.value.trim());
+            const save = async () => {
+                window.clearTimeout(timer);
+                if (saving || !dirty()) return;
+                const value = area.value.trim();
+                saving = true;
+                try {
+                    await updateTerms();
+                    area.dataset.saved = value;
+                } catch (e) {
+                    showAdminToast(describeError(e, '参加規約を保存できませんでした。'), 'error');
+                } finally {
+                    saving = false;
+                }
+                // 保存している間に、さらに書き換えられていたら、続けて保存する
+                if (dirty()) timer = window.setTimeout(save, TERMS_AUTOSAVE_MS);
+            };
+            area.addEventListener('input', () => {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(save, TERMS_AUTOSAVE_MS);
+            });
+            area.addEventListener('paste', () => window.setTimeout(save, 0));
+            area.addEventListener('blur', save);
         }
 
         async function updateEmailSettings() {
@@ -1610,18 +1655,12 @@
             if (entry.status === 'canceled') {
                 statusTd.appendChild(createBadge('badge danger', 'xmark', 'キャンセル'));
             } else if (entry.status === 'waitlist') {
-                statusTd.appendChild(createBadge('badge', 'clock', 'キャンセル待ち', {
-                    background: 'var(--warning-soft)',
-                    color: 'var(--warning)',
-                }));
+                statusTd.appendChild(createBadge('badge warning', 'clock', 'キャンセル待ち'));
             } else if (entry.checked_in) {
                 // 遅刻の連絡をした人も、来て受付を済ませたら「受付済み」にする
                 statusTd.appendChild(createBadge('badge success', 'check', '受付済み'));
             } else if (entry.status === 'late') {
-                statusTd.appendChild(createBadge('badge', 'clock-rotate-left', '遅刻', {
-                    background: 'var(--warn-100)',
-                    color: 'var(--warn-600)',
-                }));
+                statusTd.appendChild(createBadge('badge warning', 'clock-rotate-left', '遅刻'));
             } else {
                 statusTd.appendChild(createBadge('badge muted', 'clock', '未受付'));
             }
@@ -1630,10 +1669,7 @@
             noticeTd.classList.add('cell-status');
             const noticeState = entry.waitlist_promotion_notice;
             if (noticeState === 'pending' || noticeState === 'sending') {
-                noticeTd.appendChild(createBadge('badge', 'clock', '繰り上げ通知送信待ち', {
-                    background: 'var(--surface-2)',
-                    color: 'var(--ink)',
-                }, '送信待ち'));
+                noticeTd.appendChild(createBadge('badge muted', 'clock', '繰り上げ通知送信待ち', {}, '送信待ち'));
             } else if (noticeState === 'sent') {
                 noticeTd.appendChild(createBadge('badge success', 'check', '繰り上げ通知送信済み', {}, '送信済み'));
             } else if (noticeState === 'failed') {

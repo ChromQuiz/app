@@ -35,7 +35,7 @@
 
   /* --- 採点の進み具合の色（バー・凡例・内訳の丸で、同じ色を使う） --- */
   --seg-confirmed: var(--ok-600);
-  --seg-conflict: var(--warn-500);
+  --seg-conflict: var(--warn-600);
   --seg-inprogress: var(--ink-3);
   --seg-untouched: var(--line-strong);
 
@@ -64,7 +64,7 @@
   --ok-600: #1a7431;
   --ok-500: #34c759;
   --ok-100: rgba(52, 199, 89, 0.12);
-  --warn-600: #9a5400;
+  --warn-600: #a05400;
   --warn-500: #ff9500;
   --warn-100: rgba(255, 149, 0, 0.13);
   --bad-600: #d70015;
@@ -76,7 +76,7 @@
   --gold-400: #ffb340;
   --gold-100: #fff7df;
   --on-ok: #ffffff;
-  --on-warn: #000000;
+  --on-warn: #ffffff;
   --on-bad: #ffffff;
 
   /* --- Typography(Apple system stack / Webフォント読込なし) --- */
@@ -189,24 +189,24 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* 同構造の無彩色反転(装飾なし) */
-    --canvas: #000000;
-    --surface: #1c1c1e;
-    --surface-2: #242426;
-    --surface-3: #303033;
-    --ink: #f5f5f7;
-    --ink-2: #c7c7cc;
-    --ink-3: #8e8e93;
-    --line: rgba(235, 235, 245, 0.14);
-    --line-strong: rgba(235, 235, 245, 0.24);
-    --scrim: rgba(0, 0, 0, 0.6);
+    /* 同構造の無彩色反転(装飾なし)。真っ黒と真っ白を避け、コントラストを少し下げる */
+    --canvas: #111113;
+    --surface: #1b1b1e;
+    --surface-2: #232327;
+    --surface-3: #2d2d32;
+    --ink: #e8e8ed;
+    --ink-2: #aeaeb8;
+    --ink-3: #7c7c86;
+    --line: rgba(235, 235, 245, 0.12);
+    --line-strong: rgba(235, 235, 245, 0.2);
+    --scrim: rgba(0, 0, 0, 0.55);
     --material-opaque: var(--surface);
-    --material-toolbar: rgba(28, 28, 30, 0.74);
-    --material-popover: rgba(28, 28, 30, 0.84);
-    --material-modal: rgba(28, 28, 30, 0.92);
-    --material-notification: rgba(28, 28, 30, 0.86);
-    --material-line: rgba(235, 235, 245, 0.16);
-    --material-shadow: 0 22px 60px rgba(0, 0, 0, 0.58);
+    --material-toolbar: rgba(27, 27, 30, 0.76);
+    --material-popover: rgba(27, 27, 30, 0.86);
+    --material-modal: rgba(27, 27, 30, 0.94);
+    --material-notification: rgba(27, 27, 30, 0.88);
+    --material-line: rgba(235, 235, 245, 0.14);
+    --material-shadow: 0 22px 60px rgba(0, 0, 0, 0.5);
 
     --brand-50: var(--surface-2);
     --brand-100: var(--surface-3);
@@ -220,37 +220,37 @@
     --primary-hover: var(--ink-2);
     --on-primary: var(--surface);
 
-    --accent: #2997ff;
-    --accent-hover: #5ac8fa;
-    --accent-soft: rgba(41, 151, 255, 0.18);
-    --on-accent: #000000;
-    --switch-on: #30d158;
+    --accent: #6aaef2;
+    --accent-hover: #8cc2f7;
+    --accent-soft: rgba(106, 174, 242, 0.16);
+    --on-accent: #101012;
+    --switch-on: #4cb96c;
 
-    --ok-600: #30d158;
-    --ok-500: #32d74b;
-    --ok-100: rgba(48, 209, 88, 0.16);
-    --warn-600: #ff9f0a;
-    --warn-500: #ffd60a;
-    --warn-100: rgba(255, 159, 10, 0.16);
-    --bad-600: #ff453a;
-    --bad-500: #ff453a;
-    --bad-100: rgba(255, 69, 58, 0.14);
-    --gold-600: #ffd60a;
-    --gold-400: #ffd60a;
-    --gold-100: #2d2508;
-    --on-ok: #000000;
-    --on-warn: #000000;
-    --on-bad: #000000;
+    --ok-600: #5cb87a;
+    --ok-500: #5cb87a;
+    --ok-100: rgba(92, 184, 122, 0.16);
+    --warn-600: #d9a05a;
+    --warn-500: #d9a05a;
+    --warn-100: rgba(217, 160, 90, 0.16);
+    --bad-600: #e58078;
+    --bad-500: #e58078;
+    --bad-100: rgba(229, 128, 120, 0.15);
+    --gold-600: #dcc36f;
+    --gold-400: #dcc36f;
+    --gold-100: #2b2610;
+    --on-ok: #101012;
+    --on-warn: #101012;
+    --on-bad: #101012;
 
     --sh-1: 0 0 0 rgba(0, 0, 0, 0);
     --sh-2: 0 0 0 rgba(0, 0, 0, 0);
     --sh-3: 0 12px 32px rgba(0, 0, 0, 0.55);
 
     --tint-neutral: var(--surface-2);
-    --tint-ok: rgba(48, 209, 88, 0.12);
-    --tint-warn: rgba(255, 159, 10, 0.12);
-    --tint-bad: rgba(255, 69, 58, 0.12);
-    --tint-accent: rgba(41, 151, 255, 0.12);
+    --tint-ok: rgba(92, 184, 122, 0.12);
+    --tint-warn: rgba(217, 160, 90, 0.12);
+    --tint-bad: rgba(229, 128, 120, 0.12);
+    --tint-accent: rgba(106, 174, 242, 0.12);
   }
 }
 
@@ -3332,18 +3332,6 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   transform: scale(0.98);
 }
 
-.menu-item.warn {
-  color: var(--warn-600);
-}
-
-.menu-item.warn [data-icon] {
-  color: var(--warn-600);
-}
-
-.menu-item.warn:hover {
-  background: color-mix(in srgb, var(--warn-100) 52%, var(--surface));
-}
-
 .menu-item.danger {
   color: var(--bad-600);
 }
@@ -4285,7 +4273,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas-flat: #000000;
+    --canvas-flat: #111113;
     --app-row-bg: color-mix(in srgb, var(--surface) 86%, var(--surface-2));
     --app-row-bg-hover: color-mix(in srgb, var(--surface-2) 82%, var(--accent-soft));
   }
@@ -4610,7 +4598,6 @@ select:focus {
 .status-open,
 .status-success,
 .badge.success,
-.csv-status.ready,
 .is-success .status-badge {
   color: var(--ok-600);
   background: var(--ok-100);
@@ -4618,8 +4605,7 @@ select:focus {
 }
 
 .status-warning,
-.badge.warning,
-.csv-status.notready {
+.badge.warning {
   color: var(--warn-600);
   background: var(--warn-100);
   border-color: color-mix(in srgb, var(--warn-600) 28%, transparent);
@@ -5162,15 +5148,6 @@ tbody td {
 
 .menu-item:hover {
   background: color-mix(in srgb, var(--surface-2) 72%, transparent);
-}
-
-.menu-item.warn,
-.menu-item.warn [data-icon] {
-  color: var(--ink);
-}
-
-.menu-item.warn:hover {
-  background: color-mix(in srgb, var(--warn-100) 42%, var(--surface));
 }
 
 .menu-item.danger {
