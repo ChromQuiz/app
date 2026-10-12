@@ -4906,17 +4906,24 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   touch-action: manipulation;
 }
 
-/* 採点画面（スマホ）：戻る・問題番号・件数は同じ段に並べ、模範解答は、その一段下に置く。
+/* 模範解答と別解は、同じ段にまとめる。広い画面では、枠なしで、これまでどおり横に並ぶ。 */
+body.page-question .answer-line {
+  display: contents;
+}
+
+/* 採点画面（スマホ）：戻る・問題番号・件数は同じ段に並べ、模範解答と別解は、その一段下に置く。
    横に並べると、長い答えが入りきらない。.header-center を display: contents にして、
-   問題番号・模範解答・別解を、ヘッダーのマス目に直接置く。 */
+   問題番号と模範解答の段を、ヘッダーのマス目に直接置く。 */
 @media (max-width: 640px) {
   body.page-question .ops-focus-bar {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    /* 1段目は、普通のヘッダーと同じ高さで、中の部品を縦の中央に置く（上に詰めない） */
+    grid-template-rows: minmax(var(--appbar-h), auto) auto;
     align-items: center;
     column-gap: var(--sp-2);
-    row-gap: 4px;
-    padding-block-end: 6px;
+    row-gap: 0;
+    padding-block-end: 8px;
   }
 
   body.page-question .ops-focus-bar .header-center {
@@ -4938,21 +4945,20 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     grid-row: 1;
   }
 
-  body.page-question .ops-focus-bar .answer-badge,
-  body.page-question .ops-focus-bar .answer-alts {
+  body.page-question .ops-focus-bar .answer-line {
     grid-column: 1 / -1;
-    justify-self: center;
-    max-width: 100%;
+    grid-row: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px var(--sp-2);
+    min-width: 0;
     text-align: center;
   }
 
   body.page-question .ops-focus-bar .answer-badge {
-    grid-row: 2;
+    max-width: 100%;
     overflow-wrap: anywhere;
-  }
-
-  body.page-question .ops-focus-bar .answer-alts {
-    grid-row: 3;
-    justify-content: center;
   }
 }

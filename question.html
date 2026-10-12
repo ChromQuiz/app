@@ -24,7 +24,7 @@
     <script defer src="js/ui.js?v=33"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=94">
-    <link rel="stylesheet" href="css/pages.css?v=147">
+    <link rel="stylesheet" href="css/pages.css?v=148">
 </head>
 
 <body class="page-question">
@@ -34,8 +34,10 @@
         </div>
         <div class="header-center">
             <div class="q-badge" id="q-badge" aria-label="問題番号">- 問</div>
-            <div class="answer-badge" id="answer-badge" aria-label="模範解答">...</div>
-            <div class="answer-alts" id="answer-alts" aria-label="別解" hidden></div>
+            <div class="answer-line">
+                <div class="answer-badge" id="answer-badge" aria-label="模範解答">...</div>
+                <div class="answer-alts" id="answer-alts" aria-label="別解" hidden></div>
+            </div>
         </div>
         <div class="header-right">
             <div class="counter" id="progress-text" aria-live="polite" aria-label="採点済み枚数"></div>
