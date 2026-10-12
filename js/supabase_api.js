@@ -1812,6 +1812,18 @@ const CIQSupabaseAPI = {
         }));
     },
 
+    // 問題ごとの、確定で正解になった(当日受付済みの)人の受付番号。100行ほどを1回で返す(管理者のみ)。
+    // 確定結果の全件(1万件超)を取り直すより、はるかに速い。
+    async listCorrectEntries(projectId) {
+        const { data, error } = await this.client()
+            .rpc('list_correct_entries', { p_project_id: projectId });
+        if (error) throw error;
+        return (data || []).map(row => ({
+            questionNumber: Number(row.question_number),
+            entryNumbers: (row.entry_numbers || []).map(Number),
+        }));
+    },
+
     // 管理者が、判定が一致していた答案を覆したもの(要確認の先頭に並べる)
     async listAdminOverrides(projectId) {
         const { data, error } = await this.client()

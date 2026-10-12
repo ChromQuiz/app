@@ -39,6 +39,8 @@
         // (遅刻の連絡をしただけの人、キャンセル済み・キャンセル待ちの人は入れない。受付が採点のあとになった人は 0 点になる)
         // どのタブを先に開いたかで人数が変わらないよう、使う前にサーバーから取り直す。
         let scoringEntryNumbers = [];
+        // 直近に取った、問題ごとの確定の状態。しきい値を変えるだけのときは、これを使って、通信しない
+        let lastQuestionConfirmation = null;
         let checkedInWithoutAnswers = [];
         async function refreshScoringEntryNumbers() {
             const rows = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
@@ -67,9 +69,14 @@
             let confirmation = [];
             let dataLoaded = true;
             try {
-                await refreshScoringEntryNumbers();
-                await refreshSupabaseScoringData();
-                confirmation = await CIQSupabaseAPI.listQuestionConfirmation(projectId);
+                // 3つは互いに待たなくてよいので、同時に取る
+                const [, , rows] = await Promise.all([
+                    refreshScoringEntryNumbers(),
+                    refreshSupabaseScoringData(),
+                    CIQSupabaseAPI.listQuestionConfirmation(projectId),
+                ]);
+                confirmation = rows;
+                lastQuestionConfirmation = rows;
             } catch (e) {
                 dataLoaded = false;   // 読み込めなかったときは、出力を許可しない
                 showAdminToast('集計データを読み込めませんでした。（詳細：' + errorDetail(e) + '）');
@@ -191,7 +198,7 @@
 
         async function exportCSV() {
             if (!(await assertAllQuestionsConfirmed())) return;
-            await refreshScoringEntryNumbers();
+            await Promise.all([refreshScoringEntryNumbers(), refreshSupabaseScoringData()]);
             const masterData = await loadEntryMaster();
 
             const results = scoringEntryNumbers.map(en => {
@@ -262,12 +269,35 @@
             return Number.isFinite(value) && value >= 0 ? value : 5;
         }
 
+        // 受付番号 → 氏名(姓名のみ)。表示に要る人だけ、鍵で復号して、覚えておく。
+        // 鍵がないとき・復号できないときは、覚えない(あとで鍵が使えるようになったら、取り直す)。
+        const _entryNameCache = new Map();
+        async function lookupEntryNames(numbers) {
+            const byNumber = new Map(Object.values(window._entriesRaw || {}).map(v => [Number(v.entryNumber), v]));
+            const privJwkStr = projectKeyStore.get();
+            let privJwk = null;
+            if (privJwkStr) { try { privJwk = JSON.parse(privJwkStr); } catch (e) { /* 鍵が読めない */ } }
+            const result = new Map();
+            await Promise.all(numbers.map(async (en) => {
+                if (_entryNameCache.has(en)) { result.set(en, _entryNameCache.get(en)); return; }
+                const entry = byNumber.get(en);
+                if (!entry?.encryptedPII || !privJwk) return;
+                try {
+                    const pii = JSON.parse(await AppCrypto.decryptRSA(entry.encryptedPII, privJwk));
+                    const name = `${pii.familyName || ''}${pii.firstName || ''}`;
+                    _entryNameCache.set(en, name);
+                    result.set(en, name);
+                } catch (e) { /* 復号できない: 番号で出す */ }
+            }));
+            return result;
+        }
+
         async function getAnalyticsData() {
             const threshold = readAnalyticsThreshold();
-            const masterData = await loadEntryMaster();
             const tp = scoringEntryNumbers.length || 1, qStats = [];
+            const namesNeeded = new Set();
             // 確定しているかは、データベースの1つの定義で決める(要確認が1件でも残っている問題は未確定)
-            const confirmation = await CIQSupabaseAPI.listQuestionConfirmation(projectId);
+            const confirmation = lastQuestionConfirmation || (lastQuestionConfirmation = await CIQSupabaseAPI.listQuestionConfirmation(projectId));
             const confirmedQuestions = new Set(confirmation.filter(row => row.confirmed).map(row => row.questionNumber));
             for (let q = 1; q <= totalQuestions; q++) {
                 const fd = scoresData[`__final__q${q}`] || {};
@@ -280,12 +310,17 @@
                     if (fd[en] === 'correct') { cc++; ce.push(en); }
                 });
                 const rate = Math.round((cc / tp) * 100);
-                const names = (cc <= threshold && cc > 0) ? ce.map(e => {
-                    const m = masterData[e] || {}; const full = `${m.familyName || ''}${m.firstName || ''}`; return full ? `${m.affiliation || ''} ${full}`.trim() : `No.${padNum(e)}`;
-                }).join(' / ') : '';
+                const wantNames = cc <= threshold && cc > 0;
+                if (wantNames) ce.forEach(e => namesNeeded.add(e));
                 let type = '通常'; if (cc === 0) type = '全滅'; else if (cc === 1) type = '単独正解'; else if (cc <= threshold) type = '少数正解';
-                qStats.push({ q, correctCount: cc, rate, type, names, isRare: cc <= threshold && cc > 0 });
-            } return qStats;
+                qStats.push({ q, correctCount: cc, rate, type, entries: wantNames ? ce : [], isRare: wantNames });
+            }
+            // 正解者の氏名は、表示する人(しきい値以下の問題の正解者)だけ復号する(全員を復号すると遅い)
+            const nameCache = await lookupEntryNames([...namesNeeded]);
+            qStats.forEach((stat) => {
+                stat.names = (stat.entries || []).map(e => nameCache.get(e) || `No.${padNum(e)}`).join(' / ');
+            });
+            return qStats;
         }
         let _lastAnalyticsHash = '';
         // 状態ごとに、バッジの色を変える(未確定は、要確認と同じ黄色。通常は目立たせない)
@@ -327,7 +362,8 @@
             });
         }
         async function exportAnalyticsCSV() {
-            await refreshScoringEntryNumbers();
+            lastQuestionConfirmation = null;   // 出すときは、最新の状態で
+            await Promise.all([refreshScoringEntryNumbers(), refreshSupabaseScoringData()]);
             const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率', '状態', '正解者一覧']; const rows = [headers];
             qs.forEach(s => rows.push([s.q, s.correctCount, typeof s.rate === 'number' ? `${s.rate}%` : s.rate, s.type, csvCell(s.names)]));
             const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'analytics_all_qs.csv'; a.click();
