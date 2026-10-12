@@ -231,3 +231,11 @@ describe('要確認の件数', () => {
     expect(conflictSrc).toContain('`${conflictList.length - unresolvedCount} / ${conflictList.length}件`');
   });
 });
+
+describe('カードの画像の角', () => {
+  it('カードの角と同心円になる丸み（カードの丸み − 内側の余白と枠）', () => {
+    const ds = read('css/design_system.css');
+    expect(ds).toMatch(/\.answer-card img,\s*\.answer-card \.img-expired \{\s*border-radius: max\(0px, calc\(var\(--r-overlay\) - 7px\)\);/);
+    expect(css).toMatch(/\.answer-card,\s*\.conflict-card \{\s*min-height: 0;\s*padding: 6px;/);
+  });
+});
