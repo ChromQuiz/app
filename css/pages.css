@@ -4592,23 +4592,24 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   box-shadow: 0 -24px 0 0 var(--canvas);
 }
 
+/* 参加者一覧: 9列を細い幅に押し込むと文字が1つずつ折り返されるので、幅を確保して横にスクロールさせる。
+   スマホだけでなく、狭いウィンドウ(タブレット幅・半分に並べたウィンドウ)でも同じ。 */
+#tab-entries .table-container table {
+  min-width: 900px;
+}
+
+#tab-entries .table-container th,
+#tab-entries .table-container td {
+  white-space: nowrap;
+}
+
+/* 運営への連絡は長くなりうるので、折り返す */
+#tab-entries .table-container td:nth-child(7) {
+  white-space: normal;
+  min-width: 14em;
+}
+
 @media (max-width: 640px) {
-  /* 参加者一覧: 9列を細い幅に押し込むと文字が1つずつ折り返されるので、幅を確保して横にスクロールさせる */
-  #tab-entries .table-container table {
-    min-width: 900px;
-  }
-
-  #tab-entries .table-container th,
-  #tab-entries .table-container td {
-    white-space: nowrap;
-  }
-
-  /* 運営への連絡は長くなりうるので、折り返す */
-  #tab-entries .table-container td:nth-child(7) {
-    white-space: normal;
-    min-width: 14em;
-  }
-
   .phase-quick-nav {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));

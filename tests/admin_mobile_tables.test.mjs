@@ -41,3 +41,11 @@ describe('運営画面', () => {
     expect(css).toMatch(/@media \(max-width: 640px\) \{\s*body\.page-admin \.stats \{\s*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
   });
 });
+
+describe('運営画面: 参加者一覧', () => {
+  it('幅の確保と折り返しなしは、スマホだけでなく、狭いウィンドウでも効く（メディアクエリの外）', () => {
+    const css = read('css/pages.css');
+    expect(css).toMatch(/\n#tab-entries \.table-container table \{\s*min-width: 900px;/);
+    expect(css).toMatch(/\n#tab-entries \.table-container th,\s*#tab-entries \.table-container td \{\s*white-space: nowrap;/);
+  });
+});
