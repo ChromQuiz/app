@@ -310,10 +310,13 @@
                 appendAnalyticsCell(tr, `${s.rate}%`, 'analytics-rate');
                 // 状態は、ほかの表と同じく、バッジで見せる（ハイライトする行は、警告の色）
                 const typeTd = appendAnalyticsCell(tr, '', 'analytics-type');
-                const typeBadge = document.createElement('span');
-                typeBadge.className = s.isRare ? 'badge warning' : 'badge muted';
-                typeBadge.textContent = s.type;
-                typeTd.appendChild(typeBadge);
+                // 状態がない問題(正答数がしきい値より多い)は、空のバッジを出さない
+                if (s.type) {
+                    const typeBadge = document.createElement('span');
+                    typeBadge.className = s.isRare ? 'badge warning' : 'badge muted';
+                    typeBadge.textContent = s.type;
+                    typeTd.appendChild(typeBadge);
+                }
                 appendAnalyticsCell(tr, s.names, 'analytics-names');
                 tbody.appendChild(tr);
             });
