@@ -27,3 +27,16 @@ dashboard action that takes minutes. Entry and event periods generate enough tra
 the risk is the off-season: the project pauses unnoticed and is still down on event day. A Cloudflare
 Workers cron in `cloudflare/keepalive/` pings a public view twice a day to prevent this. Verify it
 returns 200 before an event rather than trusting it silently.
+
+## Home Screen App (standalone)
+
+Every page links a web app manifest (`manifest.webmanifest` for staff pages, `manifest-participant.webmanifest`
+for participant pages) so it can be added to the home screen and opened full screen without the address bar.
+The participant manifest deliberately has no `start_url`: participants open `my.html?pid=...` from an email
+link, and the home-screen icon should start from the page they added. Chrome on Android may treat a manifest
+without `start_url` as not installable and offer a plain shortcut instead.
+
+Unverified on real devices: signing in with Google from a standalone iPhone app. The OAuth redirect leaves the
+app scope and must return to it; check that login completes and the session survives before relying on it at
+an event. If it fails, staff can log in once in Safari; the standalone app keeps its own storage, so it may
+need its own login.
