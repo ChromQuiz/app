@@ -186,9 +186,16 @@ const params = new URLSearchParams(location.search);
             const messageTd = document.createElement('td');
             messageTd.className = 'entry-list-message-cell';
             messageTd.dataset.label = '意気込み';
-            messageTd.textContent = errorDetail(e, '');
+            // 参加者が書いた意気込みを、そのまま出す（エラー文に変換する errorDetail は使わない）
+            const { message: cheer = '' } = e;
+            messageTd.textContent = cheer || '';
 
-            tr.append(numberTd, timeTd, nameTd, affiliationTd, gradeTd, messageTd);
+            // スマホでは、所属と学年を1行にまとめて出す（広い画面では、上の2列を使う）
+            const metaTd = document.createElement('td');
+            metaTd.className = 'entry-list-meta-cell';
+            metaTd.textContent = [e.affiliation || '', grade].filter(Boolean).join(' · ');
+
+            tr.append(numberTd, timeTd, nameTd, affiliationTd, gradeTd, metaTd, messageTd);
             body.appendChild(tr);
         };
 
@@ -197,7 +204,8 @@ const params = new URLSearchParams(location.search);
         ordered.forEach((entry, index) => {
             if (index === firstWaitlistIndex && waitlistCount > 0) {
                 const capacityNote = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
-                appendDivider(body, 'clock', `ここまで出場圏内${capacityNote} — 以下キャンセル待ち（${waitlistCount}名）`, 'entry-list-divider-warning');
+                // 折り返すときは、意味の切れ目（「—」の前）で折り返す
+                appendDivider(body, 'clock', [`ここまで出場圏内${capacityNote}`, `— 以下キャンセル待ち（${waitlistCount}名）`], 'entry-list-divider-warning');
             }
             if (hasPriorityWindow && index === 0 && earlyChubuCount > 0) {
                 appendDivider(body, 'map-pin', '中部地方（開始24時間以内）', 'entry-list-divider-rule');
@@ -234,7 +242,14 @@ const params = new URLSearchParams(location.search);
         const td = document.createElement('td');
         td.colSpan = 6;
         const icon = createIcon(iconClass);
-        td.append(icon, ` ${label}`);
+        td.append(icon);
+        // label は文字列か、折り返しの単位ごとの配列。単位の途中では折り返さない
+        (Array.isArray(label) ? label : [label]).forEach((part) => {
+            const span = document.createElement('span');
+            span.className = 'entry-list-divider-part';
+            span.textContent = part;
+            td.appendChild(span);
+        });
         divider.appendChild(td);
         body.appendChild(divider);
     }

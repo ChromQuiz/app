@@ -4973,3 +4973,169 @@ body.page-question .answer-line {
 .menu-panel {
   overscroll-behavior: contain;
 }
+
+/* エントリーリストの区切りの見出しは、意味の単位ごとに折り返す */
+.entry-list-divider-part {
+  display: inline-block;
+  margin-left: 0.25em;
+}
+
+/* 所属・学年をまとめた欄は、スマホだけで使う */
+.entry-list-meta-cell {
+  display: none;
+}
+
+/* ============================================================
+   エントリーリスト（スマホ）：1人1行のまとまったリストにする
+   ------------------------------------------------------------
+   1行目: 受付番号・エントリーネーム・日時 / 2行目: 所属・学年 / 3行目: 意気込み。
+   見出し（data-label）は出さない。区切り（中部地方・キャンセル待ちなど）は、
+   カードではなく、まとまりの上の小見出しにする。
+   ============================================================ */
+@media (max-width: 768px) {
+  body.page-entry-list .list-container {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  body.page-entry-list .list-container tbody {
+    display: block;
+  }
+
+  body.page-entry-list .list-container tr:not(.entry-list-message-row) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "num name time"
+      ".   meta meta"
+      ".   msg  msg ";
+    column-gap: 0;
+    align-items: baseline;
+    padding: 12px var(--sp-4);
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--surface);
+  }
+
+  /* まとまりの最初と最後の行だけ角を丸め、まとまりの外側に枠を付ける */
+  body.page-entry-list .list-container tbody > tr:not(.entry-list-message-row):first-child,
+  body.page-entry-list .list-container .entry-list-message-row + tr:not(.entry-list-message-row) {
+    border-top: 0;
+    border-top-left-radius: var(--r-lg);
+    border-top-right-radius: var(--r-lg);
+  }
+
+  body.page-entry-list .list-container tr:not(.entry-list-message-row):last-child,
+  body.page-entry-list .list-container tr:not(.entry-list-message-row):has(+ .entry-list-message-row) {
+    border-bottom-left-radius: var(--r-lg);
+    border-bottom-right-radius: var(--r-lg);
+  }
+
+  body.page-entry-list .list-container tr:not(.entry-list-message-row):hover {
+    background: var(--surface);
+  }
+
+  body.page-entry-list .list-container td {
+    display: block;
+    width: auto;
+    padding: 0;
+    border: 0;
+  }
+
+  body.page-entry-list .list-container td[data-label="所属"]::before,
+  body.page-entry-list .list-container td[data-label="学年"]::before {
+    content: none;
+  }
+
+  body.page-entry-list .entry-number-cell {
+    grid-area: num;
+    margin-right: var(--sp-3);
+    font-family: var(--font-sans);
+    font-size: var(--fs-15);
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  body.page-entry-list .entry-list-name-cell {
+    grid-area: name;
+    font-size: var(--fs-16);
+    overflow-wrap: anywhere;
+  }
+
+  body.page-entry-list .list-container .c-time {
+    grid-area: time;
+    margin-left: var(--sp-3);
+    font-size: var(--fs-12);
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  /* 所属と学年は、まとめた1行（.entry-list-meta-cell）で出す */
+  body.page-entry-list .list-container .entry-list-affiliation-cell,
+  body.page-entry-list .list-container .entry-list-grade-cell {
+    display: none;
+  }
+
+  body.page-entry-list .list-container .entry-list-meta-cell {
+    grid-area: meta;
+    margin-top: 2px;
+    font-size: var(--fs-14);
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  body.page-entry-list .entry-list-message-cell {
+    grid-area: msg;
+    max-width: none;
+    margin-top: 6px;
+    font-size: var(--fs-14);
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  body.page-entry-list .list-container td:empty {
+    display: none;
+  }
+
+  /* キャンセル待ちの行は、面の色と文字の濃さで分ける */
+  body.page-entry-list .list-container tr.entry-row-waitlist {
+    background: var(--surface-2);
+  }
+
+  /* 区切り（中部地方・キャンセル待ちなど）は、まとまりの上の小見出し */
+  body.page-entry-list .list-container .entry-list-divider {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  body.page-entry-list .list-container .entry-list-divider td {
+    padding: var(--sp-5) var(--sp-4) var(--sp-2);
+    border: 0;
+    background: transparent;
+    font-size: var(--fs-13);
+    font-weight: 600;
+    color: var(--ink-2);
+    text-align: left;
+  }
+
+  body.page-entry-list .list-container tbody > .entry-list-divider:first-child td {
+    padding-top: 0;
+  }
+
+  body.page-entry-list .list-container .entry-list-divider-warning td {
+    color: var(--warn-600);
+  }
+
+  /* 読み込み中・まだいない・読み込めない、の案内 */
+  body.page-entry-list .list-container .entry-list-message-row:not(.entry-list-divider) {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+  }
+}
