@@ -766,11 +766,14 @@ function scrollToSelectedConflict() {
 function scrollElementIntoReviewViewport(element) {
     const header = document.querySelector('.fixed-header');
     const topLimit = (header?.getBoundingClientRect().bottom || 0) + 16;
-    const actionBar = document.getElementById('conflict-action-bar');
-    const actionTop = actionBar && getComputedStyle(actionBar).display !== 'none'
-        ? actionBar.getBoundingClientRect().top
-        : window.innerHeight;
-    const bottomLimit = Math.max(topLimit + 80, actionTop - 16);
+    // 画面の下に固定された要素(判定のボタンの帯と、キー操作の案内)に、選んだカードが隠れないようにする
+    const fixedBottom = Array.from(document.querySelectorAll('#conflict-action-bar, .kbd-hint'))
+        .filter(el => getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden')
+        .reduce((min, el) => {
+            const rect = el.getBoundingClientRect();
+            return rect.height > 0 ? Math.min(min, rect.top) : min;
+        }, window.innerHeight);
+    const bottomLimit = Math.max(topLimit + 80, fixedBottom - 16);
     const rect = element.getBoundingClientRect();
 
     if (rect.bottom > bottomLimit) {
