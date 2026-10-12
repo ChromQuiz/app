@@ -1274,3 +1274,10 @@ Notes   : 補足・再構成の断り・要確認事項
 - Rollback: `disclose-result` の確認を外して再デプロイ。DB は `drop function public.scoring_confirmation(text);`。
 - Notes: 管理者が成績照会を有効にするときの警告（確定前なら、その場で知らせる）は、まだ無い。CSV・採点済み PDF も、出力を断るのはボタンを無効にしているだけで、関数自体は確かめない。
 - デプロイ: `npx supabase functions deploy disclose-result --project-ref pyzdlkwumhreepgkrcyb --no-verify-jwt`
+
+### 補足（2026-10-12）: 「確定しているか」を1つの定義にまとめた
+
+- `supabase/migrations/202610120006_question_confirmation_single_definition.sql`（適用済み）: 問題ごとの状態を返す内部の関数 `question_confirmation_rows`（画面・anon からは呼べない）を唯一の定義にした。`scoring_confirmation`（service_role。成績照会の確認）と、`list_question_confirmation`（owner / admin。管理者の画面）が、これを使う。
+- 画面: 結果タブの集計（確定・要確認・採点中・未着手）、問題アナリティクス、CSV・採点済みPDF（出す直前にも確かめる）、成績照会を有効にするときの警告が、すべて `list_question_confirmation` を使う。確定していない問題があるまま成績照会を有効にしようとすると、確認ダイアログが出る。
+- Evidence: データベースの挙動スイート（155件すべて ok）。ciq1 は、確定23問・要確認77問・要確認の残り146件で、結果タブの表示と一致。
+- Notes: 採点ボードの「完了」は、採点者が採点を終えたかだけを見る別の意味。

@@ -1781,6 +1781,21 @@ const CIQSupabaseAPI = {
         return (data || []).map(mapReviewRow);
     },
 
+    // 問題ごとの「確定しているか」。結果タブ・アナリティクス・出力・成績照会の公開は、すべてこの定義を使う(管理者のみ)
+    async listQuestionConfirmation(projectId) {
+        const { data, error } = await this.client()
+            .rpc('list_question_confirmation', { p_project_id: projectId });
+        if (error) throw error;
+        return (data || []).map(row => ({
+            questionNumber: Number(row.question_number),
+            requiredScorers: Number(row.required_scorers),
+            joinedScorers: Number(row.joined_scorers),
+            completedScorers: Number(row.completed_scorers),
+            unresolvedConflicts: Number(row.unresolved_conflicts),
+            confirmed: row.confirmed === true,
+        }));
+    },
+
     // 管理者が、判定が一致していた答案を覆したもの(要確認の先頭に並べる)
     async listAdminOverrides(projectId) {
         const { data, error } = await this.client()
