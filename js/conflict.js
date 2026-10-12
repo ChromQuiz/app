@@ -316,7 +316,6 @@ async function render() {
         fragment.appendChild(card);
     });
     grid.appendChild(fragment);
-    hintPreviewGestureOnce();
     // 再描画の直前に取得が完了していたカードを拾う(プレースホルダの取り残し防止)。
     updateVisibleConflictImages();
     scheduleBackgroundConflictImages(currentConflicts, initialImageLimit);

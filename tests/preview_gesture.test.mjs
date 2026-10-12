@@ -13,20 +13,8 @@ function loadGesture() {
   const start = source.indexOf('const PREVIEW_DOUBLE_TAP_MS');
   const end = source.indexOf('async function showPreview');
   const body = source.slice(start, end);
-  const store = {};
-  const toasts = [];
-  const fn = new Function('window', 'localStorage', 'showToast', `${body}\nreturn { bindPreviewGesture, hintPreviewGestureOnce };`);
-  return {
-    toasts,
-    store,
-    make(coarse = true) {
-      return fn(
-        { matchMedia: () => ({ matches: coarse }) },
-        { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = v; } },
-        (...args) => toasts.push(args),
-      );
-    },
-  };
+  const fn = new Function(`${body}\nreturn { bindPreviewGesture };`);
+  return { make: () => fn() };
 }
 
 function fakeCard() {
@@ -75,14 +63,9 @@ describe('ダブルタップで答案全体を開く', () => {
     expect(opened).toBe(1);
   });
 
-  it('お知らせは、指で操作する端末で、最初の1回だけ', () => {
-    const g = loadGesture();
-    g.make(true).hintPreviewGestureOnce();
-    g.make(true).hintPreviewGestureOnce();
-    expect(g.toasts.length).toBe(1);
-    const mouse = loadGesture();
-    mouse.make(false).hintPreviewGestureOnce();
-    expect(mouse.toasts.length).toBe(0);
+  it('説明のトーストは出さない（操作の説明を、画面に足さない）', () => {
+    expect(read('js/ui.js')).not.toMatch(/ダブルタップすると/);
+    expect(read('js/question.js')).not.toMatch(/hintPreviewGestureOnce/);
   });
 
   it('採点画面と要確認画面の両方で使い、2回タップでの拡大は止める', () => {
@@ -91,8 +74,11 @@ describe('ダブルタップで答案全体を開く', () => {
     expect(read('css/pages.css')).toMatch(/\.answer-card,\s*\.conflict-card \{\s*touch-action: manipulation;/);
   });
 
-  it('スマホでは、模範解答を問題番号の一段下に置く', () => {
+  it('スマホでは、戻る・問題番号・件数を同じ段に、模範解答をその一段下に置く', () => {
     const css = read('css/pages.css');
-    expect(css).toMatch(/@media \(max-width: 640px\) \{\s*body\.page-question \.ops-focus-bar \.header-center \{\s*display: grid;\s*justify-items: center;/);
+    expect(css).toMatch(/body\.page-question \.ops-focus-bar \.header-center \{\s*display: contents;/);
+    expect(css).toMatch(/\.q-badge \{\s*grid-column: 2;\s*grid-row: 1;/);
+    expect(css).toMatch(/\.header-right \{\s*grid-column: 3;\s*grid-row: 1;/);
+    expect(css).toMatch(/\.answer-badge \{\s*grid-row: 2;/);
   });
 });
