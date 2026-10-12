@@ -1770,17 +1770,6 @@ const CIQSupabaseAPI = {
         return (data || []).map(mapReviewRow);
     },
 
-    // 完了した問題の見直し用。確認済みの全受付者ぶんを、最終結果と各採点者の判定つきで返す(運営のみ)
-    async listQuestionReview(projectId, questionNumber) {
-        const { data, error } = await this.client()
-            .rpc('list_question_review', {
-                p_project_id: projectId,
-                p_question_number: questionNumber,
-            });
-        if (error) throw error;
-        return (data || []).map(mapReviewRow);
-    },
-
     // 完了した枠を開き直す。scorerMemberId を省くとその問題の完了済み枠すべて
     async reopenQuestionScoring(projectId, questionNumber, scorerMemberId = null) {
         const { data, error } = await this.client()

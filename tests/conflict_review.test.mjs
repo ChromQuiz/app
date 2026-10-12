@@ -129,8 +129,7 @@ describe('要確認の一覧は、サーバーの定義だけで決める', () =
     expect(src).not.toContain('scoreConflictRpcAvailable');
     expect(src).not.toContain('falling back to client calculation');
     expect(src).not.toMatch(/listScoreVotes|listFinalResults|listQuestionScorers|listAnswerPages|listModelAnswers/);
-    expect(src).toContain('CIQSupabaseAPI.listScoreConflicts(projectId)');
-    expect(src).toContain('CIQSupabaseAPI.listQuestionReview(projectId, reviewQuestion)');
+    expect(src).toContain('CIQSupabaseAPI.listScoreConflicts(projectId);');
   });
 
   it('自動更新の一時的な失敗は、いまの一覧を残して、次の更新で取り直す', async () => {
@@ -140,16 +139,19 @@ describe('要確認の一覧は、サーバーの定義だけで決める', () =
   });
 });
 
-describe('要確認: 採点者ごとの判定・即時の色変更・見直し', () => {
-  it('各採点者の判定を、名前つきの一覧で出す', () => {
-    expect(conflictSrc).toContain('createVoteList');
-    expect(conflictSrc).toContain('memberNameMap');
-    expect(css).toMatch(/\.conflict-vote-list/);
+describe('要確認: 判定の並び・即時の色変更', () => {
+  it('採点者の名前は出さず、判定を同じ行に並べる', () => {
+    expect(conflictSrc).not.toContain('memberNameMap');
+    expect(conflictSrc).toContain("votes.className = 'votes-mini'");
+  });
+
+  it('要確認と採点のカードに、受付番号の行を置かない', () => {
+    expect(conflictSrc).not.toContain("'entry-num'");
+    expect(questionSrc).not.toContain("'entry-num'");
   });
 
   it('判定した瞬間に、再描画や再取得を待たずにカードの色を変える', () => {
     const body = sliceFn(conflictSrc, 'setFinal');
-    expect(body).toContain('paintConflictResult(');
     const paintAt = body.indexOf('paintConflictResult(');
     const rpcAt = body.indexOf('resolveScoreConflict(');
     expect(paintAt).toBeGreaterThan(-1);
@@ -160,15 +162,5 @@ describe('要確認: 採点者ごとの判定・即時の色変更・見直し',
   it('模範解答の行は、カードの色を隠さない(背景を塗らない)', () => {
     const rule = css.match(/\.conflict-review-row \{[^}]*\}/)[0];
     expect(rule).toContain('background: transparent');
-  });
-
-  it('管理者が決めた結果と自動の結果を区別して出す', () => {
-    expect(conflictSrc).toContain("'管理者が決定'");
-    expect(conflictSrc).toContain("'自動で確定'");
-  });
-
-  it('?q= で、その問題の確認済み受付者を全員出す見直しモードに入る', () => {
-    expect(conflictSrc).toContain("URLSearchParams");
-    expect(conflictSrc).toContain('reopenQuestionScoring(projectId, reviewQuestion)');
   });
 });
