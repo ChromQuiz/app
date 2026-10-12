@@ -24,31 +24,6 @@ let hasSetInitialSelection = false;
 
 document.getElementById('q-badge').textContent = `${currentQ}問`;
 
-// 細い画面（スマホ）では、答案が1列で長くなる。2列に切り替えて、一度に見える枚数を増やせる。選択は端末に覚えさせる。
-const GRID_COMPACT_KEY = 'ciq.answerGridCompact';
-function setupGridDensityToggle() {
-    const button = document.getElementById('grid-density-btn');
-    const grid = document.getElementById('answer-grid');
-    if (!button || !grid) return;
-    let compact = false;
-    try { compact = localStorage.getItem(GRID_COMPACT_KEY) === '1'; } catch (_) { /* 保存できなくても動く */ }
-    const apply = () => {
-        grid.classList.toggle('is-compact', compact);
-        button.setAttribute('aria-pressed', String(compact));
-        const label = compact ? '1列で表示' : '2列で表示';
-        button.title = label;
-        button.setAttribute('aria-label', label);
-    };
-    apply();
-    button.addEventListener('click', () => {
-        compact = !compact;
-        apply();
-        try { localStorage.setItem(GRID_COMPACT_KEY, compact ? '1' : '0'); } catch (_) { /* noop */ }
-        scrollToSelected({ center: true });
-    });
-}
-setupGridDensityToggle();
-
 // limit 本を常に動かす（遅い1本に、同じまとまりの残りが待たされない）
 async function runLimited(items, limit, task) {
     const results = new Array(items.length);
@@ -226,6 +201,7 @@ function setInitialSelectionToFirstUnscored() {
     const firstUnscoredIndex = answerCards.findIndex(card => myScores[card.entryId] === null);
     selectedIndex = firstUnscoredIndex >= 0 ? firstUnscoredIndex : 0;
     hasSetInitialSelection = true;
+    hintPreviewGestureOnce();
 }
 
 function keepSelectedVisibleDuringInitialLayout() {
@@ -279,7 +255,7 @@ function createAnswerCard(cardData, idx) {
         event.preventDefault();
         selectCard(idx, { focus: true });
     });
-    card.addEventListener('dblclick', () => showPreview(projectId, cardData.entryNumber));
+    bindPreviewGesture(card, () => showPreview(projectId, cardData.entryNumber));
     return card;
 }
 
