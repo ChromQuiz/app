@@ -20,7 +20,7 @@
     <script defer src="js/ui.js?v=34"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=97">
-    <link rel="stylesheet" href="css/pages.css?v=167">
+    <link rel="stylesheet" href="css/pages.css?v=170">
 </head>
 
 <body class="page-admin">
@@ -223,10 +223,10 @@
                     <div class="phase-block">
                         <h2>参加者に共有するリンク</h2>
                         <div class="public-links">
-                            <div class="link-row"><span class="link-label">エントリーフォーム</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="registration-link" title="コピー" aria-label="エントリーフォームのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="registration-link" title="開く" aria-label="エントリーフォームを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
-                            <div class="link-row"><span class="link-label">エントリーリスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="entry-link" title="コピー" aria-label="エントリーリストのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="entry-link" title="開く" aria-label="エントリーリストを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
-                            <div class="link-row"><span class="link-label">マイエントリー</span><a id="my-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="my-link" title="コピー" aria-label="マイエントリーのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="my-link" title="開く" aria-label="マイエントリーを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
-                            <div class="link-row"><span class="link-label">参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="terms-link" title="コピー" aria-label="参加規約のリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn ghost icon-btn link-btn-sm" data-open-link="terms-link" title="開く" aria-label="参加規約を開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">エントリーフォーム</span><a id="registration-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="registration-link" title="コピー" aria-label="エントリーフォームのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn secondary icon-btn link-btn-sm" data-open-link="registration-link" title="開く" aria-label="エントリーフォームを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">エントリーリスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="entry-link" title="コピー" aria-label="エントリーリストのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn secondary icon-btn link-btn-sm" data-open-link="entry-link" title="開く" aria-label="エントリーリストを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">マイエントリー</span><a id="my-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="my-link" title="コピー" aria-label="マイエントリーのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn secondary icon-btn link-btn-sm" data-open-link="my-link" title="開く" aria-label="マイエントリーを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                            <div class="link-row"><span class="link-label">参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="terms-link" title="コピー" aria-label="参加規約のリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn secondary icon-btn link-btn-sm" data-open-link="terms-link" title="開く" aria-label="参加規約を開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
                         </div>
                     </div>
 
@@ -426,14 +426,14 @@
 
                     <div class="phase-block is-wide">
                         <h2>問題アナリティクス</h2>
-                        <div class="config-row">
-                            <span>正答数</span>
+                        <div class="config-row analytics-threshold-row">
+                            <span class="config-row-label">正答数</span>
                             <div class="number-spinner-wrap u-input-compact">
                                 <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="-1" aria-label="1減らす"><span data-icon="minus" aria-hidden="true"></span></button>
                                 <input type="number" id="analytics-threshold" value="5" min="0" max="100" data-action="render-analytics" aria-label="正答数のしきい値" />
                                 <button type="button" class="number-spinner-btn" data-adjust-input="analytics-threshold" data-adjust-delta="1" aria-label="1増やす"><span data-icon="plus" aria-hidden="true"></span></button>
                             </div>
-                            <span>人以下をハイライト</span>
+                            <span class="config-row-label">人以下をハイライト</span>
                         </div>
                         <div class="table-container u-table-scroll-md">
                             <table id="analytics-table">
@@ -719,7 +719,7 @@
     <script defer src="js/admin.js?v=59"></script>
     <script defer src="js/upload_validation.js?v=4"></script>
     <script defer src="js/admin_scan.js?v=25"></script>
-    <script defer src="js/admin_stats.js?v=18"></script>
+    <script defer src="js/admin_stats.js?v=19"></script>
     <script defer src="js/admin_graded_pdf.js?v=15"></script>
     <script defer src="js/admin_settings.js?v=63"></script>
 </body>

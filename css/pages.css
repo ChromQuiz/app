@@ -2530,15 +2530,13 @@ body.page-admin .danger-zone {
 .member-row-canceled td,
 .member-row-removed td {
   color: var(--ink-3);
-  text-decoration: line-through;
-  text-decoration-color: var(--ink-3);
 }
 
-/* 取り消し線は「誰の行か」を示す列(番号・名前・所属など)だけにする。状態・通知のバッジや操作ボタンには引かない */
+/* キャンセル済み・外したメンバーの行は、文字を薄くするだけにする（取り消し線は引かない。どの表も同じ）。
+   状態・通知のバッジや操作ボタンの列は、薄くしない */
 .member-row-canceled td.cell-status,
 .member-row-removed td.cell-status {
   color: var(--ink);
-  text-decoration: none;
 }
 
 .member-action-group {
@@ -5259,7 +5257,7 @@ body.page-entry-list .list-container td.inline-parts {
 }
 
 /* メンバー管理：行の高さを、ボタンの有無で変えない。ボタンは同じ大きさにして、列をそろえる。
-   外したメンバーは、文字を薄くするだけにする（取り消し線は引かない） */
+   外したメンバーは、文字を薄くするだけにする */
 #project-members-tbody td {
   /* 枠線の分(上下1px)も足して、ボタンのある行と同じ高さにする */
   height: calc(var(--control-h-sm) + 22px);
@@ -5279,9 +5277,6 @@ body.page-entry-list .list-container td.inline-parts {
   padding-block: 0;
 }
 
-#project-members-tbody .member-row-removed td {
-  text-decoration: none;
-}
 
 /* ============================================================
    操作の輪郭は、どのボタンも同じ濃さ（--line-strong）にそろえる
@@ -5327,4 +5322,136 @@ body.page-question .answer-badge {
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* 設定の行の文字（ラベル）。入力部品の前後に置く説明は、すべて同じ大きさと濃さにする */
+.config-row-label {
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* ============================================================
+   運営画面（スマホ）
+   ============================================================ */
+@media (max-width: 640px) {
+  /* 「参加者名簿CSV」「参加者を追加」のように、並ぶ操作は、横に2つ並べる */
+  .phase-actions {
+    flex-wrap: nowrap;
+  }
+
+  .phase-actions > .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: var(--sp-2);
+    white-space: nowrap;
+  }
+
+  /* 正答数のしきい値：見出し「正答数」の下に、「− 5 ＋ 人以下をハイライト」を1行で置く
+     （入力欄の上に見出しを置く、ほかのフォームと同じ並び） */
+  .analytics-threshold-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "label label"
+      "spin  tail";
+    align-items: center;
+    column-gap: var(--sp-2);
+    row-gap: 6px;
+  }
+
+  .analytics-threshold-row > .config-row-label:first-child {
+    grid-area: label;
+  }
+
+  .analytics-threshold-row > .number-spinner-wrap {
+    grid-area: spin;
+  }
+
+  .analytics-threshold-row > .config-row-label:last-child {
+    grid-area: tail;
+    white-space: nowrap;
+  }
+
+  .analytics-threshold-row .number-spinner-wrap input[type="number"] {
+    width: 44px;
+  }
+
+  .analytics-threshold-row .number-spinner-btn {
+    width: 36px;
+    min-height: 36px;
+  }
+
+  /* 問題アナリティクス：1問を2行のまとまりにする（1行目に問・正答数・正答率・状態、2行目に正解者）。
+     表のまま狭くすると、状態が1文字ずつ縦に折り返し、正解者が切れる。 */
+  #analytics-table {
+    display: block;
+  }
+
+  #analytics-table thead {
+    display: none;
+  }
+
+  #analytics-tbody {
+    display: block;
+  }
+
+  #analytics-tbody tr {
+    display: grid;
+    grid-template-columns: auto auto auto 1fr;
+    grid-template-areas:
+      "q count rate type"
+      "names names names names";
+    column-gap: var(--sp-4);
+    row-gap: 4px;
+    align-items: baseline;
+    padding: 12px var(--sp-4);
+    border-bottom: 1px solid var(--line);
+  }
+
+  #analytics-tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  #analytics-tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    height: auto;
+    white-space: normal;
+  }
+
+  #analytics-tbody .analytics-q {
+    grid-area: q;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    min-width: 1.6em;
+  }
+
+  #analytics-tbody .analytics-count {
+    grid-area: count;
+  }
+
+  #analytics-tbody .analytics-rate {
+    grid-area: rate;
+    color: var(--ink-2);
+  }
+
+  #analytics-tbody .analytics-type {
+    grid-area: type;
+    justify-self: end;
+    font-size: var(--fs-13);
+    color: var(--ink-2);
+  }
+
+  #analytics-tbody .analytics-names {
+    grid-area: names;
+    font-size: var(--fs-13);
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  #analytics-tbody .analytics-names:empty {
+    display: none;
+  }
 }

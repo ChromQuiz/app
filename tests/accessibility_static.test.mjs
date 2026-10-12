@@ -109,10 +109,12 @@ describe('運営画面のフェーズ切り替え(矢印キー)', () => {
   });
 });
 
-describe('取り消し線の範囲', () => {
-  it('キャンセル・外し済みの行でも、状態・通知・操作の列(バッジやボタン)には取り消し線を引かない', () => {
+describe('キャンセル済み・外した行の見せ方', () => {
+  it('取り消し線は引かず、文字を薄くするだけ。状態・通知・操作の列は薄くしない', () => {
     const css = readFileSync(new URL('../css/pages.css', import.meta.url), 'utf8');
-    expect(css).toMatch(/\.member-row-canceled td\.cell-status,\s*\.member-row-removed td\.cell-status \{[^}]*text-decoration:\s*none;/);
+    expect(css).not.toMatch(/text-decoration:\s*line-through/);
+    expect(css).toMatch(/\.member-row-canceled td,\s*\.member-row-removed td \{\s*color: var\(--ink-3\);\s*\}/);
+    expect(css).toMatch(/\.member-row-canceled td\.cell-status,\s*\.member-row-removed td\.cell-status \{\s*color: var\(--ink\);/);
     const js = readFileSync(new URL('../js/admin_settings.js', import.meta.url), 'utf8');
     expect(js).toContain("statusTd.classList.add('cell-status');");
     expect(js).toContain("noticeTd.classList.add('cell-status');");

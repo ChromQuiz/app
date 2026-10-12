@@ -40,8 +40,7 @@ describe('メンバー管理', () => {
     expect(js).not.toMatch(/disabled: !canChange/);
   });
 
-  it('行の高さは、ボタンの有無で変わらない。外したメンバーには取り消し線を引かない', () => {
+  it('行の高さは、ボタンの有無で変わらない。外したメンバーは文字を薄くするだけ', () => {
     expect(css).toMatch(/#project-members-tbody td \{[\s\S]*?height: calc\(var\(--control-h-sm\) \+ 22px\);/);
-    expect(css).toMatch(/#project-members-tbody \.member-row-removed td \{\s*text-decoration: none;/);
   });
 });
