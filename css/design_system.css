@@ -180,9 +180,6 @@
   --tint-warn: rgba(191, 106, 2, 0.08);
   --tint-bad: rgba(215, 0, 21, 0.06);
   --tint-accent: rgba(0, 102, 204, 0.06);
-  /* 面の上に置く、操作の塗り（灰色のボタン・役割のバッジ）。白い面の上でも、輪郭が見える濃さにする */
-  --fill-control: rgba(118, 118, 128, 0.16);
-  --fill-control-hover: rgba(118, 118, 128, 0.24);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -249,8 +246,6 @@
     --tint-warn: rgba(255, 159, 10, 0.12);
     --tint-bad: rgba(255, 69, 58, 0.12);
     --tint-accent: rgba(41, 151, 255, 0.12);
-    --fill-control: rgba(118, 118, 128, 0.28);
-    --fill-control-hover: rgba(118, 118, 128, 0.36);
   }
 }
 
@@ -1917,12 +1912,14 @@ tbody tr:hover {
   border-radius: var(--radius-pill);
   font-size: var(--fs-12);
   font-weight: 700;
-  background: var(--fill-control);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
   color: var(--ink-2);
 }
 
 .menu-role-badge.admin {
   background: var(--gold-100);
+  border-color: color-mix(in srgb, var(--gold-600) 28%, transparent);
   color: var(--gold-600);
 }
 
@@ -4345,8 +4342,9 @@ a {
 .btn.standard,
 .page-btn.secondary,
 .page-btn.standard {
-  background: var(--fill-control);
-  border-color: transparent;
+  /* 外す（danger）と同じ作り：うすい面の色と、輪郭の線。色味が違うだけで、明るさと線の太さはそろえる */
+  background: var(--surface-2);
+  border-color: var(--line-strong);
   color: var(--ink);
 }
 
@@ -4354,8 +4352,8 @@ a {
 .btn.standard:hover,
 .page-btn.secondary:hover,
 .page-btn.standard:hover {
-  background: var(--fill-control-hover);
-  border-color: transparent;
+  background: var(--surface-3);
+  border-color: var(--ink-3);
 }
 
 .btn.ghost,
