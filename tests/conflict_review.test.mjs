@@ -209,3 +209,10 @@ describe('選択とフォーカス', () => {
     }
   });
 });
+
+describe('要確認: 未確定の色', () => {
+  it('まだ確定していないカードは、黄色（保留と同じ色）にする', () => {
+    const ds = read('css/design_system.css');
+    expect(ds).toMatch(/\.answer-card\.hold,\s*\.conflict-card:not\(\.resolved\) \{\s*border-color: var\(--warn-500\);/);
+  });
+});
