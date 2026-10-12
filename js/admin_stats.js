@@ -295,7 +295,7 @@
         }
         async function exportAnalyticsCSV() {
             await refreshScoringEntryNumbers();
-            const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率（％）', '状態', '正解者一覧']; const rows = [headers];
-            qs.forEach(s => rows.push([s.q, s.correctCount, s.rate, s.type, csvCell(s.names)]));
+            const qs = await getAnalyticsData(); const headers = ['問題番号', '正答数', '正答率', '状態', '正解者一覧']; const rows = [headers];
+            qs.forEach(s => rows.push([s.q, s.correctCount, typeof s.rate === 'number' ? `${s.rate}%` : s.rate, s.type, csvCell(s.names)]));
             const csv = rows.map(r => r.join(',')).join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'analytics_all_qs.csv'; a.click();
         }

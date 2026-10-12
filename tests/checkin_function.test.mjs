@@ -324,7 +324,7 @@ describe('手入力の受付（js/admin.js）', () => {
 
   it('確定の結果が success のときだけ「受付しました」と出す。キャンセル待ち・キャンセル済みに変わっていたら、受付していないと伝える', () => {
     expect(js).toMatch(/result\.result === 'success'\) \{\s*setPageMessage\(statusEl, `\$\{name\} を受付しました。`/);
-    expect(js).toMatch(/は受付対象外です（キャンセル待ちまたはキャンセル済み）。受付していません。/);
+    expect(js).toMatch(/は、キャンセル待ちかキャンセル済みなので、受付できません。/);
   });
 
   it('取り消しは、実際に取り消せたとき（undone）だけ「取り消しました」と出す', () => {

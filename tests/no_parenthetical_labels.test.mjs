@@ -34,8 +34,8 @@ describe('括弧書きの補足', () => {
   });
 
   it('固定の値・状態のバッジ・リストの区切りに、括弧書きを使わない', () => {
-    const sources = pages.map(read).join('\n') + ['js/admin.js', 'js/admin_settings.js', 'js/entry_list.js', 'js/judge.js'].map(read).join('\n');
-    for (const phrase of ['（固定）', '期間外（', '（先着）', '（開始24時間以内）', '（全角', '(採点中)', '受付済み（', '未受付（']) {
+    const sources = pages.map(read).join('\n') + ['js/admin.js', 'js/admin_settings.js', 'js/admin_stats.js', 'js/entry_list.js', 'js/judge.js', 'js/upload_validation.js'].map(read).join('\n');
+    for (const phrase of ['（固定）', '期間外（', '（先着）', '（開始24時間以内）', '（全角', '(採点中)', '受付済み（', '未受付（', '(未読', '正答率（％）', 'マイエントリー（', '全データ（', '採点枠(', '大きすぎます（', '多すぎます（']) {
       expect(sources, phrase).not.toContain(phrase);
     }
   });
