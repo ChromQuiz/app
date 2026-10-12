@@ -722,7 +722,11 @@ function selectCard(idx, options = {}) {
         card.setAttribute('aria-selected', selected ? 'true' : 'false');
         card.tabIndex = selected ? 0 : -1;
     });
-    if (options.focus) cards[selectedIndex]?.focus({ preventScroll: true });
+    // 前に選んでいたカードにフォーカスが残ると、青い枠が2枚に出る。選択に合わせてフォーカスも移す。
+    const active = document.activeElement;
+    if (options.focus || (active && active !== cards[selectedIndex] && active.classList?.contains('answer-card'))) {
+        cards[selectedIndex]?.focus({ preventScroll: true });
+    }
     scrollToSelected();
 }
 
