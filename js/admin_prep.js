@@ -499,6 +499,11 @@
                         skipPage(`受付番号 ${padNum(entryNumber)} が p${seenEntryNumbers.get(entryNumber)} と重複しています(p${seenEntryNumbers.get(entryNumber)} は保存済み。どちらが正しいか確認してください)`);
                         continue;
                     }
+                    // 当日受付を済ませていない人は、採点・順位・出力の対象外。保存しても使われないので取り込まない。
+                    if (entryByNumber.get(Number(entryNumber)).checked_in !== true) {
+                        skipPage(`受付番号 ${padNum(entryNumber)} は当日受付が済んでいないため、取り込みませんでした`);
+                        continue;
+                    }
                     seenEntryNumbers.set(entryNumber, i);
                     // セルのクロップ座標を計算（画像は保存しない — 採点画面でオンデマンドクロップ）
                     const cellRegions = {};
