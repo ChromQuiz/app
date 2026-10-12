@@ -216,3 +216,12 @@ describe('要確認: 未確定の色', () => {
     expect(ds).toMatch(/\.answer-card\.hold,\s*\.conflict-card:not\(\.resolved\) \{\s*border-color: var\(--warn-500\);/);
   });
 });
+
+describe('選択中のリング', () => {
+  it('選択中でも、カード自身の枠（確定・未確定の色）は変えない。少し離した外側のリングで示す', () => {
+    const ds = read('css/design_system.css');
+    const rule = ds.match(/\.answer-card\.selected,\s*\.conflict-card\.selected \{[^}]*\}/)[0];
+    expect(rule).not.toContain('border-color');
+    expect(rule).toContain('0 0 0 2px var(--canvas), 0 0 0 5px var(--accent)');
+  });
+});

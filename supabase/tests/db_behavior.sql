@@ -449,13 +449,20 @@ reset role;
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
 select pg_temp.chk('DB-26 判定が割れた答案（E3）を管理者が決めたものは、「覆したもの」の一覧に出ない（要確認に出るため）',
   not exists (select 1 from public.list_admin_overrides('zz-t') r where r.entry_id = pg_temp.eid('E3')));
-select pg_temp.chk('DB-26 管理者は、全員一致だった答案（E2）の確定を、いつでも覆せる', pg_temp.err($$select * from public.resolve_score_conflict('zz-t', 1, pg_temp.eid('E2'), 'wrong')$$) = 'OK',
-  pg_temp.err($$select * from public.resolve_score_conflict('zz-t', 1, pg_temp.eid('E2'), 'wrong')$$));
-reset role;
-select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-26 管理者は、全員一致だった答案（E2）の確定を、いつでも覆せる', pg_temp.err($$select * from public.resolve_score_conflict('zz-t', 1, pg_temp.eid('E2'), 'wrong')$$) = 'OK');
+select * from public.resolve_score_conflict('zz-t', 1, pg_temp.eid('E2'), 'wrong');
 select pg_temp.chk('DB-26 …覆した答案は、「覆したもの」の一覧に、管理者の決定として出る',
   exists (select 1 from public.list_admin_overrides('zz-t') r where r.entry_id = pg_temp.eid('E2') and r.question_number = 1 and r.final_result = 'wrong' and r.decided_kind = 'admin' and jsonb_array_length(r.votes) = 2),
   (select string_agg(entry_number::text || ':' || coalesce(final_result, '-'), ',') from public.list_admin_overrides('zz-t')));
+select * from public.resolve_score_conflict('zz-t', 1, pg_temp.eid('E2'), 'correct');
+select pg_temp.chk('DB-26 覆した答案を、採点者の判定どおりに戻すと、自動の結果に戻り、「覆したもの」の一覧から消える',
+  (select decided_kind from public.final_results where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E2')) = 'auto'
+  and (select result from public.final_results where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E2')) = 'correct'
+  and not exists (select 1 from public.list_admin_overrides('zz-t') r where r.entry_id = pg_temp.eid('E2')));
+select pg_temp.chk('DB-26 …判定が割れていた答案（E3）を決めた記録は、管理者のまま',
+  (select decided_kind from public.final_results where project_id='zz-t' and question_number=1 and entry_id = pg_temp.eid('E3')) = 'admin');
+select * from public.resolve_score_conflict('zz-t', 1, pg_temp.eid('E2'), 'wrong');
+select pg_temp.chk('DB-26 …もう一度覆すと、また一覧に出る', exists (select 1 from public.list_admin_overrides('zz-t') r where r.entry_id = pg_temp.eid('E2') and r.final_result = 'wrong'));
 reset role;
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1（管理者でない）
 select pg_temp.chk('DB-26 採点者には、「覆したもの」の一覧は返らない', (select count(*) from public.list_admin_overrides('zz-t')) = 0);
