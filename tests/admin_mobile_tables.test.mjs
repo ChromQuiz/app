@@ -49,3 +49,10 @@ describe('運営画面: 参加者一覧', () => {
     expect(css).toMatch(/\n#tab-entries \.table-container th,\s*#tab-entries \.table-container td \{\s*white-space: nowrap;/);
   });
 });
+
+describe('問題アナリティクス', () => {
+  it('状態が空の問題には、空のバッジ（丸だけ）を出さない', () => {
+    const js = read('js/admin_stats.js');
+    expect(js).toMatch(/if \(s\.type\) \{\s*const typeBadge/);
+  });
+});
