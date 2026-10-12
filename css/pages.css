@@ -4611,6 +4611,13 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   color: var(--ink);
 }
 
+/* 見た目は32px のまま、指で押せる範囲を44px にする（問題のカードを押してしまわないように） */
+.q-slot-btn::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+
 .slot-panel-note {
   margin: var(--sp-3) 0 0;
   font-size: var(--fs-13);
@@ -4900,5 +4907,27 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   /* 2列では、選択中のバッジが答案にかぶる。青い枠で、選択中だと分かる */
   body.page-question .answer-grid.is-compact .answer-card::before {
     display: none;
+  }
+}
+
+/* 指で押せる範囲を44px 前後にする（見た目の大きさは変えない） */
+@media (pointer: coarse), (max-width: 640px) {
+  .notif-bell,
+  .menu-trigger,
+  .number-spinner-btn {
+    position: relative;
+  }
+
+  .notif-bell::after,
+  .menu-trigger::after {
+    content: '';
+    position: absolute;
+    inset: -2px -6px;
+  }
+
+  .number-spinner-btn::after {
+    content: '';
+    position: absolute;
+    inset: -7px;
   }
 }
