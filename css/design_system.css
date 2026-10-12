@@ -2696,7 +2696,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   background: color-mix(in srgb, var(--bad-100) 50%, var(--surface));
 }
 
-.answer-card.hold {
+.answer-card.hold,
+.conflict-card:not(.resolved) {
   border-color: var(--warn-500);
   background: color-mix(in srgb, var(--warn-100) 50%, var(--surface));
 }
