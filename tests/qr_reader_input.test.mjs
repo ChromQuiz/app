@@ -116,8 +116,10 @@ describe('リーダー専用の受付画面（checkin_reader.html。カメラの
     expect(js).toContain('setIdleWarning(');
   });
 
-  it('運営画面の当日タブから、開ける', () => {
-    expect(read('admin.html')).toContain('data-nav-target="checkin_reader.html"');
+  it('運営画面の当日タブのボタンは、サイドバーと同じ名前・同じアイコン（カメラで当日受付／リーダーで当日受付）', () => {
+    const html = read('admin.html');
+    expect(html).toMatch(/class="btn" data-nav-target="checkin\.html"><span data-icon="qrcode"[^>]*><\/span> カメラで当日受付<\/button>/);
+    expect(html).toMatch(/class="btn" data-nav-target="checkin_reader\.html"><span data-icon="scan-line"[^>]*><\/span> リーダーで当日受付<\/button>/);
   });
 });
 
