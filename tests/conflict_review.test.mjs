@@ -143,6 +143,8 @@ describe('要確認: 判定の並び・即時の色変更', () => {
   it('採点者の名前は出さず、判定を同じ行に並べる', () => {
     expect(conflictSrc).not.toContain('memberNameMap');
     expect(conflictSrc).toContain("votes.className = 'votes-mini'");
+    // 模範解答の行に入れない(入れると模範解答が削られて読めなくなる)
+    expect(conflictSrc).not.toMatch(/reviewRow\.append\([^)]*votes/);
   });
 
   it('要確認と採点のカードに、受付番号の行を置かない', () => {
