@@ -19,13 +19,20 @@
             const lost = Math.max(0, unlockedTrack - track());
             root.style.setProperty('--scrollbar-comp', `${lost}px`);
         } else {
-            unlockedTrack = track();
+            // 解除した直後は、バーがまだ戻っていないことがある。小さく測れた値では、基準を下げない。
+            unlockedTrack = Math.max(unlockedTrack ?? 0, track());
             root.style.setProperty('--scrollbar-comp', '0px');
         }
     };
     document.addEventListener('DOMContentLoaded', () => {
         update();
-        new MutationObserver(update).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        // ロックした直後は、まだバーの消えた幅が反映されていないことがある(実機の Chrome で、0 と測れた)。
+        // 描画のあとにも測り直して、あとから分かった幅を補う。
+        new MutationObserver(() => {
+            update();
+            requestAnimationFrame(() => requestAnimationFrame(update));
+            setTimeout(update, 120);
+        }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
     });
     window.addEventListener('resize', () => {
         if (!document.body.classList.contains('body-scroll-locked')) update();
