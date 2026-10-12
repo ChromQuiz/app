@@ -21,7 +21,7 @@
     <script defer src="js/ui.js?v=39"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=110">
-    <link rel="stylesheet" href="css/pages.css?v=191">
+    <link rel="stylesheet" href="css/pages.css?v=193">
 </head>
 <body class="page-checkin">
     <!-- 集中モードシェル: 戻る + 現在位置 + 受付状況(控えめ) -->
@@ -64,15 +64,16 @@
 
         <div class="right-col">
             <div class="checkin-result-panel">
-                <div class="checkin-result-idle" id="checkin-idle" aria-hidden="true">
+                <div class="checkin-idle" id="checkin-idle" aria-hidden="true">
                     <span data-icon="qrcode" aria-hidden="true"></span>
-                    <p>読み取り待機中</p>
+                    <p class="checkin-idle-title">読み取り待機中</p>
                 </div>
-                <div id="result" role="status" aria-live="assertive"></div>
+                <div id="result" class="checkin-result" role="status" aria-live="assertive" hidden></div>
             </div>
         </div>
     </div>
 
-    <script defer src="js/checkin.js?v=23"></script>
+    <script defer src="js/checkin_result_view.js?v=1"></script>
+    <script defer src="js/checkin.js?v=24"></script>
 </body>
 </html>

@@ -30,7 +30,7 @@ if (auth) {
             const sessionData = await CIQSupabaseAPI.getSession();
             if (!sessionData?.user) throw new Error('Googleログインが必要です。');
         } catch (e) {
-            showResult('error', 'xmark', '開始できません', { detail: describeError(e, '受付画面を開始できませんでした。') });
+            showResult({ state: 'error', title: '開始できません', detail: describeError(e, '受付画面を開始できませんでした。') });
             return;
         }
         startKeyboardInput();
@@ -62,79 +62,40 @@ if (auth) {
         lastCodeAt = now;
         if (!reader.looksLikeCheckInCode(code)) {
             // 読み間違い(日本語入力・リーダーの設定)は、サーバーに送らない(「見つからない」の回数制限を使い切らないため)
-            showResult('error', 'xmark', '受付の二次元コードとして読めません', { detail: '二次元コードを読み直してください。続くときは、リーダーの設定（日本語入力を切る・最後に Enter を付ける）を確認してください。' });
+            showResult({ state: 'error', title: '受付の二次元コードとして読めません', detail: '二次元コードを読み直してください。続くときは、リーダーの設定（日本語入力を切る・最後に Enter を付ける）を確認してください。' });
             return;
         }
         checkIn(code);
     }
 
+    const resultView = window.CIQCheckinResultView;
+
     async function checkIn(code) {
         processing = true;
         showLoading();
         try {
-            const result = await CIQSupabaseAPI.checkInEntry(projectId, code);
-            const entry = result.entry;
-            const number = padNum(entry.entryNumber);
-            const sub = [entry?.affiliation, entry?.grade].filter(Boolean).join(' / ');
-            if (result.result === 'canceled') {
-                showResult('canceled', 'xmark', 'キャンセル済み', { detail: sub, number });
-            } else if (result.result === 'waitlist') {
-                showResult('already', 'triangle-exclamation', 'キャンセル待ち', { detail: sub, number });
-            } else if (result.result === 'already') {
-                showResult('already', 'triangle-exclamation', '受付済み', { detail: sub, number });
-            } else {
-                showResult('success', 'check', '受付完了', { detail: sub, number });
-                loadStats().catch(() => {});
-            }
+            const view = resultView.describeCheckIn(await CIQSupabaseAPI.checkInEntry(projectId, code));
+            showResult(view);
+            if (view.state === 'success') loadStats().catch(() => {});
         } catch (err) {
-            showResult('error', 'xmark', 'エラーが発生しました', { detail: describeError(err) });
+            showResult({ state: 'error', detail: describeError(err) });
         }
         processing = false;
     }
 
-    // ---- 画面 ----
+    // ---- 画面(結果の見た目は、カメラの受付画面と同じ部品: checkin_result_view.js) ----
     function showLoading() {
         clearTimeout(holdTimer);
-        const box = el('reader-result');
-        box.hidden = false;
-        box.className = 'reader-result loading';
-        box.textContent = '';
-        const text = document.createElement('div');
-        text.className = 'reader-result-title';
-        text.textContent = '確認中…';
-        box.appendChild(text);
+        resultView.render(el('reader-result'), { state: 'loading' });
         el('reader-idle').hidden = true;
     }
 
-    // type: success | already | canceled | error。number は受付番号、detail は所属・学年(エラーのときは説明の文)
-    function showResult(type, iconClass, title, { number = '', detail = '' } = {}) {
+    function showResult(view) {
         clearTimeout(holdTimer);
-        const box = el('reader-result');
-        box.hidden = false;
-        box.className = `reader-result ${type}`;
-        box.textContent = '';
-        const titleEl = document.createElement('div');
-        titleEl.className = 'reader-result-title';
-        titleEl.append(createIcon(iconClass), ` ${title}`);
-        box.appendChild(titleEl);
-        if (number) {
-            const label = document.createElement('div');
-            label.className = 'reader-result-label';
-            label.textContent = '受付番号';
-            const num = document.createElement('div');
-            num.className = 'reader-result-number';
-            num.textContent = number;
-            box.append(label, num);
-        }
-        if (detail) {
-            const sub = document.createElement('div');
-            sub.className = number ? 'reader-result-sub' : 'reader-result-detail';
-            sub.textContent = detail;
-            box.appendChild(sub);
-        }
+        resultView.render(el('reader-result'), view);
         el('reader-idle').hidden = true;
         holdTimer = setTimeout(() => {
-            box.hidden = true;
+            resultView.hide(el('reader-result'));
             el('reader-idle').hidden = false;
         }, HOLD_RESULT_MS);
     }

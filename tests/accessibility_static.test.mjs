@@ -72,7 +72,7 @@ describe('色の読みやすさ（ライト）', () => {
   it('ink-3（補助の色）は、本文の文字に使わない場所の色だけ。待機中の案内とフッターは ink-2 を使う', () => {
     const pages = read('css/pages.css');
     expect(pages).toMatch(/\.admin-manual-footer \{\s*text-align: center;\s*color: var\(--ink-2\)/);
-    expect(pages).toMatch(/\.checkin-result-idle \{[^}]*color: var\(--ink-2\)/);
+    expect(pages).toMatch(/\.checkin-idle \{[^}]*color: var\(--ink-2\)/);
   });
 });
 
@@ -151,7 +151,8 @@ describe('折り返しの見え方(見出しは中央・本文は左、アイコ
     expect(css).toMatch(/\.page-card\.page-disabled p,\s*\.page-card\.is-disabled p \{[^}]*width:\s*fit-content;[^}]*text-align:\s*left;/);
     expect(css).toMatch(/\.loading-state \{[^}]*text-align:\s*left;/);
     expect(css).toMatch(/\.text-muted-center,\s*\.text-muted-loader \{[^}]*width:\s*fit-content;[^}]*text-align:\s*left;/);
-    expect(pages).toMatch(/#result \.name \{[^}]*width:\s*fit-content;[^}]*text-align:\s*left;/);
+    // 当日受付の結果の文(エラーの説明)は、左揃えの箱として、中央に置く
+    expect(pages).toMatch(/\.checkin-result-message \{[^}]*max-width: 34em;[^}]*text-align: left;/);
   });
 
   it('アイコンつきのメッセージは、アイコンを文の先頭に置き、折り返した行は左端から始める(字下げしない)', () => {
