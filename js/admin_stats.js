@@ -27,8 +27,9 @@
             tbody.appendChild(tr);
         }
 
-        function appendAnalyticsCell(row, text) {
+        function appendAnalyticsCell(row, text, className = '') {
             const td = document.createElement('td');
+            if (className) td.className = className;
             td.textContent = text;
             row.appendChild(td);
         }
@@ -285,11 +286,11 @@
             qs.forEach((s) => {
                 const tr = document.createElement('tr');
                 if (s.isRare) tr.className = 'row-rare';
-                appendAnalyticsCell(tr, s.q);
-                appendAnalyticsCell(tr, `${s.correctCount}人`);
-                appendAnalyticsCell(tr, `${s.rate}%`);
-                appendAnalyticsCell(tr, s.type);
-                appendAnalyticsCell(tr, s.names);
+                appendAnalyticsCell(tr, s.q, 'analytics-q');
+                appendAnalyticsCell(tr, `${s.correctCount}人`, 'analytics-count');
+                appendAnalyticsCell(tr, `${s.rate}%`, 'analytics-rate');
+                appendAnalyticsCell(tr, s.type, 'analytics-type');
+                appendAnalyticsCell(tr, s.names, 'analytics-names');
                 tbody.appendChild(tr);
             });
         }
