@@ -3261,92 +3261,6 @@ body.page-checkin .right-col {
   }
 }
 
-.checkin-result-idle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-2);
-  color: var(--ink-2); /* ink-3 は 3.4:1 で、待機中の案内が読みにくい */
-  font-size: var(--text-body);
-}
-
-.checkin-result-idle [data-icon] {
-  font-size: var(--text-numeral);
-}
-
-/* 判定表示: パネル全体が状態になる */
-#result {
-  position: absolute;
-  inset: 0;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-1);
-  padding: var(--sp-6);
-  border-radius: var(--r-lg);
-  text-align: center;
-  font-size: var(--text-numeral);
-  font-weight: 700;
-  border: 3px solid transparent;
-}
-
-#result.is-visible {
-  display: flex;
-}
-
-.checkin-result-panel:has(#result.is-visible) .checkin-result-idle {
-  display: none;
-}
-
-#result .name {
-  /* 参加者の名前は短く、エラーの文は長い。文は左揃えの箱として、中央に置く(見出しは中央のまま) */
-  width: fit-content;
-  max-width: 100%;
-  text-align: left;
-  font-size: var(--text-title);
-  font-weight: 600;
-}
-
-#result .sub {
-  color: var(--ink-2);
-  font-size: var(--text-body);
-  font-weight: 400;
-}
-
-#result .number {
-  font-family: var(--font-mono);
-  font-size: var(--text-hero);
-  font-weight: 600;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-
-#result.loading {
-  background: var(--surface-2);
-  color: var(--ink-2);
-  border-color: var(--line-strong);
-  font-size: var(--text-heading);
-}
-
-#result.success {
-  background: var(--ok-100);
-  color: var(--ok-600);
-  border-color: var(--ok-500);
-}
-
-#result.already {
-  background: var(--warn-100);
-  color: var(--warn-600);
-  border-color: var(--warn-500);
-}
-
-#result.canceled,
-#result.error {
-  background: var(--bad-100);
-  color: var(--bad-600);
-  border-color: var(--bad-500);
-}
 
 /* ============================================================
    help.html — 運営ヘルプ
@@ -5509,124 +5423,6 @@ body.page-reader {
   background: var(--surface);
 }
 
-.reader-idle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-6);
-  text-align: center;
-  color: var(--ink-2);
-}
-
-.reader-idle[hidden] {
-  display: none;
-}
-
-.reader-idle [data-icon] {
-  font-size: var(--text-hero);
-  color: var(--ink-3);
-}
-
-.reader-idle-title {
-  font-size: var(--text-title);
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.reader-idle-warn {
-  font-size: var(--text-body);
-  color: var(--warn-600);
-}
-
-.reader-idle-warn[hidden] {
-  display: none;
-}
-
-/* 結果: 領域いっぱいが、状態の色になる(参加者と担当者の両方が、離れた所から読む) */
-.reader-result {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
-  padding: var(--sp-6);
-  text-align: center;
-  border: 3px solid transparent;
-  border-radius: var(--r-lg);
-}
-
-.reader-result[hidden] {
-  display: none;
-}
-
-.reader-result-title {
-  font-size: var(--text-title);
-  font-weight: 700;
-}
-
-.reader-result-label {
-  margin-top: var(--sp-3);
-  font-size: var(--text-body);
-  color: var(--ink-2);
-}
-
-.reader-result-number {
-  font-family: var(--font-mono);
-  font-size: var(--text-hero);
-  font-weight: 600;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-
-.reader-result-sub {
-  font-size: var(--text-body);
-  color: var(--ink-2);
-}
-
-.reader-result-detail {
-  max-width: 36em;
-  font-size: var(--text-body);
-  text-align: left;
-}
-
-.reader-result.loading {
-  background: var(--surface-2);
-  border-color: var(--line-strong);
-  color: var(--ink-2);
-}
-
-.reader-result.success {
-  background: color-mix(in srgb, var(--ok-100) 70%, var(--surface));
-  border-color: var(--ok-600);
-  color: var(--ok-600);
-}
-
-.reader-result.already {
-  background: color-mix(in srgb, var(--warn-100) 70%, var(--surface));
-  border-color: var(--warn-600);
-  color: var(--warn-600);
-}
-
-.reader-result.canceled,
-.reader-result.error {
-  background: color-mix(in srgb, var(--bad-100) 70%, var(--surface));
-  border-color: var(--bad-600);
-  color: var(--bad-600);
-}
-
-.reader-result.success .reader-result-number,
-.reader-result.already .reader-result-number,
-.reader-result.canceled .reader-result-number {
-  color: var(--ink);
-}
-
-.reader-result.error .reader-result-detail {
-  color: var(--ink);
-}
-
 /* リーダーの設定(運営だけが使う。右上の歯車から開く) */
 .reader-settings {
   /* 全体の margin: 0 が、モーダルの中央寄せ(margin: auto)を打ち消すので、戻す */
@@ -5720,4 +5516,143 @@ body.page-reader {
   .reader-main {
     padding-inline: calc(var(--sp-3) + env(safe-area-inset-left)) calc(var(--sp-3) + env(safe-area-inset-right));
   }
+}
+
+/* ============================================================
+   当日受付の結果の表示 — カメラの受付画面(checkin.html)と、リーダー専用の受付画面(checkin_reader.html)で、同じ見た目
+   待機: 大きな二次元コードの印と案内。結果: 色つきの丸い印 → 見出し → 受付番号(大きく) → 所属・学年。
+   状態は、色・印・文字の3つで伝える。背景は塗らない(落ち着いた面の上に、印の色だけ)。
+   ============================================================ */
+.checkin-result-panel,
+.reader-stage {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+.checkin-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-6);
+  text-align: center;
+  color: var(--ink-2);
+}
+
+.checkin-idle[hidden] {
+  display: none;
+}
+
+.checkin-idle [data-icon] {
+  font-size: var(--text-hero);
+  color: var(--ink-3);
+}
+
+.checkin-idle-title {
+  font-size: var(--text-heading);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.checkin-idle-warn {
+  font-size: var(--text-body);
+  color: var(--warn-600);
+}
+
+.checkin-idle-warn[hidden] {
+  display: none;
+}
+
+.checkin-result-panel:has(.checkin-result:not([hidden])) .checkin-idle {
+  display: none;
+}
+
+.checkin-result {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  padding: var(--sp-6);
+  text-align: center;
+  animation: checkin-result-in 220ms var(--ease-out) both;
+}
+
+.checkin-result[hidden] {
+  display: none;
+}
+
+@keyframes checkin-result-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkin-result {
+    animation: none;
+  }
+}
+
+.checkin-result-mark {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: var(--mark-bg);
+  color: var(--mark-fg);
+}
+
+.checkin-result-mark svg {
+  width: 56px;
+  height: 56px;
+  stroke-width: 2.5;
+}
+
+.checkin-result.is-ok { --mark-bg: var(--ok-600); --mark-fg: var(--on-ok); }
+.checkin-result.is-warn { --mark-bg: var(--warn-600); --mark-fg: var(--on-warn); }
+.checkin-result.is-bad { --mark-bg: var(--bad-600); --mark-fg: var(--on-bad); }
+.checkin-result.is-neutral { --mark-bg: var(--surface-2); --mark-fg: var(--ink-2); }
+
+.checkin-result-title {
+  font-size: var(--text-title);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* 受付番号は、離れた所からも読めるよう、大きく(役割の最大の大きさの2倍) */
+.checkin-result-numberwrap {
+  display: grid;
+  gap: var(--sp-1);
+  font-size: var(--text-hero);
+}
+
+.checkin-result-label {
+  font-size: var(--text-body);
+  color: var(--ink-2);
+}
+
+.checkin-result-number {
+  font-size: 2em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.checkin-result-detail {
+  font-size: var(--text-body);
+  color: var(--ink-2);
+}
+
+.checkin-result-message {
+  max-width: 34em;
+  font-size: var(--text-body);
+  color: var(--ink-2);
+  text-align: left;
 }

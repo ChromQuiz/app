@@ -20,7 +20,7 @@
     <script defer src="js/ui.js?v=39"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=110">
-    <link rel="stylesheet" href="css/pages.css?v=191">
+    <link rel="stylesheet" href="css/pages.css?v=193">
 
 </head>
 <body class="page-reader">
@@ -41,12 +41,12 @@
          受付番号で受付する操作は、ここにも置かない(運営画面にある)。 -->
     <main class="reader-main" role="main">
         <section class="reader-stage" aria-label="読み取り結果">
-            <div class="reader-idle" id="reader-idle">
+            <div class="checkin-idle" id="reader-idle">
                 <span data-icon="qrcode" aria-hidden="true"></span>
-                <h2 class="reader-idle-title">二次元コードを、読み取ってください</h2>
-                <p class="reader-idle-warn" id="reader-idle-warn" role="status" aria-live="polite" hidden></p>
+                <h2 class="checkin-idle-title">二次元コードを、読み取ってください</h2>
+                <p class="checkin-idle-warn" id="reader-idle-warn" role="status" aria-live="polite" hidden></p>
             </div>
-            <div class="reader-result" id="reader-result" role="status" aria-live="assertive" hidden></div>
+            <div id="reader-result" class="checkin-result" role="status" aria-live="assertive" hidden></div>
         </section>
 
         <!-- キーボードとして動くリーダーの入力先。見えないが、フォーカスは受ける -->
@@ -89,7 +89,8 @@
 
     <script defer src="js/qr_reader_input.js?v=1"></script>
     <script defer src="js/qr_serial_reader.js?v=1"></script>
-    <script defer src="js/checkin_reader.js?v=3"></script>
+    <script defer src="js/checkin_result_view.js?v=1"></script>
+    <script defer src="js/checkin_reader.js?v=4"></script>
 </body>
 
 </html>

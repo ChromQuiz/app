@@ -230,17 +230,11 @@ if (auth) {
         else stopCamera();
     });
 
+    const resultView = window.CIQCheckinResultView;
+
     function showLoading() {
         if (hideTimer) clearTimeout(hideTimer);
-        resultDiv.className = 'is-visible loading';
-        resultDiv.textContent = '';
-        const loading = document.createElement('div');
-        loading.textContent = '読み込み中…';
-        resultDiv.appendChild(loading);
-    }
-
-    function entrySub(entry) {
-        return [entry?.affiliation, entry?.grade].filter(Boolean).join(' / ');
+        resultView.render(resultDiv, { state: 'loading' });
     }
 
     async function processQR(qrValue) {
@@ -249,60 +243,22 @@ if (auth) {
 
     async function runCheckIn(invoke) {
         try {
-            const result = await invoke();
-            const entry = result.entry;
-            const name = `No.${padNum(entry.entryNumber)}`;
-            const sub = entrySub(entry);
-            const number = `受付番号 ${padNum(entry.entryNumber)}`;
-
-            if (result.result === 'canceled') {
-                showResultUI('canceled', 'xmark', 'キャンセル済み', name, sub, number);
-            } else if (result.result === 'waitlist') {
-                showResultUI('already', 'triangle-exclamation', 'キャンセル待ち', name, sub, number);
-            } else if (result.result === 'already') {
-                showResultUI('already', 'triangle-exclamation', '受付済み', name, sub, number);
-            } else {
-                showResultUI('success', 'check', '受付完了', name, sub, number);
-                await loadStats();
-            }
+            const view = resultView.describeCheckIn(await invoke());
+            showResultUI(view);
+            if (view.state === 'success') await loadStats();
         } catch (err) {
             // 前回のコードは忘れない。エラーのコード（他の大会のもの・期限切れなど）が映ったままだと、
             // 毎フレームサーバーに問い合わせ続け、「見つからない」の回数制限（会場の同じ回線で共有）に達して、全端末の受付が止まる。
             // コードが画面から外れたら（scanFrame）、次のコードを受け付ける。
-            showResultUI('error', 'xmark', 'エラーが発生しました', describeError(err), '', '');
+            showResultUI({ state: 'error', detail: describeError(err) });
         }
         processing = false;
     }
 
-    function showResultUI(type, iconClass, title, name, sub, number) {
+    function showResultUI(view) {
         if (hideTimer) clearTimeout(hideTimer);
-        resultDiv.className = `is-visible ${type}`;
-        resultDiv.textContent = '';
-        const titleEl = document.createElement('div');
-        titleEl.append(makeIcon(iconClass), ` ${title}`);
-        resultDiv.appendChild(titleEl);
-        if (name) {
-            const nameEl = document.createElement('div');
-            nameEl.className = 'name';
-            nameEl.textContent = name;
-            resultDiv.appendChild(nameEl);
-        }
-        if (sub) {
-            const subEl = document.createElement('div');
-            subEl.className = 'sub';
-            subEl.textContent = sub;
-            resultDiv.appendChild(subEl);
-        }
-        if (number) {
-            const numberEl = document.createElement('div');
-            numberEl.className = 'number';
-            numberEl.textContent = number;
-            resultDiv.appendChild(numberEl);
-        }
+        resultView.render(resultDiv, view);
         scanningText.textContent = '二次元コードをカメラにかざしてください';
-
-        hideTimer = setTimeout(() => {
-            resultDiv.classList.remove('is-visible');
-        }, 3000);
+        hideTimer = setTimeout(() => resultView.hide(resultDiv), 3000);
     }
 }
