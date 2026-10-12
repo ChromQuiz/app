@@ -169,6 +169,7 @@
                 'render-analytics': renderAnalytics,
                 'export-analytics-csv': exportAnalyticsCSV,
                 'load-project-members': loadProjectMembers,
+                'clear-answers': clearAnswersAndScoring,
                 'reset-project': resetProject,
             };
             document.querySelectorAll('[data-action]').forEach((el) => {
