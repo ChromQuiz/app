@@ -281,7 +281,7 @@ describe('design-system contracts', () => {
   });
 
   it('uses the approved Apple interaction and accessibility tokens', () => {
-    for (const token of ['--accent', '--accent-soft', '--on-ok', '--on-warn', '--on-bad', '--fs-22', '--fs-24',
+    for (const token of ['--accent', '--accent-soft', '--on-ok', '--on-warn', '--on-bad', '--text-title', '--text-heading', '--text-body', '--text-small', '--text-caption',
       '--ease-out', '--ease-in-out', '--ease-drawer', '--t-press', '--t-popover', '--t-panel',
       '--material-toolbar', '--material-popover', '--material-modal', '--material-notification', '--material-blur']) {
       expect(designCss).toContain(`${token}:`);

@@ -391,7 +391,11 @@ function updateResumeHero(resumeQ, mineResumeQ = 0, hasAnyMine = false) {
 function updateJudgeSummary({ openCount, inprogressCount, doneCount }) {
     const summary = document.getElementById('judge-summary');
     if (!summary) return;
-    setInlineParts(summary, [`未着手 ${openCount}`, `採点中 ${inprogressCount}`, `完了 ${doneCount}`]);
+    setInlineParts(summary, [
+        { text: `未着手 ${openCount}`, className: 'summary-open' },
+        { text: `採点中 ${inprogressCount}`, className: 'summary-inprogress' },
+        { text: `完了 ${doneCount}`, className: 'summary-done' },
+    ]);
 }
 
 function enterQ(q) {

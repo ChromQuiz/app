@@ -33,6 +33,12 @@
   --material-shadow: 0 18px 54px rgba(0, 0, 0, 0.18);
   --material-blur: blur(24px) saturate(180%);
 
+  /* --- 採点の進み具合の色（バー・凡例・内訳の丸で、同じ色を使う） --- */
+  --seg-confirmed: var(--ok-600);
+  --seg-conflict: var(--warn-500);
+  --seg-inprogress: var(--ink-3);
+  --seg-untouched: var(--line-strong);
+
   /* --- Color: monochrome primary CTA (legacy brand aliases retained) --- */
   --brand-50: var(--surface-2);
   --brand-100: var(--surface-3);
@@ -81,22 +87,21 @@
     "Helvetica Neue", var(--font-jp), sans-serif;
   --font-sans: var(--font-text);
   --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-  --fs-12: 0.75rem;
-  --fs-13: 0.8125rem;
-  --fs-14: 0.875rem;
-  --fs-15: 0.9375rem;
-  --fs-16: 1rem;
-  --fs-17: 1.0625rem;
-  --fs-18: 1.125rem;
-  --fs-21: 1.3125rem;
-  --fs-22: 1.375rem;
-  --fs-24: 1.5rem;
-  --fs-26: 1.625rem;
-  --fs-32: 2rem;
-  --fs-40: 2.5rem;
-  --fs-56: 3.5rem;
-  --fs-64: 4rem;
-  --fs-72: 4.5rem;
+  /* --- 文字の大きさ（役割で決める。この7つ以外の大きさは使わない） ---
+     hero     56  大きな数字（得点、404 など）
+     numeral  32  数字（集計、順位）
+     title    24  画面の見出し（h1）、結果の見出し
+     heading  18  節の見出し（h2・h3）、一覧の名前
+     body     16  本文、入力欄、ボタン、タブ、メニュー
+     small    14  補足、説明、表のセル、ラベル
+     caption  12  バッジ、表の見出し、件数のラベル */
+  --text-hero: 3.5rem;
+  --text-numeral: 2rem;
+  --text-title: 1.5rem;
+  --text-heading: 1.125rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-caption: 0.75rem;
   --lh-tight: 1.25;
   --lh-body: 1.7;
   --ls-caps: 0.06em;
@@ -274,7 +279,7 @@ html {
 
 body {
   font-family: var(--font-sans);
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   line-height: var(--lh-body);
   color: var(--ink);
   background: var(--canvas);
@@ -394,7 +399,7 @@ code {
 
 kbd {
   font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 600;
   background: var(--surface-2);
   border: 1px solid var(--line-strong);
@@ -570,7 +575,7 @@ svg[width="24"][stroke="currentColor"] {
   min-height: var(--control-h);
   padding: 0 18px;
   border-radius: var(--r-control);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.012em;
@@ -589,7 +594,7 @@ svg[width="24"][stroke="currentColor"] {
 .page-btn {
   width: 100%;
   min-height: 48px;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
 }
 
 .btn:hover,
@@ -721,7 +726,7 @@ svg[width="24"][stroke="currentColor"] {
   background: var(--surface);
   color: var(--ink);
   font-family: inherit;
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.012em;
@@ -815,7 +820,7 @@ svg[width="24"][stroke="currentColor"] {
   min-height: var(--control-h-sm);
   padding: 0 var(--sp-3) 0 var(--sp-2);
   border-radius: var(--r-full);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   color: var(--ink-2);
   transition: background var(--t-micro) var(--ease-out), color var(--t-micro) var(--ease-out),
@@ -844,7 +849,7 @@ svg[width="24"][stroke="currentColor"] {
 .link-btn-sm {
   min-height: var(--control-h-sm);
   padding: 0 var(--sp-3);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   border-radius: var(--r-full);
 }
 
@@ -860,7 +865,7 @@ svg[width="24"][stroke="currentColor"] {
   background: none;
   color: var(--accent);
   font: inherit;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   cursor: pointer;
 }
 
@@ -883,8 +888,8 @@ svg[width="24"][stroke="currentColor"] {
   border: 0;
   text-align: center;
   font-family: var(--font-text);
-  font-weight: 500;
-  font-size: var(--fs-16);
+  font-weight: 600;
+  font-size: var(--text-body);
   font-variant-numeric: tabular-nums;
   min-height: var(--control-h);
   background: transparent;
@@ -966,14 +971,14 @@ svg[width="24"][stroke="currentColor"] {
 
 .page-card.page-disabled [data-icon],
 .page-card.is-disabled [data-icon] {
-  font-size: var(--fs-24);
+  font-size: var(--text-title);
   color: var(--ink-3);
   margin-bottom: var(--sp-2);
 }
 
 .page-card.page-disabled h2,
 .page-card.is-disabled h2 {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   margin-bottom: var(--sp-2);
 }
 
@@ -986,13 +991,13 @@ svg[width="24"][stroke="currentColor"] {
 }
 
 .result-title {
-  font-size: var(--fs-21);
+  font-size: var(--text-title);
   margin-bottom: var(--sp-2);
 }
 
 .result-desc {
   text-wrap: balance;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   color: var(--ink-2);
   margin-bottom: var(--sp-6);
 }
@@ -1007,8 +1012,8 @@ svg[width="24"][stroke="currentColor"] {
 
 .number-panel-label,
 .info-label {
-  font-size: var(--fs-13);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 600;
   color: var(--ink-2);
   margin-bottom: var(--sp-1);
 }
@@ -1016,7 +1021,7 @@ svg[width="24"][stroke="currentColor"] {
 .number-panel-value,
 .info-value {
   font-family: var(--font-mono);
-  font-size: var(--fs-56);
+  font-size: var(--text-hero);
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: 0.04em;
@@ -1077,7 +1082,7 @@ svg[width="24"][stroke="currentColor"] {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   margin-bottom: var(--sp-4);
 }
 
@@ -1128,7 +1133,7 @@ svg[width="24"][stroke="currentColor"] {
 
 /* 説明テキスト */
 .desc-text {
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   line-height: 1.65;
   color: var(--ink-2);
   max-width: var(--measure);
@@ -1139,7 +1144,7 @@ svg[width="24"][stroke="currentColor"] {
   display: flex;
   align-items: flex-start;
   gap: var(--sp-1);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   margin-top: var(--sp-1);
 }
@@ -1173,7 +1178,7 @@ label {
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   color: var(--ink);
   margin-bottom: var(--sp-2);
@@ -1187,7 +1192,7 @@ label [data-icon] {
 /* 入力欄の直下に置く補足。枠もアイコンも持たず、対象の近さで意味を作る */
 .field-note {
   margin: var(--sp-2) 0 0;
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 400;
   line-height: 1.6;
   color: var(--ink-2);
@@ -1197,8 +1202,8 @@ label [data-icon] {
 /* 公開/非公開の中立タグ */
 .visibility-tag {
   display: inline-block;
-  font-size: var(--fs-12);
-  font-weight: 500;
+  font-size: var(--text-caption);
+  font-weight: 600;
   color: var(--ink-2);
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -1212,7 +1217,7 @@ label.required::after,
 legend.required::after,
 span.required::after {
   content: "必須";
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   color: var(--bad-600);
   background: var(--bad-100);
@@ -1245,7 +1250,7 @@ select {
   color: var(--ink);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-surface);
-  font-size: var(--fs-16); /* iOS ズーム防止のため 16px 未満禁止 */
+  font-size: var(--text-body); /* iOS ズーム防止のため 16px 未満禁止 */
   transition: border-color var(--t-micro) var(--ease-out), box-shadow var(--t-micro) var(--ease-out),
     background var(--t-micro) var(--ease-out);
 }
@@ -1326,7 +1331,7 @@ select {
   border: 1px solid var(--line-strong);
   border-radius: var(--r-surface);
   text-align: left;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   transition: border-color var(--t-micro) var(--ease-out), background var(--t-micro) var(--ease-out),
     opacity var(--t-press) var(--ease-out), transform var(--t-press) var(--ease-out);
 }
@@ -1401,7 +1406,7 @@ select {
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-surface);
   color: var(--ink);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   cursor: pointer;
 }
 
@@ -1456,8 +1461,8 @@ select:user-invalid {
   align-items: flex-start;
   gap: var(--sp-3);
   cursor: pointer;
-  font-weight: 500;
-  font-size: var(--fs-14);
+  font-weight: 600;
+  font-size: var(--text-small);
   line-height: 1.6;
   margin-bottom: 0;
   min-height: var(--control-h-sm);
@@ -1530,7 +1535,7 @@ select:user-invalid {
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   margin-bottom: var(--sp-2);
   padding: 0;
@@ -1558,8 +1563,8 @@ select:user-invalid {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
   background: var(--surface-2);
-  font-weight: 500;
-  font-size: var(--fs-15);
+  font-weight: 600;
+  font-size: var(--text-body);
   cursor: pointer;
   margin-bottom: 0;
   transition: border-color var(--t-micro) var(--ease-out), background var(--t-micro) var(--ease-out),
@@ -1656,11 +1661,11 @@ select:user-invalid {
 
 .toggle-info-title {
   font-weight: 700;
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
 }
 
 .toggle-info-desc {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
@@ -1688,18 +1693,18 @@ select:user-invalid {
 }
 
 .file-upload-zone > [data-icon] {
-  font-size: var(--fs-26);
+  font-size: var(--text-title);
   color: var(--accent);
 }
 
 .file-upload-zone .file-label {
   font-weight: 600;
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
 }
 
 .file-upload-zone .file-name {
   font-family: var(--font-mono);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   overflow-wrap: anywhere;
 }
@@ -1721,7 +1726,7 @@ select:user-invalid {
 .inline-edit-input {
   min-height: var(--control-h-sm);
   padding: var(--sp-1) var(--sp-2);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 /* ============================================================
@@ -1738,7 +1743,7 @@ select:user-invalid {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 thead th {
@@ -1747,7 +1752,7 @@ thead th {
   z-index: 1;
   background: var(--surface-2);
   color: var(--ink-2);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   letter-spacing: var(--ls-caps);
   text-align: left;
@@ -1802,7 +1807,7 @@ tbody tr:hover {
   gap: 5px;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   border: 1px solid transparent;
   white-space: nowrap;
@@ -1845,7 +1850,7 @@ tbody tr:hover {
   gap: 5px;
   padding: 4px 12px;
   border-radius: var(--radius-pill);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -1875,7 +1880,7 @@ tbody tr:hover {
   background: var(--surface-2);
   border: 1px solid var(--line-strong);
   font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 600;
   color: var(--ink-2);
 }
@@ -1891,7 +1896,7 @@ tbody tr:hover {
   background: var(--surface-3);
   color: var(--ink-2);
   font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 600;
   margin-left: auto;
 }
@@ -1910,7 +1915,7 @@ tbody tr:hover {
   gap: 4px;
   padding: 2px 10px;
   border-radius: var(--radius-pill);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   background: var(--surface-2);
   border: 1px solid var(--line-strong);
@@ -1961,7 +1966,7 @@ tbody tr:hover {
   backdrop-filter: var(--material-blur);
   box-shadow: var(--material-shadow);
   color: var(--ink);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   opacity: 0;
   transform: translateY(-8px) scale(0.98);
@@ -2023,8 +2028,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   padding: 0;
   border: 0;
   background: none;
-  font-size: var(--fs-14);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 400;
   line-height: 1.55;
   color: var(--ink-2);
   max-width: var(--measure);
@@ -2134,7 +2139,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   display: inline-flex;
   align-items: center;
   /* 見出し(14px・行高1.4)の1行目と同じ高さの枠の中に、アイコンを縦中央で置く */
-  height: calc(var(--fs-14) * 1.4);
+  height: calc(var(--text-small) * 1.4);
   color: var(--ink-2);
 }
 
@@ -2152,7 +2157,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   display: block;
   margin-bottom: var(--sp-1);
   color: var(--ink);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   line-height: 1.4;
 }
@@ -2171,7 +2176,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .entry-mail-notice p {
   margin: 0;
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 400;
   line-height: 1.6;
 }
@@ -2187,7 +2192,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .terms-alert-title {
   margin-bottom: var(--sp-1);
   color: var(--ink);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
 }
 
@@ -2223,8 +2228,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   gap: var(--sp-2);
   padding: var(--sp-8) var(--sp-4);
   color: var(--ink-2);
-  font-size: var(--fs-14);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 400;
 }
 
 /* Empty state — 「次に何をすべきか」を必ず示す */
@@ -2240,19 +2245,19 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .empty-state [data-icon],
 .empty-state > svg[data-lucide] {
-  font-size: var(--fs-32);
+  font-size: var(--text-numeral);
   color: var(--ink-3);
 }
 
 .empty-state-title {
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 700;
   color: var(--ink);
 }
 
 .empty-state-hint {
   text-align: left;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   color: var(--ink-2);
   max-width: 40ch;
 }
@@ -2275,20 +2280,20 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .error-state [data-icon],
 .error-state > svg[data-lucide] {
-  font-size: var(--fs-24);
+  font-size: var(--text-title);
   color: var(--bad-600);
   margin-bottom: var(--sp-1);
 }
 
 .error-state-title {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   font-weight: 600;
   letter-spacing: -0.012em;
 }
 
 .error-state-detail {
   text-align: left;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   line-height: 1.65;
   color: var(--ink-2);
   max-width: 44ch;
@@ -2323,8 +2328,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  font-size: var(--fs-13);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 600;
   color: var(--ink-2);
 }
 
@@ -2339,7 +2344,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   border: 1.5px solid var(--line-strong);
   background: var(--surface);
   font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
 }
 
 .step-item::after,
@@ -2393,7 +2398,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .section-heading,
 .entry-section-heading {
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 600;
   margin: var(--sp-8) 0 var(--sp-1);
   padding-top: var(--sp-5);
@@ -2402,7 +2407,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .section-note,
 .entry-section-note {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   margin-bottom: var(--sp-5);
 }
@@ -2420,7 +2425,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   display: flex;
   align-items: center;
   padding: 0 var(--sp-4);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   cursor: pointer;
   list-style: none;
@@ -2457,7 +2462,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   gap: var(--sp-4);
   padding: var(--sp-2) 0;
   border-top: 1px solid var(--line);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 .definition-row dt,
@@ -2480,7 +2485,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .my-summary-row {
   border-top: 0;
   border-bottom: 1px solid var(--line);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
 }
 
 .my-summary-row:last-child {
@@ -2499,22 +2504,22 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .stat-num {
   font-family: var(--font-mono);
-  font-size: var(--fs-26);
+  font-size: var(--text-numeral);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
 .stat-card .stat-num {
-  font-size: var(--fs-32);
+  font-size: var(--text-numeral);
 }
 
 .stat-label {
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  font-size: var(--fs-12);
-  font-weight: 500;
+  font-size: var(--text-caption);
+  font-weight: 600;
   color: var(--ink-2);
 }
 
@@ -2541,7 +2546,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .modal-head h2,
 .admin-entry-modal-head h2 {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
 }
 
 .modal-actions,
@@ -2572,15 +2577,15 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .admin-entry-result-grid dt {
-  font-size: var(--fs-12);
-  font-weight: 500;
+  font-size: var(--text-caption);
+  font-weight: 600;
   color: var(--ink-2);
 }
 
 .admin-entry-result-grid dd {
   margin: 2px 0 0;
   font-family: var(--font-mono);
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -2653,7 +2658,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   border-radius: var(--r-full);
   background: var(--accent);
   color: var(--on-accent);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   line-height: 1;
   pointer-events: none;
@@ -2718,18 +2723,18 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .q-num {
   font-family: var(--font-mono);
-  font-size: var(--fs-21);
+  font-size: var(--text-title);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .q-label {
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   color: var(--ink-2);
 }
 
 .q-answer {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2747,7 +2752,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   margin-top: auto;
   padding: 2px 9px;
   border-radius: var(--radius-pill);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 600;
   align-self: flex-start;
   background: var(--surface-2);
@@ -2820,7 +2825,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   top: var(--sp-2);
   right: var(--sp-2);
   padding: 1px 8px;
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
 }
 
 .q-card.mine-active .q-tag-badge {
@@ -2831,7 +2836,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .q-badge {
   padding: 2px 12px;
   font-family: var(--font-mono);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 .answer-badge {
@@ -2840,7 +2845,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   border-radius: var(--radius-pill);
   background: var(--gold-100);
   color: var(--gold-600);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   max-width: 40vw;
   overflow: hidden;
@@ -2898,7 +2903,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   flex: 1;
   max-width: 200px;
   min-height: 52px;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 600;
 }
 
@@ -2914,7 +2919,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-full);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   color: var(--ink-2);
   white-space: nowrap;
 }
@@ -2959,7 +2964,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   gap: var(--sp-1);
   padding: 3px 12px;
   border-radius: var(--r-full);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -3051,7 +3056,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   justify-content: center;
   gap: var(--sp-4);
   background: var(--scrim);
-  color: #fff;
+  color: var(--on-accent);
   padding: var(--sp-6);
 }
 
@@ -3061,12 +3066,12 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .save-overlay-icon {
-  font-size: var(--fs-40);
+  font-size: var(--text-numeral);
 }
 
 .save-overlay-title {
-  color: #fff;
-  font-size: var(--fs-21);
+  color: var(--on-accent);
+  font-size: var(--text-title);
 }
 
 .save-overlay .progress-bar-outer {
@@ -3076,7 +3081,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .save-overlay-status {
   font-family: var(--font-mono);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 /* --- オフライン/オンラインバナー (.visible で表示) --- */
@@ -3096,7 +3101,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   border-radius: var(--r-full);
   border: 1px solid var(--material-line);
   box-shadow: var(--material-shadow);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   backdrop-filter: var(--material-blur);
   opacity: 0;
@@ -3136,11 +3141,11 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   border: 1px dashed var(--line-strong);
   border-radius: var(--r-md);
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
 }
 
 .message-icon-large {
-  font-size: var(--fs-32);
+  font-size: var(--text-numeral);
 }
 
 .message-icon-success {
@@ -3269,13 +3274,13 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   border-radius: 50%;
   background: var(--surface-2);
   color: var(--ink);
-  font-size: var(--fs-21);
+  font-size: var(--text-heading);
   border: 1px solid var(--line);
 }
 
 .menu-profile-name {
   font-weight: 700;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
 }
 
 .menu-section {
@@ -3283,7 +3288,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .menu-section-label {
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   letter-spacing: var(--ls-caps);
   text-transform: uppercase;
@@ -3300,7 +3305,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   min-height: var(--control-h);
   padding: 0 var(--sp-3);
   border-radius: var(--r-surface);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--ink);
   text-align: left;
@@ -3420,14 +3425,14 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .confirm-message {
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 700;
   line-height: 1.5;
   margin-bottom: var(--sp-3);
 }
 
 .confirm-body {
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   color: var(--ink-2);
   margin-bottom: var(--sp-4);
 }
@@ -3445,7 +3450,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .checklist-hint {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   margin-bottom: var(--sp-2);
 }
@@ -3463,7 +3468,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-sm);
   background: var(--surface-2);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 .checklist-item.done,
@@ -3510,13 +3515,13 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
-  color: #ffffff;
+  color: var(--on-accent);
   padding-bottom: var(--sp-3);
 }
 
 .preview-overlay-title {
   font-weight: 700;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
 }
 
 .preview-close {
@@ -3532,7 +3537,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   border-radius: var(--r-full);
   color: #111111;
   background: #ffffff;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
@@ -3593,7 +3598,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   justify-content: space-between;
   gap: var(--sp-3);
   padding: var(--sp-2) 0;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   border-bottom: 1px solid var(--line);
 }
 
@@ -3684,7 +3689,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   margin-bottom: var(--sp-4);
 }
@@ -3727,7 +3732,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .dt-picker-weekdays span {
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 600;
   color: var(--ink-2);
   padding: 0 0 var(--sp-2);
@@ -3739,9 +3744,9 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   align-items: center;
   justify-content: center;
   border-radius: var(--r-sm);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-family: var(--font-mono);
-  font-weight: 500;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
   background: transparent;
@@ -3781,7 +3786,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .dt-time-label {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 700;
   color: var(--ink-2);
 }
@@ -3790,7 +3795,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   flex: 1;
   min-height: var(--control-h);
   font-family: var(--font-mono);
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -3817,7 +3822,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   min-height: var(--control-h);
   padding: 0 var(--sp-4);
   border-radius: var(--radius-control);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   cursor: pointer;
 }
@@ -3855,9 +3860,9 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color var(--t-micro) var(--ease-out), background var(--t-micro) var(--ease-out),
     opacity var(--t-press) var(--ease-out), transform var(--t-press) var(--ease-out);
@@ -3895,7 +3900,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   min-height: var(--control-h);
   padding: 0 var(--sp-4);
   border-radius: var(--r-md);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--ink-2);
   width: 100%;
@@ -3957,7 +3962,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -3988,7 +3993,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .progress-text {
   font-family: var(--font-mono);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   color: var(--ink-2);
   white-space: nowrap;
@@ -4010,7 +4015,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .u-min-h-120 { min-height: 120px; }
 .u-mt-xs { margin-top: var(--sp-1); }
 .u-input-compact { max-width: 220px; }
-.u-label-compact { font-size: var(--fs-13); margin-bottom: var(--sp-1); }
+.u-label-compact { font-size: var(--text-small); margin-bottom: var(--sp-1); }
 .u-dashed { border-style: dashed; }
 
 .mt-zero { margin-top: 0 !important; }
@@ -4046,12 +4051,12 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .flex-grow { flex: 1; min-width: 0; }
 
 .u-tiny-muted {
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   color: var(--ink-2);
 }
 
 .u-muted-note {
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
@@ -4059,8 +4064,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   display: flex;
   align-items: flex-start;
   gap: var(--sp-2);
-  font-size: var(--fs-13);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 600;
   line-height: 1.55;
   color: var(--bad-600);
   max-width: var(--measure);
@@ -4075,12 +4080,12 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 
 .inline-danger-message {
   color: var(--bad-600);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
 }
 
 .text-muted-sm {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
@@ -4092,7 +4097,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   margin-inline: auto;
   text-align: left;
   color: var(--ink-2);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   padding: var(--sp-5);
 }
 
@@ -4112,14 +4117,14 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 .u-success-icon {
-  font-size: var(--fs-40);
+  font-size: var(--text-numeral);
   color: var(--ok-500);
   display: inline-flex;
   justify-content: center;
 }
 
 .u-complete-title {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   font-weight: 700;
   margin-top: var(--sp-3);
 }
@@ -4143,7 +4148,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 /* 汎用時刻表示 */
 .c-time {
   font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   color: var(--ink-2);
   white-space: nowrap;
 }
@@ -4298,20 +4303,20 @@ h3 {
 }
 
 h1 {
-  font-size: clamp(var(--fs-26), 3.2vw, var(--fs-40));
+  font-size: var(--text-title);
   line-height: 1.08;
 }
 
 h2 {
-  font-size: clamp(var(--fs-21), 2vw, var(--fs-26));
+  font-size: var(--text-heading);
 }
 
 h3 {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
 }
 
 a {
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .btn,
@@ -4446,7 +4451,7 @@ a {
 }
 
 label {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   color: var(--ink-2);
 }
@@ -4541,7 +4546,7 @@ select:focus {
 
 .header-center h1,
 .fixed-header h1 {
-  font-size: var(--fs-17, 1.0625rem);
+  font-size: var(--text-heading);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -4594,7 +4599,7 @@ select:focus {
   min-height: 28px;
   border-radius: var(--r-full);
   padding: 4px 10px;
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   letter-spacing: -0.006em;
   border: 1px solid var(--line-strong);
@@ -4651,15 +4656,15 @@ select:focus {
 
 .confirm-title {
   margin-bottom: var(--sp-2);
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   font-weight: 700;
   color: var(--ink);
   text-align: left;
 }
 
 .confirm-message {
-  font-size: var(--fs-16);
-  font-weight: 500;
+  font-size: var(--text-body);
+  font-weight: 600;
   color: var(--ink-2);
   text-align: left;
   line-height: 1.55;
@@ -4746,7 +4751,7 @@ select:focus {
   background: transparent;
   box-shadow: none;
   font-family: var(--font-text);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
@@ -4837,7 +4842,7 @@ select:focus {
   min-height: 34px;
   border-radius: 50%;
   font-family: var(--font-text);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -4864,7 +4869,7 @@ select:focus {
   min-height: 36px;
   border-radius: var(--r-surface);
   font-family: var(--font-text);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -4940,7 +4945,7 @@ select:focus {
 
 .config-row:has(.toggle-switch) .toggle-info-title {
   color: var(--ink);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
   letter-spacing: -0.012em;
   line-height: 1.2;
@@ -4961,7 +4966,7 @@ select:focus {
 }
 
 .terms-alert-title {
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
 }
 
 .q-card,
@@ -5025,7 +5030,7 @@ table {
 thead th {
   background: var(--surface-2);
   color: var(--ink-2);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -5099,7 +5104,7 @@ tbody td {
 }
 
 .menu-profile-name {
-  font-size: var(--fs-17);
+  font-size: var(--text-heading);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -5129,7 +5134,7 @@ tbody td {
   margin: 0;
   padding: 12px 14px 4px;
   color: var(--ink-2);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   letter-spacing: 0.01em;
   text-transform: none;
@@ -5140,7 +5145,7 @@ tbody td {
   padding: 0 14px;
   border-radius: 0;
   border-top: 1px solid var(--line);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -5188,7 +5193,7 @@ tbody td {
   border-radius: var(--r-surface);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line), 0 1px 1px rgba(0, 0, 0, 0.02);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   letter-spacing: -0.012em;
 }
@@ -5232,7 +5237,7 @@ tbody td {
   min-height: 36px;
   padding: 0 10px;
   border-radius: var(--r-control);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
 }
 
@@ -5252,7 +5257,7 @@ tbody td {
   min-height: 38px;
   margin-bottom: 8px;
   padding: 0 2px;
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
   letter-spacing: -0.012em;
 }
@@ -5273,7 +5278,7 @@ tbody td {
 
 .dt-picker-weekdays span {
   padding-bottom: 4px;
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
 }
 
@@ -5281,7 +5286,7 @@ tbody td {
   min-height: 36px;
   border-radius: 50%;
   font-family: var(--font-text);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -5316,7 +5321,7 @@ tbody td {
   border-radius: var(--r-surface);
   background: var(--surface);
   font-family: var(--font-text);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
 }
 
@@ -5365,7 +5370,7 @@ tbody td {
 .dt-picker-title {
   margin-bottom: 4px;
   color: var(--ink-2);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   letter-spacing: 0.02em;
   text-align: center;
@@ -5379,7 +5384,7 @@ tbody td {
 
 .dt-picker-nav #dt-picker-month {
   color: var(--ink);
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   font-weight: 700;
   letter-spacing: -0.025em;
 }
@@ -5413,8 +5418,8 @@ tbody td {
 .dt-picker-weekdays span {
   min-height: 24px;
   padding: 0;
-  color: var(--ink-3);
-  font-size: var(--fs-12);
+  color: var(--ink-2);
+  font-size: var(--text-caption);
   font-weight: 700;
 }
 
@@ -5425,7 +5430,7 @@ tbody td {
   margin: 0 auto;
   border-radius: 50%;
   font-family: var(--font-text);
-  font-size: var(--fs-17);
+  font-size: var(--text-body);
   font-weight: 600;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -5473,7 +5478,7 @@ tbody td {
 
 .dt-time-label {
   color: var(--ink);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
 }
 
@@ -5486,7 +5491,7 @@ tbody td {
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--line);
   font-family: var(--font-text);
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   font-weight: 700;
   letter-spacing: -0.02em;
   text-align: right;
@@ -5502,7 +5507,7 @@ tbody td {
   min-height: 44px;
   padding: 0 18px;
   border-radius: var(--r-full);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
   transition: background var(--t-press) var(--ease-out),
     color var(--t-press) var(--ease-out),

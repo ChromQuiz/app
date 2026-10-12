@@ -36,7 +36,7 @@ body.page-auth {
 
 .auth-brand {
   margin: 0 0 var(--sp-6);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--ink-2);
@@ -45,7 +45,7 @@ body.page-auth {
 .auth-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--fs-26);
+  font-size: var(--text-title);
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.02em;
@@ -54,7 +54,7 @@ body.page-auth {
 
 .auth-lede {
   margin: var(--sp-3) 0 0;
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 400;
   line-height: 1.65;
   color: var(--ink-2);
@@ -68,7 +68,7 @@ body.page-auth {
 
 .auth-note {
   margin: var(--sp-4) 0 0;
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 400;
   line-height: 1.7;
   color: var(--ink-2);
@@ -88,7 +88,7 @@ body.page-auth {
 
 .auth-identity-user {
   min-width: 0;
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   overflow-wrap: anywhere;
 }
@@ -104,7 +104,7 @@ body.page-auth {
 
 .auth-section-title {
   margin: 0 0 var(--sp-3);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   color: var(--ink-2);
 }
@@ -121,8 +121,8 @@ body.page-auth {
   display: inline-flex;
   align-items: center;
   min-height: var(--control-h-sm);
-  font-size: var(--fs-13);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 600;
   color: var(--ink-2);
 }
 
@@ -136,7 +136,7 @@ body.page-auth {
   }
 
   .auth-title {
-    font-size: var(--fs-24);
+    font-size: var(--text-title);
   }
 }
 
@@ -166,8 +166,8 @@ body.page-auth {
   border-bottom: 1px solid var(--line);
   border-radius: 0;
   background: var(--surface);
-  font-weight: 500;
-  font-size: var(--fs-15);
+  font-weight: 600;
+  font-size: var(--text-body);
   text-align: left;
   cursor: pointer;
   transition: border-color var(--t-micro) var(--ease), background var(--t-micro) var(--ease);
@@ -189,14 +189,14 @@ body.page-auth {
 .project-list-item small {
   display: block;
   font-family: var(--font-mono);
-  font-size: var(--fs-12);
-  color: var(--ink-3);
+  font-size: var(--text-caption);
+  color: var(--ink-2);
 }
 
 .project-list-empty {
   text-align: center;
-  color: var(--ink-3);
-  font-size: var(--fs-14);
+  color: var(--ink-2);
+  font-size: var(--text-small);
   padding: var(--sp-4);
 }
 
@@ -209,7 +209,7 @@ body.page-auth {
   flex: 1;
   min-width: 0;
   font-family: var(--font-mono);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 
@@ -264,26 +264,26 @@ body.page-question .header-center {
   align-items: center;
   gap: 0 var(--sp-2);
   min-width: 0;
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
 /* 模範解答一覧の別解。セルは1行固定(.q-answer が nowrap + ellipsis)なので、
    入りきらない分は省略される。全文は編集時に「/」区切りで開いて確認できる。 */
 .model-answer-alts {
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 
 /* 要確認カードの別解。採点者の判断が割れた問題ほど別解が効く */
 .conflict-review-alts {
-  color: var(--ink-3);
+  color: var(--ink-2);
   font-weight: 400;
 }
 
 /* 中部枠の説明。チェックの意味(順位に効く)をその場で読ませる */
 .chubu-priority-note {
   margin-top: var(--sp-1);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   line-height: var(--lh-body);
 }
@@ -304,7 +304,7 @@ body.page-question .header-center {
 .page-logo h1 {
   display: block;
   font-family: var(--font-display);
-  font-size: clamp(var(--fs-24), 4.5vw, var(--fs-32));
+  font-size: var(--text-title);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.022em;
@@ -318,8 +318,8 @@ body.page-question .header-center {
 
 .page-logo .logo-sub {
   margin-top: var(--sp-1);
-  font-size: var(--fs-13);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 400;
   color: var(--ink-2);
 }
 
@@ -352,7 +352,7 @@ body.page-question .header-center {
 
 .verify-code-box {
   font-family: var(--font-mono);
-  font-size: var(--fs-24) !important;
+  font-size: var(--text-title) !important;
   font-weight: 600;
   text-align: center;
   text-wrap: balance;   /* 2行に折り返すときも、行の長さをそろえる(最終行だけ短く残さない) */
@@ -373,7 +373,7 @@ body.page-question .header-center {
 
   .verify-code-box {
     min-height: 50px;
-    font-size: var(--fs-22) !important;
+    font-size: var(--text-title) !important;
   }
 }
 
@@ -385,8 +385,8 @@ body.page-question .header-center {
   padding: 0 var(--sp-3);
   margin-top: var(--sp-3);
   border-radius: var(--r-md);
-  font-size: var(--fs-14);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 600;
   color: var(--accent);
 }
 
@@ -420,7 +420,7 @@ body.page-question .header-center {
 }
 
 .entry-name-pref-area {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
 }
 
 /* ============================================================
@@ -442,14 +442,14 @@ body.page-question .header-center {
 }
 
 .my-number-label {
-  font-size: var(--fs-13);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 600;
   color: var(--ink-2);
 }
 
 .my-number {
   font-family: var(--font-mono);
-  font-size: var(--fs-56);
+  font-size: var(--text-hero);
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: 0.04em;
@@ -476,7 +476,7 @@ body.page-question .header-center {
 }
 
 .my-qr-caption {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
@@ -495,11 +495,11 @@ body.page-question .header-center {
 }
 
 .my-section-head h2 {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
 }
 
 .my-note {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   margin: var(--sp-2) 0 var(--sp-3);
 }
@@ -528,7 +528,7 @@ body.page-question .header-center {
   justify-content: center;
   gap: var(--sp-5);
   padding: var(--sp-6) 0 0;
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
 }
 
 .my-footer-actions a,
@@ -541,7 +541,7 @@ body.page-question .header-center {
 }
 
 .my-footer-actions button {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
 }
 
 .my-footer-actions a:hover,
@@ -556,14 +556,14 @@ body.page-question .header-center {
 }
 
 .result-name {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   font-weight: 600;
   margin-bottom: var(--sp-3);
 }
 
 .result-rank {
   display: inline-block;
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--gold-600);
   margin-bottom: var(--sp-3);
@@ -578,7 +578,7 @@ body.page-question .header-center {
 
 .result-score {
   font-family: var(--font-mono);
-  font-size: var(--fs-56);
+  font-size: var(--text-hero);
   font-weight: 600;
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
@@ -586,9 +586,9 @@ body.page-question .header-center {
 
 .result-score-unit {
   font-family: var(--font-mono);
-  font-size: var(--fs-15);
-  font-weight: 500;
-  color: var(--ink-3);
+  font-size: var(--text-body);
+  font-weight: 400;
+  color: var(--ink-2);
 }
 
 .result-streaks {
@@ -596,10 +596,10 @@ body.page-question .header-center {
 }
 
 .streak-title {
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 600;
   letter-spacing: var(--ls-caps);
-  color: var(--ink-3);
+  color: var(--ink-2);
   text-transform: uppercase;
   margin-bottom: var(--sp-2);
 }
@@ -623,14 +623,14 @@ body.page-question .header-center {
 }
 
 .streak-label {
-  font-size: var(--fs-12);
-  font-weight: 500;
+  font-size: var(--text-caption);
+  font-weight: 600;
   color: var(--ink-2);
 }
 
 .streak-val {
   font-family: var(--font-mono);
-  font-size: var(--fs-21);
+  font-size: var(--text-title);
   font-weight: 600;
 }
 
@@ -666,7 +666,7 @@ body.page-question .header-center {
   width: 48px;
   height: 48px;
   border-radius: var(--r-full);
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   transition: background var(--t-micro) var(--ease), color var(--t-micro) var(--ease);
 }
 
@@ -695,7 +695,7 @@ body.page-question .header-center {
 .terms-body {
   width: 100%;
   max-width: 760px;
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   line-height: 1.9;
 }
 
@@ -729,7 +729,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
 }
 
 .terms-toc-title {
@@ -820,7 +820,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 
 .terms-body small {
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
 }
 
 .terms-body u {
@@ -885,7 +885,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   border-radius: var(--r-full);
   background: var(--surface-2);
   color: var(--ink-2);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 700;
   vertical-align: 0.08em;
 }
@@ -904,7 +904,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   margin-bottom: var(--sp-2);
   color: var(--ink-3);
   font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
 }
 
 .terms-body pre[data-lang]:not([data-title])::before {
@@ -1005,8 +1005,8 @@ body.page-wrapper:has(#terms-card) .page-container {
 
 .terms-figure figcaption {
   margin-top: var(--sp-2);
-  color: var(--ink-3);
-  font-size: var(--fs-13);
+  color: var(--ink-2);
+  font-size: var(--text-small);
   text-align: center;
 }
 
@@ -1044,7 +1044,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   background: var(--surface-2);
   color: var(--ink);
   font-family: var(--font-mono);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
 }
 
 .terms-definition-list {
@@ -1082,7 +1082,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   padding-top: var(--sp-4);
   border-top: 1px solid var(--line);
   color: var(--ink-2);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 .terms-footnotes h2 {
@@ -1096,8 +1096,8 @@ body.page-wrapper:has(#terms-card) .page-container {
 .terms-footnote-back {
   display: inline-block;
   margin-left: var(--sp-2);
-  color: var(--ink-3);
-  font-size: var(--fs-12);
+  color: var(--ink-2);
+  font-size: var(--text-caption);
 }
 
 @media (max-width: 768px) {
@@ -1120,14 +1120,14 @@ body.page-wrapper:has(#terms-card) .page-container {
    ============================================================ */
 .entry-list-count {
   text-align: center;
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   color: var(--ink-2);
   margin-bottom: var(--sp-5);
 }
 
 .entry-list-count strong {
   font-family: var(--font-sans);
-  font-size: var(--fs-32);
+  font-size: var(--text-numeral);
   font-weight: 600;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
@@ -1144,7 +1144,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 
 .entry-list-loading-cell {
   text-align: center;
-  color: var(--ink-3);
+  color: var(--ink-2);
   padding: var(--sp-8);
 }
 
@@ -1168,7 +1168,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 .entry-list-message-cell,
 .entry-table-message {
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   max-width: 36ch;
   overflow-wrap: anywhere;
 }
@@ -1178,7 +1178,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 .entry-list-message-row td {
   background: var(--surface-2);
   color: var(--ink);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   text-align: center;
   padding: var(--sp-2) var(--sp-4);
@@ -1194,7 +1194,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 .entry-row-waitlist td {
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 
 .entry-row-waitlist .entry-list-name-cell {
@@ -1264,8 +1264,8 @@ body.page-wrapper:has(#terms-card) .page-container {
   .page-entry-list .list-container td[data-label="所属"]::before,
   .page-entry-list .list-container td[data-label="学年"]::before {
     content: attr(data-label) " ";
-    color: var(--ink-3);
-    font-size: var(--fs-12);
+    color: var(--ink-2);
+    font-size: var(--text-caption);
     margin-right: var(--sp-1);
   }
 
@@ -1319,7 +1319,7 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 .ops-focus-bar h1 {
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
 }
 
@@ -1381,7 +1381,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   border: 1px solid transparent;
   border-radius: var(--r-full);
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   transition: background var(--t-micro) var(--ease-out), color var(--t-micro) var(--ease-out),
     opacity var(--t-press) var(--ease-out), transform var(--t-press) var(--ease-out);
@@ -1397,7 +1397,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   border-radius: var(--r-full);
   color: var(--ink-2);
   font-family: var(--font-sans);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -1454,7 +1454,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   border-radius: var(--radius-grouped);
   text-align: left;
   color: var(--ink);
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   cursor: pointer;
   transition: background var(--t-micro) var(--ease-out), opacity var(--t-press) var(--ease-out),
     transform var(--t-press) var(--ease-out);
@@ -1487,7 +1487,7 @@ body.page-wrapper:has(#terms-card) .page-container {
   border: 1.5px solid var(--line-strong);
   background: var(--surface);
   font-family: var(--font-sans);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--ink-2);
@@ -1508,12 +1508,12 @@ body.page-wrapper:has(#terms-card) .page-container {
 }
 
 .phase-title {
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 600;
 }
 
 .phase-desc {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
@@ -1752,19 +1752,6 @@ body.page-wrapper:has(#terms-card) .page-container {
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
 }
 
-.judge-resume {
-  min-height: 88px;
-  padding: 22px;
-  margin-bottom: 20px;
-  border-radius: var(--r-overlay);
-}
-
-.judge-summary {
-  min-height: 44px;
-  padding: 10px 18px;
-  margin-bottom: 18px;
-}
-
 .q-grid {
   gap: 14px;
 }
@@ -1910,7 +1897,7 @@ body.page-checkin #camera-container {
 }
 
 .entry-list-count strong {
-  font-size: var(--fs-24);
+  font-size: var(--text-title);
 }
 
 body.page-entry-list .entry-list-count {
@@ -1931,7 +1918,7 @@ body.page-admin .saved-answers-section > .flex-row-spread:first-child {
 }
 
 body.page-admin .saved-answers-section h2 {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
 }
 
 body.page-admin .saved-answers-section #entry-list {
@@ -1988,7 +1975,7 @@ body.page-question .q-badge {
   color: var(--canvas);
   box-shadow: none;
   font-family: var(--font-text);
-  font-size: var(--fs-17);
+  font-size: var(--text-heading);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -2002,7 +1989,7 @@ body.page-question .answer-badge {
   background: var(--surface);
   color: var(--ink-2);
   box-shadow: inset 0 0 0 1px var(--line);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 /* Check-in camera visibility guard. Keep after legacy layout overrides. */
@@ -2091,7 +2078,7 @@ body.page-admin .model-cell .q-label {
   color: var(--ink-2);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -2099,7 +2086,7 @@ body.page-admin .model-cell .q-label {
 body.page-admin .model-cell .q-answer {
   min-width: 0;
   color: var(--ink);
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 700;
   letter-spacing: -0.015em;
   overflow: hidden;
@@ -2108,7 +2095,7 @@ body.page-admin .model-cell .q-answer {
 }
 
 body.page-admin .model-cell .q-answer.model-answer-empty {
-  color: var(--ink-3);
+  color: var(--ink-2);
   font-weight: 600;
 }
 
@@ -2120,7 +2107,7 @@ body.page-admin .model-cell .inline-edit-input {
   border-radius: var(--r-surface);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--accent);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
 }
 
@@ -2189,7 +2176,7 @@ body.page-admin .period-hint,
 body.page-admin .entry-sub,
 body.page-admin .admin-manual-footer {
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   line-height: 1.45;
 }
 
@@ -2215,7 +2202,7 @@ body.page-admin .phase-subblock > h3,
 body.page-admin .period-heading {
   margin-bottom: 12px;
   color: var(--ink);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.012em;
@@ -2240,7 +2227,7 @@ body.page-admin .period-grid {
 body.page-admin .period-label {
   margin-bottom: 8px;
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
 }
 
@@ -2284,7 +2271,7 @@ body.page-admin .link-label,
 body.page-admin .config-row label,
 body.page-admin .email-notification-card strong {
   color: var(--ink);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.012em;
@@ -2306,7 +2293,7 @@ body.page-admin .stat-card {
 }
 
 body.page-admin .stat-num {
-  font-size: clamp(var(--fs-26), 3vw, var(--fs-40));
+  font-size: var(--text-numeral);
   line-height: 1;
 }
 
@@ -2404,7 +2391,7 @@ body.page-admin .danger-zone {
 }
 
 .phase-block > h2 {
-  font-size: var(--fs-16);
+  font-size: var(--text-body);
   font-weight: 600;
   margin-bottom: var(--sp-4);
 }
@@ -2448,15 +2435,15 @@ body.page-admin .danger-zone {
 
 /* 期間設定 */
 .period-heading {
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   margin-bottom: var(--sp-3);
 }
 
 .period-hint {
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 400;
-  color: var(--ink-3);
+  color: var(--ink-2);
   margin-left: var(--sp-1);
 }
 
@@ -2487,7 +2474,7 @@ body.page-admin .danger-zone {
 }
 
 .period-label {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
@@ -2517,8 +2504,8 @@ body.page-admin .danger-zone {
 .link-label {
   flex: 1;
   min-width: 0;
-  font-size: var(--fs-14);
-  font-weight: 500;
+  font-size: var(--text-small);
+  font-weight: 600;
 }
 
 /* 参加者テーブルの行状態 */
@@ -2549,7 +2536,7 @@ body.page-admin .danger-zone {
   display: inline-block;
   min-width: 44px;
   font-family: var(--font-mono);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -2654,7 +2641,7 @@ body.page-admin #entry-list .entry-info {
 body.page-admin #entry-list .entry-name {
   min-width: 0;
   color: var(--ink);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.012em;
@@ -2666,7 +2653,7 @@ body.page-admin #entry-list .entry-name {
 body.page-admin #entry-list .entry-sub {
   min-width: 0;
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2681,7 +2668,7 @@ body.page-admin #entry-list .entry-num-badge {
   color: var(--ink-2);
   box-shadow: inset 0 0 0 1px var(--line);
   font-family: var(--font-text);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 700;
   letter-spacing: -0.01em;
   text-align: center;
@@ -2702,7 +2689,7 @@ body.page-admin .saved-answers-section > .flex-row-spread:first-child .flex-row 
 body.page-admin .saved-answers-section h2 {
   margin: 0;
   color: var(--ink);
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.018em;
@@ -2715,7 +2702,7 @@ body.page-admin .saved-answers-section .count-badge {
   background: var(--surface-2);
   color: var(--ink-2);
   border-color: var(--line);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 700;
 }
 
@@ -2725,7 +2712,7 @@ body.page-admin .saved-answers-section #select-all-label {
   min-height: 36px;
   padding: 0 8px;
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
 }
 
@@ -2764,13 +2751,13 @@ body.page-admin .saved-answers-section #entry-list .checkbox-mark {
 }
 
 body.page-admin .saved-answers-section #entry-list .entry-name {
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
 body.page-admin .saved-answers-section #entry-list .entry-sub {
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   color: var(--ink-2);
 }
 
@@ -2782,7 +2769,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   background: transparent;
   color: var(--ink-2);
   box-shadow: none;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   font-weight: 700;
 }
 
@@ -2806,7 +2793,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 
 .entry-num {
   font-family: var(--font-text);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
 }
 
@@ -2815,7 +2802,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 }
 
 .entry-sub {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
@@ -2837,12 +2824,12 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   padding: var(--sp-2) var(--sp-3);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
 }
 
 .model-cell.model-answer-empty {
   border-style: dashed;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 
 .model-move-controls {
@@ -2889,16 +2876,16 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 600;
   color: var(--ink);
   min-width: 0;
 }
 
-.stats-bar-seg.confirmed { background: var(--ok-600); color: var(--on-ok); }
-.stats-bar-seg.conflict  { background: var(--warn-500); color: var(--on-warn); }
-.stats-bar-seg.inprogress { background: var(--ink-3); color: var(--surface); }
-.stats-bar-seg.untouched { background: var(--line-strong); color: var(--ink-2); }
+.stats-bar-seg.confirmed { background: var(--seg-confirmed); color: var(--on-ok); }
+.stats-bar-seg.conflict  { background: var(--seg-conflict); color: var(--on-warn); }
+.stats-bar-seg.inprogress { background: var(--seg-inprogress); color: var(--surface); }
+.stats-bar-seg.untouched { background: var(--seg-untouched); color: var(--ink-2); }
 
 .stats-legend {
   display: flex;
@@ -2910,7 +2897,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
@@ -2920,10 +2907,10 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   border-radius: var(--r-control);
 }
 
-.legend-done    { background: var(--ok-500); }
-.legend-conflict { background: var(--warn-500); }
-.legend-scoring { background: var(--ink-3); }
-.legend-pending { background: var(--line-strong); }
+.legend-done    { background: var(--seg-confirmed); }
+.legend-conflict { background: var(--seg-conflict); }
+.legend-scoring { background: var(--seg-inprogress); }
+.legend-pending { background: var(--seg-untouched); }
 
 .name-input-flex {
   display: flex;
@@ -2952,7 +2939,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 .admin-manual-footer {
   text-align: center;
   color: var(--ink-2); /* ink-3 は背景に対して 3.0:1 で読みにくい */
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   padding: var(--sp-5) 0;
 }
 
@@ -2982,35 +2969,6 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 }
 
 /* 続きから — 採点者の「次の一手」 */
-.judge-resume {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-5);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-lg);
-  margin-bottom: var(--sp-4);
-  flex-wrap: wrap;
-}
-
-.judge-resume-title {
-  font-size: var(--fs-16);
-  font-weight: 600;
-}
-
-.judge-resume-desc {
-  font-size: var(--fs-13);
-  color: var(--ink-2);
-}
-
-.judge-summary {
-  font-size: var(--fs-13);
-  color: var(--ink-2);
-  margin-bottom: var(--sp-4);
-  font-variant-numeric: tabular-nums;
-}
-
 /* グリッド内メッセージ(空/エラー時に全幅) */
 .grid-message {
   grid-column: 1 / -1;
@@ -3066,7 +3024,7 @@ body.page-conflict .action-bar {
   padding: var(--sp-2);
   border-top: 1px solid var(--line);
   background: var(--surface);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   white-space: nowrap;
   overflow: hidden;
 }
@@ -3116,7 +3074,7 @@ body.page-checkin {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
   white-space: nowrap;
 }
@@ -3234,8 +3192,8 @@ body.page-checkin .left-col {
   gap: var(--sp-2);
   margin-top: var(--sp-3);
   color: var(--ink-2);
-  font-size: var(--fs-15);
-  font-weight: 500;
+  font-size: var(--text-body);
+  font-weight: 400;
 }
 
 /* 判定パネル(常設・大型) — 参加者と担当者の両方が読む */
@@ -3292,11 +3250,11 @@ body.page-checkin .right-col {
   align-items: center;
   gap: var(--sp-2);
   color: var(--ink-2); /* ink-3 は 3.4:1 で、待機中の案内が読みにくい */
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
 }
 
 .checkin-result-idle [data-icon] {
-  font-size: var(--fs-32);
+  font-size: var(--text-numeral);
 }
 
 /* 判定表示: パネル全体が状態になる */
@@ -3311,7 +3269,7 @@ body.page-checkin .right-col {
   padding: var(--sp-6);
   border-radius: var(--r-lg);
   text-align: center;
-  font-size: var(--fs-32);
+  font-size: var(--text-numeral);
   font-weight: 700;
   border: 3px solid transparent;
 }
@@ -3329,19 +3287,19 @@ body.page-checkin .right-col {
   width: fit-content;
   max-width: 100%;
   text-align: left;
-  font-size: var(--fs-21);
+  font-size: var(--text-title);
   font-weight: 600;
 }
 
 #result .sub {
   color: var(--ink-2);
-  font-size: var(--fs-15);
-  font-weight: 500;
+  font-size: var(--text-body);
+  font-weight: 400;
 }
 
 #result .number {
   font-family: var(--font-mono);
-  font-size: var(--fs-56);
+  font-size: var(--text-hero);
   font-weight: 600;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -3351,7 +3309,7 @@ body.page-checkin .right-col {
   background: var(--surface-2);
   color: var(--ink-2);
   border-color: var(--line-strong);
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
 }
 
 #result.success {
@@ -3394,7 +3352,7 @@ body.page-help {
 }
 
 .help-header h1 {
-  font-size: var(--fs-26);
+  font-size: var(--text-title);
   margin-bottom: var(--sp-2);
   display: flex;
   align-items: center;
@@ -3407,7 +3365,7 @@ body.page-help {
 
 .help-header p {
   color: var(--ink-2);
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
 }
 
 .qa-category {
@@ -3418,10 +3376,10 @@ body.page-help {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   letter-spacing: var(--ls-caps);
-  color: var(--ink-3);
+  color: var(--ink-2);
   margin-bottom: var(--sp-3);
 }
 
@@ -3446,7 +3404,7 @@ body.page-help {
   background: none;
   color: inherit;
   font: inherit;
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -3478,7 +3436,7 @@ body.page-help {
 
 .qa-answer-inner {
   overflow: hidden;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   color: var(--ink-2);
   line-height: 1.8;
 }
@@ -3510,7 +3468,7 @@ body.page-404 {
 
 /* コード自体は主役ではない。見出しの上に置く小さな識別子として扱う */
 .error-code {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.08em;
@@ -3520,14 +3478,14 @@ body.page-404 {
 
 .error-title {
   font-family: var(--font-display);
-  font-size: var(--fs-26);
+  font-size: var(--text-title);
   line-height: 1.25;
   letter-spacing: -0.022em;
   margin-bottom: var(--sp-3);
 }
 
 .error-desc {
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   color: var(--ink-2);
   margin-bottom: var(--sp-6);
   /* 見出しは中央、複数行の本文は左揃え（最終行だけ中央に寄らないように） */
@@ -3571,7 +3529,7 @@ body.page-checkin {
 
 .help-header h1,
 .page-container > h1 {
-  font-size: clamp(var(--fs-24), 4vw, var(--fs-32));
+  font-size: var(--text-title);
   line-height: 1.15;
   letter-spacing: -0.022em;
 }
@@ -3580,7 +3538,7 @@ body.page-checkin {
 .my-section-head,
 .period-heading,
 .qa-category-title {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--ink-2);
@@ -3675,7 +3633,7 @@ body.page-my .my-section-head {
 
 body.page-my .my-section-head h2 {
   margin: 0;
-  font-size: var(--fs-22);
+  font-size: var(--text-heading);
   line-height: 1.35;
   letter-spacing: -0.01em;
   color: var(--ink);
@@ -3707,7 +3665,7 @@ body.page-my .my-summary-row dt {
 
 body.page-my .my-summary-row dd {
   color: var(--ink);
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.6;
 }
 
@@ -3734,7 +3692,7 @@ body.page-my .my-danger-section > .btn {
   }
 
   body.page-my .my-section-head h2 {
-    font-size: var(--fs-18);
+    font-size: var(--text-heading);
   }
 
   body.page-my .my-summary-row {
@@ -3849,7 +3807,7 @@ body.page-my .my-danger-section > .btn {
 }
 
 .stat-num {
-  font-size: clamp(var(--fs-32), 4vw, var(--fs-56));
+  font-size: var(--text-numeral);
   letter-spacing: -0.04em;
 }
 
@@ -3868,14 +3826,14 @@ body.page-my .my-danger-section > .btn {
 }
 
 .file-upload-zone .file-label {
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
   letter-spacing: -0.012em;
 }
 
 .file-upload-zone .file-name {
   font-family: var(--font-text);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   letter-spacing: -0.006em;
 }
@@ -3896,21 +3854,6 @@ body.page-my .my-danger-section > .btn {
 .judge-main {
   padding-top: calc(var(--appbar-h) + env(safe-area-inset-top) + var(--sp-6));
   padding-bottom: calc(var(--sp-10) + env(safe-area-inset-bottom));
-}
-
-.judge-resume {
-  padding: var(--sp-5);
-  margin-bottom: var(--sp-5);
-}
-
-.judge-summary {
-  min-height: 44px;
-  padding: var(--sp-3) var(--sp-4);
-  margin-bottom: var(--sp-5);
-  border-radius: var(--r-full);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  color: var(--ink-2);
 }
 
 .q-grid {
@@ -4112,7 +4055,7 @@ body.page-admin .number-spinner-btn {
 }
 
 body.page-admin .phase-block > h2 {
-  font-size: var(--fs-18);
+  font-size: var(--text-heading);
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.018em;
@@ -4210,19 +4153,6 @@ body.page-admin .phase-block > h2 {
 .judge-main {
   padding-top: 12px;
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
-}
-
-.judge-resume {
-  min-height: 96px;
-  padding: 22px;
-  margin-bottom: 20px;
-  border-radius: var(--r-overlay);
-}
-
-.judge-summary {
-  min-height: 44px;
-  padding: 10px 18px;
-  margin-bottom: 18px;
 }
 
 .q-grid {
@@ -4424,7 +4354,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   border-radius: var(--r-full);
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
 }
 
 /* Turnstile widget (entry.html). 狭い画面でも溢れず、未描画時は場所を取らない。 */
@@ -4451,13 +4381,13 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 /* 当日受付: QRが読めないときの案内。受付操作そのものは運営専用ページに置く */
 .checkin-manual-note {
     margin-top: 12px;
-    font-size: var(--fs-13);
+    font-size: var(--text-small);
     color: var(--ink-2);
     text-align: center;
 }
 
 .checkin-panel-note {
-    font-size: var(--fs-13);
+    font-size: var(--text-small);
     color: var(--ink-2);
     margin-bottom: 12px;
 }
@@ -4488,17 +4418,17 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     background: var(--surface-2);
 }
 .checkin-confirm-name {
-    font-size: var(--fs-17);
+    font-size: var(--text-heading);
     font-weight: 700;
     color: var(--ink);
 }
 .checkin-confirm-sub {
-    font-size: var(--fs-13);
+    font-size: var(--text-small);
     color: var(--ink-2);
     margin-top: 2px;
 }
 .checkin-confirm-state {
-    font-size: var(--fs-13);
+    font-size: var(--text-small);
     font-weight: 600;
     margin-top: 6px;
 }
@@ -4534,7 +4464,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 .invite-field label,
 .invite-fixed-label {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-small);
     font-weight: 600;
     line-height: 1.4;
     color: var(--ink-2);
@@ -4548,7 +4478,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     display: flex;
     align-items: center;
     min-height: var(--control-h);
-    font-size: 15px;
+    font-size: var(--text-body);
     font-weight: 600;
 }
 .invite-form .btn {
@@ -4572,7 +4502,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     margin: 12px 0;
 }
 .invite-note {
-    font-size: 13px;
+    font-size: var(--text-small);
     color: var(--ink-2);
     margin-top: 6px;
 }
@@ -4606,7 +4536,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 
 .slot-row-text {
   min-width: 0;
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   color: var(--ink);
   overflow-wrap: anywhere;
 }
@@ -4647,7 +4577,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 
 .slot-panel-note {
   margin: var(--sp-3) 0 0;
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   line-height: 1.6;
   color: var(--ink-2);
 }
@@ -4702,7 +4632,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
     min-width: 0;
     min-height: 52px;
     padding: 6px 0;
-    font-size: var(--fs-12);
+    font-size: var(--text-caption);
   }
 
   /* 幅広のブロックも、親（余白の内側）の幅に収める */
@@ -4746,8 +4676,8 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   padding: 0 5px;
   border-radius: 999px;
   background: var(--bad-600);
-  color: #fff;
-  font-size: 11px;
+  color: var(--on-accent);
+  font-size: var(--text-caption);
   font-weight: 700;
   line-height: 18px;
   text-align: center;
@@ -4789,7 +4719,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 }
 
 .notif-panel-title {
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   font-weight: 700;
 }
 
@@ -4799,7 +4729,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   border-radius: 999px;
   background: transparent;
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   cursor: pointer;
 }
@@ -4827,7 +4757,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
   border-bottom: 1px solid var(--line);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   line-height: 1.5;
 }
 
@@ -4859,7 +4789,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 
 .notif-time {
   color: var(--ink-2);
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   white-space: nowrap;
 }
 
@@ -4867,7 +4797,7 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
   margin: 0;
   padding: var(--sp-5) var(--sp-4);
   color: var(--ink-2);
-  font-size: var(--fs-14);
+  font-size: var(--text-small);
   text-align: center;
 }
 
@@ -5075,22 +5005,22 @@ body.page-question .answer-line {
     grid-area: num;
     margin-right: var(--sp-3);
     font-family: var(--font-sans);
-    font-size: var(--fs-15);
+    font-size: var(--text-body);
     font-weight: 600;
     color: var(--ink-2);
   }
 
   body.page-entry-list .entry-list-name-cell {
     grid-area: name;
-    font-size: var(--fs-16);
+    font-size: var(--text-body);
     overflow-wrap: anywhere;
   }
 
   body.page-entry-list .list-container .c-time {
     grid-area: time;
     margin-left: var(--sp-3);
-    font-size: var(--fs-12);
-    color: var(--ink-3);
+    font-size: var(--text-caption);
+    color: var(--ink-2);
     white-space: nowrap;
   }
 
@@ -5103,7 +5033,7 @@ body.page-question .answer-line {
   body.page-entry-list .list-container .entry-list-meta-cell {
     grid-area: meta;
     margin-top: 2px;
-    font-size: var(--fs-14);
+    font-size: var(--text-small);
     color: var(--ink-2);
     overflow-wrap: anywhere;
   }
@@ -5112,7 +5042,7 @@ body.page-question .answer-line {
     grid-area: msg;
     max-width: none;
     margin-top: 6px;
-    font-size: var(--fs-14);
+    font-size: var(--text-small);
     line-height: 1.6;
     color: var(--ink-2);
   }
@@ -5138,7 +5068,7 @@ body.page-question .answer-line {
     padding: var(--sp-5) var(--sp-4) var(--sp-2);
     border: 0;
     background: transparent;
-    font-size: var(--fs-13);
+    font-size: var(--text-small);
     font-weight: 600;
     color: var(--ink-2);
     text-align: left;
@@ -5191,7 +5121,7 @@ body.page-question .answer-line {
 
 .slot-row-state {
   color: var(--ink-2);
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
 }
 
 /* エントリーリストの件数：エントリー数と定員を、見出し付きの2つの数字として並べる */
@@ -5210,12 +5140,12 @@ body.page-entry-list .entry-list-count {
 }
 
 .entry-list-stat-label {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   color: var(--ink-2);
 }
 
 .entry-list-stat-value {
-  font-size: var(--fs-15);
+  font-size: var(--text-body);
   color: var(--ink-2);
 }
 
@@ -5237,9 +5167,9 @@ body.page-entry-list .entry-list-count {
 .entry-list-divider-note {
   display: block;
   margin-top: 2px;
-  font-size: var(--fs-12);
+  font-size: var(--text-caption);
   font-weight: 400;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 
 .entry-list-divider-count {
@@ -5326,7 +5256,7 @@ body.page-question .answer-badge {
 
 /* 設定の行の文字（ラベル）。入力部品の前後に置く説明は、すべて同じ大きさと濃さにする */
 .config-row-label {
-  font-size: var(--fs-13);
+  font-size: var(--text-small);
   font-weight: 600;
   color: var(--ink-2);
 }
@@ -5440,13 +5370,13 @@ body.page-question .answer-badge {
   #analytics-tbody .analytics-type {
     grid-area: type;
     justify-self: end;
-    font-size: var(--fs-13);
+    font-size: var(--text-small);
     color: var(--ink-2);
   }
 
   #analytics-tbody .analytics-names {
     grid-area: names;
-    font-size: var(--fs-13);
+    font-size: var(--text-small);
     color: var(--ink-2);
     overflow-wrap: anywhere;
   }
@@ -5468,11 +5398,66 @@ body.page-question .answer-badge {
   }
 
   body.page-admin .stat-num {
-    font-size: var(--fs-26);
+    font-size: var(--text-numeral);
   }
 
   body.page-admin .stat-label {
-    font-size: var(--fs-12);
+    font-size: var(--text-caption);
     white-space: nowrap;
   }
 }
+
+/* ============================================================
+   採点ボード：続きから採点・状況の内訳
+   ------------------------------------------------------------
+   どちらも、枠や面で囲わない。ページの上に、そのまま置く。
+   内訳の丸の色は、問題カードの状態の色（未着手・採点中・完了）と同じ。
+   ============================================================ */
+.judge-resume {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-3) var(--sp-5);
+  margin-bottom: var(--sp-5);
+}
+
+.judge-resume-title {
+  font-size: var(--text-heading);
+  font-weight: 600;
+}
+
+.judge-resume-desc {
+  margin-top: 2px;
+  font-size: var(--text-small);
+  color: var(--ink-2);
+}
+
+.judge-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-5);
+  margin-bottom: var(--sp-4);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.judge-summary .inline-part {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.judge-summary .inline-part::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-full);
+  background: var(--summary-dot, var(--ink-3));
+}
+
+.judge-summary .summary-open { --summary-dot: var(--line-strong); }
+.judge-summary .summary-inprogress { --summary-dot: var(--accent); }
+.judge-summary .summary-done { --summary-dot: var(--ok-600); }
