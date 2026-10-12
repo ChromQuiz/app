@@ -7,6 +7,7 @@ const PRODUCTION_PAGES = [
   '404.html',
   'admin.html',
   'checkin.html',
+  'checkin_reader.html',
   'conflict.html',
   'entry.html',
   'entry_list.html',
@@ -120,6 +121,7 @@ describe('production UI contracts', () => {
       'question.html': ['class="page-question"', 'id="answer-grid"', 'id="mobile-action-bar"'],
       'conflict.html': ['id="conflict-grid"', 'id="conflict-action-bar"'],
       'checkin.html': ['id="camera-container"', 'id="result"'],
+      'checkin_reader.html': ['id="reader-result"', 'id="reader-input"'],
     };
     for (const [path, fragments] of Object.entries(required)) {
       const source = read(path);

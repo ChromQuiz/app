@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; img-src 'self' data: blob:;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png?v=4">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+    <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="CIQ - クイズ大会のペーパー運営を支援するプラットフォーム">
+    <title>CIQ - 当日受付（リーダー）</title>
+    <script defer src="js/config.js?v=4"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
+    <script defer src="js/supabase_config.js?v=2"></script>
+    <script defer src="js/supabase_client.js?v=2"></script>
+    <script defer src="js/supabase_api.js?v=66"></script>
+    <script defer src="js/crypto.js"></script>
+    <script defer src="js/icons.js?v=9"></script>
+    <script defer src="js/ui.js?v=39"></script>
+    <script defer src="js/shared.js?v=7"></script>
+    <link rel="stylesheet" href="css/design_system.css?v=110">
+    <link rel="stylesheet" href="css/pages.css?v=188">
+
+</head>
+<body class="page-reader">
+    <div class="fixed-header ops-focus-bar">
+        <div class="header-left">
+            <button type="button" class="back-nav-btn icon-only" id="reader-back-btn" aria-label="戻る" title="戻る"><span data-icon="chevron-left" aria-hidden="true"></span></button>
+        </div>
+        <div class="header-center">
+            <h1 id="page-title">当日受付</h1>
+        </div>
+        <div class="header-right">
+            <div class="checkin-tally u-hidden" id="stats-bar" role="status" aria-label="受付状況">
+                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-success" id="stat-checked">-</span> 済</span>
+                <span class="checkin-tally-sep" aria-hidden="true">/</span>
+                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-warning" id="stat-remaining">-</span> 未</span>
+                <span class="checkin-tally-sep" aria-hidden="true">/</span>
+                <span class="checkin-tally-item"><span class="checkin-tally-num checkin-stat-primary" id="stat-total">-</span> 計</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- リーダー専用の受付画面。カメラは使わない。
+         中央に、読み取りの結果(受付番号を大きく)。下に、リーダーの接続と、直近の受付。
+         受付番号で受付する操作は、ここにも置かない(運営画面にある)。 -->
+    <main class="reader-main" role="main">
+        <section class="reader-stage" aria-label="読み取り結果">
+            <div class="reader-idle" id="reader-idle">
+                <span data-icon="qrcode" aria-hidden="true"></span>
+                <h2 class="reader-idle-title">二次元コードを、読み取ってください</h2>
+                <p class="reader-idle-sub" id="reader-idle-sub">読み取り待機中</p>
+            </div>
+            <div class="reader-result" id="reader-result" role="status" aria-live="assertive" hidden></div>
+        </section>
+
+        <div class="reader-lower">
+            <section class="reader-block" aria-labelledby="reader-conn-title">
+                <h2 id="reader-conn-title">リーダー</h2>
+                <dl class="reader-conn">
+                    <div class="reader-conn-row">
+                        <dt>キーボード入力</dt>
+                        <dd id="reader-keyboard-state">待機中</dd>
+                    </div>
+                    <div class="reader-conn-row">
+                        <dt>USBシリアル</dt>
+                        <dd id="reader-serial-state">未接続</dd>
+                        <div class="reader-conn-actions">
+                            <label class="reader-baud" for="reader-baud">通信速度
+                                <select id="reader-baud">
+                                    <option value="9600" selected>9600</option>
+                                    <option value="19200">19200</option>
+                                    <option value="38400">38400</option>
+                                    <option value="57600">57600</option>
+                                    <option value="115200">115200</option>
+                                </select>
+                            </label>
+                            <button type="button" class="btn secondary" id="reader-serial-btn">接続する</button>
+                        </div>
+                    </div>
+                </dl>
+                <p class="reader-conn-note" id="reader-serial-note" hidden>USBシリアルは、Chrome と Edge で使えます。</p>
+            </section>
+
+            <section class="reader-block" aria-labelledby="reader-recent-title">
+                <h2 id="reader-recent-title">直近の受付</h2>
+                <ol class="reader-recent" id="reader-recent">
+                    <li class="reader-recent-empty" id="reader-recent-empty">まだありません</li>
+                </ol>
+            </section>
+        </div>
+
+        <!-- キーボードとして動くリーダーの入力先。見えないが、フォーカスは受ける -->
+        <input type="text" id="reader-input" class="reader-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="none" aria-label="二次元コードリーダーの入力">
+    </main>
+
+    <script defer src="js/qr_reader_input.js?v=1"></script>
+    <script defer src="js/qr_serial_reader.js?v=1"></script>
+    <script defer src="js/checkin_reader.js?v=1"></script>
+</body>
+
+</html>

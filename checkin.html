@@ -21,7 +21,7 @@
     <script defer src="js/ui.js?v=39"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=110">
-    <link rel="stylesheet" href="css/pages.css?v=187">
+    <link rel="stylesheet" href="css/pages.css?v=188">
 </head>
 <body class="page-checkin">
     <!-- 集中モードシェル: 戻る + 現在位置 + 受付状況(控えめ) -->
@@ -54,13 +54,6 @@
                     <div class="checkin-guide-frame"></div>
                 </div>
             </div>
-            <!-- リーダー用(?mode=reader): カメラは使わない。リーダーが打ち込む文字を、見えない入力欄で受ける -->
-            <div class="reader-panel" id="reader-panel" hidden>
-                <span data-icon="qrcode" aria-hidden="true"></span>
-                <p class="reader-panel-title">二次元コードを、リーダーで読み取ってください</p>
-                <p class="reader-panel-state" id="reader-state" role="status" aria-live="polite">読み取り待機中</p>
-                <input type="text" id="reader-input" class="reader-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="none" aria-label="二次元コードリーダーの入力">
-            </div>
             <p id="scanning-text" role="status" aria-live="polite">二次元コードを、枠の中にかざしてください。</p>
             <!-- 受付番号での手入力受付はこの画面には置かない。
                  この画面は参加者が二次元コードをかざすために覗き込む前提で、受付番号は公開情報のため、
@@ -80,7 +73,6 @@
         </div>
     </div>
 
-    <script defer src="js/qr_reader_input.js?v=1"></script>
     <script defer src="js/checkin.js?v=23"></script>
 </body>
 </html>
