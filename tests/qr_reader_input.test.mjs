@@ -120,3 +120,15 @@ describe('リーダー専用の受付画面（checkin_reader.html。カメラの
     expect(read('admin.html')).toContain('data-nav-target="checkin_reader.html"');
   });
 });
+
+describe('サイドバー（メニュー）', () => {
+  it('採点者を含め、運営の項目に、カメラとリーダーの2つの当日受付がある（運営画面・採点ボード）', () => {
+    for (const page of ['admin.html', 'judge.html']) {
+      const html = read(page);
+      expect(html, page).toMatch(/data-nav-target="checkin\.html">\s*<span data-icon="qrcode"[^>]*><\/span> カメラで当日受付/);
+      expect(html, page).toMatch(/data-nav-target="checkin_reader\.html">\s*<span data-icon="scan-line"[^>]*><\/span> リーダーで当日受付/);
+    }
+    // 管理者だけの項目ではない（u-hidden を付けない）
+    expect(read('judge.html')).not.toMatch(/u-hidden menu-item[^>]*data-nav-target="checkin_reader\.html"/);
+  });
+});
