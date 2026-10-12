@@ -4427,12 +4427,24 @@ body.page-admin .saved-answers-section #entry-list .entry-num-badge {
 
 /* Turnstile widget (entry.html). 狭い画面でも溢れず、未描画時は場所を取らない。 */
 .turnstile-box {
+  --ts-scale: 1;
+  --ts-h: auto;
   margin: 0 0 var(--sp-4, 16px);
   min-height: 0;
   max-width: 100%;
   overflow-x: auto;
 }
 .turnstile-box iframe { max-width: 100%; }
+/* 細い画面では、枠(最小幅300px)を縮めて収める。縮めた分、高さも詰める。 */
+.turnstile-box.is-scaled {
+  overflow: hidden;
+  height: var(--ts-h);
+}
+.turnstile-box.is-scaled > div {
+  width: 300px;
+  transform: scale(var(--ts-scale));
+  transform-origin: 0 0;
+}
 
 /* 当日受付: QRが読めないときの案内。受付操作そのものは運営専用ページに置く */
 .checkin-manual-note {
