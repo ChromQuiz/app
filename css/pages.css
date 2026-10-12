@@ -5494,14 +5494,13 @@ body.page-reader {
   width: min(var(--container-wide), calc(100vw - var(--wide-gutter)));
   max-width: 100%;
   margin: 0 auto;
-  padding: var(--sp-5) var(--sp-4) calc(var(--sp-8) + env(safe-area-inset-bottom));
+  padding: var(--sp-5) var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-bottom));
   display: grid;
-  gap: var(--sp-5);
 }
 
 .reader-stage {
   position: relative;
-  min-height: min(52vh, 460px);
+  min-height: calc(100dvh - var(--appbar-h) - var(--sp-5) - var(--sp-5) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -5535,8 +5534,13 @@ body.page-reader {
   color: var(--ink);
 }
 
-.reader-idle-sub {
+.reader-idle-warn {
   font-size: var(--text-body);
+  color: var(--warn-600);
+}
+
+.reader-idle-warn[hidden] {
+  display: none;
 }
 
 /* 結果: 領域いっぱいが、状態の色になる(参加者と担当者の両方が、離れた所から読む) */
@@ -5623,23 +5627,32 @@ body.page-reader {
   color: var(--ink);
 }
 
-.reader-lower {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-5);
-}
-
-.reader-block {
+/* リーダーの設定(運営だけが使う。右上の歯車から開く) */
+.reader-settings {
+  /* 全体の margin: 0 が、モーダルの中央寄せ(margin: auto)を打ち消すので、戻す */
+  margin: auto;
+  width: min(480px, calc(100vw - 32px));
   padding: var(--block-pad);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-overlay);
   background: var(--surface);
+  color: var(--ink);
 }
 
-.reader-block > h2 {
+.reader-settings::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.reader-settings > h2 {
   margin-bottom: var(--block-gap);
   font-size: var(--text-heading);
   font-weight: 700;
+}
+
+.reader-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--block-gap);
 }
 
 .reader-conn {
@@ -5690,45 +5703,11 @@ body.page-reader {
   color: var(--ink-2);
 }
 
-.reader-recent {
-  display: grid;
-  gap: var(--sp-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.reader-recent li {
-  display: grid;
-  grid-template-columns: 6em 4em 1fr;
-  align-items: center;
-  gap: var(--sp-3);
-  font-size: var(--text-body);
-}
-
-.reader-recent li > time {
-  font-size: var(--text-small);
-  color: var(--ink-2);
-  font-variant-numeric: tabular-nums;
-}
-
-.reader-recent-number {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.reader-recent li .badge {
-  justify-self: start;
-}
-
-.reader-recent-empty {
-  display: block !important;
-  color: var(--ink-2);
-}
-
-/* リーダーが打ち込む先。見えないが、フォーカスは受ける */
+/* リーダーが打ち込む先。見えないが、フォーカスは受ける(画面の外にはみ出さない場所に置く) */
 .reader-input {
-  position: absolute;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
   padding: 0;
@@ -5738,10 +5717,6 @@ body.page-reader {
 }
 
 @media (max-width: 820px) {
-  .reader-lower {
-    grid-template-columns: 1fr;
-  }
-
   .reader-main {
     padding-inline: calc(var(--sp-3) + env(safe-area-inset-left)) calc(var(--sp-3) + env(safe-area-inset-right));
   }

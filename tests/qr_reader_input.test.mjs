@@ -102,6 +102,20 @@ describe('リーダー専用の受付画面（checkin_reader.html。カメラの
     expect(js).toContain('onCode: handleCode');
   });
 
+  it('参加者に見せるのは、読み取りの結果だけ。接続・通信速度・受付状況・直近の受付は、運営だけが開く設定の中に入れる（本体に出さない）', () => {
+    const main = html.slice(html.indexOf('<main'), html.indexOf('</main>'));
+    expect(main).not.toMatch(/reader-conn|reader-baud|reader-serial|reader-recent|reader-tally|stat-checked|通信速度|直近の受付|USBシリアル/);
+    const dialog = html.slice(html.indexOf('<dialog'), html.indexOf('</dialog>'));
+    for (const id of ['reader-tally', 'reader-keyboard-state', 'reader-serial-state', 'reader-baud', 'reader-serial-btn']) expect(dialog).toContain(`id="${id}"`);
+    expect(html).not.toContain('id="stats-bar"');
+    expect(js).not.toContain('addRecent');
+  });
+
+  it('読み取りが届かないときだけ、画面に警告を出す（普段は何も出さない）', () => {
+    expect(html).toMatch(/id="reader-idle-warn"[^>]*hidden/);
+    expect(js).toContain('setIdleWarning(');
+  });
+
   it('運営画面の当日タブから、開ける', () => {
     expect(read('admin.html')).toContain('data-nav-target="checkin_reader.html"');
   });
