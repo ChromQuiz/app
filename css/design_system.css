@@ -268,13 +268,18 @@
 }
 
 html {
+  --scrollbar-comp: 0px;
   -webkit-text-size-adjust: 100%;
   /*
-   * Keep the visual center fixed when a vertical scrollbar appears.
-   * Reserving the matching inline gutter also prevents centered layouts
-   * from shifting when overlays temporarily lock page scrolling.
+   * Same layout width on every page, scrolling or not: the scrollbar track is
+   * always there, so the app bar and centred content never change size or
+   * shift when a page grows past the screen. (`scrollbar-gutter` alone is not
+   * honoured by Chrome on a page that does not scroll, and `both-edges`
+   * leaves the page off-centre where engines apply it unevenly.)
+   * Overlay scrollbars (Safari, phones) take no space, so nothing changes there.
    */
-  scrollbar-gutter: stable both-edges;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -501,6 +506,13 @@ kbd {
 
 body.body-scroll-locked {
   overflow: hidden;
+}
+
+/* html が overflow を持つと body の overflow は画面に伝わらないので、ロック中は html 側で止める。
+   スクロールバーの場所が消えるエンジンでは、ui.js が測った幅の余白を足して、幅を変えない。 */
+html:has(body.body-scroll-locked) {
+  overflow-y: hidden;
+  padding-right: var(--scrollbar-comp);
 }
 
 [hidden] {

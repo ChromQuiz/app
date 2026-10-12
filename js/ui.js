@@ -4,6 +4,22 @@
  * 注意: createIcon は js/icons.js で定義されるLucideベースのアイコン生成関数。
  */
 
+// html は常にスクロールバーの場所を空けている(css の `overflow-y: scroll`)。モーダルでスクロールを止めると
+// overflow が hidden になり、エンジンによってはその場所が消えて、画面が横にずれる。
+// 消えるエンジンでだけ、同じ幅の余白を足して、ずれを防ぐ(--scrollbar-comp)。
+function measureScrollbarCompensation() {
+    const root = document.documentElement;
+    const track = window.innerWidth - root.clientWidth;
+    if (track <= 0) return;   // 重ねて表示するスクロールバー(Safari・スマホ)は、場所を取らない
+    const previous = root.style.overflowY;
+    root.style.overflowY = 'hidden';
+    const kept = window.innerWidth - root.clientWidth;
+    root.style.overflowY = previous;
+    root.style.setProperty('--scrollbar-comp', kept >= track ? '0px' : `${track}px`);
+}
+document.addEventListener('DOMContentLoaded', measureScrollbarCompensation);
+window.addEventListener('resize', measureScrollbarCompensation);
+
 function padNum(n) { return String(n).padStart(3, '0'); }
 
 function escapeHtml(str) {
