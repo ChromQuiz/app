@@ -57,3 +57,11 @@ describe('問題アナリティクス', () => {
     expect(js).not.toContain("type: '', ");
   });
 });
+
+describe('問題アナリティクス: 要確認が残っている問題', () => {
+  it('要確認が1件でも残っている問題は、未確定として扱う（確定済みの数字を出さない）', () => {
+    const js = read('js/admin_stats.js');
+    expect(js).toContain('unresolvedQuestions.has(q)');
+    expect(js).toContain('CIQSupabaseAPI.listScoreConflicts(projectId)');
+  });
+});

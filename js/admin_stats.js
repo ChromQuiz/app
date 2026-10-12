@@ -268,10 +268,13 @@
             const threshold = readAnalyticsThreshold();
             const masterData = await loadEntryMaster();
             const tp = scoringEntryNumbers.length || 1, qStats = [];
+            // 要確認が1件でも残っている問題は、確定していない(残りの判断しだいで、正答数が変わる)
+            const conflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId).catch(() => null);
+            const unresolvedQuestions = new Set((conflictRows || []).filter(row => !row.finalResult).map(row => Number(row.q)));
             for (let q = 1; q <= totalQuestions; q++) {
                 const fd = scoresData[`__final__q${q}`] || {};
-                // __final__ が空 = まだ確定していない → 未確定として扱う
-                const hasFinal = Object.keys(fd).length > 0;
+                // __final__ が空、または要確認が残っている = まだ確定していない → 未確定として扱う
+                const hasFinal = Object.keys(fd).length > 0 && !unresolvedQuestions.has(q);
                 if (!hasFinal) {
                     qStats.push({ q, correctCount: '-', rate: '-', type: '未確定', names: '', isRare: false });
                     continue;
