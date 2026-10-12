@@ -616,6 +616,15 @@ reset role;
 select pg_temp.chk('DB-28 採点が終わっていない大会は、確定していない（完了した問題が足りない）',
   (select confirmed from public.scoring_confirmation('zz-t')) = false
   and (select completed_questions from public.scoring_confirmation('zz-t')) < (select total_questions from public.scoring_confirmation('zz-t')));
+select pg_temp.chk('DB-28 問題ごとの内部の関数は、画面から呼べない', not has_function_privilege('authenticated', 'public.question_confirmation_rows(text)', 'execute') and not has_function_privilege('anon', 'public.question_confirmation_rows(text)', 'execute'));
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-28 管理者は、問題ごとの確定の状態（問題数ぶん）を取得できる。まだ1問も確定していない',
+  (select count(*) from public.list_question_confirmation('zz-t')) = (select question_count from public.projects where id='zz-t')
+  and not exists (select 1 from public.list_question_confirmation('zz-t') where confirmed));
+reset role;
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1（管理者でない）
+select pg_temp.chk('DB-28 採点者には、問題ごとの確定の状態は返らない', (select count(*) from public.list_question_confirmation('zz-t')) = 0);
+reset role;
 select pg_temp.chk('DB-28 存在しない大会は、行を返さない（確定とは言わない）', (select count(*) from public.scoring_confirmation('zz-none')) = 0);
 
 -- ===== DB-14 reset_project_data（最後に実行）=====

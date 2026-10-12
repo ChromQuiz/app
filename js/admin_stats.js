@@ -64,45 +64,25 @@
         async function updateStatsView() {
             // 要確認(判定がそろわない答案)は、要確認ページと同じデータベースの定義(list_score_conflicts)で数える。
             // 答案のない人や、受付済みでない人を、要確認に数えないため。
-            let conflictRows = [];
+            let confirmation = [];
             let dataLoaded = true;
             try {
                 await refreshScoringEntryNumbers();
                 await refreshSupabaseScoringData();
-                conflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId);
+                confirmation = await CIQSupabaseAPI.listQuestionConfirmation(projectId);
             } catch (e) {
                 dataLoaded = false;   // 読み込めなかったときは、出力を許可しない
                 showAdminToast('集計データを読み込めませんでした。（詳細：' + errorDetail(e) + '）');
             }
-            const conflictsByQuestion = {};
-            conflictRows.forEach(row => { (conflictsByQuestion[row.q] ||= []).push(row); });
-            let confirmedCount = 0, doneCount = 0, conflictCount = 0, inprogressCount = 0, untouchedCount = 0, allConfirmed = true;
-            for (let q = 1; q <= totalQuestions; q++) {
-                const cs = Object.keys(scoresData[`__completed__q${q}`] || {}); 
-                const reqS = requiredScorers || 3;
-                const allDone = cs.length >= reqS; 
-                let hasConflict = false, allResolved = true;
-                
-                if (allDone) {
-                    const rows = conflictsByQuestion[q] || [];
-                    hasConflict = rows.length > 0;
-                    allResolved = rows.every(row => row.finalResult);
-                }
-
-                const fc = allDone && (!hasConflict || allResolved); 
-                
-                if (fc) { 
-                    confirmedCount++; 
-                } else if (hasConflict) { 
-                    conflictCount++; allConfirmed = false; 
-                } else if (allDone) { 
-                    doneCount++; allConfirmed = false; 
-                } else if (cs.length > 0) { 
-                    inprogressCount++; allConfirmed = false; 
-                } else { 
-                    untouchedCount++; allConfirmed = false; 
-                }
-            }
+            // 「確定しているか」は、データベースの1つの定義(list_question_confirmation)だけで決める。
+            let confirmedCount = 0, doneCount = 0, conflictCount = 0, inprogressCount = 0, untouchedCount = 0;
+            confirmation.forEach((row) => {
+                if (row.confirmed) confirmedCount++;
+                else if (row.completedScorers >= row.requiredScorers) conflictCount++;
+                else if (row.joinedScorers > 0) inprogressCount++;
+                else untouchedCount++;
+            });
+            const allConfirmed = confirmation.length > 0 && confirmedCount === confirmation.length;
             // 表示上は confirmedCount と doneCount をマージして「完了」とする
             const visualDoneCount = confirmedCount + doneCount;
             document.getElementById('stat-done').textContent = visualDoneCount; 
@@ -192,7 +172,25 @@
             return masterData;
         }
 
+        // 出力は、ボタンを無効にするだけでなく、出す直前にも、全問が確定しているかを確かめる
+        window.assertAllQuestionsConfirmed = async function() {
+            let rows;
+            try {
+                rows = await CIQSupabaseAPI.listQuestionConfirmation(projectId);
+            } catch (e) {
+                showAdminToast('確定の状態を確認できなかったため、出力できません。（詳細：' + errorDetail(e) + '）');
+                return false;
+            }
+            const pending = rows.filter(row => !row.confirmed).length;
+            if (!rows.length || pending > 0) {
+                showAdminToast(`未確定の問題が${pending}問あるため、出力できません。`);
+                return false;
+            }
+            return true;
+        };
+
         async function exportCSV() {
+            if (!(await assertAllQuestionsConfirmed())) return;
             await refreshScoringEntryNumbers();
             const masterData = await loadEntryMaster();
 
@@ -268,14 +266,12 @@
             const threshold = readAnalyticsThreshold();
             const masterData = await loadEntryMaster();
             const tp = scoringEntryNumbers.length || 1, qStats = [];
-            // 要確認が1件でも残っている問題は、確定していない(残りの判断しだいで、正答数が変わる)
-            const conflictRows = await CIQSupabaseAPI.listScoreConflicts(projectId).catch(() => null);
-            const unresolvedQuestions = new Set((conflictRows || []).filter(row => !row.finalResult).map(row => Number(row.q)));
+            // 確定しているかは、データベースの1つの定義で決める(要確認が1件でも残っている問題は未確定)
+            const confirmation = await CIQSupabaseAPI.listQuestionConfirmation(projectId);
+            const confirmedQuestions = new Set(confirmation.filter(row => row.confirmed).map(row => row.questionNumber));
             for (let q = 1; q <= totalQuestions; q++) {
                 const fd = scoresData[`__final__q${q}`] || {};
-                // __final__ が空、または要確認が残っている = まだ確定していない → 未確定として扱う
-                const hasFinal = Object.keys(fd).length > 0 && !unresolvedQuestions.has(q);
-                if (!hasFinal) {
+                if (!confirmedQuestions.has(q)) {
                     qStats.push({ q, correctCount: '-', rate: '-', type: '未確定', names: '', isRare: false });
                     continue;
                 }

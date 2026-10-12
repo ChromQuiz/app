@@ -99,8 +99,8 @@ describe('FND-01 / FND-03: 採点・集計・成績照会の対象は、当日�
     expect(read('supabase/functions/my-entry/index.ts')).toMatch(/isWithinPeriod\(project\.disclosure_period_start, project\.disclosure_period_end\)\s*&& checkedIn/);
   });
 
-  it('要確認の数え方は、要確認ページと同じデータベースの定義(list_score_conflicts)を使う', () => {
-    expect(stats).toMatch(/CIQSupabaseAPI\.listScoreConflicts\(projectId\)/);
+  it('確定・要確認の数え方は、データベースの1つの定義(list_question_confirmation。要確認ページと同じ list_score_conflicts の定義)を使う', () => {
+    expect(stats).toMatch(/CIQSupabaseAPI\.listQuestionConfirmation\(projectId\)/);
     expect(stats).not.toMatch(/scoringEntryNumbers\.forEach\(en => \{\s*const qs = scoresData/);
   });
 

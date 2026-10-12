@@ -1079,7 +1079,27 @@
         }
 
         async function toggleDisclosureOpen() {
-            const enabled = document.getElementById('disclosure-open-toggle').checked;
+            const toggle = document.getElementById('disclosure-open-toggle');
+            const enabled = toggle.checked;
+            if (enabled) {
+                // 確定していない問題があるあいだは、有効にしても、参加者には成績が出ない(サーバーが断る)。先に知らせる。
+                const rows = await CIQSupabaseAPI.listQuestionConfirmation(projectId).catch(() => null);
+                const pending = rows ? rows.filter(row => !row.confirmed).length : null;
+                if (pending === null || pending > 0) {
+                    const reason = pending === null
+                        ? '確定の状態を確認できませんでした。'
+                        : `まだ確定していない問題が${pending}問あります。`;
+                    const ok = await showConfirm(
+                        `${reason}\n\n全問が確定するまでは、成績照会を有効にしても、参加者には「成績はまだ確定していません」と出て、点数も順位も表示されません。\n\n有効にしますか？`,
+                        '有効にする',
+                    );
+                    if (!ok) {
+                        toggle.checked = false;
+                        updateDisclosureOpenStatus();
+                        return;
+                    }
+                }
+            }
             await CIQSupabaseAPI.updateProject(projectId, { disclosure_enabled: enabled });
             updateDisclosureOpenStatus();
             showAdminToast(enabled ? '成績照会を有効にしました。' : '成績照会を停止しました。', 'success');

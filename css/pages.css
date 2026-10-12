@@ -2447,7 +2447,9 @@ body.page-admin .danger-zone {
 
 .period-grid {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* 開始 → 終了 は、矢印をはさんで寄せて並べる(1fr で左右に引き離すと、矢印が浮く) */
+  grid-template-columns: max-content auto max-content;
+  justify-content: start;
   gap: var(--sp-3);
   align-items: end;
 }

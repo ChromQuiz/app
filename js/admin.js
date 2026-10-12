@@ -77,6 +77,7 @@
         }
 
         async function runGradedPdfExport() {
+            if (!(await assertAllQuestionsConfirmed())) return;
             await ensureJsPdfLoaded();
             return exportGradedPDF();
         }

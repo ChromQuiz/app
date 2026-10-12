@@ -58,10 +58,8 @@ describe('問題アナリティクス', () => {
   });
 });
 
-describe('問題アナリティクス: 要確認が残っている問題', () => {
-  it('要確認が1件でも残っている問題は、未確定として扱う（確定済みの数字を出さない）', () => {
-    const js = read('js/admin_stats.js');
-    expect(js).toContain('unresolvedQuestions.has(q)');
-    expect(js).toContain('CIQSupabaseAPI.listScoreConflicts(projectId)');
+describe('期間の入力（開始 → 終了）', () => {
+  it('開始と終了は、矢印をはさんで寄せて並べる（左右に引き離さない）', () => {
+    expect(read('css/pages.css')).toMatch(/\.period-grid \{\s*display: grid;[\s\S]*?grid-template-columns: max-content auto max-content;\s*justify-content: start;/);
   });
 });
