@@ -309,7 +309,7 @@ function openSlotDialog(questionNumber, returnFocus) {
         li.className = 'slot-row';
         const text = document.createElement('span');
         text.className = 'slot-row-text';
-        text.textContent = `${slotOwnerLabel(row.scorer_member_id)}(採点中)`;
+        text.textContent = `${slotOwnerLabel(row.scorer_member_id)} · 採点中`;
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'btn secondary slot-release-btn';

@@ -205,24 +205,24 @@ const params = new URLSearchParams(location.search);
             if (index === firstWaitlistIndex && waitlistCount > 0) {
                 const capacityNote = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
                 // 折り返すときは、意味の切れ目（「—」の前）で折り返す
-                appendDivider(body, 'clock', [`ここまで出場圏内${capacityNote}`, `— 以下キャンセル待ち（${waitlistCount}名）`], 'entry-list-divider-warning');
+                appendDivider(body, 'clock', [`ここまで出場圏内${capacityNote}`, `— 以下キャンセル待ち ${waitlistCount}名`], 'entry-list-divider-warning');
             }
             if (hasPriorityWindow && index === 0 && earlyChubuCount > 0) {
-                appendDivider(body, 'map-pin', '中部地方（開始24時間以内）', 'entry-list-divider-rule');
+                appendDivider(body, 'map-pin', '中部地方 · 開始24時間以内', 'entry-list-divider-rule');
             }
             // 先頭の区分には「以降」を付けない（前の区分がないので）
             if (hasPriorityWindow && index === earlyChubuCount && earlyOtherCount > 0) {
-                appendDivider(body, 'map-pin', `${index === 0 ? '' : '以降 '}中部地方以外（開始24時間以内）`, 'entry-list-divider-rule');
+                appendDivider(body, 'map-pin', `${index === 0 ? '' : '以降 '}中部地方以外 · 開始24時間以内`, 'entry-list-divider-rule');
             }
             if (hasPriorityWindow && index === earlyChubuCount + earlyOtherCount && lateCount > 0) {
-                appendDivider(body, 'clock', `${index === 0 ? '' : '以降 '}開始24時間経過後（先着）`, 'entry-list-divider-rule');
+                appendDivider(body, 'clock', `${index === 0 ? '' : '以降 '}開始24時間以降 · 先着順`, 'entry-list-divider-rule');
             }
             renderRow(entry, entry._showWaitlist);
         });
 
         document.getElementById('total-count').textContent = ordered.length;
         const capacityEl = document.getElementById('entry-capacity');
-        if (capacityEl) capacityEl.textContent = maxEntries > 0 ? `（定員${maxEntries}名）` : '';
+        if (capacityEl) capacityEl.textContent = maxEntries > 0 ? ` · 定員${maxEntries}名` : '';
     }
 
     function appendTableMessage(body, message) {
