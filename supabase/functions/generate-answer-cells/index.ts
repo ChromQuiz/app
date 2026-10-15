@@ -51,10 +51,12 @@ async function processPage(supabase: Supabase, page: ClaimedPage): Promise<{ mad
 
   const results: Record<string, 'ready' | 'failed'> = {};
   let lastError: string | null = null;
+  // 用紙を取得・読み取りできなかった。保存の一時的な失敗とは分けて、長く休む(DB 側で30分)
+  let permanent = false;
 
   // 途中経過の保存。「作成中」の開始時刻も更新して、他の呼び出しに取られないようにする。
   const save = async (final: boolean) => {
-    const next = nextGeneration(allKeys, generation as never, results, new Date().toISOString(), lastError);
+    const next = nextGeneration(allKeys, generation as never, results, new Date().toISOString(), lastError, permanent);
     const stored = final ? next : { ...next, status: 'processing' as const, startedAt: new Date().toISOString() };
     // service_role は answer_pages を直接書けない。cellGeneration だけを書き換える関数を通す。
     const { error } = await supabase.rpc('save_answer_cell_progress', { p_page_id: page.id, p_generation: stored });
@@ -96,6 +98,7 @@ async function processPage(supabase: Supabase, page: ClaimedPage): Promise<{ mad
     } catch (pageError) {
       // 用紙を読めなかった（形式が違う・壊れている）。全問を失敗として記録し、あとで取り直す。
       lastError = errorText(pageError);
+      permanent = true;
       for (const key of targets) results[key] = 'failed';
     }
   }
@@ -147,7 +150,17 @@ Deno.serve(withCors(async (req) => {
       failed += result.failed;
     }
 
-    return jsonResponse({ ok: true, version: ANSWER_CELL_VERSION, pages, made, failed });
+    // 取れた用紙がなかったとき、「全部できた」のか、「上限で混んでいて取れない(または、ほかが作成中)」のかを返す。
+    // 呼ぶ側は、混んでいるなら、少し待って、やり直す(完了と区別する)。
+    let busy = false;
+    let remaining = 0;
+    if (!pages) {
+      const { data: progress } = await supabase.rpc('answer_cell_progress', { p_project_id: scopeProjectId || null }).single();
+      remaining = Number((progress as { pending_pages?: number; in_flight_pages?: number } | null)?.pending_pages || 0)
+        + Number((progress as { in_flight_pages?: number } | null)?.in_flight_pages || 0);
+      busy = remaining > 0;
+    }
+    return jsonResponse({ ok: true, version: ANSWER_CELL_VERSION, pages, made, failed, busy, remaining });
   } catch (error) {
     return serverErrorResponse(error, 'generate-answer-cells');
   }

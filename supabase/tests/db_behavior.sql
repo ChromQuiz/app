@@ -570,6 +570,41 @@ select pg_temp.chk('DB-24 全部の表で RLS が有効（public スキーマ）
   not exists (select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and not c.relrowsecurity),
   (select string_agg(c.relname, ',') from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and not c.relrowsecurity));
 
+-- ===== DB-29 解答欄の画像づくりの待ち行列（全体の上限・進み具合・作り直し）=====
+reset role;
+select pg_temp.chk('DB-29 用紙を取る関数は、service_role だけが呼べる（画面からは呼べない）',
+  has_function_privilege('service_role', 'public.claim_answer_cell_pages(text, integer, integer)', 'execute')
+  and not has_function_privilege('authenticated', 'public.claim_answer_cell_pages(text, integer, integer)', 'execute')
+  and not has_function_privilege('anon', 'public.claim_answer_cell_pages(text, integer, integer)', 'execute'));
+-- 本番の大会の作業(ほかの用紙が作成中)があっても崩れないよう、上限は、いまの作成中の数を基準にする
+create temp table cap0 as select (select count(*)::integer from public.answer_pages a where a.cells->'cellGeneration'->>'status' = 'processing' and nullif(a.cells->'cellGeneration'->>'startedAt', '')::timestamptz > now() - interval '1 minute') as n;
+create temp table claim1 as select * from public.claim_answer_cell_pages('zz-t', 10, (select n from cap0) + 2);
+create temp table claim2 as select * from public.claim_answer_cell_pages('zz-t', 10, (select n from cap0) + 2);
+create temp table claim3 as select * from public.claim_answer_cell_pages('zz-t', 10, (select n from cap0) + 3);
+select pg_temp.chk('DB-29 「作成中」が上限（2枚）に達したら、それ以上は取らせない。上限を上げれば、残りを取れる',
+  (select count(*) from claim1) = 2
+  and (select count(*) from claim2) = 0
+  and (select count(*) from claim3) = 1
+  and not exists (select 1 from claim1 c1 join claim3 c3 on c1.id = c3.id),
+  (select count(*) from claim1)::text || '/' || (select count(*) from claim2)::text || '/' || (select count(*) from claim3)::text || ' cap0=' || (select n from cap0)::text || ' pages=' || coalesce((select string_agg(coalesce(cells->'cellGeneration'->>'status', '-'), ',') from public.answer_pages where project_id = 'zz-t'), 'none'));
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者
+select pg_temp.chk('DB-29 管理者は、進み具合を取得できる（用紙の数・作成中の数）',
+  (select total_pages from public.answer_cell_progress('zz-t')) >= 3
+  and (select in_flight_pages from public.answer_cell_progress('zz-t')) = 3,
+  (select total_pages::text || '/' || in_flight_pages::text from public.answer_cell_progress('zz-t')));
+select pg_temp.chk('DB-29 管理者は、画像が見つからない問題を「作り直す」に戻せる（第1問を失敗にして、一部できている状態にする）',
+  pg_temp.err($$select public.mark_answer_cell_missing('zz-t', pg_temp.eid('E2'), 1)$$) = 'OK');
+select public.mark_answer_cell_missing('zz-t', pg_temp.eid('E2'), 1);
+reset role;
+select pg_temp.chk('DB-29 …その用紙の第1問は failed、状態は partial になる',
+  (select cells->'cellGeneration'->'questions'->>'q1' from public.answer_pages where entry_id = pg_temp.eid('E2')) = 'failed'
+  and (select cells->'cellGeneration'->>'status' from public.answer_pages where entry_id = pg_temp.eid('E2')) = 'partial');
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000003');  -- S1（管理者でない）
+select pg_temp.chk('DB-29 採点者には、進み具合は返らず、作り直しにも戻せない',
+  (select count(*) from public.answer_cell_progress('zz-t')) = 0
+  and pg_temp.err($$select public.mark_answer_cell_missing('zz-t', pg_temp.eid('E2'), 1)$$) like '%Forbidden%');
+reset role;
+
 -- ===== DB-27 答案・採点が始まったあとは、問題数と採点者数を変えられない =====
 reset role;
 select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者

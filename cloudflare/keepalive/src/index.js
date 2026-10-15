@@ -79,10 +79,16 @@ async function runPromotionNotices(env) {
 // 解答欄の画像（問題ごとの小さな画像）の作りかけを、サーバーに進めてもらう。
 // 取り込みのあとに運営画面を閉じても、1分おきにここが続きを進める。作る用紙が無ければ、1回で終わる。
 // 1回の実行で呼べる回数に上限があるので、4 本 × 最大 5 回までにする。
+// 1分に、何本の流れで、何回ずつ呼ぶか。Workers の無料枠は、1回の実行で呼べる外部への通信が約50回までなので、
+// 本数 × 回数 は、50 を超えないようにする(12 × 4 = 48)。
+const ANSWER_CELL_LANES = 12;
+const ANSWER_CELL_CALLS_PER_LANE = 4;
+const ANSWER_CELL_BUSY_WAIT_MS = 2000;
+
 async function runAnswerCells(env) {
     if (!env.CIQ_CRON_SECRET) return;
     const call = async () => {
-        for (let i = 0; i < 5; i += 1) {
+        for (let i = 0; i < ANSWER_CELL_CALLS_PER_LANE; i += 1) {
             try {
                 const response = await fetch(`${env.SUPABASE_URL}/functions/v1/generate-answer-cells`, {
                     method: 'POST',
@@ -94,14 +100,18 @@ async function runAnswerCells(env) {
                     body: '{}',
                 });
                 const result = await response.json().catch(() => null);
-                if (!response.ok || !result?.pages) return;
+                if (!response.ok) return;
+                if (result?.pages) continue;
+                // 取れる用紙がなかった。全部できたなら終わり。混んでいる(上限・ほかが作成中)なら、少し待って、やり直す。
+                if (!result?.busy) return;
+                await new Promise((resolve) => setTimeout(resolve, ANSWER_CELL_BUSY_WAIT_MS));
             } catch (error) {
                 console.error(`answer cells failed: ${error.message}`);
                 return;
             }
         }
     };
-    await Promise.all([call(), call(), call(), call()]);
+    await Promise.all(Array.from({ length: ANSWER_CELL_LANES }, call));
 }
 
 export default {

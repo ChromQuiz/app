@@ -69,6 +69,8 @@ export function nextGeneration(
   results: Record<string, 'ready' | 'failed'>,
   now = new Date().toISOString(),
   lastError: string | null = null,
+  // 用紙そのものが読めなかった(取得・読み取りの失敗)。保存の一時的な失敗は、false のまま(すぐ取り直す)
+  permanent = false,
 ): CellGeneration {
   const sameVersion = previous?.version === ANSWER_CELL_VERSION;
   const questions: Record<string, string> = { ...(sameVersion ? (previous?.questions || {}) : {}), ...results };
@@ -76,7 +78,7 @@ export function nextGeneration(
   const failedCount = allKeys.filter((key) => questions[key] === 'failed').length;
   let status: CellGeneration['status'] = 'partial';
   if (allKeys.length && readyCount >= allKeys.length) status = 'complete';
-  else if (!readyCount && failedCount) status = 'failed';
+  else if (!readyCount && failedCount && permanent) status = 'failed';
   return {
     version: ANSWER_CELL_VERSION,
     status,

@@ -71,11 +71,12 @@ describe('作る問題の選び方と、状態の更新', () => {
     expect(pendingQuestionKeys(regions, generation)).toEqual(['q1', 'q2', 'q10']);
   });
 
-  it('全問できたら complete、一部なら partial、1問もできなければ failed', () => {
+  it('全問できたら complete、一部なら partial、1問もできず用紙が読めなければ failed。保存の一時的な失敗は partial のまま(すぐ取り直す)', () => {
     const keys = ['q1', 'q2'];
     expect(nextGeneration(keys, null, { q1: 'ready', q2: 'ready' }).status).toBe('complete');
     expect(nextGeneration(keys, null, { q1: 'ready', q2: 'failed' }).status).toBe('partial');
-    expect(nextGeneration(keys, null, { q1: 'failed', q2: 'failed' }).status).toBe('failed');
+    expect(nextGeneration(keys, null, { q1: 'failed', q2: 'failed' }, 't', null, true).status).toBe('failed');
+    expect(nextGeneration(keys, null, { q1: 'failed', q2: 'failed' }).status).toBe('partial');
   });
 
   it('前の状態の「できた」を引き継ぐ', () => {
@@ -151,9 +152,12 @@ describe('関数の入口と権限', () => {
 });
 
 describe('呼び出し側', () => {
-  it('取り込みのあと、サーバーに作ってもらい、使えなければブラウザで作る', () => {
+  it('取り込みのあと、サーバーに作ってもらう（画面では作らない）。読み込み・保存の最中は、画面を閉じようとしたら確認する', () => {
     const prep = read('js/admin_prep.js');
-    expect(prep).toMatch(/requestServerCellGeneration\(projectId\)\.then\(\(generated\) => \{\s*if \(!generated\.ok\) CIQSupabaseAPI\.enqueueAnswerCellGeneration/);
+    expect(prep).toMatch(/requestServerCellGeneration\(projectId\)\.then\(\(generated\) => \{/);
+    expect(prep).not.toMatch(/enqueueAnswerCellGeneration/);
+    expect(prep).toMatch(/addEventListener\('beforeunload', leaveGuard\)/);
+    expect(prep).toMatch(/removeEventListener\('beforeunload', leaveGuard\)/);
   });
 
   it('用紙は、サーバーが読める JPEG で保存する', () => {

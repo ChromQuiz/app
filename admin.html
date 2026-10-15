@@ -14,13 +14,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=2"></script>
     <script defer src="js/supabase_client.js?v=2"></script>
-    <script defer src="js/supabase_api.js?v=66"></script>
+    <script defer src="js/supabase_api.js?v=67"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=10"></script>
     <script defer src="js/ui.js?v=39"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=110">
-    <link rel="stylesheet" href="css/pages.css?v=194">
+    <link rel="stylesheet" href="css/pages.css?v=195">
 </head>
 
 <body class="page-admin">
@@ -329,6 +329,7 @@
                             <div class="file-name" id="pdf-file-name"></div>
                             <input type="file" id="pdf-file" accept="application/pdf" aria-label="答案のPDFファイル" />
                         </div>
+                        <p class="answer-cell-progress" id="answer-cell-progress" role="status" aria-live="polite" hidden></p>
                         <div class="saved-answers-actions">
                             <span id="entry-count-badge" class="count-badge">0件</span>
                             <div class="saved-answers-actions-right">
@@ -720,7 +721,7 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=64"></script>
+    <script defer src="js/admin.js?v=65"></script>
     <script defer src="js/upload_validation.js?v=4"></script>
     <script defer src="js/admin_scan.js?v=26"></script>
     <script defer src="js/admin_stats.js?v=28"></script>

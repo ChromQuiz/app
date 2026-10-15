@@ -5659,3 +5659,14 @@ body.page-reader {
   color: var(--ink-2);
   text-align: left;
 }
+
+/* 解答欄の画像の進み具合(答案の取り込みのあと、作成が終わるまで) */
+.answer-cell-progress {
+  margin-top: var(--block-gap);
+  font-size: var(--text-small);
+  color: var(--ink-2);
+}
+
+.answer-cell-progress[hidden] {
+  display: none;
+}
