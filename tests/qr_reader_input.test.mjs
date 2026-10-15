@@ -12,21 +12,19 @@ function loadReaderInput() {
   return new Function('module', 'exports', 'globalThis', src + '; return module.exports;')(module, module.exports, globalThis);
 }
 
-const ID = '3f2b8c1e-5a47-4d9e-8b21-0c6d9a7e1f34';
-const SIG = 'a1b2c3d4e5f60718293a4b5c6d7e8f90';
-const CODE = `${ID}.${SIG}`;
+const CODE = 'K7QF2MZ3BTWYX4NAD5HC';
 
 describe('二次元コードリーダーの入力', () => {
   const { normalizeReaderCode, looksLikeCheckInCode } = loadReaderInput();
 
-  it('受付の二次元コードの形（現行・旧形式）を受け付ける。大文字でもよい', () => {
+  it('受付コード(大文字の英字と 2〜7 の数字の 20 文字)を受け付ける。小文字でもよい', () => {
     expect(looksLikeCheckInCode(CODE)).toBe(true);
-    expect(looksLikeCheckInCode(CODE.toUpperCase())).toBe(true);
-    expect(looksLikeCheckInCode(`${ID}.1760000000000.${SIG}${SIG}`)).toBe(true);
+    expect(looksLikeCheckInCode(CODE.toLowerCase())).toBe(true);
   });
 
   it('形が違うものは、受け付けない（番号だけ・途中で切れたもの・別の文字列）', () => {
-    for (const bad of ['', '12', ID, `${ID}.`, `${ID}.${SIG.slice(0, 10)}`, `${CODE}x`, 'https://example.com', `${ID}-${SIG}`]) {
+    const oldFormat = '3f2b8c1e-5a47-4d9e-8b21-0c6d9a7e1f34.a1b2c3d4e5f60718293a4b5c6d7e8f90';
+    for (const bad of ['', '12', oldFormat, oldFormat.slice(0, 36), CODE.slice(1), `${CODE}A`, `${CODE.slice(1)}1`, `${CODE.slice(1)}0`, 'https://example.com']) {
       expect(looksLikeCheckInCode(bad)).toBe(false);
     }
   });
@@ -36,10 +34,9 @@ describe('二次元コードリーダーの入力', () => {
     expect(normalizeReaderCode(` ${CODE} `)).toBe(CODE);
   });
 
-  it('日本語入力のまま打ち込まれた、ハイフン・ピリオド・全角の英数字を、半角に戻す', () => {
-    const jp = CODE.replace(/-/g, 'ー').replace('.', '。');
-    expect(normalizeReaderCode(jp)).toBe(CODE);
-    const wide = CODE.toUpperCase().replace(/[0-9A-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0xFEE0)).replace(/-/g, '－').replace('.', '．');
+  it('日本語入力のまま打ち込まれた、全角の英数字を、半角に戻す', () => {
+    const wide = CODE.replace(/[0-9A-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0xFEE0));
+    expect(normalizeReaderCode(wide)).toBe(CODE);
     expect(looksLikeCheckInCode(normalizeReaderCode(wide))).toBe(true);
   });
 });

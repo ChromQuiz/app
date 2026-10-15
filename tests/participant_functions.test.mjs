@@ -39,7 +39,8 @@ describe('my-entry（MY-02〜05、API-01、API-05、API-07）', () => {
     expect(r.status).toBe(200);
     expect(r.json).toMatchObject({ ok: true, projectName: 'CIQ the 9th', entry: { entryNumber: 7, status: 'registered', checkedIn: false, entryName: 'やま', affiliation: '開成高' } });
     expect(r.json.token).toMatch(/^[A-Za-z0-9_-]+\.[0-9a-f]{64}$/);
-    expect(r.json.qrSvg).toMatch(/^<svg data-value="[0-9a-f-]{36}\.[0-9a-f]{32}"/);
+    expect(r.json.qrSvg).toMatch(/^<svg data-value="[A-Z2-7]{20}"/);
+    expect(r.json.qrSvg).not.toContain(IDS.me);
     const text = JSON.stringify(r.json);
     expect(text).not.toMatch(/encrypted_pii|email_hash|password_hash|taro@example/);
     expect(Object.keys(r.json.entry).sort()).toEqual(['affiliation', 'checkedIn', 'entryName', 'entryNumber', 'grade', 'id', 'inquiry', 'isChubu', 'message', 'status']);

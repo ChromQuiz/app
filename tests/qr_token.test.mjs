@@ -1,7 +1,7 @@
-// V7: 当日受付QRの署名付きトークンを、実装を直接 import して検証する。
+// V8: 当日受付QRの受付コードを、実装を直接 import して検証する。
 //
 // qr_token.ts は署名鍵を Deno.env から取るため、Node(vitest)では Deno グローバルをスタブして実行する。
-// HMAC は WebCrypto(crypto.subtle)で、Node 18+ でもそのまま動作する。
+// HMAC・SHA-256 は WebCrypto(crypto.subtle)で、Node 18+ でもそのまま動作する。
 
 import { describe, expect, it, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -9,119 +9,187 @@ import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const SECRET = 'test-signing-secret-0123456789abcdef';   // 32文字以上（V1 の下限を満たす）
+const OTHER_SECRET = 'another-signing-secret-0123456789abcdef';
 const ENTRY_ID = '080410bf-8742-4a6b-80db-139a680e3e53';
+const OTHER_ID = '0909e458-681c-4b4f-9d8e-f8ec6806c9d0';
 
-let issueQrToken, verifyQrToken, hmacHex;
+let deriveCheckinCode, normalizeCheckinCode, hashCheckinCode, ensureCheckinCode;
+const withSecret = (secret) => { globalThis.Deno = { env: { get: (k) => (k === 'CIQ_EMAIL_SIGNING_SECRET' ? secret : undefined) } }; };
 
 beforeAll(async () => {
-  globalThis.Deno = { env: { get: (k) => (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined) } };
-  ({ issueQrToken, verifyQrToken } = await import('../supabase/functions/_shared/qr_token.ts'));
-  ({ hmacHex } = await import('../supabase/functions/_shared/signing.ts'));
+  withSecret(SECRET);
+  ({ deriveCheckinCode, normalizeCheckinCode, hashCheckinCode, ensureCheckinCode } = await import('../supabase/functions/_shared/qr_token.ts'));
 });
 
-describe('signed check-in QR tokens (V7)', () => {
-  it('issues a token that is not the bare entry UUID', async () => {
-    const token = await issueQrToken(ENTRY_ID);
-    expect(token).not.toBe(ENTRY_ID);
-    expect(token.split('.')).toHaveLength(2);
-    expect(token.startsWith(`${ENTRY_ID}.`)).toBe(true);
+describe('check-in codes (V8)', () => {
+  it('is 20 base32 characters and does not contain the entry id', async () => {
+    const code = await deriveCheckinCode(ENTRY_ID);
+    expect(code).toMatch(/^[A-Z2-7]{20}$/);
+    expect(code.toLowerCase()).not.toContain(ENTRY_ID.slice(0, 8).replace(/-/g, ''));
+    expect(code).not.toBe(ENTRY_ID);
   });
 
-  it('round-trips: a freshly issued token verifies back to the entry id', async () => {
-    const token = await issueQrToken(ENTRY_ID);
-    await expect(verifyQrToken(token)).resolves.toBe(ENTRY_ID);
+  it('is deterministic: the same entry and rotation always get the same code (no expiry)', async () => {
+    expect(await deriveCheckinCode(ENTRY_ID)).toBe(await deriveCheckinCode(ENTRY_ID, 0));
+    expect(await deriveCheckinCode(ENTRY_ID)).toBe(await deriveCheckinCode(ENTRY_ID.toUpperCase()));
   });
 
-  it('verifies the upper-case form that is embedded in the image', async () => {
-    const token = await issueQrToken(ENTRY_ID);
-    await expect(verifyQrToken(token.toUpperCase())).resolves.toBe(ENTRY_ID);
-    await expect(verifyQrToken(`  ${token.toUpperCase()}\n`)).resolves.toBe(ENTRY_ID);
+  it('differs per entry, per rotation and per signing secret', async () => {
+    const base = await deriveCheckinCode(ENTRY_ID);
+    expect(await deriveCheckinCode(OTHER_ID)).not.toBe(base);
+    expect(await deriveCheckinCode(ENTRY_ID, 1)).not.toBe(base);
+    withSecret(OTHER_SECRET);
+    const otherKey = await deriveCheckinCode(ENTRY_ID);
+    withSecret(SECRET);
+    expect(otherKey).not.toBe(base);
   });
 
-  it('rejects a legacy bare UUID (old QR format)', async () => {
-    await expect(verifyQrToken(ENTRY_ID)).resolves.toBeNull();
+  it('refuses a non-UUID entry id, a bad rotation and a missing signing secret', async () => {
+    await expect(deriveCheckinCode('abc')).rejects.toThrow();
+    await expect(deriveCheckinCode(ENTRY_ID, -1)).rejects.toThrow();
+    await expect(deriveCheckinCode(ENTRY_ID, 1.5)).rejects.toThrow();
+    withSecret('');
+    await expect(deriveCheckinCode(ENTRY_ID)).rejects.toThrow();
+    withSecret(SECRET);
   });
 
-  it('rejects a token whose entry id was swapped (forgery)', async () => {
-    const token = await issueQrToken(ENTRY_ID);
-    const [, sig] = token.split('.');
-    const otherId = '0909e458-681c-4b4f-9d8e-f8ec6806c9d0';
-    await expect(verifyQrToken(`${otherId}.${sig}`)).resolves.toBeNull();
-  });
-
-  it('rejects a tampered, truncated, padded or non-hex signature', async () => {
-    const token = await issueQrToken(ENTRY_ID);
-    const [id, sig] = token.split('.');
-    const flipped = (sig[0] === '0' ? '1' : '0') + sig.slice(1);
-    for (const bad of [
-      '0'.repeat(sig.length), flipped, sig.slice(0, -1), `${sig}0`, sig.replace(/./, 'z'), '',
-    ]) {
-      await expect(verifyQrToken(`${id}.${bad}`)).resolves.toBeNull();
+  it('spreads over the whole alphabet and has no obvious bias (100 bits taken from the HMAC)', async () => {
+    const seen = new Set();
+    for (let i = 0; i < 200; i++) {
+      const id = `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`;
+      for (const ch of await deriveCheckinCode(id)) seen.add(ch);
     }
+    expect(seen.size).toBe(32);
   });
 
-  it('carries no expiry: the same entry always gets the same token, whatever the old TTL setting says', async () => {
-    const first = await issueQrToken(ENTRY_ID);
-    globalThis.Deno = { env: { get: (k) => (k === 'CIQ_QR_TTL_DAYS' ? '1' : (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined)) } };
-    const second = await issueQrToken(ENTRY_ID);
-    globalThis.Deno = { env: { get: (k) => (k === 'CIQ_EMAIL_SIGNING_SECRET' ? SECRET : undefined) } };
-    expect(second).toBe(first);
-    expect(first.split('.')).toHaveLength(2);
+  it('has no collisions across a few thousand entries', async () => {
+    const codes = new Set();
+    for (let i = 0; i < 2000; i++) codes.add(await deriveCheckinCode(`00000000-0000-4000-8000-${String(i).padStart(12, '0')}`));
+    expect(codes.size).toBe(2000);
   });
 
-  it('is short enough to stay at QR version 3 with error correction L, using only alphanumeric-mode characters', async () => {
-    const token = (await issueQrToken(ENTRY_ID)).toUpperCase();
-    // version 3-L の英数字モードの容量は 77 文字。英数字モード: 0-9 A-Z 空白 $%*+-./:
-    expect(token.length).toBeLessThanOrEqual(77);
-    expect(token).toMatch(/^[0-9A-F.\-]+$/);
-  });
-
-  it('binds a purpose+version tag so signatures cannot cross protocols', async () => {
+  it('binds a purpose+version tag so codes cannot cross protocols', () => {
     const src = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr_token.ts'), 'utf8');
-    expect(src).toMatch(/const TOKEN_VERSION = 'qr3'/);
-    expect(src).toMatch(/const LEGACY_TOKEN_VERSION = 'qr1'/);
-    expect(src).toMatch(/`\$\{TOKEN_VERSION\}:\$\{entryId\}`/);
+    expect(src).toMatch(/const TOKEN_VERSION = 'qr4'/);
+    expect(src).toMatch(/`\$\{TOKEN_VERSION\}:\$\{id\}:\$\{rotation\}`/);
+    expect(src).toMatch(/const HASH_PREFIX = 'ciq-checkin:'/);
   });
 
-  it('does not accept a current-format signature as a legacy one, or the other way round', async () => {
-    const token = await issueQrToken(ENTRY_ID);
-    const [id, sig] = token.split('.');
-    // 現行の署名(32文字)を旧形式の枠(3パート)に入れても通らない
-    await expect(verifyQrToken(`${id}.${Date.now() + 1e9}.${sig}`)).resolves.toBeNull();
-    // 旧形式の署名を現行の枠(2パート)に入れても通らない
-    const exp = Date.now() + 86400000;
-    const legacySig = await hmacHex(SECRET, `qr1:${ENTRY_ID}:${exp}`);
-    await expect(verifyQrToken(`${ENTRY_ID}.${legacySig}`)).resolves.toBeNull();
-  });
-
-  it('rejects malformed input', async () => {
-    for (const bad of ['', 'a.b', 'a.b.c.d', null, undefined, 42, `${ENTRY_ID}.notanumber.abc`, `${ENTRY_ID}.`, `.${'a'.repeat(32)}`]) {
-      await expect(verifyQrToken(bad)).resolves.toBeNull();
-    }
+  it('is exactly 20 uppercase alphanumeric-mode characters, the capacity of QR version 1 with error correction M', async () => {
+    const code = await deriveCheckinCode(ENTRY_ID);
+    // version 1-M の英数字モードの容量は 20 文字。英数字モード: 0-9 A-Z 空白 $%*+-./:
+    expect(code.length).toBe(20);
+    expect(code).toMatch(/^[0-9A-Z]+$/);
   });
 });
 
-describe('legacy tokens that were already issued (expiring format)', () => {
-  const legacy = async (id, expMs) => `${id}.${expMs}.${await hmacHex(SECRET, `qr1:${id}:${expMs}`)}`;
-
-  it('still verify while they are within their expiry', async () => {
-    const token = await legacy(ENTRY_ID, Date.now() + 5 * 86400000);
-    await expect(verifyQrToken(token)).resolves.toBe(ENTRY_ID);
-    await expect(verifyQrToken(token.toUpperCase())).resolves.toBe(ENTRY_ID);
+describe('normalizing what the reader returned', () => {
+  it('accepts the code in any case with surrounding whitespace', async () => {
+    const code = await deriveCheckinCode(ENTRY_ID);
+    expect(normalizeCheckinCode(code)).toBe(code);
+    expect(normalizeCheckinCode(` ${code.toLowerCase()}\r\n`)).toBe(code);
   });
 
-  it('are rejected once expired', async () => {
-    await expect(verifyQrToken(await legacy(ENTRY_ID, Date.now() - 1000))).resolves.toBeNull();
+  it('rejects the old formats, a bare UUID, wrong length, characters outside base32 and non-strings', async () => {
+    const code = await deriveCheckinCode(ENTRY_ID);
+    const sig = 'a'.repeat(32);
+    for (const bad of [
+      '', 'abc', ENTRY_ID, `${ENTRY_ID}.${sig}`, `${ENTRY_ID}.${Date.now() + 1e9}.${sig}${sig}`,
+      code.slice(1), `${code}A`, `${code.slice(1)}1`, `${code.slice(1)}0`, `${code.slice(1)}8`, `${code.slice(1)}-`,
+      `${code.slice(0, 10)} ${code.slice(10)}`,
+    ]) {
+      expect(normalizeCheckinCode(bad), bad).toBeNull();
+    }
+    for (const bad of [null, undefined, 12, {}, []]) expect(normalizeCheckinCode(bad)).toBeNull();
+  });
+});
+
+describe('the stored hash', () => {
+  it('is a sha256 hex digest, different from the code and per code', async () => {
+    const code = await deriveCheckinCode(ENTRY_ID);
+    const hash = await hashCheckinCode(code);
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(hash).not.toContain(code.toLowerCase());
+    expect(await hashCheckinCode(code)).toBe(hash);
+    expect(await hashCheckinCode(await deriveCheckinCode(OTHER_ID))).not.toBe(hash);
   });
 
-  it('are rejected when the entry id, the expiry or the signature is tampered with', async () => {
-    const exp = Date.now() + 86400000;
-    const token = await legacy(ENTRY_ID, exp);
-    const [id, , sig] = token.split('.');
-    await expect(verifyQrToken(`0909e458-681c-4b4f-9d8e-f8ec6806c9d0.${exp}.${sig}`)).resolves.toBeNull();
-    await expect(verifyQrToken(`${id}.${exp + 1}.${sig}`)).resolves.toBeNull();
-    await expect(verifyQrToken(`${id}.${exp}.${'0'.repeat(64)}`)).resolves.toBeNull();
-    await expect(verifyQrToken(`${id}.${exp}.${sig.slice(0, 32)}`)).resolves.toBeNull();
+  it('migration adds the columns, a per-project unique index, and a trigger that keeps them server-only', () => {
+    const mig = readFileSync(resolve(ROOT, 'supabase/migrations/202610160002_checkin_code_hash.sql'), 'utf8');
+    expect(mig).toMatch(/add column if not exists checkin_token_hash text/);
+    expect(mig).toMatch(/add column if not exists checkin_token_rotation integer not null default 0/);
+    expect(mig).toMatch(/checkin_token_hash ~ '\^\[0-9a-f\]\{64\}\$'/);
+    expect(mig).toMatch(/unique index if not exists entries_checkin_token_hash_unique[\s\S]*\(project_id, checkin_token_hash\)/);
+    expect(mig).toMatch(/current_user in \('anon', 'authenticated'\)/);
+    expect(mig).toMatch(/before insert or update on public\.entries/);
+    // 画面(authenticated)の select 権限に、この 2 列を加えない
+    expect(mig).not.toMatch(/grant\s+select/i);
+  });
+});
+
+describe('ensureCheckinCode keeps the stored hash in step with the code', () => {
+  const makeStore = (row) => {
+    const writes = [];
+    const rows = row ? [row] : [];
+    const store = {
+      writes,
+      from: () => {
+        const st = { id: null, patch: null };
+        const api = {
+          select: () => api,
+          update: (patch) => { st.patch = patch; return api; },
+          eq: (_k, v) => { st.id = v; return api; },
+          single: () => {
+            const found = rows.find((r) => r.id === st.id);
+            return Promise.resolve(found ? { data: { ...found }, error: null } : { data: null, error: { message: 'none' } });
+          },
+          then: (resolve, reject) => {
+            const found = rows.find((r) => r.id === st.id);
+            if (found && st.patch) { Object.assign(found, st.patch); writes.push(st.patch); }
+            return Promise.resolve({ data: null, error: null }).then(resolve, reject);
+          },
+        };
+        return api;
+      },
+    };
+    return store;
+  };
+
+  it('writes the hash on first display, and nothing when it already matches', async () => {
+    const row = { id: ENTRY_ID, checkin_token_hash: null, checkin_token_rotation: 0 };
+    const store = makeStore(row);
+    const code = await ensureCheckinCode(store, ENTRY_ID);
+    expect(code).toBe(await deriveCheckinCode(ENTRY_ID));
+    expect(row.checkin_token_hash).toBe(await hashCheckinCode(code));
+    expect(store.writes).toHaveLength(1);
+    expect(await ensureCheckinCode(store, ENTRY_ID)).toBe(code);
+    expect(store.writes).toHaveLength(1);
+  });
+
+  it('follows rotation: the next display replaces the stored hash, so the old code stops working', async () => {
+    const row = { id: ENTRY_ID, checkin_token_hash: null, checkin_token_rotation: 0 };
+    const store = makeStore(row);
+    const first = await ensureCheckinCode(store, ENTRY_ID);
+    row.checkin_token_rotation = 1;
+    const second = await ensureCheckinCode(store, ENTRY_ID);
+    expect(second).not.toBe(first);
+    expect(row.checkin_token_hash).toBe(await hashCheckinCode(second));
+    expect(row.checkin_token_hash).not.toBe(await hashCheckinCode(first));
+  });
+
+  it('follows a signing-secret change the same way', async () => {
+    const row = { id: ENTRY_ID, checkin_token_hash: null, checkin_token_rotation: 0 };
+    const store = makeStore(row);
+    const before = await ensureCheckinCode(store, ENTRY_ID);
+    withSecret(OTHER_SECRET);
+    const after = await ensureCheckinCode(store, ENTRY_ID);
+    withSecret(SECRET);
+    expect(after).not.toBe(before);
+    expect(row.checkin_token_hash).toBe(await hashCheckinCode(after));
+  });
+
+  it('returns null for an unknown entry', async () => {
+    expect(await ensureCheckinCode(makeStore(null), ENTRY_ID)).toBeNull();
   });
 });
 
@@ -132,30 +200,30 @@ describe('the QR image is generated small', () => {
     expect(qrSrc).toMatch(/String\(value\)\.toUpperCase\(\)/);
   });
 
-  it('uses error correction level L', () => {
-    expect(qrSrc).toMatch(/errorCorrectionLevel: 'L'/);
+  it('uses error correction level M (the highest that still fits a 20-character code in version 1)', () => {
+    expect(qrSrc).toMatch(/errorCorrectionLevel: 'M'/);
   });
 });
 
-describe('QR generation paths embed the signed token, never the raw UUID (V7)', () => {
+describe('QR generation paths embed the check-in code, never the raw UUID (V8)', () => {
   const read = (p) => readFileSync(resolve(ROOT, p), 'utf8');
 
   for (const [fn, call] of Object.entries({
-    'my-entry': /makeQrSvg\(await issueQrToken\(entryId\)\)/,
-    'admin-entry-qr': /makeQrSvg\(await issueQrToken\(entry\.id\)\)/,
-    'checkin-qr': /makeQrSvg\(await issueQrToken\(data\)\)/,
+    'my-entry': /ensureCheckinCode\(supabase, entryId\)[\s\S]*makeQrSvg\(checkinCode\)/,
+    'admin-entry-qr': /ensureCheckinCode\(supabase, String\(entry\.id\)\)[\s\S]*makeQrSvg\(code\)/,
+    'checkin-qr': /ensureCheckinCode\(createServiceClient\(\), data\)[\s\S]*makeQrSvg\(code\)/,
   })) {
-    it(`${fn}: encodes a signed token`, () => {
+    it(`${fn}: encodes the check-in code and syncs the stored hash`, () => {
       const src = read(`supabase/functions/${fn}/index.ts`);
       expect(src).toMatch(call);
-      expect(src).toMatch(/issueQrToken/);
-    });
+          });
   }
 
-  it('check-in verifies the token and refuses a bare UUID', () => {
+  it('check-in looks the code up by project and hash, and refuses a bare UUID', () => {
     const src = read('supabase/functions/check-in/index.ts');
-    expect(src).toMatch(/const verifiedId = await verifyQrToken\(scanned\)/);
-    expect(src).toMatch(/findEntry\(supabase, req, projectId, \{ id: verifiedId \}\)/);
+    expect(src).toMatch(/const code = normalizeCheckinCode\(scanned\)/);
+    expect(src).toMatch(/findEntry\(supabase, req, projectId, \{ tokenHash: await hashCheckinCode\(code\) \}\)/);
+    expect(src).toMatch(/\.eq\('project_id', projectId\)/);
     // 未検証の値で直接引かない
     expect(src).not.toMatch(/\.eq\('id', entryId\)/);
   });

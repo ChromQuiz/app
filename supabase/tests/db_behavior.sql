@@ -693,6 +693,41 @@ select pg_temp.chk('DB-14 エントリー・答案・模範解答・採点（枠
 select pg_temp.chk('DB-14 公開用の一覧も空になる', (select count(*) from public.public_entry_list where project_id='zz-t') = 0);
 select pg_temp.chk('DB-14 監査ログに project_data_reset が残る', exists (select 1 from public.audit_logs where project_id='zz-t' and action='project_data_reset'));
 
+-- ===== DB-26 当日受付コードのハッシュ(entries.checkin_token_hash / checkin_token_rotation) =====
+reset role;
+insert into public.entries(project_id, entry_number, encrypted_pii, email_hash_v2, disclosure_password_hash_v2, entry_name, status)
+  values ('zz-t', 9001, 'enc', 'zz-h-9001', 'zz-d-9001', 'C1', 'registered'), ('zz-t', 9002, 'enc', 'zz-h-9002', 'zz-d-9002', 'C2', 'registered');
+select pg_temp.chk('DB-26 サーバー側(権限のある接続)は、ハッシュを書ける',
+  pg_temp.affected($$update public.entries set checkin_token_hash = repeat('a', 64) where project_id='zz-t' and entry_number=9001$$) = 1);
+select pg_temp.chk('DB-26 同じ大会で同じハッシュは、2人に付けられない(一意)',
+  pg_temp.err($$update public.entries set checkin_token_hash = repeat('a', 64) where project_id='zz-t' and entry_number=9002$$) like '%entries_checkin_token_hash_unique%',
+  pg_temp.err($$update public.entries set checkin_token_hash = repeat('a', 64) where project_id='zz-t' and entry_number=9002$$));
+select pg_temp.chk('DB-26 ハッシュは 64 桁の 16 進だけ(形が違うものは入らない)',
+  pg_temp.err($$update public.entries set checkin_token_hash = 'ABC' where project_id='zz-t' and entry_number=9002$$) like '%entries_checkin_token_hash_format%',
+  pg_temp.err($$update public.entries set checkin_token_hash = 'ABC' where project_id='zz-t' and entry_number=9002$$));
+
+select pg_temp.as_user('a0000000-0000-4000-8000-000000000002');  -- 管理者として
+select pg_temp.chk('DB-26 管理者でも、画面からハッシュを書き換えられない(別のコードを受付に通せない)',
+  pg_temp.err($$update public.entries set checkin_token_hash = repeat('b', 64) where project_id='zz-t' and entry_number=9002$$) like '%server-managed%',
+  pg_temp.err($$update public.entries set checkin_token_hash = repeat('b', 64) where project_id='zz-t' and entry_number=9002$$));
+select pg_temp.chk('DB-26 管理者でも、画面から rotation を変えられない',
+  pg_temp.err($$update public.entries set checkin_token_rotation = 1 where project_id='zz-t' and entry_number=9002$$) like '%server-managed%',
+  pg_temp.err($$update public.entries set checkin_token_rotation = 1 where project_id='zz-t' and entry_number=9002$$));
+select pg_temp.chk('DB-26 管理者がハッシュ付きで行を足すこともできない',
+  pg_temp.err($$insert into public.entries(project_id, entry_number, encrypted_pii, email_hash_v2, disclosure_password_hash_v2, checkin_token_hash) values ('zz-t', 9003, 'enc', 'zz-h-9003', 'zz-d-9003', repeat('c', 64))$$) ~ 'server-managed|row-level security|permission denied',
+  pg_temp.err($$insert into public.entries(project_id, entry_number, encrypted_pii, email_hash_v2, disclosure_password_hash_v2, checkin_token_hash) values ('zz-t', 9003, 'enc', 'zz-h-9003', 'zz-d-9003', repeat('c', 64))$$));
+select pg_temp.chk('DB-26 ハッシュと関係のない更新(受付済みにする等)は、これまでどおりできる',
+  pg_temp.affected($$update public.entries set entry_name = 'C2x' where project_id='zz-t' and entry_number=9002$$) = 1);
+select pg_temp.chk('DB-26 画面からは、ハッシュも rotation も読めない',
+  pg_temp.err($$select checkin_token_hash from public.entries where project_id='zz-t'$$) like '%permission denied%'
+  and pg_temp.err($$select checkin_token_rotation from public.entries where project_id='zz-t'$$) like '%permission denied%',
+  pg_temp.err($$select checkin_token_hash from public.entries where project_id='zz-t'$$));
+select pg_temp.as_anon();
+select pg_temp.chk('DB-26 匿名(anon)にも、ハッシュは読めない',
+  pg_temp.err($$select checkin_token_hash from public.entries$$) <> 'OK',
+  pg_temp.err($$select checkin_token_hash from public.entries$$));
+reset role;
+
 -- ===== DB-25 画面(anon / authenticated)に、使わない強い権限を付けない =====
 select pg_temp.chk('DB-25 anon / authenticated に、TRUNCATE・REFERENCES・TRIGGER が付いた表がない',
   not exists (select 1 from information_schema.role_table_grants

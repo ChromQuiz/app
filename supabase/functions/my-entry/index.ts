@@ -18,7 +18,7 @@ import {
 import { SigningConfigError } from '../_shared/signing.ts';
 import { clientIp } from '../_shared/rate_limit.ts';
 import { makeQrSvg } from '../_shared/qr.ts';
-import { issueQrToken } from '../_shared/qr_token.ts';
+import { ensureCheckinCode } from '../_shared/qr_token.ts';
 import { isEntryWindowOpen, isWithinPeriod } from '../_shared/entry_window.ts';
 
 const ENTRY_COLUMNS = [
@@ -76,10 +76,11 @@ Deno.serve(withCors(async (req) => {
       && isWithinPeriod(project.disclosure_period_start, project.disclosure_period_end)
       && checkedIn;
 
-    // 当日受付二次元コード — 署名付きトークン(V7)を埋め込む。素の entry UUID は埋め込まない。
+    // 当日受付二次元コード — 受付コード(V8)を埋め込む。素の entry UUID は埋め込まない。表示のたびに DB のハッシュも合わせる。
     // メール(send-email/checkin-qr)と同一形式なので受付側でそのまま読める。
     // キャンセル済みの二次元コードは受付で弾かれるため返さない。
-    const qrSvg = status === 'canceled' ? '' : await makeQrSvg(await issueQrToken(entryId));
+    const checkinCode = status === 'canceled' ? null : await ensureCheckinCode(supabase, entryId);
+    const qrSvg = checkinCode ? await makeQrSvg(checkinCode) : '';
 
     const { token, expiresAt } = await issueParticipantToken({ projectId, entryId, emailHash });
 

@@ -1314,3 +1314,51 @@ Notes   : 補足・再構成の断り・要確認事項
 - Rollback: DB は、`202610100004` の `claim_answer_cell_pages(text, integer)` に戻し、`drop function` で `answer_cell_progress` と `mark_answer_cell_missing` を消す。画面・サーバー関数・Worker は、前の版を再デプロイ。
 - デプロイ: `npx supabase functions deploy generate-answer-cells --project-ref pyzdlkwumhreepgkrcyb --no-verify-jwt`、Worker は `cd cloudflare/keepalive && npx wrangler deploy`。
 - 注意: 上限（48枚）と本数（画面8本・定期実行12×4）は、計測した範囲（24本まで）に合わせた数字。上げる前に、測ること。
+
+### 補足（2026-10-16）: 当日受付の二次元コードを、20 文字の受付コードにした（V8・親計画外）
+```
+Status  : Implemented — 2026-10-16（未適用・未デプロイ。マイグレーションの適用とデプロイは、まだ）
+Evidence:
+  - Migrations : 202610160002_checkin_code_hash.sql（entries に checkin_token_hash / checkin_token_rotation、大会ごとの一意 index、画面からの書き換えを止める trigger）
+  - Verification:
+      静的 : npx vitest run = 889 passed / 25 skipped。tests/qr_token.test.mjs（受付コード・正規化・ハッシュ・ensureCheckinCode）、
+             tests/checkin_function.test.mjs（受付の本物の処理）、tests/qr_reader_input.test.mjs ほか
+      観測 : 実際の qrcode@1.5.4 で、20 文字の大文字を符号化すると version 1（21×21）。誤り訂正 L・M は version 1、Q は version 2。
+             旧形式（69 文字・L）は version 3（29×29）
+      DB   : supabase/tests/db_behavior.sql に DB-26 を追加した。**実行していない**（この環境に psql / supabase CLI が無い）。適用後に流すこと
+      未検証: 実機での読み取りの速さ・距離（v3-L と v1-M の比較）、本番での受付
+
+① 変更の理由
+  - 二次元コードを、version 3（29×29・69 文字）から version 1（21×21・20 文字）に小さくし、1 モジュールを大きくして読み取りやすくする
+    （幅 360px・余白 2 の SVG で、1 モジュール 10.9px → 14.4px）。空いた容量は誤り訂正 L → M（復元できる量 約 7% → 約 15%）に回した
+
+② 変更内容
+  - 形式 : 大文字の base32（A-Z, 2-7）20 文字 = 100 bit。code = base32(HMAC-SHA256(署名鍵, `qr4:<entryId>:<rotation>`) の先頭 100 bit)
+  - 保存 : DB には sha256(`ciq-checkin:` + code) だけを持つ（entries.checkin_token_hash）。コードは持たない
+  - 書き込み : コードを表示する 3 経路（my-entry / admin-entry-qr / checkin-qr）が ensureCheckinCode を通り、ハッシュが違うときだけ更新する。
+               既存エントリーの埋め戻しは要らない（一度も表示されていないコードは、誰の手元にも無い）
+  - 受付 : check-in は、形を整え（大文字・20 文字・base32）、sha256 にして、project_id とハッシュで引く。署名鍵は使わない
+           （鍵が未設定でも受付は止まらない。コードの発行・表示は止まる）。形が違うものは 400（DB を引かず、回数にも数えない）、
+           形は正しいが無いものは 404 で checkin_miss に数える（総当たり対策）
+  - 画面 : js/qr_reader_input.js の形の判定を 20 文字に変更。旧形式（`<entryId>.<署名>`・期限つき・素の UUID）は受け付けない
+  - 画像 : 誤り訂正 L → M（20 文字は M の version 1 の上限ちょうど。Q だと version 2 になる）
+
+③ セキュリティの評価
+  - 総当たり : 100 bit（旧: 署名 128 bit）。失敗照会は IP 単位 30 回/10 分。実質的な差は無いと判断（ビット数だけなら下がっている）
+  - 良くなる点 : (a) コードがエントリーIDと無関係（IDを知っても推測の助けにならない。ただし公開リストからの UUID の露出は V7 で既に止めてある）
+                 (b) 1 人分だけ取り消せる（checkin_token_rotation を 1 上げる。次の表示から新しいコード）。**画面（操作）はまだ無い**
+                 (c) DB が漏れても、ハッシュからコードは作れない（署名鍵が要る）
+  - ハッシュ列は、画面（anon / authenticated）から読めない（entries は列を明示した select 権限のみ）。書き込みは、表全体の update 権限
+    （RLS で管理者）があるため列の権限では止められず、trigger（current_user が anon / authenticated なら拒否）で止める
+  - 全員を失効させる手順 : CIQ_EMAIL_SIGNING_SECRET を更新する。以後の表示のたびに新しいハッシュに置き換わり、古いコードは使えなくなる
+    （更新直後は、まだ表示されていない人のハッシュは古いまま。誰も新しいコードを持っていないので、受付に来る人は先に表示することになる）
+  - 流出した二次元コードの悪用は、これまでと同じ（その大会で 1 回だけ。受付画面の受付番号・所属・学年で本人と照合）
+
+Rollback: コードは revert 可。DB は、列と trigger を残したままでも旧コードは動く（旧コードは前の版の関数が必要）。
+          新形式を発行した後に revert すると、その間に表示・保存された新形式の二次元コードは読めなくなる（マイエントリーで再表示すれば復旧）。
+          列を消す場合は `drop trigger guard_entry_checkin_token on public.entries; drop function public.guard_entry_checkin_token();`
+          のあと `alter table public.entries drop column checkin_token_hash, drop column checkin_token_rotation;`
+Deploy  : マイグレーション適用 → check-in / my-entry / admin-entry-qr / checkin-qr を同時にデプロイ → フロント（js/qr_reader_input.js）。
+          順序に注意: 関数を先にデプロイすると、列が無くて落ちる。先にデプロイした旧版の check-in は、新しいコードを受け付けない。
+Notes   : メール内の画像は checkin-qr の URL で、表示のたびに作り直す（1 年キャッシュの指定あり）。メールソフトが保存した旧形式の画像は、
+          デプロイ後は使えない（マイエントリーか、メールを開き直して再表示する）。開発段階のため、旧形式の互換は持たない。
