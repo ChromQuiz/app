@@ -24,6 +24,24 @@ describe('解答欄の画像づくり: 画面は、サーバーの待ち行列�
     expect(result).toMatchObject({ ok: true, pages: 2, denied: false });
   });
 
+  it('一時的な失敗が1回あっても、持ち直せば、成功として扱う（「作れませんでした」と知らせない）。続けて失敗したときだけ、失敗', async () => {
+    vi.useFakeTimers();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const api = loadApi();
+    const replies = [new Error('timeout'), { pages: 2 }, { pages: 0, busy: false }];
+    api.invokeAuthedFunction = vi.fn(async () => { const r = replies.shift(); if (r instanceof Error) throw r; return r || { pages: 0 }; });
+    const run = api.requestServerCellGeneration('p1', { lanes: 1 });
+    await vi.advanceTimersByTimeAsync(20000);
+    expect(await run).toMatchObject({ ok: true, pages: 2, transientErrors: 1, error: null });
+
+    const api2 = loadApi();
+    api2.invokeAuthedFunction = vi.fn(async () => { throw new Error('down'); });
+    const run2 = api2.requestServerCellGeneration('p2', { lanes: 1 });
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(await run2).toMatchObject({ ok: false });
+    warn.mockRestore();
+  });
+
   it('同じ大会は、同時に1組だけ動かす。流れの数（lanes）だけ、並べて呼ぶ', async () => {
     vi.useFakeTimers();
     const api = loadApi();

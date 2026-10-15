@@ -1408,7 +1408,8 @@ const CIQSupabaseAPI = {
         const MAX_CONSECUTIVE_ERRORS = 3;
         let stop = false;
         let pages = 0;
-        let failure = null;
+        let failure = null;       // 流れが、続けて失敗して、あきらめたときだけ入る
+        let transientErrors = 0;  // 一時的な失敗の数(そのあと、持ち直したものも含む。診断用)
         let denied = false;
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
         const waitUntilVisible = async () => {
@@ -1430,8 +1431,11 @@ const CIQSupabaseAPI = {
                         return;
                     }
                     errors += 1;
-                    failure = failure || error;
+                    transientErrors += 1;
+                    console.warn('Answer cell generation call failed:', error?.status || '', error?.message || error);
                     if (errors >= MAX_CONSECUTIVE_ERRORS) {
+                        // 続けて失敗した。これは、持ち直さなかったので、失敗として知らせる
+                        failure = failure || error;
                         stop = true;
                         return;
                     }
@@ -1451,7 +1455,7 @@ const CIQSupabaseAPI = {
         const run = Promise.all(Array.from({ length: lanes }, loop)).then(() => {
             this.invalidateProjectAnswerCache(projectId);
             if (denied) this._serverCellDenied = true;
-            return { ok: !failure && !denied, pages, denied, error: failure };
+            return { ok: !failure && !denied, pages, denied, error: failure, transientErrors };
         }).finally(() => {
             this._serverCellRuns.delete(projectId);
         });
