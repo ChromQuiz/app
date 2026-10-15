@@ -337,6 +337,9 @@
             let uploadedPagePaths = new Set();
             let inFlightUploads = [];
             let pdfDoc = null;
+            // 読み込み・保存の最中に画面を閉じると、まだ保存していないページが失われる。閉じようとしたら、ブラウザが確認する。
+            const leaveGuard = (event) => { event.preventDefault(); event.returnValue = ''; };
+            window.addEventListener('beforeunload', leaveGuard);
 
             try {
                 const perfStats = createPerfStats();
@@ -573,10 +576,14 @@
                     const metadataStartedAt = performance.now();
                     await CIQSupabaseAPI.upsertAnswerPages(projectId, answerPageRecords);
                     addMs(perfStats, 'uploadMs', metadataStartedAt);
-                    // サーバーに作ってもらう。使えなかったときだけ、このブラウザで作る。
+                    // 保存が終わったので、ここから先は、画面を閉じてよい。解答欄の画像は、サーバーが作る。
+                    // 進み具合は、画面に出る。サーバーを呼べなかったときだけ、知らせる(定期実行が、続きを進める)。
                     CIQSupabaseAPI.requestServerCellGeneration(projectId).then((generated) => {
-                        if (!generated.ok) CIQSupabaseAPI.enqueueAnswerCellGeneration(projectId, answerPageRecords);
+                        if (!generated.ok && !generated.denied) {
+                            showAdminToast('解答欄の画像を、すぐには作れませんでした。サーバーが、少しずつ、続きを作ります。', 'warning', 8000);
+                        }
                     });
+                    window.watchAnswerCellProgress?.();
                 }
 
                 overlayText.textContent = '完了しました。';
@@ -604,6 +611,7 @@
                 console.error(e); overlay.classList.remove('is-visible-flex');
                 showAdminToast('処理を完了できませんでした。（詳細：' + errorDetail(e) + '）');
             } finally {
+                window.removeEventListener('beforeunload', leaveGuard);
                 releaseScanAnswerCanvases();
                 workCanvas.width = 0;
                 workCanvas.height = 0;

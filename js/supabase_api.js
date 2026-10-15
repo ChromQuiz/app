@@ -82,13 +82,10 @@ const CIQSupabaseAPI = {
     },
     _answerCellUrlLookupEnabled: true,
     _answerCellVersion: 'answer-cell-v1',
-    _answerCellProcessingStaleMs: 10 * 60 * 1000,
-    // 書き込み権限がない人（採点者）の画面では、解答欄画像の生成を一度失敗したらそれ以降は試さない
-    _answerCellWriteDenied: false,
-    _answerCellQueue: [],
-    _answerCellRunningKeys: new Set(),
-    _answerCellQueuedKeys: new Set(),
-    _answerCellQueueScheduled: false,
+    // 解答欄の画像づくりは、サーバーが進める。この画面は、サーバーに「続きをお願い」と頼むだけ。
+    // 管理者でない人の画面では、一度断られたら、それ以降は頼まない。
+    _serverCellDenied: false,
+    _serverCellRuns: new Map(),
     _answerPagesCacheMs: 15000,
     _signedUrlCacheMs: 5 * 60 * 1000,
 
@@ -874,11 +871,6 @@ const CIQSupabaseAPI = {
         };
     },
 
-    isCellGenerationStale(generation) {
-        if (!generation?.startedAt) return false;
-        const startedAt = Date.parse(generation.startedAt);
-        return Number.isFinite(startedAt) && Date.now() - startedAt > this._answerCellProcessingStaleMs;
-    },
 
     async uploadAnswerPage(projectId, entryNumber, pageImage, cells, pageWidth, knownEntry = null) {
         const entry = knownEntry?.id ? knownEntry : await this.findEntryByNumber(projectId, entryNumber);
@@ -966,53 +958,18 @@ const CIQSupabaseAPI = {
         return path;
     },
 
-    async updateAnswerCellGeneration(projectId, entryId, patch) {
-        if (!projectId || !entryId) throw new Error('Missing answer page identity');
-        const { data: current, error: readError } = await this.client()
-            .from('answer_pages')
-            .select('cells')
-            .eq('project_id', projectId)
-            .eq('entry_id', entryId)
-            .single();
-        if (readError) throw readError;
-
-        const cells = current?.cells || {};
-        const previous = this.normalizeAnswerCellGeneration(cells);
-        const nextGeneration = {
-            ...previous,
-            ...(patch || {}),
-            questions: {
-                ...(previous.questions || {}),
-                ...((patch || {}).questions || {}),
-            },
-        };
-        const nextCells = {
-            ...cells,
-            cellGeneration: nextGeneration,
-        };
-        const { data, error } = await this.client()
-            .from('answer_pages')
-            .update({ cells: nextCells })
-            .eq('project_id', projectId)
-            .eq('entry_id', entryId)
-            .select('id, project_id, entry_id, storage_path, cells, uploaded_at')
-            .single();
-        if (error) throw error;
-        this.invalidateProjectAnswerCache(projectId);
-        return data;
-    },
-
+    // 画像が見つからなかった問題を、「作り直す」に戻す。記録の書き換えは、DB の1回の操作で行う
+    // (ブラウザが、記録を読んで書き戻すと、サーバーの途中経過を上書きするため)。管理者でなければ、何も起きない。
     async markAnswerCellFailed(projectId, entryId, questionNumber) {
-        if (this._answerCellWriteDenied) return;
+        if (this._serverCellDenied) return;
         try {
-            await this.updateAnswerCellGeneration(projectId, entryId, {
-                version: this._answerCellVersion,
-                status: 'partial',
-                failedAt: new Date().toISOString(),
-                questions: { [`q${questionNumber}`]: 'failed' },
+            const { error } = await this.client().rpc('mark_answer_cell_missing', {
+                p_project_id: projectId,
+                p_entry_id: entryId,
+                p_question_number: questionNumber,
             });
+            if (error) throw error;
         } catch (error) {
-            if (this.isAnswerCellWriteDenied(error)) return;
             console.warn('Answer cell failure mark skipped:', error);
         }
     },
@@ -1431,208 +1388,105 @@ const CIQSupabaseAPI = {
         return promise;
     },
 
-    shouldGenerateAnswerCells(page) {
-        const cells = page?.cells || {};
-        const regions = cells.regions || page?.cellRegions || {};
-        const generation = this.normalizeAnswerCellGeneration(cells);
-        const questionKeys = Object.keys(regions).filter(key => regions[key]);
-        if (!questionKeys.length) return false;
-        if (generation.version !== this._answerCellVersion) return true;
-        const hasMissingQuestion = questionKeys.some(key => generation.questions?.[key] !== 'ready');
-        if (!hasMissingQuestion) return false;
-        if (generation.status === 'not_started' || generation.status === 'partial' || generation.status === 'failed') return true;
-        if (generation.status === 'processing' && this.isCellGenerationStale(generation)) return true;
-        return hasMissingQuestion;
-    },
-
-    isAnswerCellWriteDenied(error) {
-        const text = `${error?.message || ''} ${error?.error || ''}`.toLowerCase();
-        return error?.code === 'PGRST116'
-            || error?.code === '42501'
-            || Number(error?.statusCode || error?.status) === 403
-            || text.includes('row-level security');
-    },
-
     // サーバー(Edge Function)に、解答欄画像の作成を進めてもらう。画面を閉じても、定期実行が続きを進める。
-    // 作る用紙が無くなる（pages が 0）か、失敗するまで、concurrency 本で呼び続ける。
-    async requestServerCellGeneration(projectId, { concurrency = 4 } = {}) {
-        if (!projectId) return { ok: false, pages: 0, error: new Error('Missing project') };
+    //
+    // サーバーも、ほかの管理者の画面も、同じ DB の待ち行列から用紙を取る。同時に動く数の全体の上限は、DB が持つ。
+    // この画面は、lanes 本の流れで、サーバーを呼び続ける。呼ぶたびの返事は、3通り:
+    //   - pages > 0  : 用紙を作った。すぐ、次を呼ぶ。
+    //   - busy       : 取れる用紙がない(上限で混んでいる、または、ほかが作成中)。少し待って、やり直す。
+    //   - それ以外    : 全部できた。この流れは、終わる。
+    // 画面が裏に回っている間は、止める(定期実行が続けるので、止めてよい)。
+    // 同じ大会は、同時に1組だけ動かす(画面の中で、重ねて呼ばない)。
+    requestServerCellGeneration(projectId, { lanes = 8, onProgress } = {}) {
+        if (!projectId) return Promise.resolve({ ok: false, pages: 0, error: new Error('Missing project') });
+        if (this._serverCellDenied) return Promise.resolve({ ok: false, pages: 0, denied: true, error: new Error('forbidden') });
+        const running = this._serverCellRuns.get(projectId);
+        if (running) return running;
+
+        const BUSY_WAIT_MS = 3000;
+        const ERROR_WAIT_MS = 2000;
+        const MAX_CONSECUTIVE_ERRORS = 3;
         let stop = false;
         let pages = 0;
         let failure = null;
+        let denied = false;
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        const waitUntilVisible = async () => {
+            while (!stop && typeof document !== 'undefined' && document.hidden) await sleep(1000);
+        };
         const loop = async () => {
+            let errors = 0;
             while (!stop) {
+                await waitUntilVisible();
+                if (stop) return;
                 let result;
                 try {
                     result = await this.invokeAuthedFunction('generate-answer-cells', { projectId });
+                    errors = 0;
                 } catch (error) {
-                    failure = failure || error;
-                    stop = true;
-                    return;
-                }
-                pages += Number(result?.pages || 0);
-                if (!result?.pages) {
-                    stop = true;
-                    return;
-                }
-            }
-        };
-        await Promise.all(Array.from({ length: concurrency }, loop));
-        this.invalidateProjectAnswerCache(projectId);
-        return { ok: !failure, pages, error: failure };
-    },
-
-    enqueueAnswerCellGeneration(projectId, pages) {
-        if (!projectId || this._answerCellWriteDenied) return;
-        const candidates = (pages || [])
-            .map((page) => {
-                const rawCells = page.cells || null;
-                const singleRegion = page.cellRegion && page.questionNumber ? { [`q${page.questionNumber}`]: page.cellRegion } : {};
-                const pageRegions = page.cellRegions && Object.keys(page.cellRegions).length ? page.cellRegions : null;
-                const cells = rawCells?.regions
-                    ? rawCells
-                    : {
-                        regions: pageRegions || rawCells || singleRegion,
-                        pageWidth: page.pageWidth || rawCells?.pageWidth || null,
-                        cellGeneration: page.cellGeneration || {
-                            version: page.cellGenerationVersion || null,
-                            status: page.cellStatus === 'ready' ? 'partial' : 'not_started',
-                            questions: page.cellStatus === 'ready' && page.questionNumber ? { [`q${page.questionNumber}`]: 'ready' } : {},
-                        },
-                    };
-                return {
-                    projectId,
-                    entryId: page.entryId || page.entry_id,
-                    entryNumber: Number(page.entryNumber || page.entry_number || page.entries?.entry_number || 0),
-                    storagePath: page.storagePath || page.storage_path || '',
-                    cells,
-                    partialCellGeneration: Boolean(!rawCells?.regions && page.questionNumber),
-                };
-            })
-            .filter(page => page.entryId && page.entryNumber && page.storagePath && this.shouldGenerateAnswerCells(page));
-        for (const page of candidates) {
-            const key = `${projectId}:${page.entryNumber}`;
-            if (this._answerCellRunningKeys.has(key)) continue;
-            if (this._answerCellQueuedKeys.has(key)) {
-                const queued = this._answerCellQueue.find(item => item.key === key);
-                if (queued) {
-                    queued.cells = {
-                        ...queued.cells,
-                        regions: {
-                            ...(queued.cells?.regions || {}),
-                            ...(page.cells?.regions || {}),
-                        },
-                        pageWidth: queued.cells?.pageWidth || page.cells?.pageWidth || null,
-                    };
-                    queued.partialCellGeneration = queued.partialCellGeneration && page.partialCellGeneration;
-                }
-                continue;
-            }
-            this._answerCellQueuedKeys.add(key);
-            this._answerCellQueue.push({ ...page, key });
-        }
-        this.scheduleAnswerCellQueue();
-    },
-
-    scheduleAnswerCellQueue() {
-        if (this._answerCellQueueScheduled) return;
-        if (!this._answerCellQueue.length) return;
-        this._answerCellQueueScheduled = true;
-        const run = () => {
-            this._answerCellQueueScheduled = false;
-            this.processAnswerCellQueue().catch(error => {
-                console.warn('Answer cell generation queue failed:', error);
-            });
-        };
-        if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(run, { timeout: 3000 });
-        } else {
-            setTimeout(run, 250);
-        }
-    },
-
-    async processAnswerCellQueue() {
-        if (this._answerCellWriteDenied) {
-            this._answerCellQueue.length = 0;
-            this._answerCellQueuedKeys.clear();
-            return;
-        }
-        const next = this._answerCellQueue.shift();
-        if (!next) return;
-        this._answerCellQueuedKeys.delete(next.key);
-        if (this._answerCellRunningKeys.has(next.key)) {
-            this.scheduleAnswerCellQueue();
-            return;
-        }
-        this._answerCellRunningKeys.add(next.key);
-        try {
-            await this.generateAnswerCellsForPage(next.projectId, next);
-        } catch (error) {
-            console.warn('Answer cell generation skipped:', error);
-        } finally {
-            this._answerCellRunningKeys.delete(next.key);
-            this.scheduleAnswerCellQueue();
-        }
-    },
-
-    async generateAnswerCellsForPage(projectId, page) {
-        const regions = page.cells?.regions || page.cellRegions || {};
-        const questionKeys = Object.keys(regions).filter(key => regions[key]).sort((a, b) => Number(a.replace(/^q/, '')) - Number(b.replace(/^q/, '')));
-        if (!questionKeys.length) return;
-
-        const existingGeneration = this.normalizeAnswerCellGeneration(page.cells);
-        const versionMismatch = existingGeneration.version !== this._answerCellVersion;
-        const startedAt = new Date().toISOString();
-        await this.updateAnswerCellGeneration(projectId, page.entryId, {
-            version: this._answerCellVersion,
-            status: 'processing',
-            startedAt,
-            failedAt: null,
-            questions: versionMismatch ? {} : existingGeneration.questions,
-        }).catch(error => {
-            if (this.isAnswerCellWriteDenied(error)) {
-                this._answerCellWriteDenied = true;
-                return;
-            }
-            console.warn('Answer cell generation status update skipped:', error);
-        });
-        if (this._answerCellWriteDenied) return;
-
-        const pageUrls = await this.getAnswerPageUrls(projectId, [{
-            key: String(page.entryId),
-            storagePath: page.storagePath,
-        }]);
-        const pageUrl = pageUrls[String(page.entryId)];
-        if (!pageUrl) throw new Error('Missing answer page URL');
-
-        const questions = versionMismatch ? {} : { ...(existingGeneration.questions || {}) };
-        const targets = questionKeys.filter(key => versionMismatch || questions[key] !== 'ready');
-        const totalQuestions = page.partialCellGeneration ? 0 : questionKeys.length;
-        for (let i = 0; i < targets.length; i += 2) {
-            const batch = targets.slice(i, i + 2);
-            if (this._answerCellWriteDenied) return;
-            await Promise.all(batch.map(async (key) => {
-                const questionNumber = Number(String(key).replace(/^q/, ''));
-                try {
-                    const blob = await this.cropImageRegionBlob(pageUrl, regions[key], page.cells?.pageWidth || page.pageWidth || null);
-                    await this.uploadAnswerCellBlob(projectId, page.entryNumber, questionNumber, blob, false);
-                    questions[key] = 'ready';
-                } catch (error) {
-                    if (this.isAnswerCellWriteDenied(error)) {
-                        this._answerCellWriteDenied = true;
+                    if (Number(error?.status || error?.statusCode) === 403) {
+                        denied = true;
+                        stop = true;
                         return;
                     }
-                    console.warn('Answer cell generation failed:', { entryNumber: page.entryNumber, questionNumber, error });
-                    questions[key] = 'failed';
+                    errors += 1;
+                    failure = failure || error;
+                    if (errors >= MAX_CONSECUTIVE_ERRORS) {
+                        stop = true;
+                        return;
+                    }
+                    await sleep(ERROR_WAIT_MS * errors);
+                    continue;
                 }
-            }));
-        }
-
-        if (this._answerCellWriteDenied) return;
-        const patch = this.buildCellGenerationPatch(questions, totalQuestions, { startedAt });
-        await this.updateAnswerCellGeneration(projectId, page.entryId, patch).catch(error => {
-            console.warn('Answer cell generation final status skipped:', error);
+                pages += Number(result?.pages || 0);
+                if (typeof onProgress === 'function') onProgress(result);
+                if (result?.pages) continue;
+                if (result?.busy) {
+                    await sleep(BUSY_WAIT_MS + Math.floor(Math.random() * 1000));
+                    continue;
+                }
+                return;   // 全部できた
+            }
+        };
+        const run = Promise.all(Array.from({ length: lanes }, loop)).then(() => {
+            this.invalidateProjectAnswerCache(projectId);
+            if (denied) this._serverCellDenied = true;
+            return { ok: !failure && !denied, pages, denied, error: failure };
+        }).finally(() => {
+            this._serverCellRuns.delete(projectId);
         });
+        this._serverCellRuns.set(projectId, run);
+        return run;
+    },
+
+    // 解答欄の画像がまだ無いカードを見たとき、サーバーに、続きをお願いする(画面で作ることはしない)。
+    // 画像のあるカードだけなら、何もしない。続けて呼びすぎないよう、同じ大会は 15秒に1回まで。
+    // 管理者でなければ、一度断られて、それ以降は何もしない。
+    enqueueAnswerCellGeneration(projectId, pages) {
+        if (!projectId || this._serverCellDenied) return;
+        const missing = (pages || []).some(page => (page.cellStatus ?? page.cell_status) !== 'ready');
+        if (!missing) return;
+        const now = Date.now();
+        this._serverCellNudgedAt ||= {};
+        if (now - (this._serverCellNudgedAt[projectId] || 0) < 15000) return;
+        this._serverCellNudgedAt[projectId] = now;
+        this.requestServerCellGeneration(projectId).catch(() => {});
+    },
+
+    // 解答欄の画像の進み具合(管理者のみ)。作成済みの枚数 / 全部の枚数、作成中の用紙の数。
+    async getAnswerCellProgress(projectId) {
+        const { data, error } = await this.client()
+            .rpc('answer_cell_progress', { p_project_id: projectId })
+            .single();
+        if (error) throw error;
+        return {
+            totalPages: Number(data?.total_pages || 0),
+            completePages: Number(data?.complete_pages || 0),
+            totalCells: Number(data?.total_cells || 0),
+            readyCells: Number(data?.ready_cells || 0),
+            pendingPages: Number(data?.pending_pages || 0),
+            inFlightPages: Number(data?.in_flight_pages || 0),
+        };
     },
 
     // 戻り値は { answer, altAnswers }。該当行が無ければ両方とも空。

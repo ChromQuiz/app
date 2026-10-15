@@ -429,6 +429,35 @@
             scoresData = nextScores;
         }
 
+        // 解答欄の画像の進み具合(「8,420 / 11,700 枚」)。全部できるまで、数秒ごとに更新する。画面が裏のときは、止める。
+        let answerCellWatchTimer = 0;
+        async function refreshAnswerCellProgress() {
+            const box = document.getElementById('answer-cell-progress');
+            if (!box) return true;
+            try {
+                const progress = await CIQSupabaseAPI.getAnswerCellProgress(projectId);
+                const done = progress.totalCells === 0 || progress.readyCells >= progress.totalCells;
+                box.hidden = done;
+                if (!done) {
+                    box.textContent = `解答欄の画像 ${progress.readyCells.toLocaleString('ja-JP')} / ${progress.totalCells.toLocaleString('ja-JP')} 枚を、サーバーで作成中です。この画面を閉じても進みます。`;
+                }
+                return done;
+            } catch (e) {
+                box.hidden = true;   // 管理者でないとき・取得できないときは、出さない
+                return true;
+            }
+        }
+        window.watchAnswerCellProgress = function watchAnswerCellProgress() {
+            clearInterval(answerCellWatchTimer);
+            const tick = async () => {
+                if (document.hidden) return;
+                const done = await refreshAnswerCellProgress();
+                if (done) clearInterval(answerCellWatchTimer);
+            };
+            tick();
+            answerCellWatchTimer = setInterval(tick, 4000);
+        };
+
         async function initSupabaseAdmin() {
             const project = await CIQSupabaseAPI.getProject(projectId);
             totalQuestions = project.question_count || 100;
@@ -769,6 +798,7 @@
             await initSupabaseAdmin();
             // 作りかけの解答欄画像があれば、サーバーに続きを進めてもらう（権限がなければ何も起きない）
             CIQSupabaseAPI.requestServerCellGeneration(projectId).catch(() => {});
+            watchAnswerCellProgress();
             const hash = location.hash.replace('#', '');
             if (hash && document.getElementById(hash)) {
                 switchTab(hash);

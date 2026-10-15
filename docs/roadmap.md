@@ -27,6 +27,17 @@ Done:
 - Documentation-driven issue workflow.
 - Large refactoring after security, upload, and UI behavior are stable.
 
+## Under Consideration (not scheduled)
+
+Cross-event participant accounts and passkeys. Decision as of 2026-10-14: do not implement yet; keep the option open.
+
+- Today participant auth is per project (`project_id` + `email_hash_v2` + `disclosure_password_hash_v2`). Participants have no identity across events.
+- If CIQ grows to serve multiple events per year, a cross-event participant account becomes worthwhile, and passkeys are the first-choice credential for it.
+- Adding passkeys on top of the current per-event auth, while keeping the password, adds no security (attackers use the weaker path). Passkeys only help once the password is retired and recovery goes through an email link.
+- Decide the account unit first (custom token vs Supabase Auth), then the credential. Do not add passkeys before that.
+- Keep the option open: do not rotate the participant hash pepper, because `email_hash_v2` is expected to be deterministic and is what lets past entries be linked to an account later (inferred from `supabase/functions/_shared/participant_auth.ts`; verify before relying on it).
+- Admin/scorer MFA has a better cost-to-benefit ratio than participant passkeys and should be considered first.
+
 ## Do Not Treat As Complete Yet
 
 The project still needs broad verification across UI/UX, performance, security, and refactoring goals before the long-running objective can be considered complete.
