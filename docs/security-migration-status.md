@@ -1301,7 +1301,7 @@ Notes   : 補足・再構成の断り・要確認事項
 
 ## 解答欄の画像づくりの待ち行列（2026-10-16）
 
-- Status: マイグレーションは適用済み（本番）。`supabase/migrations/202610160001_answer_cell_queue.sql`。Edge Function `generate-answer-cells` と Cloudflare Worker は、**デプロイ待ち**（利用者が実行する）。画面は、公開後に有効。
+- Status: マイグレーションは適用済み（本番）。`supabase/migrations/202610160001_answer_cell_queue.sql`。Edge Function `generate-answer-cells` と Cloudflare Worker は、デプロイ済み（2026-10-16、利用者が実行。Worker のバージョン 9e8b5a1a）。画面は、公開後に有効。
 - 背景: サーバーの定期実行と、複数の管理者の画面が、重ならずに、同時に進められる設計にする（`docs/answer_cell_throughput.md` の計測にもとづく）。それまでは、管理者のブラウザが、サーバーとは別に、画像を作って保存しており、同じ用紙を重ねて作る無駄と、記録（どの問題ができたか）の上書きが起こりえた。
 - 内容:
   1. 全体の上限: `claim_answer_cell_pages` に、作成中の用紙の上限（既定 48枚）をかけ、取る処理を advisory lock で1つずつにする。管理者が何人いても、同時に動く数は、ここで止まる。
@@ -1314,4 +1314,3 @@ Notes   : 補足・再構成の断り・要確認事項
 - Rollback: DB は、`202610100004` の `claim_answer_cell_pages(text, integer)` に戻し、`drop function` で `answer_cell_progress` と `mark_answer_cell_missing` を消す。画面・サーバー関数・Worker は、前の版を再デプロイ。
 - デプロイ: `npx supabase functions deploy generate-answer-cells --project-ref pyzdlkwumhreepgkrcyb --no-verify-jwt`、Worker は `cd cloudflare/keepalive && npx wrangler deploy`。
 - 注意: 上限（48枚）と本数（画面8本・定期実行12×4）は、計測した範囲（24本まで）に合わせた数字。上げる前に、測ること。
-
