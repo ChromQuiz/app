@@ -356,19 +356,30 @@ describe('send-email: 繰り上げ通知の起動（process_promotions）', () =
 
 describe('checkin-qr（二次元コード画像）', () => {
   it('署名つきの URL だけ画像を返す。署名なし・改ざんは 404', async () => {
-    const db = createFakeDb({});
+    const id = '11111111-1111-4111-8111-111111111111';
+    const db = createFakeDb({ entries: [{ id, project_id: 'ciq9' }] });
     const call = await loadFunction('checkin-qr', { db, mocks: QR_MOCK });
     const { hmacHex, signingSecret } = await import('../supabase/functions/_shared/signing.ts');
-    const id = '11111111-1111-4111-8111-111111111111';
     const sig = await hmacHex(signingSecret(), id);
     const ok = await call(undefined, { method: 'GET', url: `https://fn.test/checkin-qr?d=${id}&s=${sig}` });
     expect(ok.status).toBe(200);
     expect(ok.headers.get('content-type')).toMatch(/image\/svg\+xml/);
     expect(ok.headers.get('x-content-type-options')).toBe('nosniff');
-    expect(ok.text).toMatch(new RegExp(`data-value="${id}\\.[0-9a-f]{32}"`)); // 素の ID ではなく署名つき
+    const code = ok.text.match(/data-value="([A-Z2-7]{20})"/)?.[1]; // 素の ID ではなく受付コード
+    expect(code).toBeTruthy();
+    const { hashCheckinCode } = await import('../supabase/functions/_shared/qr_token.ts');
+    expect(db.tables.entries[0].checkin_token_hash).toBe(await hashCheckinCode(code)); // 表示と同時に、DB のハッシュも合う
     for (const url of [`https://fn.test/checkin-qr?d=${id}`, `https://fn.test/checkin-qr?d=${id}&s=${'0'.repeat(64)}`, `https://fn.test/checkin-qr?d=${id.replace('1', '2')}&s=${sig}`, 'https://fn.test/checkin-qr']) {
       expect((await call(undefined, { method: 'GET', url })).status, url).toBe(404);
     }
+  });
+
+  it('署名は正しいが、エントリーが無ければ 404(コードを作らない)', async () => {
+    const id = '22222222-2222-4222-8222-222222222222';
+    const call = await loadFunction('checkin-qr', { db: createFakeDb({ entries: [] }), mocks: QR_MOCK });
+    const { hmacHex, signingSecret } = await import('../supabase/functions/_shared/signing.ts');
+    const sig = await hmacHex(signingSecret(), id);
+    expect((await call(undefined, { method: 'GET', url: `https://fn.test/checkin-qr?d=${id}&s=${sig}` })).status).toBe(404);
   });
 
   it('署名鍵が未設定なら 503', async () => {

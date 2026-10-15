@@ -55,7 +55,7 @@ describe('利用者に見える文言では「二次元コード」を使う', (
     const qr = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr.ts'), 'utf8');
     expect(qr).toMatch(/import QRCode from 'npm:qrcode@/);
     const token = readFileSync(resolve(ROOT, 'supabase/functions/_shared/qr_token.ts'), 'utf8');
-    expect(token).toMatch(/export async function issueQrToken/);
+    expect(token).toMatch(/export async function ensureCheckinCode/);
   });
 });
 

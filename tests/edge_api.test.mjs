@@ -149,7 +149,11 @@ describe('admin-entry-qr', () => {
     const ok = await call({ projectId: PROJECT, entryId: E1 }, { token: 'tok-admin' });
     expect(ok.json.ok).toBe(true);
     const value = ok.json.svg.match(/data-value="([^"]+)"/)[1];
-    expect(value).toMatch(new RegExp(`^${E1}\\.[0-9a-f]{32}$`)); // 素のIDではなく、署名つき
+    expect(value).toMatch(/^[A-Z2-7]{20}$/); // 素のIDではなく、受付コード
+    expect(value.toLowerCase()).not.toContain(E1.slice(0, 8));
+    // 表示と同時に、DB のハッシュも今のコードに合う
+    const { hashCheckinCode } = await import('../supabase/functions/_shared/qr_token.ts');
+    expect(db.tables.entries.find((e) => e.id === E1).checkin_token_hash).toBe(await hashCheckinCode(value));
     const other = await call({ projectId: PROJECT, entryId: E2 }, { token: 'tok-admin' });
     expect(other.status).toBe(404);
     expect(other.json.error).toBe('エントリーが見つかりません。');

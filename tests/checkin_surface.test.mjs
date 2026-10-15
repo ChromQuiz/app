@@ -37,7 +37,7 @@ describe('参加者に向いた受付画面には番号入力を置かない', (
   });
 });
 
-describe('check アクションは署名付きQRのみ受け付ける (V7)', () => {
+describe('check アクションは受付コードのみ受け付ける (V8)', () => {
   it('entryNumber では受付できない', () => {
     // check 分岐の中で entryNumber を使っていないこと(番号フォールバックの復活を防ぐ)。
     const checkBranch = edge.slice(
@@ -46,11 +46,14 @@ describe('check アクションは署名付きQRのみ受け付ける (V7)', () 
     );
     expect(checkBranch.length).toBeGreaterThan(0);
     expect(checkBranch).not.toMatch(/entryNumber/);
-    expect(checkBranch).toMatch(/verifyQrToken\(scanned\)/);
+    expect(checkBranch).toMatch(/normalizeCheckinCode\(scanned\)/);
+    expect(checkBranch).toMatch(/\{ tokenHash: await hashCheckinCode\(code\) \}/);
   });
 
-  it('検証に失敗したトークンは受け付けない', () => {
-    expect(edge).toMatch(/if \(!verifiedId\)/);
+  it('形が違うコードは受け付けない(DB を引かない)', () => {
+    expect(edge).toMatch(/if \(!code\)/);
+    // 受付コードの照会は、entries.id ではなくハッシュで行う
+    expect(edge).toMatch(/query\.eq\('checkin_token_hash', by\.tokenHash\)/);
   });
 });
 

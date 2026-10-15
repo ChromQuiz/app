@@ -1,7 +1,7 @@
 import { handleOptions, jsonResponse, serverErrorResponse, withCors } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { clientIp, clientIpHash, enforceIpRateLimit, RateLimitError } from '../_shared/rate_limit.ts';
-import { verifyQrToken } from '../_shared/qr_token.ts';
+import { hashCheckinCode, normalizeCheckinCode } from '../_shared/qr_token.ts';
 import { logServiceEvent } from '../_shared/audit.ts';
 
 type Role = 'owner' | 'admin' | 'scorer';
@@ -59,10 +59,10 @@ async function findEntry(
   supabase: ReturnType<typeof createServiceClient>,
   req: Request,
   projectId: string,
-  by: { id: string } | { entryNumber: number },
+  by: { tokenHash: string } | { entryNumber: number },
 ) {
   let query = supabase.from('entries').select(ENTRY_COLUMNS).eq('project_id', projectId);
-  query = 'id' in by ? query.eq('id', by.id) : query.eq('entry_number', by.entryNumber);
+  query = 'tokenHash' in by ? query.eq('checkin_token_hash', by.tokenHash) : query.eq('entry_number', by.entryNumber);
 
   const { data: entry, error } = await query.single();
   if (error || !entry) {
@@ -104,7 +104,8 @@ Deno.serve(withCors(async (req) => {
       });
     }
 
-    // (a) 二次元コード 受付: 署名付きトークン(V7)のみ。素の entry UUID も受付番号も受け付けない。
+    // (a) 二次元コード 受付: 受付コード(V8・20 文字)のみ。素の entry UUID も旧形式も受付番号も受け付けない。
+    // コードは形を整えてから sha256 にし、project_id とハッシュで引く。見つからない照会は checkin_miss に数える(総当たり対策)。
     if (action === 'check') {
       const member = await requireProjectMember(supabase, req, projectId, DESK_ROLES);
 
@@ -112,14 +113,14 @@ Deno.serve(withCors(async (req) => {
       if (scanned === undefined || scanned === null || String(scanned).length === 0) {
         return jsonResponse({ error: '二次元コードが必要です。' }, 400);
       }
-      const verifiedId = await verifyQrToken(scanned);
-      if (!verifiedId) {
+      const code = normalizeCheckinCode(scanned);
+      if (!code) {
         return jsonResponse({
           error: 'この二次元コードは使用できません。マイエントリーで最新の二次元コードを表示するか、運営に伝えてください。',
         }, 400);
       }
 
-      const entry = await findEntry(supabase, req, projectId, { id: verifiedId });
+      const entry = await findEntry(supabase, req, projectId, { tokenHash: await hashCheckinCode(code) });
       if (!entry) return jsonResponse({ error: '該当者が見つかりません。' }, 404);
       return await commitCheckIn(supabase, req, projectId, entry, member?.id ?? null);
     }
