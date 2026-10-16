@@ -346,7 +346,9 @@ body.page-question .header-center {
 /* 認証コード入力 */
 .verify-code-boxes {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  /* 1マスは正方形。広い画面では64pxまでにして、中央にまとめる */
+  grid-template-columns: repeat(6, minmax(0, 64px));
+  justify-content: center;
   gap: var(--sp-2);
 }
 
@@ -356,7 +358,9 @@ body.page-question .header-center {
   font-weight: 600;
   text-align: center;
   text-wrap: balance;   /* 2行に折り返すときも、行の長さをそろえる(最終行だけ短く残さない) */
-  min-height: 56px;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 0;
   padding-inline: 0;
   border-radius: var(--r-md);
 }
@@ -372,7 +376,6 @@ body.page-question .header-center {
   }
 
   .verify-code-box {
-    min-height: 50px;
     font-size: var(--text-title) !important;
   }
 }
