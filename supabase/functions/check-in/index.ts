@@ -84,7 +84,7 @@ Deno.serve(withCors(async (req) => {
 
   try {
     const { action, projectId, qr, entryNumber, confirmedEntryId } = await req.json();
-    if (!projectId || !action) return jsonResponse({ error: '当日受付のリクエスト情報が不足しています。ページを開き直してください。' }, 400);
+    if (!projectId || !action) return jsonResponse({ error: '受付のリクエスト情報が不足しています。ページを開き直してください。' }, 400);
 
     const supabase = createServiceClient();
 
@@ -167,7 +167,7 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
     const message = error instanceof Error ? error.message : String(error);
     if (message === 'Forbidden') {
-      return jsonResponse({ error: 'この大会の当日受付を操作する権限がありません。Googleアカウントとプロジェクトを確認してください。' }, 403);
+      return jsonResponse({ error: 'この大会の受付を操作する権限がありません。Googleアカウントとプロジェクトを確認してください。' }, 403);
     }
     if (message === 'Authentication required') {
       return jsonResponse({ error: 'Googleログインが必要です。' }, 401);

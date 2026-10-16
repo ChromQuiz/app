@@ -65,7 +65,7 @@ Deno.serve(withCors(async (req) => {
       return jsonResponse({ error: 'このエントリーはキャンセルされています。' }, 409);
     }
     if (entry.checked_in) {
-      return jsonResponse({ error: '当日受付済みのため、エントリー内容は編集できません。変更が必要な場合は運営へ連絡してください。' }, 409);
+      return jsonResponse({ error: '受付済みのため、エントリー内容は編集できません。変更が必要な場合は運営へ連絡してください。' }, 409);
     }
 
     if (!encryptedPii) {

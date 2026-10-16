@@ -17,7 +17,7 @@
     <script defer src="js/supabase_api.js?v=68"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=10"></script>
-    <script defer src="js/ui.js?v=39"></script>
+    <script defer src="js/ui.js?v=40"></script>
     <script defer src="js/shared.js?v=7"></script>
     <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script defer src="js/turnstile.js?v=4"></script>
@@ -39,7 +39,7 @@
             </div>
             <div class="form-group">
                 <label class="required" for="f-password"><span data-icon="lock" aria-hidden="true"></span> パスワード</label>
-                <input type="text" id="f-password" name="password" required autocomplete="off" placeholder="完了メールに記載のパスワード">
+                <input type="text" id="f-password" name="password" required autocomplete="off" placeholder="エントリー完了メールに記載のパスワード">
             </div>
             <button type="submit" class="page-btn" id="auth-btn">ログイン</button>
             <div class="page-msg" id="auth-msg" role="status" aria-live="polite"></div>
@@ -89,8 +89,8 @@
                 <div class="my-number-label">受付番号</div>
                 <div class="my-number" id="my-number">---</div>
                 <div class="my-qr" id="my-qr-wrap" hidden>
-                    <img id="my-qr" alt="当日受付用二次元コード" width="200" height="200">
-                    <p class="my-qr-caption">当日受付でこの二次元コードを提示してください。</p>
+                    <img id="my-qr" alt="受付用二次元コード" width="200" height="200">
+                    <p class="my-qr-caption">受付でこの二次元コードを提示してください。</p>
                     <button type="button" class="btn secondary" id="qr-download-btn">
                         <span data-icon="download" aria-hidden="true"></span> 二次元コード画像を保存
                     </button>
@@ -253,6 +253,6 @@
 
     <script defer src="js/email.js?v=14"></script>
     <script defer src="js/share_card.js?v=4"></script>
-    <script defer src="js/my.js?v=25"></script>
+    <script defer src="js/my.js?v=26"></script>
 </body>
 </html>

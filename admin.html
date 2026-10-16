@@ -17,7 +17,7 @@
     <script defer src="js/supabase_api.js?v=68"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=10"></script>
-    <script defer src="js/ui.js?v=39"></script>
+    <script defer src="js/ui.js?v=40"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=110">
     <link rel="stylesheet" href="css/pages.css?v=198">
@@ -70,10 +70,10 @@
                 <span data-icon="triangle-exclamation" aria-hidden="true"></span> 要確認
             </button>
             <button class="menu-item" data-nav-target="checkin.html">
-                <span data-icon="qrcode" aria-hidden="true"></span> カメラで当日受付
+                <span data-icon="qrcode" aria-hidden="true"></span> カメラで受付
             </button>
             <button class="menu-item" data-nav-target="checkin_reader.html">
-                <span data-icon="scan-line" aria-hidden="true"></span> リーダーで当日受付
+                <span data-icon="scan-line" aria-hidden="true"></span> リーダーで受付
             </button>
         </div>
         <div class="menu-divider"></div>
@@ -140,7 +140,7 @@
                         </div>
                     </div>
                     <div class="phase-block model-answer-section">
-                        <h2>模範解答の登録</h2>
+                        <h2>模範解答の入力</h2>
                         <div class="file-upload-zone" data-file-trigger="csv-file">
                             <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
                             <div class="file-label">模範解答CSVをアップロード</div>
@@ -164,11 +164,11 @@
                 </button>
                 <div class="tab-content active" id="tab-entries" role="tabpanel" aria-labelledby="tab-entries-tab">
                     <div class="phase-block">
-                        <h2>エントリー受付</h2>
+                        <h2>エントリー</h2>
                         <div class="config-row">
                             <label class="toggle-switch"><input type="checkbox" id="entry-open-toggle" checked data-action="toggle-entry-open"><span class="toggle-slider"></span></label>
                             <div class="toggle-info">
-                                <div class="toggle-info-title">エントリー受付</div>
+                                <div class="toggle-info-title">エントリー</div>
                             </div>
                             <span id="entry-open-status" class="status-badge status-open">エントリー中</span>
                         </div>
@@ -270,15 +270,15 @@
                     <span class="phase-num" aria-hidden="true">3</span>
                     <span class="phase-label">
                         <span class="phase-title">当日</span>
-                        <span class="phase-desc">二次元コードで当日受付を行う</span>
+                        <span class="phase-desc">二次元コードで受付をする</span>
                     </span>
                 </button>
                 <div class="tab-content" id="tab-checkin" role="tabpanel" aria-labelledby="tab-checkin-tab" hidden>
                     <div class="phase-block">
                         <h2>受付画面</h2>
                         <div class="phase-actions">
-                            <button class="btn" data-nav-target="checkin.html"><span data-icon="qrcode" aria-hidden="true"></span> カメラで当日受付</button>
-                            <button class="btn" data-nav-target="checkin_reader.html"><span data-icon="scan-line" aria-hidden="true"></span> リーダーで当日受付</button>
+                            <button class="btn" data-nav-target="checkin.html"><span data-icon="qrcode" aria-hidden="true"></span> カメラで受付</button>
+                            <button class="btn" data-nav-target="checkin_reader.html"><span data-icon="scan-line" aria-hidden="true"></span> リーダーで受付</button>
                         </div>
                     </div>
 
@@ -721,10 +721,10 @@
     </div>
 
     <script defer src="js/admin.js?v=67"></script>
-    <script defer src="js/upload_validation.js?v=4"></script>
+    <script defer src="js/upload_validation.js?v=5"></script>
     <script defer src="js/admin_scan.js?v=26"></script>
     <script defer src="js/admin_stats.js?v=29"></script>
     <script defer src="js/admin_graded_pdf.js?v=15"></script>
-    <script defer src="js/admin_settings.js?v=69"></script>
+    <script defer src="js/admin_settings.js?v=70"></script>
 </body>
 </html>

@@ -534,7 +534,7 @@ function showWaitlistMessage() {
     strong.textContent = 'キャンセル待ち';
     // flex の gap でテキストと太字の間が空かないよう、文章全体を1つの要素にまとめる。
     const text = document.createElement('span');
-    text.append('定員に達したため、', strong, 'として登録されました。');
+    text.append('定員に達したため、', strong, 'として受け付けました。');
     waitMsg.append(entryIcon('clock'), text);
     document.getElementById('r-entry-number').parentElement.after(waitMsg);
 }
