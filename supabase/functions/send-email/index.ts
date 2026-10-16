@@ -271,41 +271,159 @@ function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: s
   `;
 }
 
+/* ------------------------------------------------------------
+ * エントリー受付完了メール（新デザイン）。
+ * 見出しや「確認／注意」の囲みを使わず、文章・受付番号とパスワードの行・二次元コード・ボタンだけで構成する。
+ * 他のメール（編集・キャンセルなど）は、方針が決まるまで上の shell / panel のまま。
+ * ------------------------------------------------------------ */
+const CONFIRM_CSS = `
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <style>
+    :root { color-scheme: light dark; supported-color-schemes: light dark; }
+    html, body { margin: 0 !important; padding: 0 !important; background: ${MAIL.canvas} !important; }
+    @media screen and (max-width: 560px) {
+      .ciq-confirm-canvas { padding: 24px 12px !important; }
+      .ciq-confirm-card { padding: 24px 20px !important; }
+    }
+    @media (prefers-color-scheme: dark) {
+      html, body, .ciq-confirm-canvas { background: #1c1c1e !important; }
+      .ciq-confirm-card { background: #2c2c2e !important; border-color: #48484a !important; }
+      .ciq-confirm-text, .ciq-confirm-title, .ciq-confirm-value {
+        color: #f5f5f7 !important;
+        -webkit-text-fill-color: #f5f5f7 !important;
+      }
+      .ciq-confirm-sub, .ciq-confirm-note, .ciq-confirm-footer {
+        color: #aeaeb2 !important;
+        -webkit-text-fill-color: #aeaeb2 !important;
+      }
+      .ciq-confirm-line { border-color: #48484a !important; }
+      .ciq-confirm-button-primary { background: #f5f5f7 !important; }
+      .ciq-confirm-button-primary a {
+        color: #111113 !important;
+        -webkit-text-fill-color: #111113 !important;
+      }
+      .ciq-confirm-button-secondary { border-color: #5a5a5f !important; }
+      .ciq-confirm-button-secondary a {
+        color: #f5f5f7 !important;
+        -webkit-text-fill-color: #f5f5f7 !important;
+      }
+    }
+  </style>`;
+
+const LINE = '#e3e3e8';
+
+function confirmShell(name: string, body: string) {
+  return `
+  ${CONFIRM_CSS}
+  <table class="ciq-confirm-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:28px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px;margin:0 auto;">
+          <tr>
+            <td class="ciq-confirm-title" align="center" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-0.035em;padding:4px 0 22px;">${escapeHtml(name)}</td>
+          </tr>
+          <tr>
+            <td class="ciq-confirm-card ciq-confirm-text" align="left" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:26px;padding:28px 22px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.8;text-align:left;">${body}</td>
+          </tr>
+          <tr>
+            <td class="ciq-confirm-footer" align="center" style="font-family:${MAIL_FONT};color:${MAIL.muted};font-size:12px;line-height:1.7;padding:22px 8px 0;">このメールは自動送信されています。<br>Powered by CIQ</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  `;
+}
+
+function confirmText(text: string, extraStyle = '') {
+  return `<p class="ciq-confirm-text" style="margin:0 0 12px;font-family:${MAIL_FONT};color:${MAIL.text};text-align:left;${extraStyle}">${escapeHtml(text)}</p>`;
+}
+
+function confirmNote(text: string) {
+  return `<p class="ciq-confirm-note" style="margin:0 0 20px;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">${escapeHtml(text)}</p>`;
+}
+
+// 受付番号・パスワードなど。ラベル左・値右の行。値は等幅。
+function confirmRows(rows: Array<[string, string]>) {
+  const tableRows = rows.map(([label, value]) => `
+    <tr>
+      <td class="ciq-confirm-sub ciq-confirm-line" style="padding:13px 0;font-family:${MAIL_FONT};font-size:13px;color:${MAIL.sub};border-bottom:1px solid ${LINE};">${escapeHtml(label)}</td>
+      <td class="ciq-confirm-value ciq-confirm-line" align="right" style="padding:13px 0;font-family:${MAIL_MONO};font-size:16px;font-weight:500;letter-spacing:.03em;color:${MAIL.text};border-bottom:1px solid ${LINE};">${escapeHtml(value)}</td>
+    </tr>
+  `).join('');
+  return `
+  <table class="ciq-confirm-line" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:2px 0 6px;border-top:1px solid ${LINE};">
+    ${tableRows}
+  </table>
+  `;
+}
+
+// 二次元コードは枠で囲まず、カードの上にそのまま置く。
+function confirmQr(qrImageUrl: string) {
+  if (!qrImageUrl) return '';
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px;">
+    <tr>
+      <td align="center">
+        <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用二次元コード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
+        <div class="ciq-confirm-text" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:700;margin-top:10px;">当日受付用二次元コード</div>
+      </td>
+    </tr>
+  </table>
+  `;
+}
+
+// 同じ幅のボタンを横に並べる。片方しかないときは、その1つだけを幅いっぱいに出す。
+function confirmButtons(primaryLabel: string, primaryHref: string, secondaryLabel: string, secondaryHref: string) {
+  if (!primaryHref && !secondaryHref) return '';
+  const cellWidth = primaryHref && secondaryHref ? '50%' : '100%';
+  const primary = primaryHref ? `
+    <td class="ciq-confirm-button-primary" width="${cellWidth}" align="center" style="background:${MAIL.accent};border-radius:999px;">
+      <a href="${escapeHtml(primaryHref)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 8px;border-radius:999px;">${escapeHtml(primaryLabel)}</a>
+    </td>` : '';
+  const secondary = secondaryHref ? `
+    <td class="ciq-confirm-button-secondary" width="${cellWidth}" align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:999px;">
+      <a href="${escapeHtml(secondaryHref)}" style="display:block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:12px 8px;border-radius:999px;">${escapeHtml(secondaryLabel)}</a>
+    </td>` : '';
+  const gap = primaryHref && secondaryHref ? '<td width="12" style="width:12px;font-size:0;line-height:0;">&nbsp;</td>' : '';
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;margin:0 0 16px;">
+    <tr>${primary}${gap}${secondary}</tr>
+  </table>
+  `;
+}
+
 function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
   const name = projectName(data);
   const entryNumber = String(data.entryNumber || '');
-  const status = data.status === 'waitlist' ? 'キャンセル待ち' : '登録済み';
+  const waitlist = data.status === 'waitlist';
   const password = String(data.password || '');
   const myUrl = String(data.myUrl || '');
   const entryListUrl = String(data.entryListUrl || '');
   const qrImageUrl = String(data.qrImageUrl || '');
   const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
-  const waitlistNotice = data.status === 'waitlist'
-    ? panel('現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。', 'warning')
-    : panel('エントリーを受け付けました。', 'success');
+  const lead = waitlist ? 'キャンセル待ちとして受け付けました。' : 'エントリーを受け付けました。';
   const body = `
-    ${person ? `<p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person)} 様</p>` : ''}
-    ${waitlistNotice}
-    ${numberCard('受付番号', entryNumber)}
-    ${detailsTable([['パスワード', password], ['状態', status]])}
-    <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;text-align:left;">パスワードはマイエントリー、編集、キャンセルなどに使用します。</p>
-    ${qrCard(qrImageUrl)}
-    ${panel('このメールには受付二次元コードとマイエントリー用の情報が含まれます。大会当日まで保存してください。', 'info')}
-    ${buttonPair('マイエントリー', myUrl, 'エントリーリスト', entryListUrl)}
-    <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">
-      マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。
-    </p>
+    ${person ? confirmText(`${person} 様`, 'margin-bottom:4px;') : ''}
+    ${confirmText(lead, 'margin-bottom:16px;')}
+    ${confirmRows([['受付番号', entryNumber], ['パスワード', password]])}
+    ${confirmNote('パスワードは、マイエントリーでの確認・変更やキャンセルに使います。')}
+    ${confirmQr(qrImageUrl)}
+    ${confirmButtons('マイエントリー', myUrl, 'エントリーリスト', entryListUrl)}
+    ${confirmNote('マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。')}
   `;
   return {
     subject: `【${name}】エントリー受付完了（No.${entryNumber}）`,
-    html: shell('エントリー受付完了', name, body),
+    html: confirmShell(name, body),
     text: [
       person ? `${person} 様` : '',
-      `${name} のエントリーを受け付けました。`,
+      `${name} のエントリーを${waitlist ? 'キャンセル待ちとして' : ''}受け付けました。`,
       `受付番号：${entryNumber}`,
-      data.status === 'waitlist' ? `状態：${status}` : '',
       `パスワード：${password}`,
-      'このメールには受付二次元コードとマイエントリー用の情報が含まれます。大会当日まで保存してください。',
+      'パスワードは、マイエントリーでの確認・変更やキャンセルに使います。',
+      'マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。',
+      // テキスト版には画像がないため、二次元コードの在りかを書く
       '二次元コードはマイエントリーからも再表示できます。',
       myUrl ? `マイエントリー：${myUrl}` : '',
       entryListUrl ? `エントリーリスト：${entryListUrl}` : '',
