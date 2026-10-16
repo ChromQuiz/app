@@ -104,7 +104,7 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof RateLimitError) return jsonResponse({ error: error.message }, error.status);
     if (error instanceof TurnstileError) {
       console.error(`[create-entry] turnstile rejected: ${error.code}`);
-      return jsonResponse({ error: '認証を完了できませんでした。ページを再読み込みして、もう一度お試しください。' }, error.status);
+      return jsonResponse({ error: '認証できませんでした。ページを再読み込みして、もう一度お試しください。' }, error.status);
     }
     if (error instanceof TurnstileConfigError) {
       console.error('[create-entry] turnstile secret is not configured');

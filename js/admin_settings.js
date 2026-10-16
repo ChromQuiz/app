@@ -277,7 +277,7 @@
             if (!modal) return;
             if (!force && !canDismissAdminEntryModal()) {
                 if (adminEntrySubmitting) {
-                    setAdminEntryStatus('参加者を追加中です。完了までお待ちください。', 'info');
+                    setAdminEntryStatus('参加者を追加しています。お待ちください。', 'info');
                 }
                 return;
             }

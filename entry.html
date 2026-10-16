@@ -18,10 +18,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=2"></script>
     <script defer src="js/supabase_client.js?v=2"></script>
-    <script defer src="js/supabase_api.js?v=68"></script>
+    <script defer src="js/supabase_api.js?v=69"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=10"></script>
-    <script defer src="js/ui.js?v=40"></script>
+    <script defer src="js/ui.js?v=41"></script>
     <script defer src="js/shared.js?v=7"></script>
     <link rel="stylesheet" href="css/design_system.css?v=110">
     <link rel="stylesheet" href="css/pages.css?v=198">
@@ -57,7 +57,7 @@
                     <div class="form-group">
                         <label class="required" for="f-email"><span data-icon="envelope" aria-hidden="true"></span> メールアドレス</label>
                         <input type="email" id="f-email" name="email" required autocomplete="email" placeholder="name@example.com" inputmode="email" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="メールアドレスの形式で入力してください" aria-describedby="email-hint">
-                        <div class="hint" id="email-hint"><span data-icon="circle-info" aria-hidden="true"></span> 認証コードを送信して本人確認を行います。</div>
+                        <div class="hint" id="email-hint"><span data-icon="circle-info" aria-hidden="true"></span> 認証コードを送信して本人確認をします。</div>
                     </div>
                     <!-- Turnstile: 認証コード送信の前提。site key 未設定/JS読込失敗時は非表示のまま(サーバ側が拒否)。 -->
                     <div id="turnstile-verify" class="turnstile-box u-hidden" aria-live="polite"></div>
@@ -226,7 +226,7 @@
     <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script defer src="js/turnstile.js?v=4"></script>
     <script defer src="js/email.js?v=14"></script>
-    <script defer src="js/entry.js?v=36"></script>
+    <script defer src="js/entry.js?v=37"></script>
 </body>
 
 </html>

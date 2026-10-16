@@ -491,7 +491,7 @@ Deno.serve(withCors(async (req) => {
         try {
           await requireAdminMember(supabase, scopeProjectId, getBearerToken(req));
         } catch {
-          return jsonResponse({ error: 'この操作を行う権限がありません。' }, 403);
+          return jsonResponse({ error: 'この操作の権限がありません。' }, 403);
         }
       }
       const siteUrl = (Deno.env.get('CIQ_SITE_URL') || '').trim();
@@ -703,11 +703,11 @@ Deno.serve(withCors(async (req) => {
     if (error instanceof TurnstileError) {
       // 内部理由(code)はサーバログのみ。利用者には再試行可能な汎用文言を返す。
       console.error(`[send-email] turnstile rejected: ${error.code}`);
-      return jsonResponse({ error: '認証を完了できませんでした。ページを再読み込みして、もう一度お試しください。' }, error.status);
+      return jsonResponse({ error: '認証できませんでした。ページを再読み込みして、もう一度お試しください。' }, error.status);
     }
     if (error instanceof TurnstileConfigError) {
       console.error('[send-email] turnstile secret is not configured');
-      return jsonResponse({ error: 'ただいまメールを送信できません。時間をおいてもう一度お試しください。' }, error.status);
+      return jsonResponse({ error: '現在メールを送信できません。時間をおいてもう一度お試しください。' }, error.status);
     }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Too many email requests')) {
@@ -715,7 +715,7 @@ Deno.serve(withCors(async (req) => {
     }
     // 受付状態は参加者が取れる行動(待つ・運営に確認する)が違うため、汎用 500 に丸めずに伝える。
     if (message.includes('Entry is closed')) {
-      return jsonResponse({ error: 'ただいまエントリーを受け付けていません。' }, 409);
+      return jsonResponse({ error: '現在エントリーを受け付けていません。' }, 409);
     }
     if (message.includes('Entry period has not started')) {
       return jsonResponse({ error: 'エントリーはまだ始まっていません。' }, 409);

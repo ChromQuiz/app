@@ -10,7 +10,7 @@ const { errorDetail, describeError } = new Function('console', `${source.slice(s
 
 describe('エラーの文言', () => {
   it('サーバーの英語のエラーは、日本語にして出す', () => {
-    expect(describeError(new Error('Forbidden'))).toBe('この操作を行う権限がありません。');
+    expect(describeError(new Error('Forbidden'))).toBe('この操作の権限がありません。');
     expect(describeError(new Error('Question is full'))).toBe('この問題は、採点者が満員です。');
     expect(describeError(new Error('Failed to fetch'))).toBe('通信できませんでした。接続を確認してください。');
     expect(describeError(new Error('Invite expired'))).toContain('招待リンクが無効です');
@@ -29,7 +29,7 @@ describe('エラーの文言', () => {
   });
 
   it('「（詳細：…）」の中は、文末の「。」を付けない形', () => {
-    expect(errorDetail(new Error('Forbidden'))).toBe('この操作を行う権限がありません');
+    expect(errorDetail(new Error('Forbidden'))).toBe('この操作の権限がありません');
     expect(errorDetail(null, '失敗しました。')).toBe('失敗しました');
   });
 

@@ -127,7 +127,7 @@ Deno.serve(withCors(async (req) => {
       try {
         await requireAdminMember(supabase, scopeProjectId, getBearerToken(req));
       } catch {
-        return jsonResponse({ error: 'この操作を行う権限がありません。' }, 403);
+        return jsonResponse({ error: 'この操作の権限がありません。' }, 403);
       }
     }
 

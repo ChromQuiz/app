@@ -82,7 +82,7 @@ Deno.serve(withCors(async (req) => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (message === 'Forbidden') return jsonResponse({ error: 'この操作を行う権限がありません。' }, 403);
+    if (message === 'Forbidden') return jsonResponse({ error: 'この操作の権限がありません。' }, 403);
     if (message === 'Authentication required') return jsonResponse({ error: 'Googleログインが必要です。' }, 401);
     if (error instanceof SigningConfigError) {
       console.error('[create-scorer-invite] signing secret is not configured');

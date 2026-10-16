@@ -65,7 +65,7 @@
             if (!window.CV) await loadAdminScriptOnce('js/cv.js');
             if (!window.AR) await loadAdminScriptOnce('js/aruco.js');
             if (typeof window.generatePDF !== 'function' || typeof window.loadAnswers !== 'function') {
-                await loadAdminScriptOnce('js/admin_prep.js?v=37');
+                await loadAdminScriptOnce('js/admin_prep.js?v=38');
             }
         }
 
@@ -180,7 +180,7 @@
                     if (!fn) return;
                     // ボタンを渡すのは、押したボタンの表示を変えるコピーの操作だけ（他の関数は引数なしで呼ぶ）
                     const takesButton = el.dataset.action === 'copy-admin-entry-template';
-                    Promise.resolve(takesButton ? fn(el) : fn()).catch(e => showAdminToast(describeError(e, '操作を完了できませんでした。')));
+                    Promise.resolve(takesButton ? fn(el) : fn()).catch(e => showAdminToast(describeError(e, '操作できませんでした。')));
                 });
             });
             document.getElementById('admin-logout-btn')?.addEventListener('click', logout);
@@ -719,7 +719,7 @@
                 try {
                     await run();
                 } catch (e) {
-                    setPageMessage(statusEl, describeError(e, '操作を完了できませんでした。'), 'error');
+                    setPageMessage(statusEl, describeError(e, '操作できませんでした。'), 'error');
                 } finally {
                     targets.forEach(el => { el.disabled = false; });
                 }
