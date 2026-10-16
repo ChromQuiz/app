@@ -412,10 +412,10 @@ async function verifyAndReset() {
 // ---------- ハブ描画 ----------
 
 const STATUS_LABELS = {
-    registered: { status: 'success', label: '登録済み' },
+    registered: { status: 'success', label: '参加' },
     waitlist: { status: 'warning', label: 'キャンセル待ち' },
     late: { status: 'info', label: '遅刻連絡済み' },
-    canceled: { status: 'danger', label: 'キャンセル済み' },
+    canceled: { status: 'danger', label: 'キャンセル' },
 };
 
 function applyHubData(data) {
@@ -484,7 +484,7 @@ function renderReentrySection() {
     link.href = entryUrl.href;
 
     if (isEntryCurrentlyOpen()) {
-        note.textContent = 'キャンセル済みの方も、通常と同じ手順で再エントリーできます。新しい受付番号・パスワード・二次元コードが発行されます。';
+        note.textContent = 'キャンセルした方も、通常と同じ手順で再エントリーできます。新しい受付番号・パスワード・二次元コードが発行されます。';
         link.hidden = false;
     } else {
         note.textContent = getEntryClosedReason();

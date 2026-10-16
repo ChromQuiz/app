@@ -401,7 +401,7 @@
             const INNER_X = CARD_X + PAD;
             const INNER_W = CARD_W - PAD * 2;
             const isWaitlist = receipt.status === 'waitlist';
-            const status = isWaitlist ? 'キャンセル待ち' : '登録済み';
+            const status = isWaitlist ? 'キャンセル待ち' : '参加';
             const person = `${receipt.familyName || ''} ${receipt.firstName || ''}`.trim();
             const panelTone = isWaitlist
                 ? { label: '注意', color: '#bf6a02', border: '#f4d7a2', message: '現在はキャンセル待ちです。繰り上がった場合は別途お知らせします。' }
@@ -674,7 +674,7 @@
                 document.getElementById('admin-entry-form')?.classList.add('u-hidden');
                 document.getElementById('admin-entry-result')?.classList.remove('u-hidden');
                 document.getElementById('admin-entry-result-number').textContent = padNum(entry.entry_number || entry.entryNumber);
-                document.getElementById('admin-entry-result-status').textContent = entry.status === 'waitlist' ? 'キャンセル待ち' : '登録済み';
+                document.getElementById('admin-entry-result-status').textContent = entry.status === 'waitlist' ? 'キャンセル待ち' : '参加';
                 document.getElementById('admin-entry-result-password').textContent = password;
                 const { myUrl, entryListUrl } = buildAdminEntryLinks();
                 const receipt = {
