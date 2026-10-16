@@ -98,12 +98,12 @@ describe('MAIL-02 エントリー受付完了', () => {
 });
 
 describe('MAIL-03〜06 編集・キャンセル・遅刻・繰り上げ', () => {
-  it('MAIL-03 編集完了: 宛名・変更を受け付けた旨・受付番号・マイエントリーのボタン', async () => {
+  it('MAIL-03 編集完了: 変更を受け付けた旨・受付番号・マイエントリーのボタン。宛名は置かない', async () => {
     const { call } = await make();
     await send(call, 'entry_edited', { familyName: '山田', firstName: '太郎' });
     expect(last().subject).toBe('【CIQ the 9th】エントリー編集完了（No.007）');
     const text = plain(last().html);
-    expect(text).toContain('山田 太郎 様');
+    expect(text).not.toMatch(/ 様 /);
     expect(text).toContain('エントリー内容の変更を受け付けました');
     expect(last().html).toContain('href="https://chromquiz.github.io/app/my.html?pid=ciq9"');
   });
@@ -122,7 +122,7 @@ describe('MAIL-03〜06 編集・キャンセル・遅刻・繰り上げ', () => 
   it('MAIL-05 遅刻連絡: 受付した旨・マイエントリーのボタン。宛名の行はない', async () => {
     const { call } = await make();
     await send(call, 'late_notice', {});
-    expect(last().subject).toBe('【CIQ the 9th】遅刻連絡受付（No.007）');
+    expect(last().subject).toBe('【CIQ the 9th】遅刻連絡完了（No.007）');
     expect(plain(last().html)).toContain('遅刻の連絡を受け付けました');
     expect(plain(last().html)).not.toMatch(/ 様 /);
     expect(last().html).toContain('my.html?pid=ciq9');
@@ -132,7 +132,7 @@ describe('MAIL-03〜06 編集・キャンセル・遅刻・繰り上げ', () => 
     const { call } = await make();
     await send(call, 'waitlist_promoted', { familyName: '山田', firstName: '太郎' });
     expect(last().subject).toBe('【CIQ the 9th】キャンセル待ち繰り上げのお知らせ（No.007）');
-    expect(plain(last().html)).toContain('キャンセル待ちから通常エントリーへ繰り上がりました');
+    expect(plain(last().html)).toContain('キャンセル待ちから繰り上がりました');
     expect(last().html).toContain('my.html?pid=ciq9');
   });
 
