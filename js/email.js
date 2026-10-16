@@ -3,6 +3,7 @@
 const CIQEmail = (() => {
     let _endpoint = '';
     let _publishableKey = '';
+    const REQUEST_TIMEOUT_MS = 30000;
 
     function defaultProjectId() {
         return new URLSearchParams(location.search).get('pid') || session.get('projectId') || null;
@@ -32,14 +33,27 @@ const CIQEmail = (() => {
         if (projectId && !data.myUrl) {
             data.myUrl = new URL(`my.html?pid=${encodeURIComponent(projectId)}`, location.href).href;
         }
-        const res = await fetch(_endpoint, {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json',
-                apikey: _publishableKey,
-            },
-            body: JSON.stringify({ type, to, projectId, data }),
-        });
+        // 返事が来ないときに「送信中…」のまま止まらないよう、時間で打ち切る。通信の失敗は null で返す
+        // （呼び出し側は、null を失敗として扱い、画面に表示する）。
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+        let res;
+        try {
+            res = await fetch(_endpoint, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                    apikey: _publishableKey,
+                },
+                body: JSON.stringify({ type, to, projectId, data }),
+                signal: controller.signal,
+            });
+        } catch (error) {
+            console.error('[CIQEmail] 通信に失敗しました:', error?.name || error);
+            return null;
+        } finally {
+            clearTimeout(timer);
+        }
         const result = await res.json().catch(() => ({}));
         if (!res.ok) {
             console.error('[CIQEmail] 送信失敗:', result);
