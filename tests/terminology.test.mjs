@@ -44,7 +44,7 @@ describe('利用者に見える文言では「二次元コード」を使う', (
 
   it('メール本文が二次元コードと呼んでいる', () => {
     const mail = readFileSync(resolve(ROOT, 'supabase/functions/send-email/index.ts'), 'utf8');
-    expect(mail).toContain('当日受付用二次元コード');
+    expect(mail).toContain('受付用二次元コード');
     expect(mail).toContain('二次元コードはマイエントリーからも再表示できます。');
   });
 

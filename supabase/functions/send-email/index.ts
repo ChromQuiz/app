@@ -172,8 +172,8 @@ function mailQr(qrImageUrl: string) {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px;">
     <tr>
       <td align="center">
-        <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用二次元コード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
-        <div class="ciq-mail-text" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:700;margin-top:10px;">当日受付用二次元コード</div>
+        <img src="${escapeHtml(qrImageUrl)}" alt="受付用二次元コード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
+        <div class="ciq-mail-text" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:700;margin-top:10px;">受付用二次元コード</div>
       </td>
     </tr>
   </table>
@@ -220,7 +220,7 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
     ${mailNote('マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。')}
   `;
   return {
-    subject: `【${name}】エントリー受付完了（No.${entryNumber}）`,
+    subject: `【${name}】エントリー完了（No.${entryNumber}）`,
     html: mailShell(name, body),
     text: [
       person ? `${person} 様` : '',
@@ -629,7 +629,7 @@ Deno.serve(withCors(async (req) => {
         .select('id, entry_number');
       if (updateError) throw updateError;
       if (!updated || updated.length === 0) {
-        return jsonResponse({ error: 'このメールアドレスで登録されたエントリーが見つかりません。' }, 404);
+        return jsonResponse({ error: 'このメールアドレスのエントリーが見つかりません。' }, 404);
       }
       const ipHash = await clientIpHash(req);
       for (const row of updated) {
@@ -718,10 +718,10 @@ Deno.serve(withCors(async (req) => {
       return jsonResponse({ error: 'ただいまエントリーを受け付けていません。' }, 409);
     }
     if (message.includes('Entry period has not started')) {
-      return jsonResponse({ error: 'エントリーの受付はまだ始まっていません。' }, 409);
+      return jsonResponse({ error: 'エントリーはまだ始まっていません。' }, 409);
     }
     if (message.includes('Entry period has ended')) {
-      return jsonResponse({ error: 'エントリーの受付は終了しました。' }, 409);
+      return jsonResponse({ error: 'エントリーは終了しました。' }, 409);
     }
     if (message.includes('Project not found')) {
       return jsonResponse({ error: '大会が見つかりません。URLを確認してください。' }, 404);

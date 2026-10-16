@@ -38,13 +38,13 @@ function entryErrorResponse(error: { code?: string; message?: string }) {
     return jsonResponse({ error: 'このメールアドレスは既にエントリー済みです。' }, 409);
   }
   if (message.includes('Entry is closed')) {
-    return jsonResponse({ error: '受付は現在停止中です。' }, 403);
+    return jsonResponse({ error: 'エントリーは現在停止中です。' }, 403);
   }
   if (message.includes('Entry period has not started')) {
-    return jsonResponse({ error: 'エントリー受付はまだ開始されていません。' }, 403);
+    return jsonResponse({ error: 'エントリーはまだ開始されていません。' }, 403);
   }
   if (message.includes('Entry period has ended')) {
-    return jsonResponse({ error: 'エントリー受付は終了しました。' }, 403);
+    return jsonResponse({ error: 'エントリーは終了しました。' }, 403);
   }
   return null;
 }
@@ -116,7 +116,7 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof ParticipantHashConfigError) {
       console.error('[admin-create-entry] participant hash configuration unavailable');
-      return jsonResponse({ error: 'ただいま登録を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
+      return jsonResponse({ error: '現在エントリーを受け付けられません。時間をおいてもう一度お試しください。' }, 503);
     }
     return serverErrorResponse(error, 'admin-create-entry');
   }

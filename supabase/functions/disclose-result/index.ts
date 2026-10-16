@@ -67,7 +67,7 @@ Deno.serve(withCors(async (req) => {
     const authEntry = entry as unknown as AuthEntryRow;
     // 成績照会の対象は、当日受付を済ませた人だけ(順位もその人たちの中で付ける)
     if (authEntry.checked_in !== true) {
-      return jsonResponse({ error: 'このエントリーは成績照会の対象外です。当日受付を済ませた方が対象です。' }, 409);
+      return jsonResponse({ error: 'このエントリーは成績照会の対象外です。受付を済ませた方が対象です。' }, 409);
     }
 
     // 全問の採点が完了し、要確認が1件も残っていないときだけ、点数と順位を返す。

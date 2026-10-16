@@ -170,7 +170,7 @@ describe('FND-07: 編集は受付中、遅刻の連絡は受付が終わって�
   it('遅刻の連絡の API も、受付中は断る(画面の表示だけに頼らない)', () => {
     const src = read('supabase/functions/mark-late/index.ts');
     expect(src).toMatch(/if \(isEntryWindowOpen\(project\)\)/);
-    expect(src).toContain('エントリーの受付中は、遅刻の連絡はできません。');
+    expect(src).toContain('エントリー中は、遅刻の連絡はできません。');
   });
 
   it('編集の API は、受付中でなければ断る(同じ判定を使う)', () => {

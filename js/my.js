@@ -57,12 +57,12 @@ function isEntryCurrentlyOpen() {
 }
 
 function getEntryClosedReason() {
-    if (!projectSettings || projectSettings.entryOpen !== true) return '現在、エントリー受付は停止中です。';
+    if (!projectSettings || projectSettings.entryOpen !== true) return '現在、エントリーは停止中です。';
     const now = Date.now();
     const start = projectSettings.periodStart ? new Date(projectSettings.periodStart) : null;
     const end = projectSettings.periodEnd ? new Date(projectSettings.periodEnd) : null;
-    if (start && start.getTime() > now) return `エントリー受付はまだ開始されていません。開始：${formatDateTimeJa(start)}`;
-    if (end && end.getTime() < now) return `エントリー受付は終了しました。終了：${formatDateTimeJa(end)}`;
+    if (start && start.getTime() > now) return `エントリーはまだ開始されていません。開始：${formatDateTimeJa(start)}`;
+    if (end && end.getTime() < now) return `エントリーは終了しました。終了：${formatDateTimeJa(end)}`;
     return '現在、再エントリーできません。';
 }
 
@@ -452,7 +452,7 @@ function applyHubData(data) {
     if (!myCapabilities.editable && myEntryData.status !== 'canceled') {
         note.hidden = false;
         note.textContent = myEntryData.checkedIn
-            ? '当日受付済みのため、内容の変更はできません。変更が必要な場合は運営へ連絡してください。'
+            ? '受付済みのため、内容の変更はできません。変更が必要な場合は運営へ連絡してください。'
             : '現在、エントリー内容の変更はできません。';
     } else {
         note.hidden = true;

@@ -41,7 +41,7 @@ describe('MAIL-02 エントリー受付完了', () => {
     const { call } = await make();
     const r = await send(call, 'entry_confirmation', data);
     expect(r.status).toBe(200);
-    expect(last().subject).toBe('【CIQ the 9th】エントリー受付完了（No.007）');
+    expect(last().subject).toBe('【CIQ the 9th】エントリー完了（No.007）');
     expect(last().to).toBe(EMAIL);
     const text = plain(last().html);
     expect(text).toContain('山田 太郎 様');

@@ -198,7 +198,7 @@ describe('edit-entry（MY-18、API-03）', () => {
     expect(canceled.json.error).toBe('このエントリーはキャンセルされています。');
     const checked = await (await setup('edit-entry', { entry: { checked_in: true } })).call(body);
     expect(checked.status).toBe(409);
-    expect(checked.json.error).toMatch(/当日受付済みのため、エントリー内容は編集できません/);
+    expect(checked.json.error).toMatch(/受付済みのため、エントリー内容は編集できません/);
   });
 
   it('長すぎる入力は 400（項目名つき）。認証に失敗すれば更新しない', async () => {
@@ -232,8 +232,8 @@ describe('mark-late（MY-21〜24）', () => {
   it('断る場合: すでに遅刻 / 受付中 / 受付済み / 対象外の状態（いずれも 409 の日本語）', async () => {
     const cases = [
       [{ entry: { status: 'late' }, proj: closed }, 'すでに受け付けています'],
-      [{ entry: {}, proj: {} }, 'エントリーの受付中は、遅刻の連絡はできません'],
-      [{ entry: { checked_in: true }, proj: closed }, '当日受付済みのため、遅刻の連絡はできません'],
+      [{ entry: {}, proj: {} }, 'エントリー中は、遅刻の連絡はできません'],
+      [{ entry: { checked_in: true }, proj: closed }, '受付済みのため、遅刻の連絡はできません'],
       [{ entry: { status: 'waitlist' }, proj: closed }, '遅刻の連絡の対象ではありません'],
       [{ entry: { status: 'canceled' }, proj: closed }, '遅刻の連絡の対象ではありません'],
     ];
@@ -279,7 +279,7 @@ describe('cancel-entry（MY-26、MY-28）', () => {
     const { call } = await setup('cancel-entry', { rpc: { cancel_entry_by_id_atomic: () => ({ data: null, error: { message: 'Checked-in entry cannot be canceled' } }) } });
     const r = await call(creds);
     expect(r.status).toBe(409);
-    expect(r.json.error).toBe('当日受付済みのため、キャンセルできません。変更が必要な場合は運営へ連絡してください。');
+    expect(r.json.error).toBe('受付済みのため、キャンセルできません。変更が必要な場合は運営へ連絡してください。');
   });
 
   it('認証に失敗すれば、RPC を呼ばない', async () => {
@@ -353,7 +353,7 @@ describe('disclose-result（MY-30〜35）', () => {
     const { call } = await setup('disclose-result', { entry: { checked_in: false }, extra: { entries: entries(), final_results: results() } });
     const r = await call(creds);
     expect(r.status).toBe(409);
-    expect(r.json.error).toBe('このエントリーは成績照会の対象外です。当日受付を済ませた方が対象です。');
+    expect(r.json.error).toBe('このエントリーは成績照会の対象外です。受付を済ませた方が対象です。');
   });
 
   it('停止中・開始前・終了後・大会なし: 日本語の文言で 403 / 404', async () => {

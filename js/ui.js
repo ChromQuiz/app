@@ -504,9 +504,9 @@ const ERROR_MESSAGES = [
     [/Member not found/i, 'メンバーが見つかりません'],
     [/Member was removed/i, 'このメンバーは外されています'],
     [/Invalid result/i, '判定の値が正しくありません'],
-    [/Entry period has not started/i, 'エントリー受付は、まだ開始されていません'],
-    [/Entry period has ended/i, 'エントリー受付は終了しました'],
-    [/Entry is closed/i, 'エントリーは、受付停止中です'],
+    [/Entry period has not started/i, 'エントリーは、まだ開始されていません'],
+    [/Entry period has ended/i, 'エントリーは終了しました'],
+    [/Entry is closed/i, 'エントリーは、停止中です'],
     [/Entry already checked in/i, 'すでに受付済みです'],
     [/Checked-in entry cannot be canceled/i, '受付済みの参加者は、キャンセルできません'],
     [/Question is full/i, 'この問題は、採点者が満員です'],
@@ -519,7 +519,7 @@ const ERROR_MESSAGES = [
     [/Owner display name is required/i, '表示名を入力してください'],
     [/Invite (not found|revoked|expired|exhausted)|Invalid invite|Invalid scorer code/i, '招待リンクが無効です。新しい招待リンクをもらってください'],
     [/Missing participant hash/i, '認証の情報が不足しています。もう一度お試しください'],
-    [/duplicate key|23505/i, 'すでに登録されています'],
+    [/duplicate key|23505/i, 'すでにエントリーされています'],
 ];
 
 // 文末の「。」を付けない形(「（詳細：…）」の中に入れる用)

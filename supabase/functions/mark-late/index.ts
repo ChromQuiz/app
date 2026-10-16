@@ -42,10 +42,10 @@ Deno.serve(withCors(async (req) => {
       .single();
     if (projectError || !project) return jsonResponse({ error: '大会が見つかりません。URLを確認してください。' }, 404);
     if (isEntryWindowOpen(project)) {
-      return jsonResponse({ error: 'エントリーの受付中は、遅刻の連絡はできません。受付が終わってからお試しください。' }, 409);
+      return jsonResponse({ error: 'エントリー中は、遅刻の連絡はできません。エントリーが終わってからお試しください。' }, 409);
     }
     if (entry.checked_in) {
-      return jsonResponse({ error: '当日受付済みのため、遅刻の連絡はできません。変更が必要な場合は運営へ連絡してください。' }, 409);
+      return jsonResponse({ error: '受付済みのため、遅刻の連絡はできません。変更が必要な場合は運営へ連絡してください。' }, 409);
     }
     if (entry.status !== 'registered') {
       return jsonResponse({ error: 'このエントリーは遅刻の連絡の対象ではありません。' }, 409);

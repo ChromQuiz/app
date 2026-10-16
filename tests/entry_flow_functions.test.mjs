@@ -67,7 +67,7 @@ describe('create-entry（ENT-34、API-03、API-05、API-06）', () => {
     const noSecret = await make(rpcOk, { ...TS_ENV, TURNSTILE_SECRET_KEY: '' });
     const r = await noSecret.call(await bodyFor());
     expect(r.status).toBe(503);
-    expect(r.json.error).toBe('ただいま登録を受け付けられません。時間をおいてもう一度お試しください。');
+    expect(r.json.error).toBe('現在エントリーを受け付けられません。時間をおいてもう一度お試しください。');
   });
 
   it('API-06 Cloudflare に届かない（ネットワーク障害・5xx）ときは、通さずに止める', async () => {
@@ -119,8 +119,8 @@ describe('create-entry（ENT-34、API-03、API-05、API-06）', () => {
     const cases = [
       [{ code: '23505', message: 'duplicate key' }, 409, 'このメールアドレスは既にエントリー済みです。'],
       [{ message: 'Entry is closed' }, 403, '受付は現在停止中です。'],
-      [{ message: 'Entry period has not started' }, 403, 'エントリー受付はまだ開始されていません。'],
-      [{ message: 'Entry period has ended' }, 403, 'エントリー受付は終了しました。'],
+      [{ message: 'Entry period has not started' }, 403, 'エントリーはまだ開始されていません。'],
+      [{ message: 'Entry period has ended' }, 403, 'エントリーは終了しました。'],
     ];
     for (const [error, status, text] of cases) {
       const { call } = await make({ create_entry_atomic: () => ({ data: null, error }) });
@@ -216,7 +216,7 @@ describe('send-email: 認証コード（ENT-12〜15、API-03、API-05、API-06�
 
   it('受付停止中・開始前・終了後は、コードを送らずに日本語で断る', async () => {
     stubTurnstile(tsOk('send_verification'));
-    const cases = [[{ entry_open: false }, 'ただいまエントリーを受け付けていません。'], [{ period_start: '2099-01-01T00:00:00Z' }, 'エントリーの受付はまだ始まっていません。'], [{ period_end: '2000-02-01T00:00:00Z' }, 'エントリーの受付は終了しました。']];
+    const cases = [[{ entry_open: false }, 'ただいまエントリーを受け付けていません。'], [{ period_start: '2099-01-01T00:00:00Z' }, 'エントリーはまだ始まっていません。'], [{ period_end: '2000-02-01T00:00:00Z' }, 'エントリーは終了しました。']];
     for (const [proj, text] of cases) {
       sent.length = 0;
       const db = createFakeDb({ projects: [project(proj)], email_events: [] });
@@ -323,7 +323,7 @@ describe('send-email: 再発行用のコードと、パスワードの再発行'
     const { call } = await make([]);
     const r = await call({ type: 'reset_password', to: EMAIL, projectId: PROJECT, data: { emailVerifiedToken: await verifiedToken() } });
     expect(r.status).toBe(404);
-    expect(r.json.error).toBe('このメールアドレスで登録されたエントリーが見つかりません。');
+    expect(r.json.error).toBe('このメールアドレスのエントリーが見つかりません。');
     expect(sent.length).toBe(0);
   });
 });

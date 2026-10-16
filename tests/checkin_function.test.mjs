@@ -53,7 +53,7 @@ describe('CHK-01 入れる人', () => {
     for (const token of ['tok-outsider', 'tok-removed']) {
       const r = await ctx.call({ action: 'stats', projectId: PROJECT }, { token });
       expect(r.status, token).toBe(403);
-      expect(r.json.error).toMatch(/当日受付を操作する権限がありません/);
+      expect(r.json.error).toMatch(/受付を操作する権限がありません/);
     }
   });
 

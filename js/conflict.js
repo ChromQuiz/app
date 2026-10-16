@@ -494,7 +494,7 @@ function createConflictCard(conflict, idx) {
     reviewRow.className = 'conflict-review-row';
     const model = document.createElement('span');
     model.className = 'conflict-review-answer';
-    model.textContent = modelAnswer || '未登録';
+    model.textContent = modelAnswer || '未入力';
     // 別解は主答えに続けて薄く出す。ラベルは置かない(採点画面と同じ表記)。
     if (modelAlts.length) {
         const alts = document.createElement('span');

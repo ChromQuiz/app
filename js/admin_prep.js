@@ -356,7 +356,7 @@
                 const entries = await CIQSupabaseAPI.listEntriesForAdmin(projectId);
                 const entryByNumber = new Map(entries.map(entry => [Number(entry.entry_number), entry]));
                 entryNumbers = entries.map(entry => Number(entry.entry_number)).sort((a, b) => a - b);
-                if (!entryNumbers.length) throw new Error('参加者一覧が空です。先にエントリーを登録してから答案を読み込んでください。');
+                if (!entryNumbers.length) throw new Error('参加者一覧が空です。エントリーがそろってから答案を読み込んでください。');
                 logUploadDebug('loadAnswers:entriesLoaded', {
                     projectId,
                     entries: summarizeNumbers(entryNumbers),
@@ -504,7 +504,7 @@
                     }
                     // 当日受付を済ませていない人は、採点・順位・出力の対象外。保存しても使われないので取り込まない。
                     if (entryByNumber.get(Number(entryNumber)).checked_in !== true) {
-                        skipPage(`受付番号 ${padNum(entryNumber)} は当日受付が済んでいないため、取り込みませんでした`);
+                        skipPage(`受付番号 ${padNum(entryNumber)} は受付が済んでいないため、取り込みませんでした`);
                         continue;
                     }
                     seenEntryNumbers.set(entryNumber, i);

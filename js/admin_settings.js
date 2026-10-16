@@ -309,12 +309,12 @@
             return [
                 `${receipt.familyName} ${receipt.firstName} 様`,
                 '',
-                `${receipt.projectName} のエントリーを代理で登録しました。`,
+                `${receipt.projectName} に代理でエントリーしました。`,
                 `受付番号：${receipt.entryNumber}`,
                 ...(receipt.status === 'waitlist' ? ['状態：キャンセル待ち'] : []),
                 `パスワード：${receipt.password}`,
                 '',
-                '当日受付には、別途送付する二次元コード画像が必要です。',
+                '受付には、別途送付する二次元コード画像が必要です。',
                 'この画像とパスワードは大会当日まで保管してください。',
                 '',
                 `マイエントリーで、内容の確認と変更ができます：${receipt.myUrl}`,
@@ -453,7 +453,7 @@
             ctx.fillText(receipt.projectName, WIDTH / 2, 110);
             ctx.fillStyle = '#5f6067';
             ctx.font = `600 24px ${textFont}`;
-            ctx.fillText('エントリー受付完了', WIDTH / 2, 165);
+            ctx.fillText('エントリー完了', WIDTH / 2, 165);
 
             // 白いカード
             ctx.fillStyle = '#ffffff';
@@ -542,10 +542,10 @@
             ctx.textAlign = 'center';
             ctx.fillStyle = '#111113';
             ctx.font = `800 22px ${textFont}`;
-            ctx.fillText('当日受付用二次元コード', WIDTH / 2, layout.qrTop + 40 + 280 + 24 + 22);
+            ctx.fillText('受付用二次元コード', WIDTH / 2, layout.qrTop + 40 + 280 + 24 + 22);
             ctx.fillStyle = '#5f6067';
             ctx.font = `400 19px ${textFont}`;
-            ctx.fillText('当日受付で提示してください。', WIDTH / 2, layout.qrTop + 40 + 280 + 24 + 22 + 14 + 22);
+            ctx.fillText('受付で提示してください。', WIDTH / 2, layout.qrTop + 40 + 280 + 24 + 22 + 14 + 22);
 
             drawPanel(layout.infoTop, infoLines, { label: '確認', color: '#5f6067', border: '#d9d9df' });
 
