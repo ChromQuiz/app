@@ -12,7 +12,7 @@ describe('成績照会は、全問が確定したあとだけ', () => {
     const calc = fn.indexOf("from('final_results')");
     expect(check).toBeGreaterThan(-1);
     expect(check).toBeLessThan(calc);
-    expect(fn).toContain('成績はまだ確定していません');
+    expect(fn).toContain('成績はまだ出ていません');
   });
 
   it('確定していないときは、成績を返さない（409）', () => {

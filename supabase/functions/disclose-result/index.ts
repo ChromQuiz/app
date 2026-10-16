@@ -77,7 +77,7 @@ Deno.serve(withCors(async (req) => {
       .single();
     if (confirmationError) throw confirmationError;
     if (!(confirmation as { confirmed?: boolean } | null)?.confirmed) {
-      return jsonResponse({ error: '成績はまだ確定していません。確定したあとに、もう一度お試しください。' }, 409);
+      return jsonResponse({ error: '成績はまだ出ていません。全問の採点が終わってから、もう一度お試しください。' }, 409);
     }
 
     const { data: entries, error: entriesError } = await supabase
