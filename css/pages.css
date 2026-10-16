@@ -5116,6 +5116,17 @@ body.page-entry-list .list-container td.inline-parts {
   display: flex;
 }
 
+/* 所属・学年をまとめた欄はスマホ専用。上の flex で表示されないよう、PCでは隠す */
+body.page-entry-list .list-container td.entry-list-meta-cell {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body.page-entry-list .list-container td.entry-list-meta-cell {
+    display: flex;
+  }
+}
+
 /* 補足は、見出しの文字の位置にそろえる（アイコンの幅だけ下げる） */
 .entry-list-divider-note {
   padding-left: calc(1em + var(--sp-1));
