@@ -11,7 +11,7 @@
         success: { tone: 'ok', icon: 'check', title: '受付完了' },
         already: { tone: 'warn', icon: 'triangle-exclamation', title: '受付済み' },
         waitlist: { tone: 'warn', icon: 'clock', title: 'キャンセル待ち' },
-        canceled: { tone: 'bad', icon: 'xmark', title: 'キャンセル済み' },
+        canceled: { tone: 'bad', icon: 'xmark', title: 'キャンセル' },
         error: { tone: 'bad', icon: 'triangle-exclamation', title: 'エラーが発生しました' },
     };
 

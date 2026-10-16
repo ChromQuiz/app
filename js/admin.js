@@ -666,10 +666,10 @@
         // そちらに置かず運営専用のこの画面に置く。サーバ側も owner/admin 限定にしてある。
         // 照会 -> 氏名・所属を目視確認 -> 確定 の2段階にして、打ち間違いで別人を受付済みにする事故も防ぐ。
         const MANUAL_CHECKIN_STATUS_LABEL = {
-            registered: '登録済み',
+            registered: '参加',
             late: '遅刻連絡あり',
             waitlist: 'キャンセル待ち',
-            canceled: 'キャンセル済み',
+            canceled: 'キャンセル',
         };
 
         function setupManualCheckIn() {
@@ -751,7 +751,7 @@
                         setPageMessage(statusEl, `${name} を受付しました。`, 'success');
                     } else {
                         // 照会のあとに、キャンセル待ち・キャンセル済みに変わっていたとき。受付はされていない。
-                        setPageMessage(statusEl, `${name} は、キャンセル待ちかキャンセル済みなので、受付できません。状態を確認してください。`, 'warning');
+                        setPageMessage(statusEl, `${name} は、キャンセル待ちかキャンセルなので、受付できません。状態を確認してください。`, 'warning');
                     }
                     resetPanel();
                 });
