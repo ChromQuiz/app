@@ -37,7 +37,7 @@ const plain = (html) => html.replace(/<style[\s\S]*?<\/style>/g, '').replace(/<[
 describe('MAIL-02 エントリー受付完了', () => {
   const data = { password: 'Abc12345', status: 'registered', familyName: '山田', firstName: '太郎', entryListUrl: 'https://chromquiz.github.io/app/entry_list.html?pid=ciq9', qrData: ENTRY };
 
-  it('件名・宛名・受付番号・パスワード・二次元コード・ボタンが入る。プレーンテキストにも同じ情報', async () => {
+  it('件名・宛名・受付番号・パスワード・状態・二次元コード・ボタンが入る。プレーンテキストにも同じ情報', async () => {
     const { call } = await make();
     const r = await send(call, 'entry_confirmation', data);
     expect(r.status).toBe(200);
@@ -47,8 +47,7 @@ describe('MAIL-02 エントリー受付完了', () => {
     expect(text).toContain('山田 太郎 様');
     expect(text).toContain('007');
     expect(text).toContain('Abc12345');
-    expect(text).toContain('エントリーを受け付けました');
-    expect(text).not.toContain('キャンセル待ち');
+    expect(text).toContain('登録済み');
     expect(text).toMatch(/Powered by CIQ/);
     expect(text).toMatch(/自動送信/);
     expect(last().html).toContain('href="https://chromquiz.github.io/app/my.html?pid=ciq9"');
