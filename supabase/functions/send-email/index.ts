@@ -49,14 +49,15 @@ async function signedQrUrl(value: string) {
 }
 
 /* ------------------------------------------------------------
- * HTMLメール — CIQ Swift App と同じ grouped surface / pill CTA の静かな白黒グレー基調。
+ * HTMLメール — 飾らない文章を主役にする。
+ * 大会名、白いカード（短い文、受付番号などの行、必要なら二次元コード・ボタン）、フッターだけで構成する。
+ * 見出しや「確認／注意」のラベル付きの囲みは使わない。枠で囲うのは認証コードだけ。
  * メールクライアント互換のため table + inline CSS のみを使用する。
  * ------------------------------------------------------------ */
 const MAIL_FONT = "-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif";
 const MAIL_MONO = "'SF Mono','SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
 const MAIL = {
   canvas: '#f2f2f7',
-  paper: '#f2f2f7',
   surface: '#ffffff',
   surface2: '#f8f8fb',
   text: '#111113',
@@ -64,270 +65,62 @@ const MAIL = {
   muted: '#8a8b93',
   border: '#d9d9df',
   borderStrong: '#c7c7cf',
+  line: '#e3e3e8',
   accent: '#111113',
   accentInk: '#ffffff',
-  blue: '#0066cc',
 };
 
-function shell(title: string, subtitle: string, body: string) {
-  return `
+const MAIL_CSS = `
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <style>
     :root { color-scheme: light dark; supported-color-schemes: light dark; }
     html, body { margin: 0 !important; padding: 0 !important; background: ${MAIL.canvas} !important; }
     @media screen and (max-width: 560px) {
-      .ciq-mail-canvas { padding: 20px 10px !important; }
-      .ciq-mail-card { padding: 22px 18px !important; }
-      .ciq-mail-button-cell { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
+      .ciq-mail-canvas { padding: 24px 12px !important; }
+      .ciq-mail-card { padding: 24px 20px !important; }
     }
     @media (prefers-color-scheme: dark) {
-      html, body { background: #1c1c1e !important; }
-      .ciq-mail-canvas { background: #1c1c1e !important; }
-      .ciq-mail-title,
-      .ciq-mail-copy,
-      .ciq-mail-text,
-      .ciq-mail-value,
-      .ciq-mail-code,
-      .ciq-mail-label-strong {
+      html, body, .ciq-mail-canvas { background: #1c1c1e !important; }
+      .ciq-mail-card { background: #2c2c2e !important; border-color: #48484a !important; }
+      .ciq-mail-text, .ciq-mail-title, .ciq-mail-value {
         color: #f5f5f7 !important;
         -webkit-text-fill-color: #f5f5f7 !important;
       }
-      .ciq-mail-sub,
-      .ciq-mail-label,
-      .ciq-mail-note,
-      .ciq-mail-footer {
+      .ciq-mail-sub, .ciq-mail-note, .ciq-mail-footer {
         color: #aeaeb2 !important;
         -webkit-text-fill-color: #aeaeb2 !important;
       }
-      .ciq-mail-muted {
-        color: #8e8e93 !important;
-        -webkit-text-fill-color: #8e8e93 !important;
-      }
-      .ciq-mail-card,
-      .ciq-mail-surface { background: #2c2c2e !important; border-color: #48484a !important; }
-      .ciq-mail-surface-2 { background: #242426 !important; border-color: #48484a !important; }
-      .ciq-mail-code-box { background: #2c2c2e !important; border-color: #5a5a5f !important; }
       .ciq-mail-line { border-color: #48484a !important; }
-      .ciq-mail-button-primary { background: #f5f5f7 !important; border-color: #f5f5f7 !important; }
+      .ciq-mail-code-box { background: #242426 !important; border-color: #5a5a5f !important; }
+      .ciq-mail-button-primary { background: #f5f5f7 !important; }
       .ciq-mail-button-primary a {
         color: #111113 !important;
         -webkit-text-fill-color: #111113 !important;
       }
-      .ciq-mail-button-secondary { background: #2c2c2e !important; border-color: #5a5a5f !important; }
+      .ciq-mail-button-secondary { border-color: #5a5a5f !important; }
       .ciq-mail-button-secondary a {
-        color: #f5f5f7 !important;
-        -webkit-text-fill-color: #f5f5f7 !important;
-      }
-      .ciq-mail-success { border-color: #30d158 !important; }
-      .ciq-mail-success .ciq-mail-tone {
-        color: #30d158 !important;
-        -webkit-text-fill-color: #30d158 !important;
-      }
-      .ciq-mail-warning { border-color: #ff9f0a !important; }
-      .ciq-mail-warning .ciq-mail-tone {
-        color: #ff9f0a !important;
-        -webkit-text-fill-color: #ff9f0a !important;
-      }
-      .ciq-mail-danger { border-color: #ff453a !important; }
-      .ciq-mail-danger .ciq-mail-tone {
-        color: #ff453a !important;
-        -webkit-text-fill-color: #ff453a !important;
-      }
-    }
-  </style>
-  <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:32px 12px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;margin:0 auto;">
-          <tr>
-            <td class="ciq-mail-title" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:34px;line-height:1.08;font-weight:800;letter-spacing:-0.035em;padding:0 2px 8px;text-align:center;" align="center">
-              ${escapeHtml(subtitle)}
-            </td>
-          </tr>
-          <tr>
-            <td class="ciq-mail-sub" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:600;padding:0 2px 26px;text-align:center;" align="center">
-              ${escapeHtml(title)}
-            </td>
-          </tr>
-          <tr>
-            <td class="ciq-mail-card" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:26px;padding:32px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.75;text-align:left;" align="left">${body}</td>
-          </tr>
-          <tr>
-            <td class="ciq-mail-footer" style="font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:${MAIL.muted};padding:22px 8px 0;">
-              Powered by CIQ<br>このメールは自動送信されています。
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-  `;
-}
-
-function panel(body: string, tone = 'info') {
-  const labels: Record<string, string> = {
-    info: '確認',
-    success: '完了',
-    warning: '注意',
-    danger: '重要',
-  };
-  return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
-    <tr>
-      <td class="ciq-mail-surface-2 ciq-mail-${escapeHtml(tone)}" style="border:1px solid ${tone === 'success' ? '#b8e8c4' : tone === 'warning' ? '#f4d7a2' : tone === 'danger' ? '#f2b8b5' : MAIL.border};border-radius:18px;background:${MAIL.surface2};padding:15px 16px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:14px;line-height:1.75;">
-        <div class="ciq-mail-tone" style="font-size:12px;font-weight:800;color:${tone === 'success' ? '#248a3d' : tone === 'warning' ? '#bf6a02' : tone === 'danger' ? '#d70015' : MAIL.sub};margin-bottom:4px;">${escapeHtml(labels[tone] || labels.info)}</div>
-        <div class="ciq-mail-text" style="font-weight:600;">${body}</div>
-      </td>
-    </tr>
-  </table>
-  `;
-}
-
-function detailsTable(rows: Array<[string, unknown]>) {
-  const last = rows.length - 1;
-  const tableRows = rows.map(([label, value], i) => `
-    <tr>
-      <td class="ciq-mail-label ciq-mail-line" style="padding:12px 14px;font-family:${MAIL_FONT};font-size:13px;font-weight:700;color:${MAIL.sub};${i === last ? '' : `border-bottom:1px solid ${MAIL.border};`}">${escapeHtml(label)}</td>
-      <td class="ciq-mail-value ciq-mail-line" align="right" style="padding:12px 14px;font-family:${MAIL_MONO};font-size:14px;font-weight:700;color:${MAIL.text};letter-spacing:.02em;${i === last ? '' : `border-bottom:1px solid ${MAIL.border};`}">${escapeHtml(value)}</td>
-    </tr>
-  `).join('');
-  return `
-  <table class="ciq-mail-surface" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${MAIL.border};border-radius:18px;margin:16px 0;background:${MAIL.surface};">
-    ${tableRows}
-  </table>
-  `;
-}
-
-function numberCard(label: string, value: string) {
-  return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
-    <tr>
-      <td class="ciq-mail-surface-2" align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface2};">
-        <div class="ciq-mail-label" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;font-weight:800;margin-bottom:4px;">${escapeHtml(label)}</div>
-        <div class="ciq-mail-value" style="font-family:${MAIL_MONO};color:${MAIL.text};font-size:36px;font-weight:800;letter-spacing:.04em;line-height:1.1;">${escapeHtml(value)}</div>
-      </td>
-    </tr>
-  </table>
-  `;
-}
-
-function qrCard(qrImageUrl: string) {
-  if (!qrImageUrl) return '';
-  return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
-    <tr>
-      <td class="ciq-mail-surface" align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface};">
-        <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用二次元コード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
-        <div class="ciq-mail-label-strong" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:800;margin-top:12px;">当日受付用二次元コード</div>
-        <div class="ciq-mail-sub" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;margin-top:2px;">当日受付で提示してください。</div>
-      </td>
-    </tr>
-  </table>
-  `;
-}
-
-function primaryButton(label: string, href: string) {
-  if (!href) return '';
-  return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
-    <tr>
-      <td class="ciq-mail-button-primary" align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
-        <a href="${escapeHtml(href)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 20px;border-radius:999px;">${escapeHtml(label)}</a>
-      </td>
-    </tr>
-  </table>
-  `;
-}
-
-function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: string, secondaryHref: string) {
-  const primary = primaryHref ? `
-    <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 6px 0 0;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="ciq-mail-button-primary" align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
-            <a href="${escapeHtml(primaryHref)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 18px;border-radius:999px;">${escapeHtml(primaryLabel)}</a>
-          </td>
-        </tr>
-      </table>
-    </td>
-  ` : '';
-  const secondary = secondaryHref ? `
-    <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 0 0 6px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="ciq-mail-button-secondary" align="center" style="background:${MAIL.surface};border:1px solid ${MAIL.borderStrong};border-radius:999px;">
-            <a href="${escapeHtml(secondaryHref)}" style="display:block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 18px;border-radius:999px;">${escapeHtml(secondaryLabel)}</a>
-          </td>
-        </tr>
-      </table>
-    </td>
-  ` : '';
-  if (!primary && !secondary) return '';
-  return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;margin:18px 0;">
-    <tr>${primary}${secondary}</tr>
-  </table>
-  `;
-}
-
-/* ------------------------------------------------------------
- * エントリー受付完了メール（新デザイン）。
- * 見出しや「確認／注意」の囲みを使わず、文章・受付番号とパスワードの行・二次元コード・ボタンだけで構成する。
- * 他のメール（編集・キャンセルなど）は、方針が決まるまで上の shell / panel のまま。
- * ------------------------------------------------------------ */
-const CONFIRM_CSS = `
-  <meta name="color-scheme" content="light dark">
-  <meta name="supported-color-schemes" content="light dark">
-  <style>
-    :root { color-scheme: light dark; supported-color-schemes: light dark; }
-    html, body { margin: 0 !important; padding: 0 !important; background: ${MAIL.canvas} !important; }
-    @media screen and (max-width: 560px) {
-      .ciq-confirm-canvas { padding: 24px 12px !important; }
-      .ciq-confirm-card { padding: 24px 20px !important; }
-    }
-    @media (prefers-color-scheme: dark) {
-      html, body, .ciq-confirm-canvas { background: #1c1c1e !important; }
-      .ciq-confirm-card { background: #2c2c2e !important; border-color: #48484a !important; }
-      .ciq-confirm-text, .ciq-confirm-title, .ciq-confirm-value {
-        color: #f5f5f7 !important;
-        -webkit-text-fill-color: #f5f5f7 !important;
-      }
-      .ciq-confirm-sub, .ciq-confirm-note, .ciq-confirm-footer {
-        color: #aeaeb2 !important;
-        -webkit-text-fill-color: #aeaeb2 !important;
-      }
-      .ciq-confirm-line { border-color: #48484a !important; }
-      .ciq-confirm-button-primary { background: #f5f5f7 !important; }
-      .ciq-confirm-button-primary a {
-        color: #111113 !important;
-        -webkit-text-fill-color: #111113 !important;
-      }
-      .ciq-confirm-button-secondary { border-color: #5a5a5f !important; }
-      .ciq-confirm-button-secondary a {
         color: #f5f5f7 !important;
         -webkit-text-fill-color: #f5f5f7 !important;
       }
     }
   </style>`;
 
-const LINE = '#e3e3e8';
-
-function confirmShell(name: string, body: string) {
+function mailShell(name: string, body: string) {
   return `
-  ${CONFIRM_CSS}
-  <table class="ciq-confirm-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:28px 12px;">
+  ${MAIL_CSS}
+  <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:28px 12px;">
     <tr>
       <td align="center">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px;margin:0 auto;">
           <tr>
-            <td class="ciq-confirm-title" align="center" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-0.035em;padding:4px 0 22px;">${escapeHtml(name)}</td>
+            <td class="ciq-mail-title" align="center" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-0.035em;padding:4px 0 22px;">${escapeHtml(name)}</td>
           </tr>
           <tr>
-            <td class="ciq-confirm-card ciq-confirm-text" align="left" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:26px;padding:28px 22px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.8;text-align:left;">${body}</td>
+            <td class="ciq-mail-card ciq-mail-text" align="left" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:26px;padding:28px 22px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.8;text-align:left;">${body}</td>
           </tr>
           <tr>
-            <td class="ciq-confirm-footer" align="center" style="font-family:${MAIL_FONT};color:${MAIL.muted};font-size:12px;line-height:1.7;padding:22px 8px 0;">このメールは自動送信されています。<br>Powered by CIQ</td>
+            <td class="ciq-mail-footer" align="center" style="font-family:${MAIL_FONT};color:${MAIL.muted};font-size:12px;line-height:1.7;padding:22px 8px 0;">このメールは自動送信されています。<br>Powered by CIQ</td>
           </tr>
         </table>
       </td>
@@ -336,38 +129,51 @@ function confirmShell(name: string, body: string) {
   `;
 }
 
-function confirmText(text: string, extraStyle = '') {
-  return `<p class="ciq-confirm-text" style="margin:0 0 12px;font-family:${MAIL_FONT};color:${MAIL.text};text-align:left;${extraStyle}">${escapeHtml(text)}</p>`;
+function mailText(text: string, extraStyle = '') {
+  return `<p class="ciq-mail-text" style="margin:0 0 12px;font-family:${MAIL_FONT};color:${MAIL.text};text-align:left;${extraStyle}">${escapeHtml(text)}</p>`;
 }
 
-function confirmNote(text: string) {
-  return `<p class="ciq-confirm-note" style="margin:0 0 20px;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">${escapeHtml(text)}</p>`;
+function mailNote(text: string) {
+  return `<p class="ciq-mail-note" style="margin:0 0 20px;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">${escapeHtml(text)}</p>`;
 }
 
 // 受付番号・パスワードなど。ラベル左・値右の行。値は等幅。
-function confirmRows(rows: Array<[string, string]>) {
+function mailRows(rows: Array<[string, string]>) {
   const tableRows = rows.map(([label, value]) => `
     <tr>
-      <td class="ciq-confirm-sub ciq-confirm-line" style="padding:13px 0;font-family:${MAIL_FONT};font-size:13px;color:${MAIL.sub};border-bottom:1px solid ${LINE};">${escapeHtml(label)}</td>
-      <td class="ciq-confirm-value ciq-confirm-line" align="right" style="padding:13px 0;font-family:${MAIL_MONO};font-size:16px;font-weight:500;letter-spacing:.03em;color:${MAIL.text};border-bottom:1px solid ${LINE};">${escapeHtml(value)}</td>
+      <td class="ciq-mail-sub ciq-mail-line" style="padding:13px 0;font-family:${MAIL_FONT};font-size:13px;color:${MAIL.sub};border-bottom:1px solid ${MAIL.line};">${escapeHtml(label)}</td>
+      <td class="ciq-mail-value ciq-mail-line" align="right" style="padding:13px 0;font-family:${MAIL_MONO};font-size:16px;font-weight:500;letter-spacing:.03em;color:${MAIL.text};border-bottom:1px solid ${MAIL.line};">${escapeHtml(value)}</td>
     </tr>
   `).join('');
   return `
-  <table class="ciq-confirm-line" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:2px 0 6px;border-top:1px solid ${LINE};">
+  <table class="ciq-mail-line" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:2px 0 20px;border-top:1px solid ${MAIL.line};">
     ${tableRows}
   </table>
   `;
 }
 
+// 認証コードだけは、ひと目で読み取り・入力できるよう、枠で大きく見せる。
+function mailCode(code: string) {
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 18px;">
+    <tr>
+      <td class="ciq-mail-code-box ciq-mail-line" align="center" style="border:1px solid ${MAIL.border};border-radius:14px;padding:20px;background:${MAIL.surface2};">
+        <div class="ciq-mail-value" style="font-family:${MAIL_MONO};color:${MAIL.text};font-size:34px;font-weight:600;letter-spacing:.12em;line-height:1.2;">${escapeHtml(code)}</div>
+      </td>
+    </tr>
+  </table>
+  `;
+}
+
 // 二次元コードは枠で囲まず、カードの上にそのまま置く。
-function confirmQr(qrImageUrl: string) {
+function mailQr(qrImageUrl: string) {
   if (!qrImageUrl) return '';
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px;">
     <tr>
       <td align="center">
         <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用二次元コード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
-        <div class="ciq-confirm-text" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:700;margin-top:10px;">当日受付用二次元コード</div>
+        <div class="ciq-mail-text" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:700;margin-top:10px;">当日受付用二次元コード</div>
       </td>
     </tr>
   </table>
@@ -375,15 +181,15 @@ function confirmQr(qrImageUrl: string) {
 }
 
 // 同じ幅のボタンを横に並べる。片方しかないときは、その1つだけを幅いっぱいに出す。
-function confirmButtons(primaryLabel: string, primaryHref: string, secondaryLabel: string, secondaryHref: string) {
+function mailButtons(primaryLabel: string, primaryHref: string, secondaryLabel = '', secondaryHref = '') {
   if (!primaryHref && !secondaryHref) return '';
   const cellWidth = primaryHref && secondaryHref ? '50%' : '100%';
   const primary = primaryHref ? `
-    <td class="ciq-confirm-button-primary" width="${cellWidth}" align="center" style="background:${MAIL.accent};border-radius:999px;">
+    <td class="ciq-mail-button-primary" width="${cellWidth}" align="center" style="background:${MAIL.accent};border-radius:999px;">
       <a href="${escapeHtml(primaryHref)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 8px;border-radius:999px;">${escapeHtml(primaryLabel)}</a>
     </td>` : '';
   const secondary = secondaryHref ? `
-    <td class="ciq-confirm-button-secondary" width="${cellWidth}" align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:999px;">
+    <td class="ciq-mail-button-secondary" width="${cellWidth}" align="center" style="border:1px solid ${MAIL.borderStrong};border-radius:999px;">
       <a href="${escapeHtml(secondaryHref)}" style="display:block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:12px 8px;border-radius:999px;">${escapeHtml(secondaryLabel)}</a>
     </td>` : '';
   const gap = primaryHref && secondaryHref ? '<td width="12" style="width:12px;font-size:0;line-height:0;">&nbsp;</td>' : '';
@@ -405,17 +211,17 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
   const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
   const lead = waitlist ? 'キャンセル待ちとして受け付けました。' : 'エントリーを受け付けました。';
   const body = `
-    ${person ? confirmText(`${person} 様`, 'margin-bottom:4px;') : ''}
-    ${confirmText(lead, 'margin-bottom:16px;')}
-    ${confirmRows([['受付番号', entryNumber], ['パスワード', password]])}
-    ${confirmNote('パスワードは、マイエントリーでの確認・変更やキャンセルに使います。')}
-    ${confirmQr(qrImageUrl)}
-    ${confirmButtons('マイエントリー', myUrl, 'エントリーリスト', entryListUrl)}
-    ${confirmNote('マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。')}
+    ${person ? mailText(`${person} 様`, 'margin-bottom:4px;') : ''}
+    ${mailText(lead, 'margin-bottom:16px;')}
+    ${mailRows([['受付番号', entryNumber], ['パスワード', password]]).replace('margin:2px 0 20px', 'margin:2px 0 6px')}
+    ${mailNote('パスワードは、マイエントリーでの確認・変更やキャンセルに使います。')}
+    ${mailQr(qrImageUrl)}
+    ${mailButtons('マイエントリー', myUrl, 'エントリーリスト', entryListUrl)}
+    ${mailNote('マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。')}
   `;
   return {
     subject: `【${name}】エントリー受付完了（No.${entryNumber}）`,
-    html: confirmShell(name, body),
+    html: mailShell(name, body),
     text: [
       person ? `${person} 様` : '',
       `${name} のエントリーを${waitlist ? 'キャンセル待ちとして' : ''}受け付けました。`,
@@ -431,28 +237,24 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
   };
 }
 
+// 編集・キャンセル・遅刻・繰り上げの通知。宛名は置かず、一文と受付番号だけにする。
 function simpleNotice(args: {
   data: Record<string, unknown>;
   subjectLabel: string;
-  title: string;
   message: string;
-  tone: string;
   withMyCta: boolean;
 }): EmailTemplate {
   const name = projectName(args.data);
   const entryNumber = String(args.data.entryNumber || '');
   const myUrl = args.withMyCta ? String(args.data.myUrl || '') : '';
-  const person = `${args.data.familyName || ''} ${args.data.firstName || ''}`.trim();
   return {
     subject: `【${name}】${args.subjectLabel}（No.${entryNumber}）`,
-    html: shell(args.title, name, `
-      ${person ? `<p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person)} 様</p>` : ''}
-      ${panel(args.message, args.tone)}
-      ${detailsTable([['受付番号', entryNumber]])}
-      ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
+    html: mailShell(name, `
+      ${mailText(args.message, 'margin-bottom:16px;')}
+      ${mailRows([['受付番号', entryNumber]]).replace('margin:2px 0 20px', `margin:2px 0 ${myUrl ? '20px' : '0'}`)}
+      ${mailButtons('マイエントリー', myUrl)}
     `),
     text: [
-      person ? `${person} 様` : '',
       `${name} — ${args.message}`,
       `受付番号：${entryNumber}`,
       myUrl ? `マイエントリー：${myUrl}` : '',
@@ -461,13 +263,11 @@ function simpleNotice(args: {
 }
 
 function cancellation(data: Record<string, unknown>): EmailTemplate {
-  // キャンセル後に呼び戻す行動はないため、CTAは置かない
+  // キャンセル後に呼び戻す行動はないため、ボタンは置かない
   return simpleNotice({
     data,
     subjectLabel: 'エントリーキャンセル完了',
-    title: 'キャンセル完了',
     message: 'エントリーをキャンセルしました。',
-    tone: 'danger',
     withMyCta: false,
   });
 }
@@ -476,9 +276,7 @@ function entryEdited(data: Record<string, unknown>): EmailTemplate {
   return simpleNotice({
     data,
     subjectLabel: 'エントリー編集完了',
-    title: 'エントリー編集完了',
     message: 'エントリー内容の変更を受け付けました。',
-    tone: 'success',
     withMyCta: true,
   });
 }
@@ -486,10 +284,8 @@ function entryEdited(data: Record<string, unknown>): EmailTemplate {
 function lateNotice(data: Record<string, unknown>): EmailTemplate {
   return simpleNotice({
     data,
-    subjectLabel: '遅刻連絡受付',
-    title: '遅刻連絡受付',
+    subjectLabel: '遅刻連絡完了',
     message: '遅刻の連絡を受け付けました。',
-    tone: 'warning',
     withMyCta: true,
   });
 }
@@ -498,9 +294,7 @@ function waitlistPromoted(data: Record<string, unknown>): EmailTemplate {
   return simpleNotice({
     data,
     subjectLabel: 'キャンセル待ち繰り上げのお知らせ',
-    title: 'キャンセル待ち繰り上げ',
-    message: 'キャンセル待ちから通常エントリーへ繰り上がりました。',
-    tone: 'success',
+    message: 'キャンセル待ちから繰り上がりました。',
     withMyCta: true,
   });
 }
@@ -510,10 +304,10 @@ function verificationEmail(projectNameValue: string, code: string, purpose = 'en
   const lead = reset ? 'パスワードの再発行のため、以下のコードを入力してください。' : 'エントリーフォームに以下のコードを入力してください。';
   return {
     subject: `【${projectNameValue}】認証コード`,
-    html: shell('認証コード', projectNameValue, `
-      <p class="ciq-mail-copy" style="margin:0;text-align:left;color:${MAIL.text};">${lead}</p>
-      ${numberCard('認証コード', code)}
-      <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。心当たりがない場合は、このメールを破棄してください。</p>
+    html: mailShell(projectNameValue, `
+      ${mailText(lead, 'margin-bottom:12px;')}
+      ${mailCode(code)}
+      ${mailNote('このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。心当たりがない場合は、このメールを破棄してください。').replace('margin:0 0 20px', 'margin:0')}
     `),
     text: [
       lead,
@@ -531,11 +325,11 @@ function passwordReissued(data: Record<string, unknown>): EmailTemplate {
   const myUrl = String(data.myUrl || '');
   return {
     subject: `【${name}】パスワードを再発行しました（No.${entryNumber}）`,
-    html: shell('パスワードの再発行', name, `
-      ${panel('パスワードを再発行しました。以前のパスワードは使えません。', 'success')}
-      ${detailsTable([['受付番号', entryNumber], ['新しいパスワード', password]])}
-      <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;text-align:left;">パスワードはマイエントリー、編集、キャンセルなどに使用します。心当たりがない場合は、運営へご連絡ください。</p>
-      ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
+    html: mailShell(name, `
+      ${mailText('パスワードを再発行しました。以前のパスワードは使えません。', 'margin-bottom:16px;')}
+      ${mailRows([['受付番号', entryNumber], ['新しいパスワード', password]]).replace('margin:2px 0 20px', 'margin:2px 0 6px')}
+      ${mailNote('心当たりがない場合は、運営へご連絡ください。')}
+      ${mailButtons('マイエントリー', myUrl)}
     `),
     text: [
       `${name} のパスワードを再発行しました。以前のパスワードは使えません。`,
