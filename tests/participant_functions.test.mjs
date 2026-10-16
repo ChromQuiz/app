@@ -344,7 +344,7 @@ describe('disclose-result（MY-30〜35）', () => {
     const { call } = await setup('disclose-result', { entry: { checked_in: true }, rpc: notYet, extra: { entries: entries(), final_results: results() } });
     const r = await call(creds);
     expect(r.status).toBe(409);
-    expect(r.json.error).toBe('成績はまだ確定していません。確定したあとに、もう一度お試しください。');
+    expect(r.json.error).toBe('成績はまだ出ていません。全問の採点が終わってから、もう一度お試しください。');
     expect(r.json.score).toBeUndefined();
     expect(r.json.rank).toBeUndefined();
   });

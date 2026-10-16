@@ -22,7 +22,7 @@ describe('「確定しているか」は、データベースの1つの定義', 
     const settings = read('js/admin_settings.js');
     const body = settings.slice(settings.indexOf('async function toggleDisclosureOpen'));
     expect(body.indexOf('listQuestionConfirmation')).toBeLessThan(body.indexOf('updateProject'));
-    expect(body).toContain('成績はまだ確定していません');
+    expect(body).toContain('成績はまだ出ていません');
   });
 
   it('DBは、問題ごとの定義を内部の関数にまとめ、成績照会の確認と管理者の画面が、同じものを使う', () => {

@@ -1075,10 +1075,10 @@
                 const pending = rows ? rows.filter(row => !row.confirmed).length : null;
                 if (pending === null || pending > 0) {
                     const reason = pending === null
-                        ? '確定の状態を確認できませんでした。'
-                        : `まだ確定していない問題が${pending}問あります。`;
+                        ? '完了の状態を確認できませんでした。'
+                        : `まだ完了していない問題が${pending}問あります。`;
                     const ok = await showConfirm(
-                        `${reason}\n\n全問が確定するまでは、成績照会を有効にしても、参加者には「成績はまだ確定していません」と出て、点数も順位も表示されません。\n\n有効にしますか？`,
+                        `${reason}\n\n全問が完了するまでは、成績照会を有効にしても、参加者には「成績はまだ出ていません」と出て、点数も順位も表示されません。\n\n有効にしますか？`,
                         '有効にする',
                     );
                     if (!ok) {
