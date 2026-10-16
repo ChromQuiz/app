@@ -49,27 +49,25 @@ async function signedQrUrl(value: string) {
 }
 
 /* ------------------------------------------------------------
- * HTMLメール — CIQ Swift App と同じ grouped surface / pill CTA の静かな白黒グレー基調。
+ * HTMLメール — 飾らない文章を主役にする。白地に、大会名・本文・必要な値・ボタンだけを置く。
+ * 枠で囲うのは、認証コードだけ（ひと目で読み取りたい値）。見出しや「確認／完了／注意」のラベルは付けない。
  * メールクライアント互換のため table + inline CSS のみを使用する。
  * ------------------------------------------------------------ */
 const MAIL_FONT = "-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif";
 const MAIL_MONO = "'SF Mono','SFMono-Regular',Menlo,Consolas,'Courier New',monospace";
 const MAIL = {
-  canvas: '#f2f2f7',
-  paper: '#f2f2f7',
-  surface: '#ffffff',
-  surface2: '#f8f8fb',
+  canvas: '#ffffff',
   text: '#111113',
   sub: '#5f6067',
   muted: '#8a8b93',
   border: '#d9d9df',
-  borderStrong: '#c7c7cf',
+  surface2: '#f5f5f7',
   accent: '#111113',
   accentInk: '#ffffff',
   blue: '#0066cc',
 };
 
-function shell(title: string, subtitle: string, body: string) {
+function shell(name: string, body: string) {
   return `
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
@@ -77,19 +75,15 @@ function shell(title: string, subtitle: string, body: string) {
     :root { color-scheme: light dark; supported-color-schemes: light dark; }
     html, body { margin: 0 !important; padding: 0 !important; background: ${MAIL.canvas} !important; }
     @media screen and (max-width: 560px) {
-      .ciq-mail-canvas { padding: 20px 10px !important; }
-      .ciq-mail-card { padding: 22px 18px !important; }
-      .ciq-mail-button-cell { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
+      .ciq-mail-canvas { padding: 18px 16px !important; }
     }
     @media (prefers-color-scheme: dark) {
       html, body { background: #1c1c1e !important; }
       .ciq-mail-canvas { background: #1c1c1e !important; }
-      .ciq-mail-title,
       .ciq-mail-copy,
       .ciq-mail-text,
       .ciq-mail-value,
-      .ciq-mail-code,
-      .ciq-mail-label-strong {
+      .ciq-mail-code {
         color: #f5f5f7 !important;
         -webkit-text-fill-color: #f5f5f7 !important;
       }
@@ -100,62 +94,31 @@ function shell(title: string, subtitle: string, body: string) {
         color: #aeaeb2 !important;
         -webkit-text-fill-color: #aeaeb2 !important;
       }
-      .ciq-mail-muted {
-        color: #8e8e93 !important;
-        -webkit-text-fill-color: #8e8e93 !important;
-      }
-      .ciq-mail-card,
-      .ciq-mail-surface { background: #2c2c2e !important; border-color: #48484a !important; }
-      .ciq-mail-surface-2 { background: #242426 !important; border-color: #48484a !important; }
       .ciq-mail-code-box { background: #2c2c2e !important; border-color: #5a5a5f !important; }
-      .ciq-mail-line { border-color: #48484a !important; }
-      .ciq-mail-button-primary { background: #f5f5f7 !important; border-color: #f5f5f7 !important; }
-      .ciq-mail-button-primary a {
+      .ciq-mail-button { background: #f5f5f7 !important; }
+      .ciq-mail-button a {
         color: #111113 !important;
         -webkit-text-fill-color: #111113 !important;
       }
-      .ciq-mail-button-secondary { background: #2c2c2e !important; border-color: #5a5a5f !important; }
-      .ciq-mail-button-secondary a {
-        color: #f5f5f7 !important;
-        -webkit-text-fill-color: #f5f5f7 !important;
-      }
-      .ciq-mail-success { border-color: #30d158 !important; }
-      .ciq-mail-success .ciq-mail-tone {
-        color: #30d158 !important;
-        -webkit-text-fill-color: #30d158 !important;
-      }
-      .ciq-mail-warning { border-color: #ff9f0a !important; }
-      .ciq-mail-warning .ciq-mail-tone {
-        color: #ff9f0a !important;
-        -webkit-text-fill-color: #ff9f0a !important;
-      }
-      .ciq-mail-danger { border-color: #ff453a !important; }
-      .ciq-mail-danger .ciq-mail-tone {
-        color: #ff453a !important;
-        -webkit-text-fill-color: #ff453a !important;
+      .ciq-mail-link {
+        color: #64a8ff !important;
+        -webkit-text-fill-color: #64a8ff !important;
       }
     }
   </style>
-  <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:32px 12px;">
+  <table class="ciq-mail-canvas" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:${MAIL.canvas};padding:28px 20px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;margin:0 auto;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px;margin:0 auto;">
           <tr>
-            <td class="ciq-mail-title" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:34px;line-height:1.08;font-weight:800;letter-spacing:-0.035em;padding:0 2px 8px;text-align:center;" align="center">
-              ${escapeHtml(subtitle)}
-            </td>
+            <td class="ciq-mail-sub" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.6;font-weight:600;padding:0 0 18px;text-align:left;" align="left">${escapeHtml(name)}</td>
           </tr>
           <tr>
-            <td class="ciq-mail-sub" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:14px;line-height:1.6;font-weight:600;padding:0 2px 26px;text-align:center;" align="center">
-              ${escapeHtml(title)}
-            </td>
+            <td class="ciq-mail-text" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.8;text-align:left;" align="left">${body}</td>
           </tr>
           <tr>
-            <td class="ciq-mail-card" style="background:${MAIL.surface};border:1px solid ${MAIL.border};border-radius:26px;padding:32px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:15px;line-height:1.75;text-align:left;" align="left">${body}</td>
-          </tr>
-          <tr>
-            <td class="ciq-mail-footer" style="font-family:${MAIL_FONT};text-align:center;font-size:12px;line-height:1.7;color:${MAIL.muted};padding:22px 8px 0;">
-              Powered by CIQ<br>このメールは自動送信されています。
+            <td class="ciq-mail-footer" style="font-family:${MAIL_FONT};color:${MAIL.muted};font-size:12px;line-height:1.7;padding:32px 0 0;text-align:left;" align="left">
+              このメールは自動送信されています。<br>Powered by CIQ
             </td>
           </tr>
         </table>
@@ -165,146 +128,111 @@ function shell(title: string, subtitle: string, body: string) {
   `;
 }
 
-function panel(body: string, tone = 'info') {
-  const labels: Record<string, string> = {
-    info: '確認',
-    success: '完了',
-    warning: '注意',
-    danger: '重要',
-  };
-  return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
-    <tr>
-      <td class="ciq-mail-surface-2 ciq-mail-${escapeHtml(tone)}" style="border:1px solid ${tone === 'success' ? '#b8e8c4' : tone === 'warning' ? '#f4d7a2' : tone === 'danger' ? '#f2b8b5' : MAIL.border};border-radius:18px;background:${MAIL.surface2};padding:15px 16px;font-family:${MAIL_FONT};color:${MAIL.text};font-size:14px;line-height:1.75;">
-        <div class="ciq-mail-tone" style="font-size:12px;font-weight:800;color:${tone === 'success' ? '#248a3d' : tone === 'warning' ? '#bf6a02' : tone === 'danger' ? '#d70015' : MAIL.sub};margin-bottom:4px;">${escapeHtml(labels[tone] || labels.info)}</div>
-        <div class="ciq-mail-text" style="font-weight:600;">${body}</div>
-      </td>
-    </tr>
-  </table>
-  `;
+function paragraph(text: string) {
+  return `<p class="ciq-mail-copy" style="margin:0 0 14px;font-family:${MAIL_FONT};color:${MAIL.text};text-align:left;">${escapeHtml(text)}</p>`;
 }
 
-function detailsTable(rows: Array<[string, unknown]>) {
-  const last = rows.length - 1;
-  const tableRows = rows.map(([label, value], i) => `
+function note(text: string) {
+  return `<p class="ciq-mail-note" style="margin:0 0 14px;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">${escapeHtml(text)}</p>`;
+}
+
+// 受付番号・パスワードなど。枠や区切り線は付けず、見出しの語と値を並べるだけにする。
+function facts(rows: Array<[string, unknown]>) {
+  const tableRows = rows.map(([label, value]) => `
     <tr>
-      <td class="ciq-mail-label ciq-mail-line" style="padding:12px 14px;font-family:${MAIL_FONT};font-size:13px;font-weight:700;color:${MAIL.sub};${i === last ? '' : `border-bottom:1px solid ${MAIL.border};`}">${escapeHtml(label)}</td>
-      <td class="ciq-mail-value ciq-mail-line" align="right" style="padding:12px 14px;font-family:${MAIL_MONO};font-size:14px;font-weight:700;color:${MAIL.text};letter-spacing:.02em;${i === last ? '' : `border-bottom:1px solid ${MAIL.border};`}">${escapeHtml(value)}</td>
+      <td class="ciq-mail-label" style="padding:3px 20px 3px 0;font-family:${MAIL_FONT};font-size:13px;color:${MAIL.sub};white-space:nowrap;">${escapeHtml(label)}</td>
+      <td class="ciq-mail-value" style="padding:3px 0;font-family:${MAIL_MONO};font-size:16px;font-weight:700;color:${MAIL.text};letter-spacing:.02em;">${escapeHtml(value)}</td>
     </tr>
   `).join('');
   return `
-  <table class="ciq-mail-surface" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${MAIL.border};border-radius:18px;margin:16px 0;background:${MAIL.surface};">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 16px;">
     ${tableRows}
   </table>
   `;
 }
 
-function numberCard(label: string, value: string) {
+// 認証コードだけは、ひと目で読み取り・入力できるよう、枠で大きく見せる。
+function codeBox(code: string) {
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 18px;">
     <tr>
-      <td class="ciq-mail-surface-2" align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface2};">
-        <div class="ciq-mail-label" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;font-weight:800;margin-bottom:4px;">${escapeHtml(label)}</div>
-        <div class="ciq-mail-value" style="font-family:${MAIL_MONO};color:${MAIL.text};font-size:36px;font-weight:800;letter-spacing:.04em;line-height:1.1;">${escapeHtml(value)}</div>
+      <td class="ciq-mail-code-box" align="center" style="border:1px solid ${MAIL.border};border-radius:14px;padding:20px;background:${MAIL.surface2};">
+        <div class="ciq-mail-code" style="font-family:${MAIL_MONO};color:${MAIL.text};font-size:34px;font-weight:700;letter-spacing:.12em;line-height:1.2;">${escapeHtml(code)}</div>
       </td>
     </tr>
   </table>
   `;
 }
 
-function qrCard(qrImageUrl: string) {
+// 二次元コードは、読み取りやすいよう白地の余白つきで置く。
+function qrImage(qrImageUrl: string) {
   if (!qrImageUrl) return '';
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
-    <tr>
-      <td class="ciq-mail-surface" align="center" style="border:1px solid ${MAIL.border};border-radius:22px;padding:22px;background:${MAIL.surface};">
-        <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用二次元コード" width="176" height="176" style="display:block;margin:0 auto;border:0;">
-        <div class="ciq-mail-label-strong" style="font-family:${MAIL_FONT};color:${MAIL.text};font-size:13px;font-weight:800;margin-top:12px;">当日受付用二次元コード</div>
-        <div class="ciq-mail-sub" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:12px;margin-top:2px;">当日受付で提示してください。</div>
-      </td>
-    </tr>
-  </table>
+  <p style="margin:6px 0 4px;">
+    <img src="${escapeHtml(qrImageUrl)}" alt="当日受付用二次元コード" width="176" height="176" style="display:block;border:0;background:#ffffff;padding:8px;border-radius:10px;">
+  </p>
+  ${note('当日受付で、この二次元コードを提示してください。')}
   `;
 }
 
-function primaryButton(label: string, href: string) {
+function button(label: string, href: string) {
   if (!href) return '';
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 18px;">
     <tr>
-      <td class="ciq-mail-button-primary" align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
-        <a href="${escapeHtml(href)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 20px;border-radius:999px;">${escapeHtml(label)}</a>
+      <td class="ciq-mail-button" align="center" style="background:${MAIL.accent};border-radius:999px;">
+        <a href="${escapeHtml(href)}" style="display:inline-block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:12px 26px;border-radius:999px;">${escapeHtml(label)}</a>
       </td>
     </tr>
   </table>
   `;
 }
 
-function buttonPair(primaryLabel: string, primaryHref: string, secondaryLabel: string, secondaryHref: string) {
-  const primary = primaryHref ? `
-    <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 6px 0 0;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="ciq-mail-button-primary" align="center" style="background:${MAIL.accent};border:1px solid ${MAIL.accent};border-radius:999px;">
-            <a href="${escapeHtml(primaryHref)}" style="display:block;color:${MAIL.accentInk};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 18px;border-radius:999px;">${escapeHtml(primaryLabel)}</a>
-          </td>
-        </tr>
-      </table>
-    </td>
-  ` : '';
-  const secondary = secondaryHref ? `
-    <td class="ciq-mail-button-cell" width="50%" align="center" valign="top" style="width:50%;padding:0 0 0 6px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="ciq-mail-button-secondary" align="center" style="background:${MAIL.surface};border:1px solid ${MAIL.borderStrong};border-radius:999px;">
-            <a href="${escapeHtml(secondaryHref)}" style="display:block;color:${MAIL.text};text-decoration:none;font-family:${MAIL_FONT};font-size:14px;font-weight:700;padding:13px 18px;border-radius:999px;">${escapeHtml(secondaryLabel)}</a>
-          </td>
-        </tr>
-      </table>
-    </td>
-  ` : '';
-  if (!primary && !secondary) return '';
-  return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;margin:18px 0;">
-    <tr>${primary}${secondary}</tr>
-  </table>
-  `;
+function textLink(label: string, href: string) {
+  if (!href) return '';
+  return `<p style="margin:0 0 14px;font-family:${MAIL_FONT};font-size:14px;text-align:left;"><a class="ciq-mail-link" href="${escapeHtml(href)}" style="color:${MAIL.blue};text-decoration:underline;">${escapeHtml(label)}</a></p>`;
+}
+
+function greeting(data: Record<string, unknown>) {
+  const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
+  return person ? paragraph(`${person} 様`) : '';
 }
 
 function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
   const name = projectName(data);
   const entryNumber = String(data.entryNumber || '');
-  const status = data.status === 'waitlist' ? 'キャンセル待ち' : '登録済み';
+  const waitlist = data.status === 'waitlist';
   const password = String(data.password || '');
   const myUrl = String(data.myUrl || '');
   const entryListUrl = String(data.entryListUrl || '');
   const qrImageUrl = String(data.qrImageUrl || '');
   const person = `${data.familyName || ''} ${data.firstName || ''}`.trim();
-  const waitlistNotice = data.status === 'waitlist'
-    ? panel('現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。', 'warning')
-    : panel('エントリーを受け付けました。', 'success');
+  const lead = waitlist
+    ? 'エントリーを受け付けました。現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。'
+    : 'エントリーを受け付けました。';
+  const rows: Array<[string, unknown]> = [['受付番号', entryNumber], ['パスワード', password]];
+  if (waitlist) rows.push(['状態', 'キャンセル待ち']);
   const body = `
-    ${person ? `<p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person)} 様</p>` : ''}
-    ${waitlistNotice}
-    ${numberCard('受付番号', entryNumber)}
-    ${detailsTable([['パスワード', password], ['状態', status]])}
-    <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;text-align:left;">パスワードはマイエントリー、編集、キャンセルなどに使用します。</p>
-    ${qrCard(qrImageUrl)}
-    ${panel('このメールには受付二次元コードとマイエントリー用の情報が含まれます。大会当日まで保存してください。', 'info')}
-    ${buttonPair('マイエントリー', myUrl, 'エントリーリスト', entryListUrl)}
-    <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;line-height:1.8;text-align:left;">
-      マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。
-    </p>
+    ${greeting(data)}
+    ${paragraph(lead)}
+    ${facts(rows)}
+    ${note('パスワードは、マイエントリーでの確認・変更やキャンセルに使います。')}
+    ${qrImage(qrImageUrl)}
+    ${button('マイエントリーを開く', myUrl)}
+    ${note('マイエントリーでは、エントリー内容の確認・変更、遅刻の連絡、二次元コードの再表示ができます。このメールは大会当日まで保存してください。')}
+    ${textLink('エントリーリストを見る', entryListUrl)}
   `;
   return {
     subject: `【${name}】エントリー受付完了（No.${entryNumber}）`,
-    html: shell('エントリー受付完了', name, body),
+    html: shell(name, body),
     text: [
       person ? `${person} 様` : '',
       `${name} のエントリーを受け付けました。`,
+      waitlist ? '現在はキャンセル待ちです。繰り上がった場合は別途メールでお知らせします。' : '',
       `受付番号：${entryNumber}`,
-      data.status === 'waitlist' ? `状態：${status}` : '',
       `パスワード：${password}`,
+      waitlist ? '状態：キャンセル待ち' : '',
+      'パスワードは、マイエントリーでの確認・変更やキャンセルに使います。',
       'このメールには受付二次元コードとマイエントリー用の情報が含まれます。大会当日まで保存してください。',
       '二次元コードはマイエントリーからも再表示できます。',
       myUrl ? `マイエントリー：${myUrl}` : '',
@@ -316,9 +244,7 @@ function entryConfirmation(data: Record<string, unknown>): EmailTemplate {
 function simpleNotice(args: {
   data: Record<string, unknown>;
   subjectLabel: string;
-  title: string;
   message: string;
-  tone: string;
   withMyCta: boolean;
 }): EmailTemplate {
   const name = projectName(args.data);
@@ -327,11 +253,11 @@ function simpleNotice(args: {
   const person = `${args.data.familyName || ''} ${args.data.firstName || ''}`.trim();
   return {
     subject: `【${name}】${args.subjectLabel}（No.${entryNumber}）`,
-    html: shell(args.title, name, `
-      ${person ? `<p class="ciq-mail-copy" style="margin:0 0 4px;text-align:left;color:${MAIL.text};">${escapeHtml(person)} 様</p>` : ''}
-      ${panel(args.message, args.tone)}
-      ${detailsTable([['受付番号', entryNumber]])}
-      ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
+    html: shell(name, `
+      ${greeting(args.data)}
+      ${paragraph(args.message)}
+      ${facts([['受付番号', entryNumber]])}
+      ${textLink('マイエントリーを開く', myUrl)}
     `),
     text: [
       person ? `${person} 様` : '',
@@ -343,13 +269,11 @@ function simpleNotice(args: {
 }
 
 function cancellation(data: Record<string, unknown>): EmailTemplate {
-  // キャンセル後に呼び戻す行動はないため、CTAは置かない
+  // キャンセル後に呼び戻す行動はないため、リンクは置かない
   return simpleNotice({
     data,
     subjectLabel: 'エントリーキャンセル完了',
-    title: 'キャンセル完了',
     message: 'エントリーをキャンセルしました。',
-    tone: 'danger',
     withMyCta: false,
   });
 }
@@ -358,9 +282,7 @@ function entryEdited(data: Record<string, unknown>): EmailTemplate {
   return simpleNotice({
     data,
     subjectLabel: 'エントリー編集完了',
-    title: 'エントリー編集完了',
     message: 'エントリー内容の変更を受け付けました。',
-    tone: 'success',
     withMyCta: true,
   });
 }
@@ -369,9 +291,7 @@ function lateNotice(data: Record<string, unknown>): EmailTemplate {
   return simpleNotice({
     data,
     subjectLabel: '遅刻連絡受付',
-    title: '遅刻連絡受付',
     message: '遅刻の連絡を受け付けました。',
-    tone: 'warning',
     withMyCta: true,
   });
 }
@@ -380,9 +300,7 @@ function waitlistPromoted(data: Record<string, unknown>): EmailTemplate {
   return simpleNotice({
     data,
     subjectLabel: 'キャンセル待ち繰り上げのお知らせ',
-    title: 'キャンセル待ち繰り上げ',
     message: 'キャンセル待ちから通常エントリーへ繰り上がりました。',
-    tone: 'success',
     withMyCta: true,
   });
 }
@@ -392,10 +310,10 @@ function verificationEmail(projectNameValue: string, code: string, purpose = 'en
   const lead = reset ? 'パスワードの再発行のため、以下のコードを入力してください。' : 'エントリーフォームに以下のコードを入力してください。';
   return {
     subject: `【${projectNameValue}】認証コード`,
-    html: shell('認証コード', projectNameValue, `
-      <p class="ciq-mail-copy" style="margin:0;text-align:left;color:${MAIL.text};">${lead}</p>
-      ${numberCard('認証コード', code)}
-      <p class="ciq-mail-note" style="font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;margin:0;text-align:left;">このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。心当たりがない場合は、このメールを破棄してください。</p>
+    html: shell(projectNameValue, `
+      ${paragraph(lead)}
+      ${codeBox(code)}
+      ${note('このコードは10分間有効です。届かない場合は迷惑メールフォルダも確認してください。心当たりがない場合は、このメールを破棄してください。')}
     `),
     text: [
       lead,
@@ -413,11 +331,11 @@ function passwordReissued(data: Record<string, unknown>): EmailTemplate {
   const myUrl = String(data.myUrl || '');
   return {
     subject: `【${name}】パスワードを再発行しました（No.${entryNumber}）`,
-    html: shell('パスワードの再発行', name, `
-      ${panel('パスワードを再発行しました。以前のパスワードは使えません。', 'success')}
-      ${detailsTable([['受付番号', entryNumber], ['新しいパスワード', password]])}
-      <p class="ciq-mail-note" style="margin:0;font-family:${MAIL_FONT};color:${MAIL.sub};font-size:13px;text-align:left;">パスワードはマイエントリー、編集、キャンセルなどに使用します。心当たりがない場合は、運営へご連絡ください。</p>
-      ${myUrl ? primaryButton('マイエントリーを開く', myUrl) : ''}
+    html: shell(name, `
+      ${paragraph('パスワードを再発行しました。以前のパスワードは使えません。')}
+      ${facts([['受付番号', entryNumber], ['新しいパスワード', password]])}
+      ${note('心当たりがない場合は、運営へご連絡ください。')}
+      ${button('マイエントリーを開く', myUrl)}
     `),
     text: [
       `${name} のパスワードを再発行しました。以前のパスワードは使えません。`,
