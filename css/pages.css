@@ -5090,7 +5090,7 @@ body.page-entry-list .entry-list-count {
 
 /* エントリーリストの区切り：見出しと補足を2段に、人数は右に置く */
 .entry-list-divider td {
-  text-align: left;
+  text-align: center;
 }
 
 .entry-list-divider-title {
@@ -5127,9 +5127,12 @@ body.page-entry-list .list-container td.entry-list-meta-cell {
   }
 }
 
-/* 補足は、見出しの文字の位置にそろえる（アイコンの幅だけ下げる） */
-.entry-list-divider-note {
-  padding-left: calc(1em + var(--sp-1));
+/* 補足は、スマホ（左寄せ）のときだけ、見出しの文字の位置にそろえる（アイコンの幅だけ下げる）。
+   PCは中央寄せなので、そろえない */
+@media (max-width: 768px) {
+  .entry-list-divider-note {
+    padding-left: calc(1em + var(--sp-1));
+  }
 }
 
 /* メンバー管理：行の高さを、ボタンの有無で変えない。ボタンは同じ大きさにして、列をそろえる。
