@@ -546,8 +546,8 @@ setupVerifyCodeBoxes();
 async function init() {
     setEntryStepState('verify');
     // Turnstile widget を描画(site key 未設定 / API 読込失敗時は描画されず、サーバ側 fail-closed が守る)。
-    CIQTurnstile.render('turnstile-verify', 'send_verification');
-    CIQTurnstile.render('turnstile-entry', 'create_entry');
+    CIQTurnstile.render('turnstile-verify', 'send_verification', { appearance: 'interaction-only' });
+    CIQTurnstile.render('turnstile-entry', 'create_entry', { appearance: 'interaction-only' });
     if (isReentry) {
         const note = document.getElementById('reentry-note');
         showEl(note);

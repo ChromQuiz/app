@@ -54,9 +54,10 @@ const CIQTurnstile = (() => {
 
     /**
      * 指定コンテナに widget を描画する(冪等)。action は Edge 側の検証値と一致させること。
+     * options.appearance: 'interaction-only' なら、自動で通るときは表示しない(既定は常に表示)。
      * 描画できない場合(site key 未設定 / API 未読込)は false を返す。
      */
-    function render(containerId, action) {
+    function render(containerId, action, options = {}) {
         const el = document.getElementById(containerId);
         if (!el) return false;
         if (!available()) return false;
@@ -67,6 +68,8 @@ const CIQTurnstile = (() => {
                 action,
                 theme: 'auto',
                 size: 'flexible',   // 狭いスマートフォン幅でも収まる
+                // 'interaction-only': 自動で通ったときは何も表示せず、人の操作が必要なときだけ出す
+                appearance: options.appearance === 'interaction-only' ? 'interaction-only' : 'always',
             });
             widgets.set(containerId, id);
             el.classList.remove('u-hidden');
