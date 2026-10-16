@@ -62,7 +62,7 @@ describe('create-entry（ENT-34、API-03、API-05、API-06）', () => {
     stubTurnstile({ success: true, action: 'create_entry', hostname: 'evil.example' });
     const host = await call(await bodyFor());
     expect(host.status).toBe(403);
-    expect(host.json.error).toBe('認証を完了できませんでした。ページを再読み込みして、もう一度お試しください。');
+    expect(host.json.error).toBe('認証できませんでした。ページを再読み込みして、もう一度お試しください。');
     stubTurnstile(tsOk('create_entry'));
     const noSecret = await make(rpcOk, { ...TS_ENV, TURNSTILE_SECRET_KEY: '' });
     const r = await noSecret.call(await bodyFor());
@@ -216,7 +216,7 @@ describe('send-email: 認証コード（ENT-12〜15、API-03、API-05、API-06�
 
   it('受付停止中・開始前・終了後は、コードを送らずに日本語で断る', async () => {
     stubTurnstile(tsOk('send_verification'));
-    const cases = [[{ entry_open: false }, 'ただいまエントリーを受け付けていません。'], [{ period_start: '2099-01-01T00:00:00Z' }, 'エントリーはまだ始まっていません。'], [{ period_end: '2000-02-01T00:00:00Z' }, 'エントリーは終了しました。']];
+    const cases = [[{ entry_open: false }, '現在エントリーを受け付けていません。'], [{ period_start: '2099-01-01T00:00:00Z' }, 'エントリーはまだ始まっていません。'], [{ period_end: '2000-02-01T00:00:00Z' }, 'エントリーは終了しました。']];
     for (const [proj, text] of cases) {
       sent.length = 0;
       const db = createFakeDb({ projects: [project(proj)], email_events: [] });

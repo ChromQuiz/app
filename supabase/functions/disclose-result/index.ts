@@ -144,7 +144,7 @@ Deno.serve(withCors(async (req) => {
     }
     if (error instanceof SigningConfigError) {
       console.error('[disclose-result] signing secret is not configured');
-      return jsonResponse({ error: 'ただいまこの操作を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
+      return jsonResponse({ error: '現在この操作を受け付けられません。時間をおいてもう一度お試しください。' }, 503);
     }
     return serverErrorResponse(error, 'disclose-result');
   }

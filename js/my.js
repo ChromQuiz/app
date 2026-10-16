@@ -35,7 +35,7 @@ async function sendParticipantActionEmail(sendFn, payload, failureLabel) {
         return true;
     } catch (error) {
         console.warn(`${failureLabel}メール送信失敗:`, error);
-        showToast(`${failureLabel}は完了しましたが、確認メールを送信できませんでした。`, 'warning');
+        showToast(`${failureLabel}は済みましたが、確認メールを送信できませんでした。`, 'warning');
         return false;
     }
 }

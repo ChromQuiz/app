@@ -198,7 +198,7 @@ function getPreVerificationSubmitMessage() {
     if (!email) return 'メールアドレスを入力してください。';
     if (codeAreaVisible && !code) return '認証コードを入力してください。';
     if (codeAreaVisible) return '認証コードを確認してください。';
-    return '認証コードを送信してメール認証を完了してください。';
+    return '認証コードを送信してメール認証をしてください。';
 }
 
 function generatePW() {
@@ -233,7 +233,7 @@ async function resendVerification() {
     // 認証コード送信後は枠を隠している。再送でトークンが無い（人の操作が必要）ときだけ、枠を出して確認を求める。
     if (CIQTurnstile.available() && !CIQTurnstile.token('turnstile-verify')) {
         showEl(document.getElementById('turnstile-verify'));
-        showVerifyMsg('ロボットでないことの確認を完了してから、もう一度「再送信」を押してください。', 'error');
+        showVerifyMsg('ロボットでないことを確認してから、もう一度「再送信」を押してください。', 'error');
         return;
     }
     resendBtn.disabled = true;

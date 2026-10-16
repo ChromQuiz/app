@@ -199,7 +199,7 @@
                 }
                 const sheetType = isFullOpen ? 'fullopen_' : '';
                 doc.save(`answer_sheet_${sheetType}${qCount}q.pdf`);
-                showAdminToast("PDFのダウンロードが完了しました。", "success");
+                showAdminToast("PDFをダウンロードしました。", "success");
             } catch (err) {
                 showAdminToast('解答用紙のPDFを作成できませんでした。（詳細：' + errorDetail(err) + '）');
             }
@@ -552,7 +552,7 @@
                 }
 
                 overlayTitle.textContent = 'サーバーへ保存中…';
-                overlayText.textContent = '保存完了を確認中';
+                overlayText.textContent = '保存できたか確認中';
                 const entryNumberValidation = CIQUploadValidation.validateDetectedEntryNumbers(
                     scanAnswers.map(answer => answer.entryNumber),
                     entryNumbers
@@ -609,7 +609,7 @@
                 await rollbackUploadedAnswers(uploadedEntryNumbers);
                 await CIQSupabaseAPI.deleteAnswerPageStoragePaths(Array.from(uploadedPagePaths)).catch(() => {});
                 console.error(e); overlay.classList.remove('is-visible-flex');
-                showAdminToast('処理を完了できませんでした。（詳細：' + errorDetail(e) + '）');
+                showAdminToast('処理できませんでした。（詳細：' + errorDetail(e) + '）');
             } finally {
                 window.removeEventListener('beforeunload', leaveGuard);
                 releaseScanAnswerCanvases();

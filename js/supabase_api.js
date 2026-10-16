@@ -319,7 +319,7 @@ const CIQSupabaseAPI = {
         });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
-            const error = new Error(data?.error || '処理を完了できませんでした。時間をおいてもう一度お試しください。');
+            const error = new Error(data?.error || '処理できませんでした。時間をおいてもう一度お試しください。');
             error.status = res.status;
             error.functionName = name;
             throw error;
@@ -342,7 +342,7 @@ const CIQSupabaseAPI = {
         });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
-            const error = new Error(data?.error || '処理を完了できませんでした。時間をおいてもう一度お試しください。');
+            const error = new Error(data?.error || '処理できませんでした。時間をおいてもう一度お試しください。');
             error.status = res.status;
             error.functionName = name;
             throw error;
@@ -452,7 +452,7 @@ const CIQSupabaseAPI = {
 
     async createEntry(payload) {
         const data = await this.invokePublicFunction('create-entry', payload);
-        if (!data?.ok) throw new Error(data?.error || 'エントリーを完了できませんでした。時間をおいてもう一度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || 'エントリーできませんでした。時間をおいてもう一度お試しください。');
         return data.entry;
     },
 
@@ -465,7 +465,7 @@ const CIQSupabaseAPI = {
             if (error.status !== 401 && !message.includes('Googleログイン')) throw error;
             data = await this.invokePublicFunction('create-entry', payload);
         }
-        if (!data?.ok) throw new Error(data?.error || 'エントリーを完了できませんでした。時間をおいてもう一度お試しください。');
+        if (!data?.ok) throw new Error(data?.error || 'エントリーできませんでした。時間をおいてもう一度お試しください。');
         return data.entry;
     },
 

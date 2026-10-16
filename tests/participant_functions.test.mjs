@@ -127,7 +127,7 @@ describe('my-entry（MY-02〜05、API-01、API-05、API-07）', () => {
       const broken = await loadFunction('my-entry', { db: createFakeDb({ projects: [project()], entries: [] }), env, mocks: QR_MOCK });
       const r = await broken(creds);
       expect(r.status, JSON.stringify(env)).toBe(503);
-      expect(r.json.error).toBe('ただいま参加者認証を利用できません。時間をおいてもう一度お試しください。');
+      expect(r.json.error).toBe('現在参加者認証を利用できません。時間をおいてもう一度お試しください。');
     }
   });
 

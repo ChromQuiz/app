@@ -498,7 +498,7 @@ const ERROR_MESSAGES = [
     [/Failed to fetch|Load failed|NetworkError|network request failed/i, '通信できませんでした。接続を確認してください'],
     [/JWT expired|invalid JWT|refresh_token|Invalid Refresh Token/i, 'ログインの有効期限が切れました。もう一度ログインしてください'],
     [/Authentication required/i, 'ログインが必要です'],
-    [/Forbidden|permission denied|not authorized|row-level security/i, 'この操作を行う権限がありません'],
+    [/Forbidden|permission denied|not authorized|row-level security/i, 'この操作の権限がありません'],
     [/Project not found/i, '大会が見つかりません'],
     [/Entry not found/i, 'エントリーが見つかりません'],
     [/Member not found/i, 'メンバーが見つかりません'],
