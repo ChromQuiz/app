@@ -230,6 +230,12 @@ async function resendVerification() {
     clearEmailVerification();
     const email = normalizeEmailInput(document.getElementById('f-email').value);
     const resendBtn = document.getElementById('resend-code-btn');
+    // 認証コード送信後は枠を隠している。再送でトークンが無い（人の操作が必要）ときだけ、枠を出して確認を求める。
+    if (CIQTurnstile.available() && !CIQTurnstile.token('turnstile-verify')) {
+        showEl(document.getElementById('turnstile-verify'));
+        showVerifyMsg('ロボットでないことの確認を完了してから、もう一度「再送信」を押してください。', 'error');
+        return;
+    }
     resendBtn.disabled = true;
     setEntryButton(resendBtn, '送信中…', 'spinner');
     showVerifyMsg('認証コードを再送信しています…', '');
@@ -251,6 +257,7 @@ async function resendVerification() {
     verifySignature = result.signature;
     verifyExpiresAt = result.expiresAt;
     setVerifyCodeValue('');
+    hideEl(document.getElementById('turnstile-verify'));
     showVerifyMsg(`${email} に認証コードを送信しました。`, 'success');
     showVerificationMailboxHelp();
     startResendCooldown();
@@ -294,6 +301,7 @@ async function sendVerification() {
     document.getElementById('f-email').disabled = true;
     showEl(document.getElementById('code-input-area'));
     hideEl(btn);
+    hideEl(document.getElementById('turnstile-verify'));   // 再送のときだけ、また出す
     showVerifyMsg(`${email} に認証コードを送信しました。`, 'success');
     showVerificationMailboxHelp();
     focusVerifyCodeBox(0);
