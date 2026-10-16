@@ -114,7 +114,7 @@
 
         function appendProjectMemberRow(tbody, member, currentUserId) {
             const roleLabel = member.role === 'owner' ? '所有者' : member.role === 'admin' ? '管理者' : '採点者';
-            const statusLabel = member.status === 'removed' ? '外し済み' : '有効';
+            const statusLabel = member.status === 'removed' ? '無効' : '有効';
             const isSelf = member.user_id === currentUserId;
             const canChange = member.role !== 'owner' && !isSelf;
 
@@ -152,7 +152,7 @@
                     onClick: () => changeProjectMemberRole(member.id, member.role === 'admin' ? 'scorer' : 'admin'),
                 });
                 appendMemberActionButton(actionGroup, {
-                    label: '外す',
+                    label: 'キック',
                     icon: 'user-xmark',
                     variant: 'danger',
                     onClick: () => removeProjectMember(member.id),
@@ -739,9 +739,9 @@
         }
 
         function inviteState(invite) {
-            if (invite.revoked_at) return { label: '無効化済み', className: 'is-revoked' };
-            if (new Date(invite.expires_at).getTime() <= Date.now()) return { label: '期限切れ', className: 'is-expired' };
-            if (Number(invite.use_count) >= Number(invite.max_uses)) return { label: '上限到達', className: 'is-expired' };
+            if (invite.revoked_at) return { label: '無効', className: 'is-revoked' };
+            if (new Date(invite.expires_at).getTime() <= Date.now()) return { label: '無効', className: 'is-expired' };
+            if (Number(invite.use_count) >= Number(invite.max_uses)) return { label: '無効', className: 'is-expired' };
             return { label: '有効', className: 'is-active' };
         }
 
@@ -767,7 +767,7 @@
             tr.appendChild(inviteStateTd);
             const actionTd = document.createElement('td');
             actionTd.className = 'invite-action-cell';
-            // 無効化できるのは、まだ使える招待だけ（期限切れ・上限到達・無効化済みは、もう使えないので出さない）
+            // 無効化できるのは、まだ使える招待だけ（期限切れ・上限到達・無効にしたものは、もう使えないので出さない）
             if (state.className === 'is-active') {
                 const button = document.createElement('button');
                 button.type = 'button';
@@ -871,14 +871,14 @@
         }
 
         async function removeProjectMember(memberId) {
-            const ok = await showConfirm('このメンバーを外します。外したメンバーは、招待リンクを使っても再参加できなくなります。', '外す');
+            const ok = await showConfirm('このメンバーをキックします。キックしたメンバーは、招待リンクを使っても再参加できなくなります。', 'キック');
             if (!ok) return;
             try {
                 await CIQSupabaseAPI.removeProjectMember(memberId);
-                showAdminToast('メンバーを外しました。', 'success');
+                showAdminToast('メンバーをキックしました。', 'success');
                 await loadProjectMembers();
             } catch (e) {
-                showAdminToast(describeError(e, 'メンバーを外せませんでした。'), 'error');
+                showAdminToast(describeError(e, 'メンバーをキックできませんでした。'), 'error');
             }
         }
 
@@ -1007,18 +1007,10 @@
             const ps = document.getElementById('entry-period-start').value;
             const pe = document.getElementById('entry-period-end').value;
             const el = document.getElementById('entry-open-status');
-            const summary = document.getElementById('entry-state-summary');
-            const meta = document.getElementById('entry-state-meta');
-
-            const setPublicState = (label, detail) => {
-                if (summary) summary.textContent = label;
-                if (meta) meta.textContent = detail;
-            };
 
             if (!isOpen) {
                 el.textContent = '停止中';
                 el.className = 'status-badge status-closed';
-                setPublicState('停止中', 'エントリーフォームは利用不可');
                 window.updateAdminOverview?.();
                 return;
             }
@@ -1027,21 +1019,18 @@
             if (ps && new Date(ps) > now) {
                 el.textContent = '開始前';
                 el.className = 'status-badge status-warning';
-                setPublicState('開始前', `${formatDtDisplay(ps)} から`);
                 window.updateAdminOverview?.();
                 return;
             }
             if (pe && new Date(pe) < now) {
                 el.textContent = '終了';
                 el.className = 'status-badge status-warning';
-                setPublicState('終了', `${formatDtDisplay(pe)} まで`);
                 window.updateAdminOverview?.();
                 return;
             }
 
             el.textContent = 'エントリー中';
             el.className = 'status-badge status-open';
-            setPublicState('エントリー中', pe ? `${formatDtDisplay(pe)} まで` : '終了日時なし');
             window.updateAdminOverview?.();
         }
 
@@ -1111,18 +1100,10 @@
             const isOpen = toggle.checked;
             const ps = document.getElementById('disclosure-period-start').value;
             const pe = document.getElementById('disclosure-period-end').value;
-            const summary = document.getElementById('disclosure-state-summary');
-            const meta = document.getElementById('disclosure-state-meta');
-
-            const setPublicState = (label, detail) => {
-                if (summary) summary.textContent = label;
-                if (meta) meta.textContent = detail;
-            };
 
             if (!isOpen) {
                 el.textContent = '停止中';
                 el.className = 'status-badge status-closed';
-                setPublicState('停止中', '成績照会ページは利用不可');
                 window.updateAdminOverview?.();
                 return;
             }
@@ -1131,21 +1112,18 @@
             if (ps && new Date(ps) > now) {
                 el.textContent = '開始前';
                 el.className = 'status-badge status-warning';
-                setPublicState('開始前', `${formatDtDisplay(ps)} から`);
                 window.updateAdminOverview?.();
                 return;
             }
             if (pe && new Date(pe) < now) {
                 el.textContent = '終了';
                 el.className = 'status-badge status-warning';
-                setPublicState('終了', `${formatDtDisplay(pe)} まで`);
                 window.updateAdminOverview?.();
                 return;
             }
 
             el.textContent = '照会中';
             el.className = 'status-badge status-open';
-            setPublicState('照会中', pe ? `${formatDtDisplay(pe)} まで` : '終了日時なし');
             window.updateAdminOverview?.();
         }
 
@@ -1559,14 +1537,14 @@
 
         async function loadAdminEntries() {
             const tbody = document.getElementById('admin-entries-tbody');
-            setTableMessage(tbody, 9, '読み込み中…');
+            setTableMessage(tbody, 8, '読み込み中…');
 
             try {
                 const entries = getCachedAdminEntries() || await CIQSupabaseAPI.listEntriesForAdmin(projectId);
                 window._entriesRaw = Object.fromEntries(entries.map(e => [e.id, normalizeSupabaseEntry(e)]));
                 entryNumbers = entries.map(e => e.entry_number || e.entryNumber).sort((a, b) => a - b);
                 if (!entries.length) {
-                    setTableMessage(tbody, 9, '名簿データがありません。');
+                    setTableMessage(tbody, 8, '名簿データがありません。');
                     window.setAdminEntriesCount?.(0);
                     return;
                 }
@@ -1608,7 +1586,7 @@
                     }).catch(e => console.warn('復号鍵の後追い読み込みをスキップ:', e));
                 }
             } catch (e) {
-                setTableMessage(tbody, 9, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。（詳細：${errorDetail(e)}）`, 'td-loading-error');
+                setTableMessage(tbody, 8, `参加者一覧を読み込めませんでした。ページを再読み込みしてください。（詳細：${errorDetail(e)}）`, 'td-loading-error');
             }
         }
 
@@ -1681,18 +1659,6 @@
                 statusTd.appendChild(createBadge('badge muted', '未受付'));
             }
 
-            const noticeTd = appendAdminEntryCell(row, document.createDocumentFragment());
-            noticeTd.classList.add('cell-status');
-            const noticeState = entry.waitlist_promotion_notice;
-            if (noticeState === 'pending' || noticeState === 'sending') {
-                noticeTd.appendChild(createBadge('badge muted', '繰り上げ通知送信待ち', {}, '送信待ち'));
-            } else if (noticeState === 'sent') {
-                noticeTd.appendChild(createBadge('badge success', '繰り上げ通知送信済み', {}, '送信済み'));
-            } else if (noticeState === 'failed') {
-                noticeTd.appendChild(createBadge('badge danger', '繰り上げ通知未送信', {}, '未送信'));
-            } else {
-                noticeTd.textContent = '-';
-            }
         }
 
         async function hydrateAdminEntryPII(rows, privJwk) {

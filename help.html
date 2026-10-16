@@ -99,8 +99,8 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-7" role="region" aria-labelledby="qa-question-7" aria-hidden="true"><div class="qa-answer-inner">
-                    <p>「設定」のメンバーの一覧で、権限の変更と、メンバーを外す操作ができます。所有者と自分自身は、変更できません。誤って外したときは、「復帰」で戻せます。</p>
-                    <p>外したメンバーは、招待リンクを開いても、再参加できません。知らないアカウントや、不要になった採点者は、残さずに整理してください。</p>
+                    <p>「設定」のメンバーの一覧で、権限の変更と、メンバーをキックする操作ができます。所有者と自分自身は、変更できません。誤ってキックしたときは、「復帰」で戻せます。</p>
+                    <p>キックしたメンバーは、招待リンクを開いても、再参加できません。知らないアカウントや、不要になった採点者は、残さずに整理してください。</p>
                 </div></div>
             </div>
         </div>
@@ -125,7 +125,7 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-9" role="region" aria-labelledby="qa-question-9" aria-hidden="true"><div class="qa-answer-inner">
-                    <p>参加者の一覧で、エントリーの状態(未受付・受付済み・遅刻・キャンセル待ち・キャンセル)と、繰り上げ通知の状態を確認できます。氏名・メールアドレスは、大会の鍵で復号して表示します。</p>
+                    <p>参加者の一覧で、エントリーの状態(未受付・受付済み・遅刻・キャンセル待ち・キャンセル)を確認できます。氏名・メールアドレスは、大会の鍵で復号して表示します。</p>
                     <p>「参加者を追加」で、運営が代わりに登録できます。登録すると、受付番号と、パスワード、二次元コード入りの控え画像が出ます。パスワードは、閉じると再表示できません。画像のダウンロードと、参加者に送る定型文のコピーを使って、安全な方法で本人に伝えてください。</p>
                     <p>同じメールアドレスは、重ねて登録できません。受付が停止中のときも、追加できません。</p>
                 </div></div>
@@ -214,7 +214,7 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-16" role="region" aria-labelledby="qa-question-16" aria-hidden="true"><div class="qa-answer-inner">
-                    <p>問題に入った人は、必要人数のうちの1枠を使います。途中でやめた人がいると、枠が埋まったまま、ほかの人が入れず、確定も進みません。</p>
+                    <p>問題に入った人は、必要人数のうちの1枠を使います。途中でやめた人がいると、枠が埋まったまま、ほかの人が入れず、完了も進みません。</p>
                     <p>採点ボードで、まだ完了していない枠がある問題のカードの右上に、「…」が出ます。押すと、その問題の枠の一覧が開きます。「枠を解放」を押すと(自分の枠も、他の人の枠も、メンバーなら誰でも)、その人のその問題での判定は消え、ほかの人が入れるようになります。完了した枠は、解放できません。</p>
                 </div></div>
             </div>
@@ -225,17 +225,17 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-17" role="region" aria-labelledby="qa-question-17" aria-hidden="true"><div class="qa-answer-inner">
-                    <p>同じ答案への判定が割れて、必要人数の一致にならないものを、「要確認」として扱います。管理者は、「要確認」ページで、答案の画像、模範解答、採点者ごとの判定を見て、最終判定(正解か不正解)を決めます。決めた答案は、確定済みの印が付いて、その場に残ります。</p>
+                    <p>同じ答案への判定が割れて、必要人数の一致にならないものを、「要確認」として扱います。管理者は、「要確認」ページで、答案の画像、模範解答、採点者ごとの判定を見て、最終判定(正解か不正解)を決めます。決めた答案は、判定済みの印が付いて、その場に残ります。</p>
                 </div></div>
             </div>
 
             <div class="qa-item">
                 <button type="button" class="qa-question" id="qa-question-18" aria-expanded="false" aria-controls="qa-answer-18">
-                    確定と順位の考え方
+                    判定と順位の考え方
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-18" role="region" aria-labelledby="qa-question-18" aria-hidden="true"><div class="qa-answer-inner">
-                    <p>必要人数のうち、最後の1人がその問題の採点を完了した時点で、受付済みの人の答案ごとに、判定が全員一致したものだけが確定します。割れたもの(保留を含む)は、要確認になります。</p>
+                    <p>必要人数のうち、最後の1人がその問題の採点を完了した時点で、受付済みの人の答案ごとに、判定が全員一致したものだけが、そのまま採用されます。割れたもの(保留を含む)は、要確認になります。</p>
                     <p>順位は、点数の高い順です。同点のときは、連続して正解した数を、問題の順に現れる区切りごとに並べて、先に差が出たところで、長いほうを上にします。点数も連答もすべて同じなら、同順位です。</p>
                 </div></div>
             </div>
@@ -261,7 +261,7 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-20" role="region" aria-labelledby="qa-question-20" aria-hidden="true"><div class="qa-answer-inner">
-                    <p>「5 結果」で、全問が確定すると、「全問確定済み — CSV出力できます」と出て、成績のCSVと、採点済みのPDFを出力できます。確定していない問題があると、出力できません(要確認が残っていないか確認してください)。</p>
+                    <p>「5 結果」で、全問が完了すると、「全問完了 — CSV出力できます」と出て、成績のCSVと、採点済みのPDFを出力できます。完了していない問題があると、出力できません(要確認が残っていないか確認してください)。</p>
                     <p>「問題アナリティクス」では、正答率と、少人数だけが正解した問題を確認できます。「◯人以下をハイライト」の数を変えると、表示が変わります。正答率分析のCSVも出力できます。</p>
                     <p>CSVと採点済みPDFには、氏名が入ります。共有先を限定して、扱ってください。</p>
                 </div></div>
@@ -277,7 +277,7 @@
                     <span data-icon="chevron-down" aria-hidden="true"></span>
                 </button>
                 <div class="qa-answer" id="qa-answer-21" role="region" aria-labelledby="qa-question-21" aria-hidden="true"><div class="qa-answer-inner">
-                    <ul><li>管理者の権限は、必要な人にだけ付けます。</li><li>招待リンクは、不要な場所に貼りません。</li><li>不要になったメンバーは、外します。</li><li>出力したファイルは、公開された場所に置きません。</li></ul>
+                    <ul><li>管理者の権限は、必要な人にだけ付けます。</li><li>招待リンクは、不要な場所に貼りません。</li><li>不要になったメンバーは、キックします。</li><li>出力したファイルは、公開された場所に置きません。</li></ul>
                 </div></div>
             </div>
 

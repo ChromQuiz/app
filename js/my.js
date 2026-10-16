@@ -414,7 +414,7 @@ async function verifyAndReset() {
 const STATUS_LABELS = {
     registered: { status: 'success', label: '参加' },
     waitlist: { status: 'warning', label: 'キャンセル待ち' },
-    late: { status: 'info', label: '遅刻連絡済み' },
+    late: { status: 'info', label: '遅刻' },
     canceled: { status: 'danger', label: 'キャンセル' },
 };
 
@@ -434,7 +434,7 @@ function applyHubData(data) {
     const meta = STATUS_LABELS[myEntryData.status] || { status: 'neutral', label: myEntryData.status || '不明' };
     statusRow.appendChild(renderStatusBadge(meta));
     if (myEntryData.checkedIn) {
-        statusRow.appendChild(renderStatusBadge({ status: 'success', label: '当日受付済み' }));
+        statusRow.appendChild(renderStatusBadge({ status: 'success', label: '受付済み' }));
     }
 
     // 受付番号

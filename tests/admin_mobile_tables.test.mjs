@@ -68,7 +68,7 @@ describe('問題アナリティクス: 状態のバッジの色', () => {
   it('状態ごとに、色を分ける（全部同じ色にしない）', () => {
     const js = read('js/admin_stats.js');
     const map = js.match(/const ANALYTICS_TYPE_BADGE = \{[\s\S]*?\};/)[0];
-    for (const type of ['通常', '未確定', '少数正解', '単独正解', '全滅']) expect(map).toContain(`'${type}'`);
+    for (const type of ['通常', '未完了', '少数正解', '単独正解', '全滅']) expect(map).toContain(`'${type}'`);
     const colors = [...map.matchAll(/: '([a-z]*)'/g)].map(m => m[1]);
     expect(new Set(colors).size).toBe(5);
     expect(js).toContain('ANALYTICS_TYPE_BADGE[s.type]');
