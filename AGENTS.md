@@ -75,14 +75,15 @@ Prefer:
 - Reuse `css/design_system.css` and existing utility classes.
 - Do not add inline CSS or inline JavaScript.
 - Prefer DOM builders and `textContent`; avoid `innerHTML`.
-- Use consistent wording: "エントリー" for registration flow, "当日受付" for check-in, and "受付番号" only for contestant numbers.
+- Use consistent wording: "エントリー" for the pre-event sign-up, "受付" for event-day check-in, "登録" only for adding scorers (members), and "受付番号" only for contestant numbers.
 - Preserve mobile readability and avoid text/background contrast regressions.
 
 ## Terminology Rules
 
-- "エントリー": registration and entry-form flow.
-- "当日受付": event-day check-in flow.
-- "受付番号": contestant number only.
+- "エントリー": the pre-event sign-up and the entry form (the participant enters; never "登録" or "エントリー受付" for this).
+- "受付": event-day check-in only (never for accepting entries). "当日受付" is no longer used.
+- "登録": adding scorers (members) only. Not for entries and not for model answers (use "入力").
+- "受付番号": contestant number only (issued at entry, used at 受付).
 - "成績照会": result disclosure.
 - Avoid mixing "成績開示" with "成績照会" unless explicitly requested.
 
