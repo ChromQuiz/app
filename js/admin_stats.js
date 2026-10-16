@@ -126,13 +126,13 @@
             }
             // CSV出力の可否は表示用の完了カウントではなく、真の全問確定（allConfirmed）で判定
             if (allConfirmed && dataLoaded && totalQuestions > 0) {
-                setCsvStatus(csvS, 'ready', 'circle-check', '全問確定済み — CSV出力できます');
+                setCsvStatus(csvS, 'ready', 'circle-check', '全問完了 — CSV出力できます');
                 csvB.disabled = false;
                 const pdfB = document.getElementById('graded-pdf-btn');
                 if (pdfB) pdfB.disabled = false;
             } else { 
                 setCsvStatus(csvS, 'notready', 'circle-xmark', dataLoaded
-                    ? `未確定の問題があります（${confirmedCount} / ${totalQuestions} 確定済み）`
+                    ? `完了していない問題があります（${confirmedCount} / ${totalQuestions} 完了）`
                     : '集計データを読み込めなかったため、出力できません。結果タブを開き直してください');
                 csvB.disabled = true;
                 const pdfB2 = document.getElementById('graded-pdf-btn');
@@ -185,12 +185,12 @@
             try {
                 rows = await CIQSupabaseAPI.listQuestionConfirmation(projectId);
             } catch (e) {
-                showAdminToast('確定の状態を確認できなかったため、出力できません。（詳細：' + errorDetail(e) + '）');
+                showAdminToast('完了の状態を確認できなかったため、出力できません。（詳細：' + errorDetail(e) + '）');
                 return false;
             }
             const pending = rows.filter(row => !row.confirmed).length;
             if (!rows.length || pending > 0) {
-                showAdminToast(`未確定の問題が${pending}問あるため、出力できません。`);
+                showAdminToast(`完了していない問題が${pending}問あるため、出力できません。`);
                 return false;
             }
             return true;
@@ -302,7 +302,7 @@
             for (let q = 1; q <= totalQuestions; q++) {
                 const fd = scoresData[`__final__q${q}`] || {};
                 if (!confirmedQuestions.has(q)) {
-                    qStats.push({ q, correctCount: '-', rate: '-', type: '未確定', names: '', isRare: false });
+                    qStats.push({ q, correctCount: '-', rate: '-', type: '未完了', names: '', isRare: false });
                     continue;
                 }
                 let cc = 0, ce = [];
@@ -326,7 +326,7 @@
         // 状態ごとに、バッジの色を変える(未確定は、要確認と同じ黄色。通常は目立たせない)
         const ANALYTICS_TYPE_BADGE = {
             '通常': 'muted',
-            '未確定': 'warning',
+            '未完了': 'warning',
             '少数正解': 'accent',
             '単独正解': 'success',
             '全滅': 'danger',

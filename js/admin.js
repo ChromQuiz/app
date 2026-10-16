@@ -547,8 +547,8 @@
         }
 
         function updateAdminOverview() {
-            const entryStatus = document.getElementById('entry-open-status')?.textContent?.trim() || '確認中';
-            const disclosureStatus = document.getElementById('disclosure-open-status')?.textContent?.trim() || '確認中';
+            const entryStatus = document.getElementById('entry-open-status')?.textContent?.trim() || '読み込み中…';
+            const disclosureStatus = document.getElementById('disclosure-open-status')?.textContent?.trim() || '読み込み中…';
             const entryCount = adminEntriesCount || (window._entriesRaw ? Object.keys(window._entriesRaw).length : 0);
             const done = document.getElementById('stat-done')?.textContent || '-';
             const conflict = document.getElementById('stat-conflict')?.textContent || '-';
@@ -567,8 +567,8 @@
             setText('overview-disclosure-meta', '成績照会ページ');
             setText('overview-scoring-status', conflict !== '-' && Number(conflict) > 0 ? '要確認あり' : '進行中');
             setText('overview-scoring-count', `${done} / ${total} 問完了`);
-            setText('overview-output-status', outputReady ? '出力可能' : '未確定');
-            setText('overview-output-meta', outputReady ? 'CSV / PDF を出力できます' : '全問確定後に出力できます');
+            setText('overview-output-status', outputReady ? '出力可能' : '未完了');
+            setText('overview-output-meta', outputReady ? 'CSV / PDF を出力できます' : '全問完了後に出力できます');
 
             // 要確認ステータスタイル（危険度に応じて色切替）
             const conflictNum = Number(conflict);
@@ -667,7 +667,7 @@
         // 照会 -> 氏名・所属を目視確認 -> 確定 の2段階にして、打ち間違いで別人を受付済みにする事故も防ぐ。
         const MANUAL_CHECKIN_STATUS_LABEL = {
             registered: '参加',
-            late: '遅刻連絡あり',
+            late: '遅刻',
             waitlist: 'キャンセル待ち',
             canceled: 'キャンセル',
         };

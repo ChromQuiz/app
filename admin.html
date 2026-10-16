@@ -158,7 +158,7 @@
                     <span class="phase-num" aria-hidden="true">2</span>
                     <span class="phase-label">
                         <span class="phase-title">公開</span>
-                        <span class="phase-desc"><span id="overview-entry-status">確認中</span><span id="overview-entry-count">参加者 -</span></span>
+                        <span class="phase-desc"><span id="overview-entry-status">読み込み中…</span><span id="overview-entry-count">参加者 -</span></span>
                     </span>
                     <span class="tab-count" data-tab-count="entries" aria-label="参加者数">-</span>
                 </button>
@@ -249,11 +249,10 @@
                                         <th>メール</th>
                                         <th>運営への連絡</th>
                                         <th>状態</th>
-                                        <th>繰り上げ通知</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-entries-tbody">
-                                    <tr><td colspan="9" class="loading-state">読み込み中…</td></tr>
+                                    <tr><td colspan="8" class="loading-state">読み込み中…</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -354,7 +353,7 @@
                     <span class="phase-num" aria-hidden="true">5</span>
                     <span class="phase-label">
                         <span class="phase-title">結果</span>
-                        <span class="phase-desc"><span id="overview-disclosure-status">確認中</span><span id="overview-output-status">未確定</span></span>
+                        <span class="phase-desc"><span id="overview-disclosure-status">読み込み中…</span><span id="overview-output-status">未完了</span></span>
                     </span>
                     <span class="tab-count" data-tab-count="conflicts" aria-label="要確認数">-</span>
                 </button>
@@ -419,7 +418,7 @@
 
                     <div class="phase-block u-relative-layer">
                         <h2>採点結果の出力</h2>
-                        <div class="csv-status" id="csv-status"><span data-icon="spinner" aria-hidden="true"></span> 確認中…</div>
+                        <div class="csv-status" id="csv-status"><span data-icon="spinner" aria-hidden="true"></span> 読み込み中…</div>
                         <p class="field-note" id="csv-missing-answers" role="status" hidden></p>
                         <div class="phase-actions">
                             <button class="btn secondary" id="csv-btn" disabled data-action="export-csv"><span data-icon="download" aria-hidden="true"></span> 採点結果CSV</button>
@@ -721,11 +720,11 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=66"></script>
+    <script defer src="js/admin.js?v=67"></script>
     <script defer src="js/upload_validation.js?v=4"></script>
     <script defer src="js/admin_scan.js?v=26"></script>
-    <script defer src="js/admin_stats.js?v=28"></script>
+    <script defer src="js/admin_stats.js?v=29"></script>
     <script defer src="js/admin_graded_pdf.js?v=15"></script>
-    <script defer src="js/admin_settings.js?v=68"></script>
+    <script defer src="js/admin_settings.js?v=69"></script>
 </body>
 </html>

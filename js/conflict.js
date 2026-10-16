@@ -333,7 +333,7 @@ async function render() {
         counter.textContent = `${currentConflicts.length}人`;
         counter.className = 'counter';
     } else if (conflictList.length === 0 || unresolvedCount === 0) {
-        counter.textContent = `全${conflictList.length}件 確定済み`;
+        counter.textContent = `全${conflictList.length}件 完了`;
         counter.className = 'counter all-clear';
     } else {
         // 採点ページと同じく、済んだ件数 / 全件(確定した数)。残りの数ではない
