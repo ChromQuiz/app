@@ -1,6 +1,6 @@
 window.CIQ_SUPABASE_CONFIG = {
-    url: 'https://pyzdlkwumhreepgkrcyb.supabase.co',
-    publishableKey: 'sb_publishable_wiuKyYbhmIS8SPkcqxccsw_GdFbv72b',
+    url: 'https://chxuitjfanbagbzwpjyi.supabase.co',
+    publishableKey: 'sb_publishable_8z0Odz8gMNl153Lr1TkMQQ_JdL5dkYm',
 };
 
 // Cloudflare Turnstile の site key は公開値(クライアントに出て問題ない)。
