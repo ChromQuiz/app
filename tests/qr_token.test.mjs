@@ -222,7 +222,8 @@ describe('QR generation paths embed the check-in code, never the raw UUID (V8)',
   it('check-in looks the code up by project and hash, and refuses a bare UUID', () => {
     const src = read('supabase/functions/check-in/index.ts');
     expect(src).toMatch(/const code = normalizeCheckinCode\(scanned\)/);
-    expect(src).toMatch(/findEntry\(supabase, req, projectId, \{ tokenHash: await hashCheckinCode\(code\) \}\)/);
+    expect(src).toMatch(/hashCheckinCode\(code\)/);
+    expect(src).toMatch(/rpc\('check_in_by_code'/);
     expect(src).toMatch(/\.eq\('project_id', projectId\)/);
     // 未検証の値で直接引かない
     expect(src).not.toMatch(/\.eq\('id', entryId\)/);
