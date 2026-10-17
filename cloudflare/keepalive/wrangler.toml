@@ -12,8 +12,8 @@ crons = ["0 3,15 * * *", "*/5 * * * *", "* * * * *"]
 # ここに置く 2 値は js/supabase_config.js でクライアントに配信済みの公開値。
 # 秘密ではないので Secret ではなく vars でよい（service_role キーは絶対に置かない）。
 [vars]
-SUPABASE_URL = "https://pyzdlkwumhreepgkrcyb.supabase.co"
-SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wiuKyYbhmIS8SPkcqxccsw_GdFbv72b"
+SUPABASE_URL = "https://chxuitjfanbagbzwpjyi.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_8z0Odz8gMNl153Lr1TkMQQ_JdL5dkYm"
 KEEPALIVE_PATH = "/rest/v1/public_project_settings?select=project_id&limit=1"
 
 # HEALTHCHECK_URL はここに書かない。リポジトリは public で、あの ping URL は
