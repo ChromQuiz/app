@@ -12,7 +12,13 @@ export function jsonResponse(body: unknown, status = 200) {
 }
 
 export function handleOptions(req: Request) {
-  if (req.method === 'OPTIONS') return jsonResponse({ ok: true });
+  if (req.method === 'OPTIONS') {
+    const resp = jsonResponse({ ok: true });
+    // 事前確認(preflight)の結果を 10 分覚えさせ、受付のたびに OPTIONS を挟まないようにする(省かれる分だけ速くなる)。
+    // 許可オリジンの判定(withCors)は毎回の応答に付くので、緩めるものはない。
+    resp.headers.set('access-control-max-age', '600');
+    return resp;
+  }
   return null;
 }
 

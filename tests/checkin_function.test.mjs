@@ -24,8 +24,29 @@ const baseEntries = () => [
   entry('e', 5, { status: 'late' }), { ...entry('other', 1), project_id: 'other' },
 ];
 
+// SQL 関数 check_in_by_code(supabase/migrations/202610170001_check_in_by_code.sql)と同じ手順を、偽の DB で行う。
+// 本物の SQL は、ここでは動かさない(Postgres が無いため)。手順と返す形を、SQL と合わせてある。
+function fakeCheckInByCode(getDb) {
+  const pick = (e) => ({ id: e.id, entry_number: e.entry_number, affiliation: e.affiliation, grade: e.grade, status: e.status, checked_in: e.checked_in });
+  return async (args) => {
+    const db = getDb();
+    const member = db.tables.project_members.find((m) => m.project_id === args.p_project_id && m.user_id === args.p_user_id
+      && m.status === 'active' && ['owner', 'admin', 'scorer'].includes(m.role));
+    if (!member) return { data: { result: 'forbidden' }, error: null };
+    const row = db.tables.entries.find((e) => e.project_id === args.p_project_id && e.checkin_token_hash === args.p_token_hash);
+    if (!row) return { data: { result: 'not_found' }, error: null };
+    if (row.status === 'canceled') return { data: { result: 'canceled', entry: pick(row) }, error: null };
+    if (row.status === 'waitlist') return { data: { result: 'waitlist', entry: pick(row) }, error: null };
+    if (row.checked_in) return { data: { result: 'already', entry: pick(row) }, error: null };
+    row.checked_in = true; // 同期の1手で行うので、同時の読み取りでも1回だけ成功する
+    db.log.rpcCalls.push({ fn: 'log_service_event', args: { p_project_id: args.p_project_id, p_action: 'entry.checkin', p_target_id: row.id, p_actor_kind: 'staff', p_actor_ip_hash: args.p_actor_ip_hash, p_actor_member_id: member.id } });
+    return { data: { result: 'success', entry: pick(row) }, error: null };
+  };
+}
+
 async function setup(opts = {}) {
-  const db = createFakeDb({ project_members: members, entries: opts.entries || baseEntries() }, { users, rpc: opts.rpc });
+  let db;
+  db = createFakeDb({ project_members: members, entries: opts.entries || baseEntries() }, { users, rpc: { check_in_by_code: fakeCheckInByCode(() => db), ...opts.rpc } });
   const call = await loadFunction('check-in', { db });
   const qr = await import('../supabase/functions/_shared/qr_token.ts');
   const hmac = await import('../supabase/functions/_shared/signing.ts');

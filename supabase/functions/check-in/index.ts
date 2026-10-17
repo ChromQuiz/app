@@ -15,24 +15,29 @@ const STAFF_ONLY_ROLES: Role[] = ['owner', 'admin'];
 
 const ENTRY_COLUMNS = 'id, entry_number, affiliation, grade, status, checked_in';
 
-async function requireProjectMember(
-  supabase: ReturnType<typeof createServiceClient>,
-  req: Request,
-  projectId: string,
-  allowedRoles: Role[],
-) {
+async function authenticatedUserId(supabase: ReturnType<typeof createServiceClient>, req: Request) {
   const authHeader = req.headers.get('authorization') || '';
   const token = authHeader.replace(/^Bearer\s+/i, '').trim();
   if (!token) throw new Error('Authentication required');
 
   const { data: userData, error: userError } = await supabase.auth.getUser(token);
   if (userError || !userData.user) throw new Error('Authentication required');
+  return userData.user.id as string;
+}
+
+async function requireProjectMember(
+  supabase: ReturnType<typeof createServiceClient>,
+  req: Request,
+  projectId: string,
+  allowedRoles: Role[],
+) {
+  const userId = await authenticatedUserId(supabase, req);
 
   const { data: member, error: memberError } = await supabase
     .from('project_members')
     .select('id, role, status')
     .eq('project_id', projectId)
-    .eq('user_id', userData.user.id)
+    .eq('user_id', userId)
     .single();
   // V11: 除名直後に JWT が残っていても通さないよう、admin-* と同じ「active かつ想定ロール」を明示する。
   // (status <> 'removed' の否定形だと、将来 'suspended' 等が増えたときに素通りしてしまう)
@@ -55,21 +60,43 @@ function entryPayload(entry: Record<string, unknown>) {
 // 見つからない照会だけを IP 単位で制限する(受付番号の総当たり・列挙対策)。
 // 正常な受付はカウントしないので、当日の連続受付は制限にかからない。
 // (二次元コード が全滅して全員を手入力で捌く事態でも詰まらないよう、成功側には制限を置かない)
-async function findEntry(
+type EntryKey = { tokenHash: string } | { entryNumber: number };
+
+async function selectEntry(
   supabase: ReturnType<typeof createServiceClient>,
-  req: Request,
   projectId: string,
-  by: { tokenHash: string } | { entryNumber: number },
+  by: EntryKey,
 ) {
   let query = supabase.from('entries').select(ENTRY_COLUMNS).eq('project_id', projectId);
   query = 'tokenHash' in by ? query.eq('checkin_token_hash', by.tokenHash) : query.eq('entry_number', by.entryNumber);
 
   const { data: entry, error } = await query.single();
-  if (error || !entry) {
-    await enforceIpRateLimit(supabase, { bucket: 'checkin_miss', ip: clientIp(req), projectId });
-    return null;
-  }
+  return error || !entry ? null : entry;
+}
+
+// 「見つからない」の数えは、権限を確認できた呼び出しだけが行う(権限のない呼び出しが回数を使い切らせない)。
+async function countMiss(supabase: ReturnType<typeof createServiceClient>, req: Request, projectId: string) {
+  await enforceIpRateLimit(supabase, { bucket: 'checkin_miss', ip: clientIp(req), projectId });
+}
+
+async function findEntry(
+  supabase: ReturnType<typeof createServiceClient>,
+  req: Request,
+  projectId: string,
+  by: EntryKey,
+) {
+  const entry = await selectEntry(supabase, projectId, by);
+  if (!entry) await countMiss(supabase, req, projectId);
   return entry;
+}
+
+// 応答を返したあとで走らせる(監査ログのように、結果の表示を待たせたくない書き込み用)。
+// 実行基盤に waitUntil が無いとき(ローカル・テスト)は、その場で待つ。
+async function runAfterResponse(task: Promise<unknown>) {
+  const runtime = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
+  const safe = task.catch((error) => console.error('[check-in] background task failed', error instanceof Error ? error.message : String(error)));
+  if (runtime?.waitUntil) runtime.waitUntil(safe);
+  else await safe;
 }
 
 function parseEntryNumber(value: unknown) {
@@ -107,22 +134,45 @@ Deno.serve(withCors(async (req) => {
     // (a) 二次元コード 受付: 受付コード(V8・20 文字)のみ。素の entry UUID も旧形式も受付番号も受け付けない。
     // コードは形を整えてから sha256 にし、project_id とハッシュで引く。見つからない照会は checkin_miss に数える(総当たり対策)。
     if (action === 'check') {
-      const member = await requireProjectMember(supabase, req, projectId, DESK_ROLES);
+      // Auth の確認のあと、権限・照会・更新・監査ログを check_in_by_code(SQL 関数)の1回で行う。
+      // 権限がなければ、形のエラーも照会の結果も返さず、「見つからない」の数えにも入れない。
+      const userId = await authenticatedUserId(supabase, req);
 
       const scanned = qr;
       if (scanned === undefined || scanned === null || String(scanned).length === 0) {
+        await requireProjectMember(supabase, req, projectId, DESK_ROLES);
         return jsonResponse({ error: '二次元コードが必要です。' }, 400);
       }
       const code = normalizeCheckinCode(scanned);
       if (!code) {
+        await requireProjectMember(supabase, req, projectId, DESK_ROLES);
         return jsonResponse({
           error: 'この二次元コードは使用できません。マイエントリーで最新の二次元コードを表示するか、運営に伝えてください。',
         }, 400);
       }
 
-      const entry = await findEntry(supabase, req, projectId, { tokenHash: await hashCheckinCode(code) });
-      if (!entry) return jsonResponse({ error: '該当者が見つかりません。' }, 404);
-      return await commitCheckIn(supabase, req, projectId, entry, member?.id ?? null);
+      const [tokenHash, actorIpHash] = await Promise.all([hashCheckinCode(code), clientIpHash(req)]);
+      const { data, error } = await supabase.rpc('check_in_by_code', {
+        p_project_id: projectId,
+        p_user_id: userId,
+        p_token_hash: tokenHash,
+        p_actor_ip_hash: actorIpHash || null,
+      });
+      if (error) throw error;
+
+      const result = String(data?.result || '');
+      if (result === 'forbidden') throw new Error('Forbidden');
+      if (result === 'not_found') {
+        await countMiss(supabase, req, projectId);
+        return jsonResponse({ error: '該当者が見つかりません。' }, 404);
+      }
+      if (result === 'conflict') {
+        return jsonResponse({ error: '受付対象外になりました。最新の状態を確認してください。' }, 409);
+      }
+      if (['success', 'already', 'canceled', 'waitlist'].includes(result) && data.entry) {
+        return jsonResponse({ ok: true, result, entry: entryPayload(data.entry) });
+      }
+      throw new Error('check_in_by_code returned an unexpected result');
     }
 
     // (b) 手入力での照会: 状態を一切変えない。運営が氏名・所属を目視確認するための第一段階。
@@ -205,7 +255,8 @@ async function commitCheckIn(
     return jsonResponse({ error: '受付対象外になりました。最新の状態を確認してください。' }, 409);
   }
 
-  await logServiceEvent(supabase, {
+  // 監査ログは結果の表示を待たせない(logServiceEvent は失敗しても例外を出さない fail-open のまま)。
+  await runAfterResponse((async () => logServiceEvent(supabase, {
     projectId,
     action: 'entry.checkin',
     targetId: String(updated.id),
@@ -213,7 +264,7 @@ async function commitCheckIn(
     actorMemberId: actorMemberId ? String(actorMemberId) : null,
     actorIpHash: await clientIpHash(req),
     afterData: { checked_in: true },
-  });
+  }))());
 
   return jsonResponse({ ok: true, result: 'success', entry: entryPayload(updated) });
 }

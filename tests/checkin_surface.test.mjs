@@ -47,7 +47,11 @@ describe('check アクションは受付コードのみ受け付ける (V8)', ()
     expect(checkBranch.length).toBeGreaterThan(0);
     expect(checkBranch).not.toMatch(/entryNumber/);
     expect(checkBranch).toMatch(/normalizeCheckinCode\(scanned\)/);
-    expect(checkBranch).toMatch(/\{ tokenHash: await hashCheckinCode\(code\) \}/);
+    expect(checkBranch).toMatch(/const \[tokenHash, actorIpHash\] = await Promise\.all\(\[hashCheckinCode\(code\)/);
+    // 権限・照会・更新・監査は SQL 関数 1 回で行い、Auth の確認(ユーザー ID)を必ず先に取る
+    expect(checkBranch).toMatch(/authenticatedUserId\(supabase, req\)/);
+    expect(checkBranch).toMatch(/rpc\('check_in_by_code', \{[^}]*p_user_id: userId[^}]*p_token_hash: tokenHash/);
+    expect(checkBranch).toMatch(/result === 'forbidden'\) throw new Error\('Forbidden'\)/);
   });
 
   it('形が違うコードは受け付けない(DB を引かない)', () => {
@@ -111,5 +115,24 @@ describe('当日の運用を止めないレート制限設計', () => {
     expect(edge).toMatch(/bucket: 'checkin_miss'/);
     const buckets = edge.match(/bucket: '[^']+'/g) || [];
     expect(new Set(buckets)).toEqual(new Set(["bucket: 'checkin_miss'"]));
+  });
+});
+
+describe('SQL 関数 check_in_by_code の約束', () => {
+  const sql = readFileSync(resolve(import.meta.dirname, '../supabase/migrations/202610170001_check_in_by_code.sql'), 'utf8');
+
+  it('security definer で、service_role だけが実行できる(anon / authenticated は不可)', () => {
+    expect(sql).toMatch(/security definer/);
+    expect(sql).toMatch(/set search_path = public/);
+    expect(sql).toMatch(/revoke all on function public\.check_in_by_code\(text, uuid, text, text\) from public, anon, authenticated/);
+    expect(sql).toMatch(/grant execute on function public\.check_in_by_code\(text, uuid, text, text\) to service_role/);
+    expect(sql).not.toMatch(/to (anon|authenticated|public)/);
+  });
+
+  it('権限(有効なメンバー・3つの役割)と、大会で絞った照会と、条件つき更新を持つ', () => {
+    expect(sql).toMatch(/pm\.status = 'active'/);
+    expect(sql).toMatch(/pm\.role in \('owner', 'admin', 'scorer'\)/);
+    expect(sql).toMatch(/e\.project_id = p_project_id\s+and e\.checkin_token_hash = p_token_hash/);
+    expect(sql).toMatch(/e\.checked_in = false\s+and e\.status in \('registered', 'late'\)/);
   });
 });
