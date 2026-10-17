@@ -136,7 +136,9 @@ Deno.serve(withCors(async (req) => {
     if (action === 'check') {
       // Auth の確認のあと、権限・照会・更新・監査ログを check_in_by_code(SQL 関数)の1回で行う。
       // 権限がなければ、形のエラーも照会の結果も返さず、「見つからない」の数えにも入れない。
+      const startedAt = performance.now();
       const userId = await authenticatedUserId(supabase, req);
+      const authMs = performance.now() - startedAt;
 
       const scanned = qr;
       if (scanned === undefined || scanned === null || String(scanned).length === 0) {
@@ -152,6 +154,7 @@ Deno.serve(withCors(async (req) => {
       }
 
       const [tokenHash, actorIpHash] = await Promise.all([hashCheckinCode(code), clientIpHash(req)]);
+      const rpcStartedAt = performance.now();
       const { data, error } = await supabase.rpc('check_in_by_code', {
         p_project_id: projectId,
         p_user_id: userId,
@@ -159,6 +162,13 @@ Deno.serve(withCors(async (req) => {
         p_actor_ip_hash: actorIpHash || null,
       });
       if (error) throw error;
+      const dbMs = performance.now() - rpcStartedAt;
+
+      // 時間の内訳(ブラウザの開発者ツールのタイミング欄に出る。時間だけで、中身は含まない)。
+      const withTiming = (response: Response) => {
+        response.headers.set('server-timing', `auth;dur=${authMs.toFixed(0)}, db;dur=${dbMs.toFixed(0)}, total;dur=${(performance.now() - startedAt).toFixed(0)}`);
+        return response;
+      };
 
       const result = String(data?.result || '');
       if (result === 'forbidden') throw new Error('Forbidden');
@@ -170,7 +180,7 @@ Deno.serve(withCors(async (req) => {
         return jsonResponse({ error: '受付対象外になりました。最新の状態を確認してください。' }, 409);
       }
       if (['success', 'already', 'canceled', 'waitlist'].includes(result) && data.entry) {
-        return jsonResponse({ ok: true, result, entry: entryPayload(data.entry) });
+        return withTiming(jsonResponse({ ok: true, result, entry: entryPayload(data.entry) }));
       }
       throw new Error('check_in_by_code returned an unexpected result');
     }
