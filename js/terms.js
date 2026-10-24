@@ -840,6 +840,10 @@ async function loadTerms() {
             throw new Error('Supabase設定が見つかりません。');
         }
         const settings = await CIQSupabaseAPI.getPublicSettings(projectId);
+        if (!settings) {
+            location.replace(new URL('404.html', location.href).href);
+            return;
+        }
         const terms = settings?.terms;
 
         if (settings?.projectName) {

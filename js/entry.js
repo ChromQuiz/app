@@ -569,7 +569,7 @@ async function init() {
     try {
         const settings = await loadPublicSettings();
         if (!settings) {
-            showDisabled('大会が見つかりません', '正しいエントリーURLへアクセスしてください。');
+            location.replace(new URL('404.html', location.href).href);
             return;
         }
 

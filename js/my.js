@@ -130,6 +130,10 @@ async function init() {
     try {
         if (!window.CIQSupabaseAPI?.isEnabled?.()) throw new Error('Supabase設定が見つかりません。');
         projectSettings = await CIQSupabaseAPI.getPublicSettings(projectId);
+        if (!projectSettings) {
+            location.replace(new URL('404.html', location.href).href);
+            return;
+        }
         publicKeyJwk = projectSettings?.publicKey || null;
         const name = projectSettings?.projectName || projectId;
         el('my-title').textContent = name;
