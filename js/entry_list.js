@@ -37,7 +37,13 @@ const params = new URLSearchParams(location.search);
 
         let pubSettings = {};
         try {
-            pubSettings = await loadPublicSettings() || {};
+            const loaded = await loadPublicSettings();
+            if (!loaded) {
+                // 存在しない大会は404へ
+                location.replace(new URL('404.html', location.href).href);
+                return;
+            }
+            pubSettings = loaded;
             let pName = pubSettings.projectName || projectId;
             if (!pName) pName = projectId;
             document.getElementById('page-title').textContent = pName || projectId;
