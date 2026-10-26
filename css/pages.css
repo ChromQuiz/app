@@ -178,7 +178,6 @@ body.page-auth {
 }
 
 .project-list-item:hover {
-  border-color: var(--ink-3);
   background: var(--surface-2);
 }
 
@@ -399,6 +398,15 @@ body.page-question .header-center {
 
 .entry-confirm-list {
   padding: 0 var(--sp-4) var(--sp-3);
+}
+
+/* 氏名・フリガナ・所属と学年は、狭い画面でも横に並べる(共通の縦積みを、この2つのフォームだけ戻す) */
+@media (max-width: 480px) {
+  #entry-form .form-row,
+  #edit-card .form-row {
+    flex-direction: row;
+    gap: var(--sp-3);
+  }
 }
 
 .entry-steps {
@@ -3483,7 +3491,6 @@ body.page-checkin {
 }
 
 .entry-confirm,
-.entry-confirm-list,
 .my-summary,
 .my-section,
 .my-danger-section,
