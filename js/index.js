@@ -233,6 +233,8 @@ function renderCreateAuthState() {
 
     const createSection = document.getElementById('section-create');
     if (createSection) createSection.hidden = currentTab !== 'create' || !email;
+    // 作成の導線は、作れるアカウントが参加モードを見ているときだけ出す(許可のないアカウントには出さない)
+    document.getElementById('index-create-link')?.classList.toggle('u-hidden', currentTab !== 'join' || creatorAllowed !== true);
     // 許可のないアカウントには、入力欄とボタンを出さず、理由と次の一手(招待リンク)を出す
     const denied = Boolean(email) && creatorAllowed === false;
     const edition = document.getElementById('create-edition');
