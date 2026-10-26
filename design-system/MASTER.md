@@ -169,7 +169,7 @@ font-family: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospa
 |---|---|---|---|
 | field note | `.field-note` | 面もアイコンも無し。13px/ink-2 | 入力欄直下の補足。対象への近さが意味を作る |
 | inline | `.page-msg` / `.status-msg-box` / `.entry-verify-help` / `.csv-status` ほか | 面無し。アイコン + 本文 | 補足・進行中・成功・警告。本文として読ませる |
-| notice | `.notice` / `.entry-mail-notice` / `.terms-alert` | `--tint-neutral` 面 + 12px角丸。全周罫線 | 読み飛ばされると困る案内。**1画面1つまで** |
+| notice | `.notice` / `.terms-alert` | `--tint-neutral` 面 + 12px角丸。全周罫線 | 読み飛ばされると困る案内。**1画面1つまで** |
 | toast | `.toast` | 浮遊material | 操作結果の一時通知 |
 | page state | `.empty-state` / `.loading-state` / `.error-state` | 面無し。見出し + 次の行動 | 領域全体が空/読み込み中/失敗のとき |
 

@@ -1006,6 +1006,11 @@ svg[width="24"][stroke="currentColor"] {
   text-align: center;
 }
 
+/* 完了画面の案内は、中央ぞろえの見出しの下でも、文章として左から読ませる */
+.result-card .page-msg {
+  text-align: left;
+}
+
 .result-title {
   font-size: var(--text-title);
   margin-bottom: var(--sp-2);
@@ -2136,8 +2141,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 }
 
 /* .notice — 読み飛ばされると困る案内のみ。1画面に1つを上限とする */
-.notice,
-.entry-mail-notice {
+.notice {
   /* 見出し(アイコン + 見出し)は中央、本文は、アイコンの下も含めて、箱の幅いっぱいに左揃えで置く */
   display: flex;
   flex-wrap: wrap;
@@ -2153,8 +2157,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   max-width: var(--measure);
 }
 
-.notice > [data-icon],
-.entry-mail-notice > [data-icon] {
+.notice > [data-icon] {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -2167,13 +2170,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   min-width: 0;
 }
 
-/* 見出しと本文を、箱の直下に並べて、本文だけが次の行(箱の幅いっぱい)に来るようにする */
-.entry-mail-notice-content {
-  display: contents;
-}
-
-.notice strong,
-.entry-mail-notice strong {
+.notice strong {
   display: block;
   margin-bottom: var(--sp-1);
   color: var(--ink);
@@ -2182,18 +2179,7 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   line-height: 1.4;
 }
 
-.entry-mail-notice strong {
-  margin-bottom: 0;
-}
-
-.entry-mail-notice p {
-  flex: 0 0 100%;
-  text-align: left;
-  text-wrap: pretty;   /* 最終行に1〜2文字だけが残らないようにする(対応するブラウザで) */
-}
-
-.notice p,
-.entry-mail-notice p {
+.notice p {
   margin: 0;
   color: var(--ink-2);
   font-size: var(--text-small);

@@ -49,7 +49,7 @@ function setEntryStepState(state) {
     const activeIndex = order.indexOf(state);
     steps.forEach((step, index) => {
         step.classList.remove('is-active', 'is-complete');
-        if (state === 'done' || index < activeIndex) {
+        if (index < activeIndex) {
             step.classList.add('is-complete');
         } else if (index === activeIndex) {
             step.classList.add('is-active');
