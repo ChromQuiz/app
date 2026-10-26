@@ -1227,6 +1227,7 @@ label [data-icon] {
   padding: 0 6px;
   margin-left: var(--sp-1);
   letter-spacing: 0.02em;
+  white-space: nowrap;   /* バッジは、途中で折らない */
 }
 
 label.required::after,
@@ -1241,6 +1242,7 @@ span.required::after {
   padding: 1px 7px;
   margin-left: var(--sp-1);
   letter-spacing: 0.02em;
+  white-space: nowrap;   /* バッジは、途中で折らない */
 }
 
 span.required {
