@@ -23,7 +23,7 @@
     <script defer src="js/icons.js?v=10"></script>
     <script defer src="js/ui.js?v=41"></script>
     <script defer src="js/shared.js?v=7"></script>
-    <link rel="stylesheet" href="css/design_system.css?v=112">
+    <link rel="stylesheet" href="css/design_system.css?v=113">
     <link rel="stylesheet" href="css/pages.css?v=204">
 </head>
 
@@ -209,15 +209,9 @@
                 <div class="info-value" id="r-entry-number">---</div>
             </div>
 
-            <div class="entry-mail-notice">
-                <span data-icon="envelope" aria-hidden="true"></span>
-                <div class="entry-mail-notice-content">
-                    <strong>メールを保存してください</strong>
-                    <p>メールには受付用の二次元コードとマイエントリー用のパスワードが含まれます。見つからない場合は迷惑メールフォルダも確認してください。</p>
-                </div>
-            </div>
+            <div id="mail-save-note" class="page-msg warning"><span data-icon="envelope" aria-hidden="true"></span><strong>メールを保存してください。</strong>メールには受付用の二次元コードとマイエントリー用のパスワードが含まれます。見つからない場合は迷惑メールフォルダも確認してください。</div>
 
-            <a class="btn secondary u-full-width mt-md" id="r-my-link" href="#">マイエントリーを開く</a>
+            <a class="page-btn mt-md" id="r-my-link" href="#">マイエントリーを開く</a>
         </div>
 
     </div>
@@ -226,7 +220,7 @@
     <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     <script defer src="js/turnstile.js?v=4"></script>
     <script defer src="js/email.js?v=14"></script>
-    <script defer src="js/entry.js?v=38"></script>
+    <script defer src="js/entry.js?v=40"></script>
 </body>
 
 </html>

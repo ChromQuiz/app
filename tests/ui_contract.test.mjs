@@ -393,7 +393,7 @@ describe('design-system contracts', () => {
     for (const path of ['js/entry.js', 'js/my.js', 'js/admin_settings.js']) {
       expect(read(path), path).not.toContain('必須項目を入力してください。');
     }
-    expect(read('entry.html')).toContain('class="entry-mail-notice"');
+    expect(read('entry.html')).toContain('id="mail-save-note" class="page-msg warning"');
   });
 
   it('keeps email templates readable in dark mode', () => {
