@@ -192,8 +192,8 @@ describe('Turnstile client wiring (UX / no client-side trust)', () => {
   const entryHtml = read('entry.html');
 
   it('renders widgets for both actions', () => {
-    expect(entryJs).toMatch(/CIQTurnstile\.render\('turnstile-verify', 'send_verification', \{ appearance: 'interaction-only' \}\)/);
-    expect(entryJs).toMatch(/CIQTurnstile\.render\('turnstile-entry', 'create_entry', \{ appearance: 'interaction-only' \}\)/);
+    expect(entryJs).toMatch(/CIQTurnstile\.render\('turnstile-verify', 'send_verification'\)/);
+    expect(entryJs).toMatch(/CIQTurnstile\.render\('turnstile-entry', 'create_entry'\)/);
   });
 
   it('passes the token to both endpoints', () => {
