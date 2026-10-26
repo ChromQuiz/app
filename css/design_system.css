@@ -2040,6 +2040,8 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
 .waitlist-result-note,
 .csv-status {
   display: none;
+  /* 短い案内は、行をいっぱいまで使って折り返す。pretty だと、Safari が行の途中(「フォ|ルダ」)で早めに折る */
+  text-wrap: wrap;
   margin-top: var(--sp-3);
   padding: 0;
   border: 0;
