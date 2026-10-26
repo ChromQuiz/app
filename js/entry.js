@@ -257,6 +257,7 @@ async function resendVerification() {
     verifySignature = result.signature;
     verifyExpiresAt = result.expiresAt;
     setVerifyCodeValue('');
+    hideEl(document.getElementById('turnstile-verify'));
     showVerifyMsg(`${email} に認証コードを送信しました。`, 'success');
     showVerificationMailboxHelp();
     startResendCooldown();
@@ -300,6 +301,7 @@ async function sendVerification() {
     document.getElementById('f-email').disabled = true;
     showEl(document.getElementById('code-input-area'));
     hideEl(btn);
+    hideEl(document.getElementById('turnstile-verify'));   // 再送のときだけ、また出す
     showVerifyMsg(`${email} に認証コードを送信しました。`, 'success');
     showVerificationMailboxHelp();
     focusVerifyCodeBox(0);
@@ -552,8 +554,8 @@ setupVerifyCodeBoxes();
 async function init() {
     setEntryStepState('verify');
     // Turnstile widget を描画(site key 未設定 / API 読込失敗時は描画されず、サーバ側 fail-closed が守る)。
-    CIQTurnstile.render('turnstile-verify', 'send_verification');
-    CIQTurnstile.render('turnstile-entry', 'create_entry');
+    CIQTurnstile.render('turnstile-verify', 'send_verification', { appearance: 'interaction-only' });
+    CIQTurnstile.render('turnstile-entry', 'create_entry', { appearance: 'interaction-only' });
     if (isReentry) {
         const note = document.getElementById('reentry-note');
         showEl(note);
