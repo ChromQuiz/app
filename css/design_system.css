@@ -447,7 +447,6 @@ kbd {
     scroll-behavior: auto !important;
   }
 
-  .menu-panel,
   .ciq-select-menu,
   .dt-picker,
   .confirm-dialog,
@@ -486,8 +485,15 @@ kbd {
     transform: none !important;
   }
 
+  /* メニューは横から滑らせず、ふわっと出し入れする(動きを消すと、いきなり現れて壊れて見える) */
   .menu-panel {
-    transition-delay: 0s !important;
+    opacity: 0;
+    transition: opacity 160ms var(--ease-out), visibility 0s linear 160ms;
+  }
+
+  .menu-panel.active {
+    opacity: 1;
+    transition-delay: 0s;
   }
 }
 
@@ -508,11 +514,9 @@ kbd {
   background: transparent;
 }
 
-body.body-scroll-locked {
-  overflow: hidden;
-}
-
 /* html が overflow を持つと body の overflow は画面に伝わらないので、ロック中は html 側で止める。
+   body にも overflow: hidden を付けると body が独立したスクロール領域になり、
+   position: sticky のアプリバーが中身と一緒に流れてしまうので、body には付けない。
    スクロールバーの場所が消えるエンジンでは、ui.js が測った幅の余白を足して、幅を変えない。 */
 html:has(body.body-scroll-locked) {
   overflow-y: hidden;
@@ -5073,10 +5077,12 @@ tbody td {
 
 .menu-panel {
   width: min(390px, calc(100vw - 14px));
-  padding: calc(14px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom));
+  padding: calc(6px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom));
   border-radius: var(--r-overlay) 0 0 var(--r-overlay);
 }
 
+/* 閉じるボタンは、開く前のハンバーガーと同じ場所に重ねる(右端はバー余白 16px、縦はバーの中央)。
+   スクロールを止めてバーの場所が消えた分(--scrollbar-comp)だけ、パネルが右へ広がるので足す。 */
 .menu-panel-close {
   width: 44px;
   min-width: 44px;
@@ -5084,7 +5090,7 @@ tbody td {
   min-height: 44px;
   padding: 0;
   aspect-ratio: 1;
-  margin: 0 2px 8px auto;
+  margin: 0 calc(6px + var(--scrollbar-comp)) 15px auto;
   background: color-mix(in srgb, var(--surface) 72%, transparent);
   border: 1px solid var(--material-line);
 }
