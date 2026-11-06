@@ -1376,3 +1376,14 @@ Evidence: 公開 URL（/storage/v1/object/public/site-card/card.jpg）は、未�
 Rollback: 公開ページの og:image / twitter:card を外せば、カードは画像なしに戻る。バケットを閉じるなら
           `update storage.buckets set public = false where id = 'site-card';`、ポリシーは site_card_storage_* の3つを drop。
 Notes   : X はカードを約7日キャッシュする。
+
+## 大会ごとのアイコンの公開バケット（2026-11-06・親計画外）
+
+Status  : 本番適用済み（202611060002_project_icon.sql）
+Evidence: 公開 URL（/storage/v1/object/public/project-icon/<pid>/icon.png）は、未アップロードで 404 NoSuchKey（バケットはある）。
+          anon キーでの書き込みは、<pid>/icon.png・other.png・<pid>/x.png のどれも 403（RLS 違反）。anon の削除は対象なし（404）。
+          ログインした所有者・管理者によるアップロード・削除は未確認（画面から最初の1枚を上げたときに確かめる）。
+  - 置けるのは大会ごとの <project_id>/icon.png の1ファイル（PNG のみ、1 MB）。書き込み・削除は、その大会の有効な所有者・管理者だけ
+  - 参加者向けページ（entry / entry_list / my / terms）は js/project_icon.js で取りに行き、data: URL にしてタブのアイコンにする。CSP は変えていない
+Rollback: 4ページの project_icon.js の読み込みを外せば、CIQ のロゴに戻る。バケットを閉じるなら
+          `update storage.buckets set public = false where id = 'project-icon';`、ポリシーは project_icon_storage_* の4つを drop。
