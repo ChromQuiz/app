@@ -925,6 +925,28 @@ const CIQSupabaseAPI = {
         if (error) throw error;
     },
 
+    // 大会のアイコン(タブのファビコン)。参加者向けページは js/project_icon.js が読む。
+    getProjectIconUrl(projectId) {
+        return this.client().storage.from('project-icon').getPublicUrl(`${projectId}/icon.png`).data.publicUrl;
+    },
+
+    async uploadProjectIcon(projectId, blob) {
+        const { error } = await this.client()
+            .storage
+            .from('project-icon')
+            .upload(`${projectId}/icon.png`, blob, {
+                contentType: 'image/png',
+                cacheControl: '300',
+                upsert: true,
+            });
+        if (error) throw error;
+    },
+
+    async deleteProjectIcon(projectId) {
+        const { error } = await this.client().storage.from('project-icon').remove([`${projectId}/icon.png`]);
+        if (error) throw error;
+    },
+
     async upsertAnswerPages(projectId, records) {
         const rows = (records || [])
             .filter(record => record?.entryId && record?.storagePath)
