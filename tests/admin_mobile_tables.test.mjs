@@ -14,7 +14,7 @@ describe('運営画面', () => {
 
   it('リンクを開くボタンも、コピーのボタンと同じ枠を持つ（枠のない ghost にしない）', () => {
     expect(html).not.toMatch(/btn ghost icon-btn link-btn-sm/);
-    expect(html.match(/btn secondary icon-btn link-btn-sm" data-open-link/g)).toHaveLength(4);
+    expect(html.match(/btn secondary icon-btn link-btn-sm" data-open-link/g)).toHaveLength(5);
   });
 
   it('スマホでも、並ぶ操作（参加者名簿CSV・参加者を追加）は横に並べる', () => {

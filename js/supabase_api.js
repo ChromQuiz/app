@@ -908,6 +908,23 @@ const CIQSupabaseAPI = {
         return pagePath;
     },
 
+    // 共有時の画像(全大会で共通の1枚)。公開ページの og:image がこの URL を指す。
+    getSiteCardImageUrl() {
+        return this.client().storage.from('site-card').getPublicUrl('card.jpg').data.publicUrl;
+    },
+
+    async uploadSiteCardImage(blob) {
+        const { error } = await this.client()
+            .storage
+            .from('site-card')
+            .upload('card.jpg', blob, {
+                contentType: 'image/jpeg',
+                cacheControl: '300',
+                upsert: true,
+            });
+        if (error) throw error;
+    },
+
     async upsertAnswerPages(projectId, records) {
         const rows = (records || [])
             .filter(record => record?.entryId && record?.storagePath)

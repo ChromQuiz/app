@@ -142,6 +142,9 @@
                 }
                 loadCSV();
             });
+            document.getElementById('site-card-file')?.addEventListener('change', (event) => {
+                uploadSiteCardImage(event.target).catch(e => showAdminToast(describeError(e, '画像をアップロードできませんでした。')));
+            });
             document.getElementById('pdf-file')?.addEventListener('change', (event) => {
                 const fileName = document.getElementById('pdf-file-name');
                 const name = event.target.files?.[0]?.name || '';
@@ -328,6 +331,77 @@
                 el.href = url;
                 el.textContent = url;
             });
+            setSiteCardLink();
+        }
+
+        function setSiteCardLink(cacheKey = '') {
+            const el = document.getElementById('site-card-link');
+            if (!el) return;
+            let url = '';
+            try { url = CIQSupabaseAPI.getSiteCardImageUrl(); } catch (_) { return; }
+            el.href = cacheKey ? `${url}?t=${encodeURIComponent(cacheKey)}` : url;
+            el.textContent = url;
+        }
+
+        function setSiteCardFileName(name) {
+            const fileName = document.getElementById('site-card-file-name');
+            if (!fileName) return;
+            fileName.textContent = name;
+            fileName.classList.toggle('has-file', Boolean(name));
+        }
+
+        // 共有時の画像: JPEG/PNG を確かめ、JPEG に再エンコードして(メタデータを落として)上書きする
+        async function uploadSiteCardImage(input) {
+            const file = input?.files?.[0];
+            if (!file) return;
+            const validation = CIQUploadValidation;
+            setSiteCardFileName(file.name);
+            let bitmap = null;
+            let canvas = null;
+            try {
+                const fileCheck = await validation.validateCardImageFile(file);
+                if (!fileCheck.ok) {
+                    showAdminToast(fileCheck.message);
+                    return;
+                }
+                try {
+                    bitmap = await createImageBitmap(file);
+                } catch (_) {
+                    showAdminToast('画像を読み込めませんでした。ファイルを確認してください。');
+                    return;
+                }
+                const sizeCheck = validation.validateCardImageDimensions(bitmap.width, bitmap.height);
+                if (!sizeCheck.ok) {
+                    showAdminToast(sizeCheck.message);
+                    return;
+                }
+                const out = validation.cardOutputSize(bitmap.width, bitmap.height);
+                canvas = document.createElement('canvas');
+                canvas.width = out.width;
+                canvas.height = out.height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, out.width, out.height);
+                ctx.drawImage(bitmap, 0, 0, out.width, out.height);
+                const blob = await new Promise((resolve, reject) => {
+                    canvas.toBlob(b => (b ? resolve(b) : reject(new Error('画像を変換できませんでした。'))), 'image/jpeg', 0.9);
+                });
+                if (blob.size > validation.CARD_IMAGE_MAX_BYTES) {
+                    showAdminToast('変換後の画像が大きすぎます。容量を小さくしてから、もう一度アップロードしてください。');
+                    return;
+                }
+                await CIQSupabaseAPI.uploadSiteCardImage(blob);
+                setSiteCardLink(String(Date.now()));
+                showAdminToast('共有時の画像を更新しました。', 'success');
+            } finally {
+                bitmap?.close?.();
+                if (canvas) {
+                    canvas.width = 0;
+                    canvas.height = 0;
+                }
+                input.value = '';
+                setSiteCardFileName('');
+            }
         }
 
         function fallbackCopy(text) {

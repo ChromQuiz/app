@@ -10,6 +10,7 @@ Supabase migrations in `supabase/migrations/` are the source of truth for schema
 - `public_entry_list`: sanitized public list used by `entry_list.html`.
 - `answer_pages`: uploaded scanned pages and answer-cell region metadata.
 - Storage buckets `answer-pages` and `answer-cells`: private answer images.
+- Storage bucket `site-card`: the one public image (`card.jpg`) used as `og:image` on public pages. Readable by anyone; only active owners/admins of any project can overwrite it (no delete). Migration `202611060001_site_card_image.sql`.
 - scoring tables: question scorers, score votes, final results, and conflict resolution.
 
 ## Change Rules
