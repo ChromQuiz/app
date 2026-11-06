@@ -1362,3 +1362,17 @@ Deploy  : マイグレーション適用 → check-in / my-entry / admin-entry-q
           順序に注意: 関数を先にデプロイすると、列が無くて落ちる。先にデプロイした旧版の check-in は、新しいコードを受け付けない。
 Notes   : メール内の画像は checkin-qr の URL で、表示のたびに作り直す（1 年キャッシュの指定あり）。メールソフトが保存した旧形式の画像は、
           デプロイ後は使えない（マイエントリーか、メールを開き直して再表示する）。開発段階のため、旧形式の互換は持たない。
+
+## 共有時の画像の公開バケット（2026-11-06・親計画外）
+
+Status  : 本番適用済み（202611060001_site_card_image.sql）
+Evidence: 公開 URL（/storage/v1/object/public/site-card/card.jpg）は、未アップロードで 404 NoSuchKey（バケットはある）。
+          anon キーでの card.jpg / other.jpg への書き込みは、どちらも 403（RLS 違反）。ログインした所有者・管理者による
+          アップロードは未確認（画面から最初の1枚を上げたときに確かめる）。
+  - 公開バケットはこれだけ。置けるのは card.jpg の1ファイル（JPEG のみ、5 MB）。書き込みは、いずれかの大会で有効な所有者・管理者
+    （is_any_project_admin）。削除のポリシーは無い。答案画像のバケットは非公開のまま
+  - 画面は JPEG/PNG の先頭バイト・容量・縦横比を確かめ、JPEG に再エンコードしてから上げる（位置情報などのメタデータを落とす）
+  - 全大会で共通の1枚のため、どの大会の管理者でも差し替えられる（持ち主が了承済み）
+Rollback: 公開ページの og:image / twitter:card を外せば、カードは画像なしに戻る。バケットを閉じるなら
+          `update storage.buckets set public = false where id = 'site-card';`、ポリシーは site_card_storage_* の3つを drop。
+Notes   : X はカードを約7日キャッシュする。
