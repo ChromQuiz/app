@@ -191,8 +191,41 @@
         return { width: CARD_IMAGE_WIDTH, height: Math.round(height * CARD_IMAGE_WIDTH / width) };
     }
 
+    // 大会のアイコン(タブのファビコン)。正方形で、横 512 ピクセルまでに縮めて PNG にする。
+    const ICON_IMAGE_SIZE = 512;
+    const ICON_IMAGE_MIN_SIZE = 128;
+    const ICON_IMAGE_MAX_OUTPUT_BYTES = 1024 * 1024;
+    const ICON_SIZE_TEXT = `${ICON_IMAGE_SIZE}×${ICON_IMAGE_SIZE}ピクセルの正方形`;
+
+    function validateIconImageDimensions(width, height) {
+        if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+            return { ok: false, message: '画像を読み込めませんでした。ファイルを確認してください。' };
+        }
+        if (width < ICON_IMAGE_MIN_SIZE || height < ICON_IMAGE_MIN_SIZE) {
+            return {
+                ok: false,
+                message: `画像が ${width}×${height}ピクセルで、小さすぎます。${ICON_SIZE_TEXT}で作成してください。`,
+            };
+        }
+        if (Math.abs(width - height) / Math.max(width, height) > 0.02) {
+            return {
+                ok: false,
+                message: `画像が ${width}×${height}ピクセルで、正方形ではありません。${ICON_SIZE_TEXT}で作成してください。`,
+            };
+        }
+        return { ok: true };
+    }
+
+    function iconOutputSize(width, height) {
+        const side = Math.min(ICON_IMAGE_SIZE, width, height);
+        return { width: side, height: side };
+    }
+
     const api = {
         PDF_MAX_BYTES,
+        ICON_IMAGE_MAX_OUTPUT_BYTES,
+        validateIconImageDimensions,
+        iconOutputSize,
         PDF_MAX_PAGES,
         CARD_IMAGE_MAX_BYTES,
         CARD_IMAGE_WIDTH,

@@ -145,6 +145,9 @@
             document.getElementById('site-card-file')?.addEventListener('change', (event) => {
                 uploadSiteCardImage(event.target).catch(e => showAdminToast(describeError(e, '画像をアップロードできませんでした。')));
             });
+            document.getElementById('project-icon-file')?.addEventListener('change', (event) => {
+                uploadProjectIcon(event.target).catch(e => showAdminToast(describeError(e, 'アイコンをアップロードできませんでした。')));
+            });
             document.getElementById('pdf-file')?.addEventListener('change', (event) => {
                 const fileName = document.getElementById('pdf-file-name');
                 const name = event.target.files?.[0]?.name || '';
@@ -175,6 +178,7 @@
                 'load-project-members': loadProjectMembers,
                 'clear-answers': clearAnswersAndScoring,
                 'reset-project': resetProject,
+                'delete-project-icon': deleteProjectIcon,
             };
             document.querySelectorAll('[data-action]').forEach((el) => {
                 const eventName = el.matches('input, select, textarea') ? 'change' : 'click';
@@ -332,6 +336,7 @@
                 el.textContent = url;
             });
             setSiteCardLink();
+            refreshProjectIconLink();
         }
 
         function setSiteCardLink(cacheKey = '') {
@@ -343,19 +348,19 @@
             el.textContent = url;
         }
 
-        function setSiteCardFileName(name) {
-            const fileName = document.getElementById('site-card-file-name');
+        function setUploadFileName(id, name) {
+            const fileName = document.getElementById(id);
             if (!fileName) return;
             fileName.textContent = name;
             fileName.classList.toggle('has-file', Boolean(name));
         }
 
-        // 共有時の画像: JPEG/PNG を確かめ、JPEG に再エンコードして(メタデータを落として)上書きする
-        async function uploadSiteCardImage(input) {
+        // 画像のアップロード共通: JPEG/PNG を確かめ、縮めて再エンコードし(メタデータを落とし)、保存する
+        async function uploadImageFromInput(input, options) {
             const file = input?.files?.[0];
             if (!file) return;
             const validation = CIQUploadValidation;
-            setSiteCardFileName(file.name);
+            setUploadFileName(options.fileNameId, file.name);
             let bitmap = null;
             let canvas = null;
             try {
@@ -370,29 +375,31 @@
                     showAdminToast('画像を読み込めませんでした。ファイルを確認してください。');
                     return;
                 }
-                const sizeCheck = validation.validateCardImageDimensions(bitmap.width, bitmap.height);
+                const sizeCheck = options.validateDimensions(bitmap.width, bitmap.height);
                 if (!sizeCheck.ok) {
                     showAdminToast(sizeCheck.message);
                     return;
                 }
-                const out = validation.cardOutputSize(bitmap.width, bitmap.height);
+                const out = options.outputSize(bitmap.width, bitmap.height);
                 canvas = document.createElement('canvas');
                 canvas.width = out.width;
                 canvas.height = out.height;
                 const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, out.width, out.height);
+                if (options.background) {
+                    ctx.fillStyle = options.background;
+                    ctx.fillRect(0, 0, out.width, out.height);
+                }
                 ctx.drawImage(bitmap, 0, 0, out.width, out.height);
                 const blob = await new Promise((resolve, reject) => {
-                    canvas.toBlob(b => (b ? resolve(b) : reject(new Error('画像を変換できませんでした。'))), 'image/jpeg', 0.9);
+                    canvas.toBlob(b => (b ? resolve(b) : reject(new Error('画像を変換できませんでした。'))), options.type, options.quality);
                 });
-                if (blob.size > validation.CARD_IMAGE_MAX_BYTES) {
+                if (blob.size > options.maxBytes) {
                     showAdminToast('変換後の画像が大きすぎます。容量を小さくしてから、もう一度アップロードしてください。');
                     return;
                 }
-                await CIQSupabaseAPI.uploadSiteCardImage(blob);
-                setSiteCardLink(String(Date.now()));
-                showAdminToast('共有時の画像を更新しました。', 'success');
+                await options.upload(blob);
+                options.onDone?.();
+                showAdminToast(options.successMessage, 'success');
             } finally {
                 bitmap?.close?.();
                 if (canvas) {
@@ -400,7 +407,70 @@
                     canvas.height = 0;
                 }
                 input.value = '';
-                setSiteCardFileName('');
+                setUploadFileName(options.fileNameId, '');
+            }
+        }
+
+        // 共有時の画像: 全大会で共通の1枚。JPEG にする(透過は白で埋める)
+        function uploadSiteCardImage(input) {
+            return uploadImageFromInput(input, {
+                fileNameId: 'site-card-file-name',
+                validateDimensions: CIQUploadValidation.validateCardImageDimensions,
+                outputSize: CIQUploadValidation.cardOutputSize,
+                background: '#ffffff',
+                type: 'image/jpeg',
+                quality: 0.9,
+                maxBytes: CIQUploadValidation.CARD_IMAGE_MAX_BYTES,
+                upload: blob => CIQSupabaseAPI.uploadSiteCardImage(blob),
+                onDone: () => setSiteCardLink(String(Date.now())),
+                successMessage: '共有時の画像を更新しました。',
+            });
+        }
+
+        // 大会のアイコン: この大会だけ。PNG にする(透過を残す)
+        function setProjectIconLink(exists, cacheKey = '') {
+            const wrap = document.getElementById('project-icon-current');
+            const el = document.getElementById('project-icon-link');
+            if (!wrap || !el) return;
+            wrap.hidden = !exists;
+            if (!exists) return;
+            const url = CIQSupabaseAPI.getProjectIconUrl(projectId);
+            el.href = cacheKey ? `${url}?t=${encodeURIComponent(cacheKey)}` : url;
+            el.textContent = url;
+        }
+
+        async function refreshProjectIconLink() {
+            try {
+                const res = await fetch(CIQSupabaseAPI.getProjectIconUrl(projectId), { method: 'HEAD', cache: 'no-cache' });
+                setProjectIconLink(res.ok, String(Date.now()));
+            } catch (_) {
+                setProjectIconLink(false);
+            }
+        }
+
+        function uploadProjectIcon(input) {
+            return uploadImageFromInput(input, {
+                fileNameId: 'project-icon-file-name',
+                validateDimensions: CIQUploadValidation.validateIconImageDimensions,
+                outputSize: CIQUploadValidation.iconOutputSize,
+                background: '',
+                type: 'image/png',
+                quality: undefined,
+                maxBytes: CIQUploadValidation.ICON_IMAGE_MAX_OUTPUT_BYTES,
+                upload: blob => CIQSupabaseAPI.uploadProjectIcon(projectId, blob),
+                onDone: () => setProjectIconLink(true, String(Date.now())),
+                successMessage: '大会のアイコンを更新しました。',
+            });
+        }
+
+        async function deleteProjectIcon() {
+            if (!(await showConfirm('大会のアイコンを削除して、CIQ のロゴに戻しますか？'))) return;
+            try {
+                await CIQSupabaseAPI.deleteProjectIcon(projectId);
+                setProjectIconLink(false);
+                showAdminToast('大会のアイコンを削除しました。', 'success');
+            } catch (e) {
+                showAdminToast(describeError(e, 'アイコンを削除できませんでした。'));
             }
         }
 
