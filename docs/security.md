@@ -21,6 +21,8 @@ Participant PII should remain encrypted at rest. Public pages must use sanitized
 
 Answer pages and answer cells are private. Use signed URLs with short lifetimes and avoid caching beyond safe session windows.
 
+The `site-card` bucket is the only public bucket. It holds a single shared link-card image (`card.jpg`, JPEG only, 5 MB). The admin page re-encodes uploads to JPEG in the browser so image metadata is dropped; Storage policies restrict writes to that one path and to active project owners/admins. Never store participant data or answer images there.
+
 ## Regression Checklist
 
 Before merging security-sensitive changes, check CSP, RLS/grants, Storage policies, public flows, and whether any new data path exposes PII, email hashes, disclosure passwords, or answer images.

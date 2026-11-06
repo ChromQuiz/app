@@ -14,7 +14,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.min.js" integrity="sha384-fx4y4cDx8NYfissnVzdGJY3yVXWY3rn5ab5HTUjpvgT35oDiyAbjjqnLhnRmESNE" crossorigin="anonymous"></script>
     <script defer src="js/supabase_config.js?v=3"></script>
     <script defer src="js/supabase_client.js?v=2"></script>
-    <script defer src="js/supabase_api.js?v=69"></script>
+    <script defer src="js/supabase_api.js?v=70"></script>
     <script defer src="js/crypto.js"></script>
     <script defer src="js/icons.js?v=10"></script>
     <script defer src="js/ui.js?v=41"></script>
@@ -232,6 +232,21 @@
                             <div class="link-row"><span class="link-label">エントリーリスト</span><a id="entry-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="entry-link" title="コピー" aria-label="エントリーリストのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn secondary icon-btn link-btn-sm" data-open-link="entry-link" title="開く" aria-label="エントリーリストを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
                             <div class="link-row"><span class="link-label">マイエントリー</span><a id="my-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="my-link" title="コピー" aria-label="マイエントリーのリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn secondary icon-btn link-btn-sm" data-open-link="my-link" title="開く" aria-label="マイエントリーを開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
                             <div class="link-row"><span class="link-label">参加規約</span><a id="terms-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-copy-link="terms-link" title="コピー" aria-label="参加規約のリンクをコピー"><span data-icon="copy" aria-hidden="true"></span></button><button class="btn secondary icon-btn link-btn-sm" data-open-link="terms-link" title="開く" aria-label="参加規約を開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
+                        </div>
+                    </div>
+
+                    <div class="phase-block">
+                        <h2>共有時の画像</h2>
+                        <div class="file-upload-zone" data-file-trigger="site-card-file">
+                            <span data-icon="cloud-arrow-up" aria-hidden="true"></span>
+                            <div class="file-label">画像をアップロード</div>
+                            <div class="file-name" id="site-card-file-name"></div>
+                            <input type="file" id="site-card-file" accept="image/jpeg,image/png" aria-label="共有時の画像ファイル" />
+                        </div>
+                        <div class="hint">X などでリンクを共有したときに表示される画像です。サイズは 1200×630ピクセル、形式は JPEG または PNG、容量は 5 MB 以下にしてください。</div>
+                        <div class="hint">画像は全大会で共通の1枚です。アップロードすると、ほかの大会のリンクの画像も置き換わります。</div>
+                        <div class="public-links mt-md">
+                            <div class="link-row"><span class="link-label">現在の画像</span><a id="site-card-link" href="#" target="_blank" hidden></a><button class="btn secondary icon-btn link-btn-sm" data-open-link="site-card-link" title="開く" aria-label="現在の共有時の画像を開く"><span data-icon="arrow-up-right-from-square" aria-hidden="true"></span></button></div>
                         </div>
                     </div>
 
@@ -720,8 +735,8 @@
         </div>
     </div>
 
-    <script defer src="js/admin.js?v=69"></script>
-    <script defer src="js/upload_validation.js?v=5"></script>
+    <script defer src="js/admin.js?v=70"></script>
+    <script defer src="js/upload_validation.js?v=6"></script>
     <script defer src="js/admin_scan.js?v=26"></script>
     <script defer src="js/admin_stats.js?v=29"></script>
     <script defer src="js/admin_graded_pdf.js?v=15"></script>

@@ -131,13 +131,80 @@
         return { ok: true };
     }
 
+    // 共有時の画像(リンクカード)。X の大きいカードは 1.91:1。
+    const CARD_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+    const CARD_IMAGE_WIDTH = 1200;
+    const CARD_IMAGE_HEIGHT = 630;
+    const CARD_IMAGE_MIN_WIDTH = 600;
+    const CARD_IMAGE_MIN_HEIGHT = 315;
+    const CARD_IMAGE_RATIO = CARD_IMAGE_WIDTH / CARD_IMAGE_HEIGHT;
+    const CARD_IMAGE_RATIO_TOLERANCE = 0.05;
+    const CARD_SIZE_TEXT = `${CARD_IMAGE_WIDTH}×${CARD_IMAGE_HEIGHT}ピクセル`;
+
+    function detectImageType(bytes) {
+        if (!bytes || bytes.length < 8) return '';
+        if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return 'image/jpeg';
+        const png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+        if (png.every((b, i) => bytes[i] === b)) return 'image/png';
+        return '';
+    }
+
+    async function validateCardImageFile(file) {
+        if (!file) return { ok: false, message: '画像ファイルを選択してください。' };
+        if (file.size <= 0) return { ok: false, message: '空のファイルは読み込めません。' };
+        if (file.size > CARD_IMAGE_MAX_BYTES) {
+            return {
+                ok: false,
+                message: `画像が ${formatBytes(file.size)} あり、大きすぎます。${formatBytes(CARD_IMAGE_MAX_BYTES)}以下にしてください。`,
+            };
+        }
+        const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+        if (!detectImageType(header)) {
+            return { ok: false, message: 'JPEG または PNG の画像のみ読み込めます。' };
+        }
+        return { ok: true };
+    }
+
+    function validateCardImageDimensions(width, height) {
+        if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+            return { ok: false, message: '画像を読み込めませんでした。ファイルを確認してください。' };
+        }
+        if (width < CARD_IMAGE_MIN_WIDTH || height < CARD_IMAGE_MIN_HEIGHT) {
+            return {
+                ok: false,
+                message: `画像が ${width}×${height}ピクセルで、小さすぎます。${CARD_SIZE_TEXT}で作成してください。`,
+            };
+        }
+        const ratio = width / height;
+        if (Math.abs(ratio - CARD_IMAGE_RATIO) / CARD_IMAGE_RATIO > CARD_IMAGE_RATIO_TOLERANCE) {
+            return {
+                ok: false,
+                message: `画像が ${width}×${height}ピクセルで、縦横の比率が合いません。${CARD_SIZE_TEXT}で作成してください。`,
+            };
+        }
+        return { ok: true };
+    }
+
+    // 大きい画像は横 1200 ピクセルに縮める。小さい画像は拡大しない。
+    function cardOutputSize(width, height) {
+        if (width <= CARD_IMAGE_WIDTH) return { width, height };
+        return { width: CARD_IMAGE_WIDTH, height: Math.round(height * CARD_IMAGE_WIDTH / width) };
+    }
+
     const api = {
         PDF_MAX_BYTES,
         PDF_MAX_PAGES,
+        CARD_IMAGE_MAX_BYTES,
+        CARD_IMAGE_WIDTH,
+        CARD_IMAGE_HEIGHT,
         formatBytes,
         validatePdfFile,
         validatePdfPageCount,
         validateDetectedEntryNumbers,
+        detectImageType,
+        validateCardImageFile,
+        validateCardImageDimensions,
+        cardOutputSize,
     };
 
     root.CIQUploadValidation = api;

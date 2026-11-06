@@ -256,6 +256,8 @@ describe('production UI contracts', () => {
   });
 
   it('uses the provided PNG favicon and removes the legacy OG image asset', () => {
+    // og:image は、管理画面から差し替える共通の1枚(site-card バケット)だけを指す。旧 og-image.png は使わない。
+    const siteCardImage = 'https://chxuitjfanbagbzwpjyi.supabase.co/storage/v1/object/public/site-card/card.jpg';
     expect(existsSync(resolve(ROOT, 'favicon.png'))).toBe(true);
     expect(existsSync(resolve(ROOT, 'favicon.svg'))).toBe(false);
     expect(existsSync(resolve(ROOT, 'og-image.png'))).toBe(false);
@@ -267,7 +269,10 @@ describe('production UI contracts', () => {
       const href = path === '404.html' ? '/app/favicon.png?v=4' : 'favicon.png?v=4';
       expect(source, `${path}: png favicon`).toContain(`rel="icon" type="image/png" href="${href}"`);
       expect(source, `${path}: svg favicon`).not.toContain('favicon.svg');
-      expect(source, `${path}: og-image`).not.toMatch(/og:image|og-image\.png/);
+      expect(source, `${path}: og-image`).not.toMatch(/og-image\.png/);
+      for (const m of source.matchAll(/property="og:image" content="([^"]*)"/g)) {
+        expect(m[1], `${path}: og:image`).toBe(siteCardImage);
+      }
     }
   });
 });
