@@ -61,9 +61,37 @@ describe('IDX-08 採点者向けの案内', () => {
 describe('Google ログイン', () => {
   it('毎回アカウントの選択を出す（ログアウト後に前のアカウントへ自動で入らない）', () => {
     const api = read('js/supabase_api.js');
-    const body = api.slice(api.indexOf('async signInWithGoogle()'), api.indexOf('async signOut()'));
+    const body = api.slice(api.indexOf('async signInWithGoogle('), api.indexOf('async signOut()'));
     expect(body).toMatch(/queryParams: \{ prompt: 'select_account' \}/);
     expect(body).toMatch(/provider: 'google'/);
+  });
+
+  // 招待リンクから未ログインで入ったとき、ログイン画面ではなく join.html に戻って参加を続ける
+  describe('戻り先', () => {
+    const api = read('js/supabase_api.js');
+    const start = api.indexOf('async signInWithGoogle(');
+    const method = api.slice(start, api.indexOf('async signOut()')).trim().replace(/,\s*$/, '');
+    const redirectFor = async (...args) => {
+      let options;
+      const location = { protocol: 'https:', origin: 'https://example.github.io' };
+      const obj = new Function('location', `return { ${method} };`)(location);
+      obj.client = () => ({ auth: { signInWithOAuth: async (o) => { options = o.options; return {}; } } });
+      await obj.signInWithGoogle(...args);
+      return options.redirectTo;
+    };
+
+    it('既定はログイン画面(/app/)', async () => {
+      expect(await redirectFor()).toBe('https://example.github.io/app/');
+    });
+
+    it('招待リンクからは join.html に戻る', async () => {
+      expect(await redirectFor('join.html')).toBe('https://example.github.io/app/join.html');
+    });
+
+    it('許可していないページや外部の URL には戻さない', async () => {
+      expect(await redirectFor('admin.html')).toBe('https://example.github.io/app/');
+      expect(await redirectFor('https://evil.example/')).toBe('https://example.github.io/app/');
+    });
   });
 });
 

@@ -271,11 +271,16 @@ const CIQSupabaseAPI = {
         return this.client().auth.onAuthStateChange((_event, session) => callback(session));
     },
 
-    async signInWithGoogle() {
+    // returnPage: Google から戻ったあとに開くページ。既定はログイン画面(/app/)。
+    // 招待リンク(join.html)のように、戻り先で続きの処理があるページだけを許可する。
+    async signInWithGoogle(returnPage = '') {
+        const RETURN_PAGES = ['join.html'];
         let redirectTo;
         if (location.protocol !== 'file:') {
             const redirectUrl = new URL('/app/', location.origin);
-            redirectTo = redirectUrl.href;
+            redirectTo = RETURN_PAGES.includes(returnPage)
+                ? new URL(returnPage, redirectUrl).href
+                : redirectUrl.href;
         }
         // ログアウトしても Google 側のログイン状態は残る。毎回アカウントを選ばせないと、
         // 前に使ったアカウントに自動で入ってしまう（複数のアカウントを使い分ける運営・採点者のため）。
