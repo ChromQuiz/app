@@ -1387,3 +1387,17 @@ Evidence: 公開 URL（/storage/v1/object/public/project-icon/<pid>/icon.png）�
   - 参加者向けページ（entry / entry_list / my / terms）は js/project_icon.js で取りに行き、data: URL にしてタブのアイコンにする。CSP は変えていない
 Rollback: 4ページの project_icon.js の読み込みを外せば、CIQ のロゴに戻る。バケットを閉じるなら
           `update storage.buckets set public = false where id = 'project-icon';`、ポリシーは project_icon_storage_* の4つを drop。
+
+## 大会の削除（2026-11-24・親計画外）
+
+Status  : 未適用（202611240001_delete_project.sql ＋ Edge Function delete-project のデプロイ待ち）
+Evidence: 自動テスト（tests/delete_project.test.mjs）で、未ログイン 401・採点者／外された人／別の大会のメンバー 403・確認IDの不一致 400・
+          他の大会のファイルは消えない・Storage の失敗時はデータベースを触らない、を確認。本番での実行は未確認。
+  - 権限: Edge Function が、その大会の有効な所有者・管理者を確かめる（requireAdminMember）。データベースの `delete_project_data(text, uuid)` は
+    service_role だけが実行でき、SQL でも同じ権限を確かめ直す。ブラウザから直接は呼べない
+  - 消える範囲: projects の行（子の表はすべて on delete cascade）＋ Storage の answer-pages / answer-cells / project-icon の `<project_id>/`。
+    答案のバケットは非公開のまま
+  - 監査: project_id = null の行（action `project_deleted`、target_id = 大会ID、actor_user_id）。大会の行ごと消える通常の監査ログとは別に残す
+Rollback: 取り消せない操作のため、データの巻き戻しはできない。機能を止めるなら delete-project を削除（または関数 `delete_project_data` の
+          service_role への grant を revoke）、画面は admin.html の delete-project ボタンを外す。
+Deploy  : マイグレーション適用 → delete-project を `--no-verify-jwt` でデプロイ → フロント。

@@ -28,4 +28,5 @@ When changing database access, verify:
 - anonymous public pages can only read intended public data
 - scorers cannot read sensitive participant fields
 - only owner/admin can upload, replace, delete, or reset answer data
+- project deletion runs only through the `delete-project` Edge Function; `delete_project_data` is granted to `service_role` only, and child tables cascade from `projects`
 - participant flows work through Edge Functions, not direct privileged table access

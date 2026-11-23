@@ -178,6 +178,7 @@
                 'load-project-members': loadProjectMembers,
                 'clear-answers': clearAnswersAndScoring,
                 'reset-project': resetProject,
+                'delete-project': deleteProject,
                 'delete-project-icon': deleteProjectIcon,
             };
             document.querySelectorAll('[data-action]').forEach((el) => {

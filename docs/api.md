@@ -12,7 +12,7 @@ CIQ does not have a custom Node API server. Browser code talks to Supabase throu
 - answer page and answer cell storage
 - model answers
 - scoring votes and final results
-- project reset and check-in flows
+- project reset, project deletion (`deleteProject` → Edge Function `delete-project`), and check-in flows
 
 Prefer adding new Supabase access there instead of scattering raw client calls across page scripts.
 

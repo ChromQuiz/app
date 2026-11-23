@@ -1762,6 +1762,31 @@
             }
         }
 
+        async function deleteProject() {
+            if (!(await showConfirm(
+                'この大会を削除しますか？\n\n' +
+                '大会の設定、メンバー、エントリー、答案（画像も）、模範解答、採点結果、タブのアイコンが、すべて消えます。\n' +
+                '消した大会は元に戻せません。必要なデータは、先に書き出してください。',
+                '削除する'
+            ))) return;
+
+            if (!(await showConfirm(
+                `大会「${projectId}」を本当に削除しますか？\nこの大会のURLは使えなくなります。`,
+                '削除を確定'
+            ))) return;
+
+            try {
+                showAdminToast('大会を削除しています…', 'info', 10000);
+                await CIQSupabaseAPI.deleteProject(projectId);
+                session.clear();
+                showAdminToast('大会を削除しました。', 'success', 3000);
+                setTimeout(() => { location.href = 'index.html'; }, 2000);
+            } catch (e) {
+                console.error('大会の削除エラー:', e);
+                showAdminToast('大会を削除できませんでした。（詳細：' + errorDetail(e) + '）', 'error');
+            }
+        }
+
         document.getElementById('admin-entry-form')?.addEventListener('submit', submitAdminEntryForm);
         document.getElementById('admin-entry-email')?.addEventListener('change', (event) => {
             event.target.value = normalizeEmailInput(event.target.value);

@@ -10,6 +10,7 @@ A detailed, checkable inventory of every feature (conditions, expected behavior,
 - Waitlist promotion handling.
 - Terms and participant email notification settings.
 - Project reset.
+- Project deletion (owner/admin only; removes database rows and Storage files).
 
 ## Participant Flow
 

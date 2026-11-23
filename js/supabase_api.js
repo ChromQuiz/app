@@ -1799,6 +1799,14 @@ const CIQSupabaseAPI = {
         if (error) throw error;
         return data;
     },
+
+    // 大会そのものを消す(取り消せない)。権限の確認と Storage・データベースの削除は、サーバー(delete-project)が行う。
+    async deleteProject(projectId) {
+        this.invalidateProjectAnswerCache(projectId);
+        const data = await this.invokeAuthedFunction('delete-project', { projectId, confirmProjectId: projectId });
+        if (!data?.ok) throw new Error(data?.error || '大会を削除できませんでした。');
+        return data;
+    },
 };
 
 window.CIQSupabaseAPI = CIQSupabaseAPI;
