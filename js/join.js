@@ -1,6 +1,6 @@
 // join.js — 採点者招待リンクの引き換え画面（AB-1）。
 //
-// 流れ: 招待URL(join.html?t=TOKEN) を開く → 未ログインなら Google ログイン → 参加 → 採点画面へ。
+// 流れ: 招待URL(join.html?t=TOKEN) を開く → 未ログインなら Google ログイン(join.html に戻る) → 参加 → 採点画面へ。
 // トークンの正当性・有効期限・使用上限はすべてサーバ(redeem-scorer-invite)で判定する。
 // クライアントは結果を表示するだけで、判定に関与しない。
 //
@@ -80,7 +80,8 @@
         el('join-signin-btn')?.addEventListener('click', async () => {
             setSigninBusy(true);
             try {
-                await CIQSupabaseAPI.signInWithGoogle();
+                // 戻り先を join.html にして、保存したトークンでそのまま参加まで進める。
+                await CIQSupabaseAPI.signInWithGoogle('join.html');
             } catch (e) {
                 setSigninBusy(false);
                 setStatus('Googleログインを開始できませんでした。時間をおいてもう一度お試しください。' + `（詳細：${errorDetail(e)}）`, 'error');
