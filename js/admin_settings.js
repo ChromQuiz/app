@@ -1723,7 +1723,8 @@
                 '読み込んだ答案と、採点（採点の枠・各採点者の判定・確定結果・履歴）を、すべて消しますか？\n\n' +
                 'エントリーと模範解答は残ります。この操作は取り消せません。\n' +
                 '消したあとは、問題数などを変えて、答案を読み込み直せます。',
-                '答案と採点を消す'
+                '答案と採点を消す',
+                { requireText: projectId }
             ))) return;
             try {
                 showAdminToast('答案と採点を消しています…', 'info', 10000);
@@ -1747,7 +1748,8 @@
             // 2段階確認
             if (!(await showConfirm(
                 `大会「${projectId}」を本当にリセットしますか？\nすべてのエントリー・答案・模範解答・採点結果が失われます。`,
-                'リセットを確定'
+                'リセットを確定',
+                { requireText: projectId }
             ))) return;
 
             try {
@@ -1759,6 +1761,32 @@
             } catch (e) {
                 console.error('リセットエラー:', e);
                 showAdminToast('リセットできませんでした。（詳細：' + errorDetail(e) + '）', 'error');
+            }
+        }
+
+        async function deleteProject() {
+            if (!(await showConfirm(
+                'この大会を削除しますか？\n\n' +
+                '大会の設定、メンバー、エントリー、答案（画像も）、模範解答、採点結果、タブのアイコンが、すべて消えます。\n' +
+                '消した大会は元に戻せません。必要なデータは、先に書き出してください。',
+                '削除する'
+            ))) return;
+
+            if (!(await showConfirm(
+                `大会「${projectId}」を本当に削除しますか？\nこの大会のURLは使えなくなります。`,
+                '削除を確定',
+                { requireText: projectId }
+            ))) return;
+
+            try {
+                showAdminToast('大会を削除しています…', 'info', 10000);
+                await CIQSupabaseAPI.deleteProject(projectId);
+                session.clear();
+                showAdminToast('大会を削除しました。', 'success', 3000);
+                setTimeout(() => { location.href = 'index.html'; }, 2000);
+            } catch (e) {
+                console.error('大会の削除エラー:', e);
+                showAdminToast('大会を削除できませんでした。（詳細：' + errorDetail(e) + '）', 'error');
             }
         }
 
