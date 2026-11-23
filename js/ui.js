@@ -665,7 +665,15 @@ function clearPageMessage(el) {
 
 let confirmDialogSequence = 0;
 
-function showConfirm(message, confirmText = '削除する') {
+// 入力式の確認: 前後の空白は無視し、それ以外は一字一句同じときだけ true
+function confirmTextMatches(input, expected) {
+    const want = String(expected ?? '');
+    return want !== '' && String(input ?? '').trim() === want;
+}
+
+// options.requireText を渡すと、同じ文字を入力するまで確定ボタンが押せない(取り消せない操作用)。
+function showConfirm(message, confirmText = '削除する', options = {}) {
+    const requireText = options && options.requireText ? String(options.requireText) : '';
     return new Promise(resolve => {
         const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         const wasScrollLocked = document.body.classList.contains('body-scroll-locked');
@@ -701,7 +709,26 @@ function showConfirm(message, confirmText = '削除する') {
         okBtn.className = 'btn danger confirm-ok';
         okBtn.textContent = String(confirmText || '削除する');
         actions.append(cancelBtn, okBtn);
-        dialog.append(icon, titleEl, messageEl, actions);
+        if (requireText) {
+            const prompt = document.createElement('label');
+            prompt.className = 'confirm-input-label';
+            prompt.append('確認のため、次を入力してください: ');
+            const code = document.createElement('strong');
+            code.textContent = requireText;
+            prompt.appendChild(code);
+            const typed = document.createElement('input');
+            typed.type = 'text';
+            typed.className = 'confirm-input';
+            typed.autocomplete = 'off';
+            typed.spellcheck = false;
+            typed.setAttribute('aria-label', `確認のため「${requireText}」と入力`);
+            okBtn.disabled = true;
+            typed.addEventListener('input', () => { okBtn.disabled = !confirmTextMatches(typed.value, requireText); });
+            prompt.appendChild(typed);
+            dialog.append(icon, titleEl, messageEl, prompt, actions);
+        } else {
+            dialog.append(icon, titleEl, messageEl, actions);
+        }
         overlay.appendChild(dialog);
 
         let settled = false;
@@ -726,7 +753,7 @@ function showConfirm(message, confirmText = '削除する') {
         };
 
         cancelBtn.addEventListener('click', () => finish(false));
-        okBtn.addEventListener('click', () => finish(true));
+        okBtn.addEventListener('click', () => { if (!okBtn.disabled) finish(true); });
         overlay.addEventListener('click', e => { if (e.target === overlay) finish(false); });
         dialog.addEventListener('keydown', onKeydown);
         document.body.appendChild(overlay);

@@ -1723,7 +1723,8 @@
                 '読み込んだ答案と、採点（採点の枠・各採点者の判定・確定結果・履歴）を、すべて消しますか？\n\n' +
                 'エントリーと模範解答は残ります。この操作は取り消せません。\n' +
                 '消したあとは、問題数などを変えて、答案を読み込み直せます。',
-                '答案と採点を消す'
+                '答案と採点を消す',
+                { requireText: projectId }
             ))) return;
             try {
                 showAdminToast('答案と採点を消しています…', 'info', 10000);
@@ -1747,7 +1748,8 @@
             // 2段階確認
             if (!(await showConfirm(
                 `大会「${projectId}」を本当にリセットしますか？\nすべてのエントリー・答案・模範解答・採点結果が失われます。`,
-                'リセットを確定'
+                'リセットを確定',
+                { requireText: projectId }
             ))) return;
 
             try {
@@ -1772,7 +1774,8 @@
 
             if (!(await showConfirm(
                 `大会「${projectId}」を本当に削除しますか？\nこの大会のURLは使えなくなります。`,
-                '削除を確定'
+                '削除を確定',
+                { requireText: projectId }
             ))) return;
 
             try {

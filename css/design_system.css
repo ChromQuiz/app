@@ -3435,6 +3435,23 @@ body:has(.offline-banner.visible, .online-banner.visible) .toast-container {
   margin-bottom: var(--sp-3);
 }
 
+.confirm-input-label {
+  display: block;
+  font-size: var(--text-small);
+  color: var(--ink-2);
+  margin-bottom: var(--sp-2);
+}
+
+.confirm-input-label strong {
+  word-break: break-all;
+}
+
+.confirm-input {
+  display: block;
+  width: 100%;
+  margin-top: var(--sp-2);
+}
+
 .confirm-body {
   font-size: var(--text-small);
   color: var(--ink-2);

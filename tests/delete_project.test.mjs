@@ -138,3 +138,25 @@ describe('delete_project_data(migration)', () => {
     expect(sql).toMatch(/values \(null, p_actor_user_id, 'staff', 'project_deleted', 'projects', p_project_id\)/);
   });
 });
+
+describe('入力式の確認(js/ui.js)', () => {
+  const src = readFileSync(resolve(import.meta.dirname, '../js/ui.js'), 'utf8');
+  const fn = src.match(/function confirmTextMatches\(input, expected\) \{[\s\S]*?\n\}/)[0];
+  const matches = new Function(`${fn}; return confirmTextMatches;`)();
+
+  it('同じ文字だけを通す(前後の空白は無視、大文字小文字は区別、空の期待値は通さない)', () => {
+    expect(matches('ciq9', 'ciq9')).toBe(true);
+    expect(matches('  ciq9 ', 'ciq9')).toBe(true);
+    expect(matches('CIQ9', 'ciq9')).toBe(false);
+    expect(matches('ciq', 'ciq9')).toBe(false);
+    expect(matches('', '')).toBe(false);
+    expect(matches('x', undefined)).toBe(false);
+  });
+
+  it('3つの危険な操作が、大会IDの入力を求める', () => {
+    const settings = readFileSync(resolve(import.meta.dirname, '../js/admin_settings.js'), 'utf8');
+    for (const label of ["'答案と採点を消す'", "'リセットを確定'", "'削除を確定'"]) {
+      expect(settings).toContain(`${label},\n                { requireText: projectId }`);
+    }
+  });
+});
